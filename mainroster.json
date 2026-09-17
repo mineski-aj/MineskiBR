@@ -1,0 +1,206 @@
+{
+  "talents": [
+    "Odin",
+    "Thea",
+    "Denisse",
+    "Naisou",
+    "Athena",
+    "Hans",
+    "Renmar",
+    "Uomi",
+    "Santie",
+    "Rockhart",
+    "Brigida",
+    "Midnight",
+    "Qwerty",
+    "Leo",
+    "Joshycakes",
+    "Wolf",
+    "Burrito"
+  ],
+  "seatOrder": {
+    "EXP LANER": 1,
+    "JUNGLER": 2,
+    "MID LANER": 3,
+    "ROAMER": 4,
+    "GOLD LANER": 5
+  },
+  "teams": {
+    "20001": {
+      "name": "WEBMASTERS ESPORTS",
+      "tag": "WE",
+      "region": "VISAYAS"
+    },
+    "20002": {
+      "name": "NU Bulldogs Esports",
+      "tag": "NU-B",
+      "region": "LUZON"
+    },
+    "20003": {
+      "name": "LOVE - READING BOOKS",
+      "tag": "LRB",
+      "region": "LUZON"
+    },
+    "20004": {
+      "name": "MDM",
+      "tag": "MDM",
+      "region": "MINDANAO"
+    }
+  },
+  "players": {
+    "990000001": {
+      "ign": "Digger",
+      "name": "Josh Nathaniel S. Salinas",
+      "tag": "WE",
+      "teamId": 20001,
+      "role": "ROAMER"
+    },
+    "990000002": {
+      "ign": "Gasai",
+      "name": "Kent Lorenz Cabiles",
+      "tag": "WE",
+      "teamId": 20001,
+      "role": "MID LANER"
+    },
+    "990000003": {
+      "ign": "SOREN GOD",
+      "name": "John Franz V. Caminse",
+      "tag": "WE",
+      "teamId": 20001,
+      "role": "JUNGLER"
+    },
+    "990000004": {
+      "ign": "Fritzz",
+      "name": "Fritz Dale L. Sanchez",
+      "tag": "WE",
+      "teamId": 20001,
+      "role": "GOLD LANER"
+    },
+    "990000005": {
+      "ign": "Chureezo",
+      "name": "Don Oliver Valentine P. Nemenzo",
+      "tag": "WE",
+      "teamId": 20001,
+      "role": "EXP LANER"
+    },
+    "990000006": {
+      "ign": "DAVEDY",
+      "name": "John Dave L. Retuya",
+      "tag": "WE",
+      "teamId": 20001,
+      "role": "ROAMER"
+    },
+    "990000007": {
+      "ign": "BANGSAL",
+      "name": "Rendell G. Bangsal",
+      "tag": "NU-B",
+      "teamId": 20002,
+      "role": "EXP LANER"
+    },
+    "990000008": {
+      "ign": "PACULAN",
+      "name": "Josh Prince T. Paculan",
+      "tag": "NU-B",
+      "teamId": 20002,
+      "role": "ROAMER"
+    },
+    "990000009": {
+      "ign": "BLAS",
+      "name": "Harold James R. Blas",
+      "tag": "NU-B",
+      "teamId": 20002,
+      "role": "MID LANER"
+    },
+    "990000010": {
+      "ign": "HERRERO",
+      "name": "Kirk Clement Dave L. Herrero",
+      "tag": "NU-B",
+      "teamId": 20002,
+      "role": "GOLD LANER"
+    },
+    "990000011": {
+      "ign": "ESTACIO",
+      "name": "Johann Deondrei H. Estacio",
+      "tag": "NU-B",
+      "teamId": 20002,
+      "role": "JUNGLER"
+    },
+    "990000012": {
+      "ign": "ALVARADO",
+      "name": "Angelo M. Alvarado",
+      "tag": "NU-B",
+      "teamId": 20002,
+      "role": "ROAMER"
+    },
+    "990000013": {
+      "ign": "YU NO",
+      "name": "Christian James Dizon",
+      "tag": "LRB",
+      "teamId": 20003,
+      "role": "GOLD LANER"
+    },
+    "990000014": {
+      "ign": "cold",
+      "name": "Ginoben Valenton",
+      "tag": "LRB",
+      "teamId": 20003,
+      "role": "JUNGLER"
+    },
+    "990000015": {
+      "ign": "heyhaye",
+      "name": "Jehiel Paradina",
+      "tag": "LRB",
+      "teamId": 20003,
+      "role": "MID LANER"
+    },
+    "990000016": {
+      "ign": "natz",
+      "name": "Nathaniel Rey Abella",
+      "tag": "LRB",
+      "teamId": 20003,
+      "role": "ROAMER"
+    },
+    "990000017": {
+      "ign": "siwa123",
+      "name": "Czean Anthony Andajao",
+      "tag": "LRB",
+      "teamId": 20003,
+      "role": "EXP LANER"
+    },
+    "990000018": {
+      "ign": "DEKS",
+      "name": "Robert Johndex Lubguban",
+      "tag": "MDM",
+      "teamId": 20004,
+      "role": "ROAMER"
+    },
+    "990000019": {
+      "ign": "Nyxsie",
+      "name": "Klent Albert Guidaven",
+      "tag": "MDM",
+      "teamId": 20004,
+      "role": "MID LANER"
+    },
+    "990000020": {
+      "ign": "Hysterax",
+      "name": "Dylan Shenn Mabayambang",
+      "tag": "MDM",
+      "teamId": 20004,
+      "role": "JUNGLER"
+    },
+    "990000021": {
+      "ign": "KIRR",
+      "name": "John Vincent Chan",
+      "tag": "MDM",
+      "teamId": 20004,
+      "role": "GOLD LANER"
+    },
+    "990000022": {
+      "ign": "Toshiro",
+      "name": "Jemar Romagos",
+      "tag": "MDM",
+      "teamId": 20004,
+      "role": "EXP LANER"
+    }
+  }
+}
