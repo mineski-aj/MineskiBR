@@ -307,21 +307,6 @@ router.post('/api/game-url', (req, res) => {
   res.json({ ok: true, url });
 });
 
-// Standings API base URL — GET to read, POST { url } to update. Read fresh
-// on every tick by lib/pollers.js's pollStandings(), same as GAME_URL_FILE.
-const STANDINGS_URL_FILE    = path.join(__dirname, '..', 'standings_api_url.json');
-const STANDINGS_API_DEFAULT = 'http://10.88.120.60:5001/api/standing/';
-
-router.get('/api/standings-url', (req, res) => {
-  res.json({ url: readUrlForMode(STANDINGS_URL_FILE, STANDINGS_API_DEFAULT) });
-});
-
-router.post('/api/standings-url', (req, res) => {
-  const url = ((req.body || {}).url || '').trim();
-  writeUrlForMode(STANDINGS_URL_FILE, url);
-  res.json({ ok: true, url });
-});
-
 // Player photo manifest — returns available filenames per pose for client-side lookup
 const PHOTOS_DIR = path.join(__dirname, '..', 'photos');
 
@@ -418,10 +403,11 @@ router.get('/api/gamedata-proxy', async (req, res) => {
   if (state.lastGameData && req.query.fresh !== '1') {
     return res.set('Cache-Control', 'no-store').json(raw ? state.lastGameDataRaw : state.lastGameData);
   }
+  if (!state.apiEnabled.game) return res.status(503).json({ error: 'Game API disabled' });
   try {
     const gameUrl = readUrlForMode(GAME_URL_FILE, '').trim();
     if (!gameUrl) return res.status(404).json({ error: 'no game URL configured' });
-    // Same reasoning as /api/postinfo-proxy / /api/lineuprate-data below —
+    // Same reasoning as /api/postinfo-proxy / /api/hexagon-data below —
     // an unreachable upstream would otherwise hang this request (and every
     // caller waiting on it — including the dashboard's own MVP player
     // picker) indefinitely, piling up hung browser connections to this
@@ -462,10 +448,11 @@ router.get('/api/postinfo-proxy', async (req, res) => {
   if (state.lastPostInfoData) {
     return res.set('Cache-Control', 'no-store').json(raw ? state.lastPostInfoDataRaw : state.lastPostInfoData);
   }
+  if (!state.apiEnabled.postinfo) return res.status(503).json({ error: 'Post-Info API disabled' });
   try {
     const url = readUrlForMode(POST_INFO_URL_FILE, POST_INFO_URL_DEFAULT).trim();
     if (!url) return res.status(404).json({ error: 'no post-info URL configured' });
-    // Same reasoning as /api/lineuprate-data below — an unreachable upstream
+    // Same reasoning as /api/hexagon-data below — an unreachable upstream
     // (e.g. the game-client PC off the network) would otherwise hang this
     // request indefinitely. Fullscreen.html's middleboard polls this every 3s
     // whenever visible, uncached, with no dedup across tabs, so a hung
@@ -547,10 +534,10 @@ router.post('/api/hexagon-url', (req, res) => {
 
 // Server-side proxy — fetches the Team Head to Head API and returns JSON, avoids browser CORS issues
 router.get('/api/hexagon-data', async (req, res) => {
+  if (!state.apiEnabled.hexagon) return res.status(503).json({ error: 'Team Head to Head API disabled' });
   try {
     const url = readUrlForMode(HEXAGON_URL_FILE, HEXAGON_URL_DEFAULT).trim();
-    // Same reasoning as /api/lineuprate-data below — fail fast instead of
-    // hanging indefinitely on an unreachable upstream.
+    // Fail fast instead of hanging indefinitely on an unreachable upstream.
     const r = await fetch(url, { signal: AbortSignal.timeout(5000) });
     if (!r.ok) return res.status(502).json({ error: `upstream ${r.status}` });
     const data = await r.json();
@@ -576,10 +563,10 @@ router.post('/api/highlights-url', (req, res) => {
 
 // Server-side proxy — fetches the MVP Highlights API and returns JSON, avoids browser CORS issues
 router.get('/api/highlights-data', async (req, res) => {
+  if (!state.apiEnabled.highlights) return res.status(503).json({ error: 'MVP Highlights API disabled' });
   try {
     const url = readUrlForMode(HIGHLIGHTS_URL_FILE, HIGHLIGHTS_URL_DEFAULT).trim();
-    // Same reasoning as /api/lineuprate-data below — fail fast instead of
-    // hanging indefinitely on an unreachable upstream.
+    // Fail fast instead of hanging indefinitely on an unreachable upstream.
     const r = await fetch(url, { signal: AbortSignal.timeout(5000) });
     if (!r.ok) return res.status(502).json({ error: `upstream ${r.status}` });
     const data = await r.json();
@@ -587,69 +574,6 @@ router.get('/api/highlights-data', async (req, res) => {
   } catch (e) {
     res.status(502).json({ error: e.message });
   }
-});
-
-// Draft Index (Line-Up Rate) API base URL — GET to read, POST { url } to update
-const LINEUPRATE_URL_FILE    = path.join(__dirname, '..', 'lineuprate_api_url.json');
-const LINEUPRATE_URL_DEFAULT = 'https://theapi.dpdns.org/api/line-up-rate/';
-
-router.get('/api/lineuprate-url', (req, res) => {
-  res.json({ url: readUrlForMode(LINEUPRATE_URL_FILE, LINEUPRATE_URL_DEFAULT) });
-});
-
-router.post('/api/lineuprate-url', (req, res) => {
-  const url = ((req.body || {}).url || '').trim();
-  writeUrlForMode(LINEUPRATE_URL_FILE, url);
-  res.json({ ok: true, url });
-});
-
-// Server-side proxy — fetches the Draft Index (Line-Up Rate) API and returns JSON, avoids browser CORS issues
-router.get('/api/lineuprate-data', async (req, res) => {
-  try {
-    const url = readUrlForMode(LINEUPRATE_URL_FILE, LINEUPRATE_URL_DEFAULT).trim();
-    // Upstream has hung/errored for extended periods before (Cloudflare 530s
-    // seen against theapi.dpdns.org) — a plain fetch() with no timeout would
-    // leave this request (and every client awaiting it, e.g. DraftIndex.html's
-    // Phase 2 reveal) hanging indefinitely instead of failing fast.
-    const r = await fetch(url, { signal: AbortSignal.timeout(5000) });
-    if (!r.ok) return res.status(502).json({ error: `upstream ${r.status}` });
-    const data = await r.json();
-    res.set('Cache-Control', 'no-store').json(data);
-  } catch (e) {
-    res.status(502).json({ error: e.message });
-  }
-});
-
-// Draft (pick/ban) API base URL — GET to read, POST { url } to update.
-// Separate from /api/game-url: Draft.html polls this dedicated endpoint
-// (draft-info-only format) instead of the general game-data feed.
-const DRAFT_URL_FILE    = path.join(__dirname, '..', 'draft_api_url.json');
-const DRAFT_URL_DEFAULT = 'https://theapi.dpdns.org/sql/draft-info-only/';
-
-router.get('/api/draft-url', (req, res) => {
-  res.json({ url: readUrlForMode(DRAFT_URL_FILE, DRAFT_URL_DEFAULT) });
-});
-
-router.post('/api/draft-url', (req, res) => {
-  const url = ((req.body || {}).url || '').trim();
-  writeUrlForMode(DRAFT_URL_FILE, url);
-  res.json({ ok: true, url });
-});
-
-// Draft Recap API base URL — GET to read, POST { url } to update. Draft.html's
-// Draft Recap panel (previous-draft format) polls this dedicated endpoint,
-// separate from the live draft-info-only feed above.
-const DRAFT_RECAP_URL_FILE    = path.join(__dirname, '..', 'draft_recap_api_url.json');
-const DRAFT_RECAP_URL_DEFAULT = 'https://theapi.dpdns.org/api/previous-draft/';
-
-router.get('/api/draft-recap-url', (req, res) => {
-  res.json({ url: readUrlForMode(DRAFT_RECAP_URL_FILE, DRAFT_RECAP_URL_DEFAULT) });
-});
-
-router.post('/api/draft-recap-url', (req, res) => {
-  const url = ((req.body || {}).url || '').trim();
-  writeUrlForMode(DRAFT_RECAP_URL_FILE, url);
-  res.json({ ok: true, url });
 });
 
 module.exports = router;

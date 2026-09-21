@@ -1,4 +1,4 @@
-# MPL Overlay Server 2 — Instructions
+# MineskiBR — Instructions
 **Version:** 2.0  
 **Stack:** Node.js + Express  
 **Port:** 3000
@@ -34,7 +34,7 @@ node server.js
 ## File Structure
 
 ```
-overlay_server2/
+MineskiBR/
 │
 ├── server.js              ← Entry point. Wires everything together. ~70 lines.
 ├── config.json            ← API URLs (game_api, main_api). Edit this, not lib/config.js.

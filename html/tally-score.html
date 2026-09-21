@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/html/js/cache-bust.js"></script>
+<script src="/html/js/overlay-sse-shim.js"></script>
+<title>Match Scoring — MineskiBR Tally</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0F0D;
+    --surface:#141A17;
+    --surface2:#1B231D;
+    --surface3:#212B22;
+    --border:#2A352C;
+    --border-soft:#1F2921;
+    --text:#E8E6DC;
+    --text-dim:#8FA08D;
+    --text-faint:#5C6B5A;
+    --accent:#F2A93B;
+    --accent-dim:#8A6423;
+    --accent2:#6E8F4C;
+    --danger:#D9584C;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;}
+  /* Whole page is a non-scrolling flex column that fills whatever viewport
+     an encoder gives it (full screen, a docked side panel, a tall narrow
+     strip, etc) — every size below is vh/vw-driven so it fits without ever
+     needing a scrollbar. */
+  body{
+    background:
+      radial-gradient(ellipse 1200px 600px at 50% -10%, #1A2318 0%, transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    display:flex;flex-direction:column;
+    padding:clamp(8px,1.6vh,24px) clamp(10px,2vw,28px);
+  }
+  .wrap{display:flex;flex-direction:column;flex:1;min-height:0;}
+
+  .hero{
+    flex:0 0 auto;
+    border-bottom:1px solid var(--border);
+    padding-bottom:clamp(6px,1vh,14px);margin-bottom:clamp(6px,1vh,14px);
+    position:relative;
+  }
+  .hero::before{
+    content:"";position:absolute;left:0;bottom:-1px;width:90px;height:3px;
+    background:linear-gradient(90deg,var(--accent),transparent);
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:clamp(9px,1.1vh,11px);letter-spacing:.16em;color:var(--accent);
+    text-transform:uppercase;margin-bottom:clamp(3px,0.6vh,6px);display:flex;align-items:center;gap:8px;
+  }
+  .hero h1{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(18px,3.4vh,36px);letter-spacing:.03em;margin:clamp(2px,0.5vh,6px) 0 clamp(4px,0.7vh,10px);
+    color:var(--text);line-height:1;
+  }
+  .pill{
+    font-family:'JetBrains Mono',monospace;font-size:clamp(10px,1.1vh,12px);
+    background:var(--surface2);border:1px solid var(--border);
+    color:var(--text-dim);padding:clamp(4px,0.6vh,7px) clamp(8px,1vw,12px);border-radius:999px;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .pill b{color:var(--text);font-weight:700;}
+  .match-switcher{
+    font-family:'JetBrains Mono',monospace;font-size:clamp(10px,1.1vh,12px);
+    background:var(--surface2);border:1px solid var(--border-soft);color:var(--accent);
+    padding:clamp(4px,0.6vh,7px) clamp(8px,1vw,12px);border-radius:999px;outline:none;cursor:pointer;
+  }
+  .match-switcher:focus{border-color:var(--accent-dim);}
+  .match-switcher:disabled{color:var(--text-faint);cursor:not-allowed;}
+  .conn-dot{width:7px;height:7px;border-radius:50%;background:var(--text-faint);display:inline-block;flex-shrink:0;}
+  .conn-dot.live{background:var(--accent2);box-shadow:0 0 6px var(--accent2);}
+  .conn-dot.down{background:var(--danger);}
+
+  .section{
+    flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);padding:clamp(10px,1.6vh,20px);
+  }
+  #matchSheetArea{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
+
+  /* Up to 20 teams: 10 left / 10 right. Each row is a flex item so the
+     available height divides evenly across however many rows exist —
+     no scrolling, no fixed row height to overflow at odd window sizes. */
+  .sheet-columns{flex:1;min-height:0;display:flex;gap:clamp(8px,1.4vw,20px);}
+  .sheet-col{
+    flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden;
+    background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  }
+  .sheet-col-head{
+    flex:0 0 auto;display:flex;background:var(--surface3);border-bottom:1px solid var(--border);
+    font-family:'JetBrains Mono',monospace;font-size:clamp(8px,1vh,10px);
+    letter-spacing:.05em;text-transform:uppercase;color:var(--text-faint);
+  }
+  .sheet-col-head > div{padding:clamp(4px,0.8vh,8px) clamp(5px,0.9vw,9px);}
+  .sheet-rows{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
+  .sheet-row{
+    flex:1 1 0;min-height:22px;max-height:78px;min-width:0;
+    display:flex;flex-direction:column;overflow:hidden;border-bottom:1px solid var(--border-soft);
+  }
+  .sheet-row.expanded{flex-grow:5;max-height:none;}
+  .sheet-row:last-child{border-bottom:none;}
+  .sheet-row-summary{flex:0 0 auto;min-height:22px;display:flex;align-items:center;cursor:pointer;}
+  .expand-caret{width:11px;flex-shrink:0;color:var(--text-faint);font-size:clamp(8px,1vh,10px);}
+  .cell-team{
+    flex:1 1 0;min-width:0;display:flex;align-items:center;gap:clamp(4px,0.7vw,8px);
+    padding:0 clamp(5px,0.9vw,9px);font-weight:700;font-size:clamp(11px,1.7vh,16px);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .cell-team .swatch{width:6px;height:clamp(12px,2vh,20px);border-radius:2px;flex-shrink:0;}
+  /* Fixed widths live on the CELL (not the input/select inside it) so an
+     empty spacer cell of the same class reserves identical width — that's
+     how the per-player detail rows line their kills column up exactly
+     under the team's own Kills column below. */
+  .cell-kills{flex:0 0 auto;width:clamp(48px,6.5vw,70px);padding:0 clamp(3px,0.5vw,6px);}
+  .cell-place{flex:0 0 auto;width:clamp(64px,8.5vw,90px);padding:0 clamp(3px,0.5vw,6px);}
+  .cell-pts{
+    flex:0 0 auto;width:clamp(50px,7vw,74px);text-align:right;padding-right:clamp(6px,1vw,10px);
+    font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;font-size:clamp(12px,1.8vh,17px);
+  }
+  .cell-kills input.num-input, .cell-place select.sheet-select{width:100%;}
+  .sheet-row-detail{
+    flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;
+    justify-content:center;gap:clamp(2px,0.5vh,5px);
+  }
+  /* Same 4-column shape as .sheet-row-summary (team/kills/place/pts) — place
+     and pts are just empty spacers here, team-level only, no per-player value. */
+  .player-kill-item{display:flex;align-items:center;}
+  .player-kill-name{
+    flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    padding:0 clamp(5px,0.9vw,9px) 0 clamp(20px,3vw,30px);
+    font-size:clamp(9px,1.3vh,12px);color:var(--text-dim);
+  }
+  .num-input, select.sheet-select{
+    background:var(--surface3);border:1px solid var(--border);color:var(--text);
+    border-radius:6px;font-family:'JetBrains Mono',monospace;outline:none;
+    font-size:clamp(11px,1.6vh,14px);padding:clamp(3px,0.6vh,7px) clamp(3px,0.5vw,6px);
+    width:100%;box-sizing:border-box;
+  }
+  .num-input:focus, select.sheet-select:focus{border-color:var(--accent-dim);}
+  .num-input.dup, select.sheet-select.dup{border-color:var(--danger);}
+
+  .dup-warning{
+    flex:0 0 auto;color:var(--danger);font-size:clamp(10px,1.2vh,12px);
+    font-family:'JetBrains Mono',monospace;margin-top:clamp(6px,1vh,10px);
+  }
+  .empty-note{color:var(--text-faint);font-size:clamp(12px,1.6vh,14px);font-style:italic;}
+  .error-note{color:var(--danger);font-size:clamp(12px,1.6vh,14px);}
+
+  .toast{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--surface3);border:1px solid var(--accent-dim);color:var(--accent);
+    padding:10px 18px;border-radius:8px;font-size:clamp(11px,1.4vh,13px);font-weight:600;
+    opacity:0;transition:opacity .2s, transform .2s;pointer-events:none;
+    font-family:'JetBrains Mono',monospace;z-index:50;white-space:nowrap;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* Tall & narrow (docked side-panel) windows: stack the two columns
+     instead of squeezing them side by side into an unreadably thin strip. */
+  @media (max-aspect-ratio: 3/5){
+    .sheet-columns{flex-direction:column;}
+  }
+  ::selection{background:var(--accent);color:#231802;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="eyebrow"><span class="conn-dot" id="connDot"></span> BR Scoreboard // Match Scoring</div>
+    <h1 id="matchTitle">Loading…</h1>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span class="pill">Group <b id="metaGroup">—</b></span>
+      <select id="matchSwitcher" class="match-switcher" onchange="switchMatch(this.value)"></select>
+    </div>
+  </div>
+
+  <div class="section">
+    <div id="matchSheetArea"><p class="empty-note">Loading match…</p></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ Minimal, single-match scoring page ============
+   Scoped by ?group=<id>&match=<id> in the URL. Reads/writes the same
+   shared server state as html/index.html, but only ever touches THIS
+   group's kills/placement — no team management, settings, or other groups
+   are reachable from here. The match switcher lets a scorekeeper move
+   between the group's matches without a new link; group stays fixed.
+   Meant to be handed to a dedicated scorekeeper, and to be docked as its
+   own window (e.g. a side panel) by an encoder — the whole layout is
+   flex/vh-vw sized and never scrolls, up to the supported 20 teams
+   (10 left / 10 right). */
+const params = new URLSearchParams(location.search);
+const GROUP_ID = params.get('group');
+let MATCH_ID = params.get('match');
+
+let serverState = null;
+function currentGroup(){ return serverState ? (serverState.groups.find(g => g.id === GROUP_ID) || null) : null; }
+function currentMatch(){ const g = currentGroup(); return g ? (g.matches.find(m => m.id === MATCH_ID) || null) : null; }
+
+// Switches which match this popup scores, without needing a new link —
+// updates the URL bar (so a refresh/re-share keeps the newly picked match)
+// but leaves the group fixed.
+function switchMatch(newMatchId){
+  if(!newMatchId || newMatchId === MATCH_ID) return;
+  MATCH_ID = newMatchId;
+  const url = new URL(location.href);
+  url.searchParams.set('match', MATCH_ID);
+  history.replaceState(null, '', url);
+  renderAll();
+}
+function renderMatchSwitcher(){
+  const sel = document.getElementById('matchSwitcher');
+  const group = currentGroup();
+  if(!group || group.matches.length === 0){
+    sel.innerHTML = '<option value="">No matches</option>';
+    sel.disabled = true;
+    return;
+  }
+  sel.disabled = false;
+  const matchExists = group.matches.some(m => m.id === MATCH_ID);
+  let html = matchExists ? '' : '<option value="" selected disabled>— pick a match —</option>';
+  html += group.matches.map(m => `<option value="${m.id}" ${m.id === MATCH_ID ? 'selected' : ''}>${escapeHtml(m.label)}</option>`).join('');
+  sel.innerHTML = html;
+}
+
+async function postAction(action, payload){
+  try{
+    const res = await fetch('/tally/action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ action }, payload || {})),
+    });
+    const data = await res.json();
+    if(!data.ok){ showToast(data.error || 'Action failed'); return null; }
+    return data;
+  }catch(e){
+    showToast('Network error — is the server running?');
+    return null;
+  }
+}
+async function act(action, payload){
+  const data = await postAction(action, payload);
+  if(data) applyServerState(data.state);
+  return data;
+}
+
+function applyServerState(newState){
+  serverState = newState;
+  renderAll();
+}
+
+function connectSSE(){
+  const dot = document.getElementById('connDot');
+  // Shared-connection SSE (see html/js/overlay-sse-shim.js) instead of a
+  // raw EventSource — this is an on-air browser-source page, same reasoning
+  // as Fullscreen.html: several of these (plus other overlay pages) can be
+  // open at once, and a raw per-page EventSource is exactly the pattern
+  // that once exhausted the browser's ~6-connections-per-host cap
+  // elsewhere in this app. lib/tallyState.js also broadcasts onto the
+  // shared /overlay/events stream (named 'tally') for this.
+  const sse = createOverlaySSE();
+  sse.onopen = () => { dot.classList.remove('down'); dot.classList.add('live'); };
+  sse.addEventListener('tally', (e) => {
+    try{ applyServerState(JSON.parse(e.data)); }catch(err){}
+  });
+  sse.onerror = () => { dot.classList.remove('live'); dot.classList.add('down'); };
+}
+
+async function init(){
+  if(!GROUP_ID || !MATCH_ID){
+    document.getElementById('matchTitle').textContent = 'Invalid link';
+    document.getElementById('matchSheetArea').innerHTML = '<p class="error-note">This link is missing a group or match id — ask the operator to copy the link again from the 🔗 icon on the match tab.</p>';
+    return;
+  }
+  try{
+    const res = await fetch('/tally/state', { cache: 'no-store' });
+    applyServerState(await res.json());
+  }catch(e){
+    document.getElementById('matchSheetArea').innerHTML = '<p class="error-note">Could not reach the server — is it running?</p>';
+    return;
+  }
+  connectSSE();
+}
+
+/* ============ SCORING (mirrors lib/tallyState.js's math, for display) ============ */
+function matchPointsFor(group, kills, placement){
+  const killPts = (kills || 0) * group.settings.killPoint;
+  const placePts = placement ? (group.settings.placementPoints[placement] || 0) : 0;
+  return killPts + placePts;
+}
+
+function updateTeamKills(teamId, value){
+  act('updateKills', { groupId: GROUP_ID, matchId: MATCH_ID, teamId, value });
+}
+function updatePlacementForTeam(teamId, value){
+  act('updatePlacement', { groupId: GROUP_ID, matchId: MATCH_ID, teamId, value });
+}
+// Optional, independent record of who got how many kills — doesn't feed
+// into the team's kills total or points above (updateTeamKills is the fast
+// path for that). Fill this in "if ever" for MVP/record-keeping purposes.
+function updatePlayerKills(teamId, playerId, value){
+  act('updatePlayerKills', { groupId: GROUP_ID, matchId: MATCH_ID, teamId, playerId, value });
+}
+// Local-only: which teams currently have their 4-player kill breakdown open.
+let expandedTeams = {};
+function toggleTeamExpand(teamId){
+  expandedTeams[teamId] = !expandedTeams[teamId];
+  renderMatchSheet(currentGroup(), currentMatch());
+}
+// Live, local-only points preview while typing the team's kills — committed
+// (and sent over the network) only on blur/Enter via updateTeamKills.
+function liveUpdatePts(inputEl, teamId){
+  const group = currentGroup(); const match = currentMatch();
+  if(!group || !match) return;
+  const r = match.results[teamId] || { kills: 0, placement: "" };
+  const kills = inputEl.value === "" ? 0 : Math.max(0, parseInt(inputEl.value, 10) || 0);
+  const pts = matchPointsFor(group, kills, r.placement);
+  const ptsCell = inputEl.closest('.sheet-row-summary').querySelector('.cell-pts');
+  if(ptsCell) ptsCell.textContent = pts.toFixed(pts % 1 === 0 ? 0 : 1);
+}
+
+/* ============ RENDER ============ */
+function renderAll(){
+  const group = currentGroup();
+  const match = currentMatch();
+  document.getElementById('metaGroup').textContent = group ? group.name : '—';
+  document.getElementById('matchTitle').textContent = match ? match.label : (group ? 'Match not found' : 'Group not found');
+  renderMatchSwitcher();
+  renderMatchSheet(group, match);
+}
+
+function renderMatchSheet(group, match){
+  const area = document.getElementById('matchSheetArea');
+  if(!group){
+    area.innerHTML = '<p class="error-note">This group no longer exists — ask the operator for a new link.</p>';
+    return;
+  }
+  if(!match){
+    area.innerHTML = '<p class="error-note">This match no longer exists — ask the operator for a new link.</p>';
+    return;
+  }
+  if(group.teams.length === 0){
+    area.innerHTML = '<p class="empty-note">No teams in this group yet — ask the operator to add teams first.</p>';
+    return;
+  }
+
+  // Preserve an in-progress, not-yet-committed kills value if this browser is
+  // mid-keystroke when a broadcast from someone else's edit arrives. Now
+  // tracked per-player (playerId), since a team can have up to 4 open inputs.
+  let preserved = null;
+  const active = document.activeElement;
+  if(active && active.classList && active.classList.contains('num-input') && area.contains(active)){
+    preserved = { teamId: active.dataset.teamId, playerId: active.dataset.playerId, value: active.value, selStart: active.selectionStart, selEnd: active.selectionEnd };
+  }
+
+  const n = group.teams.length;
+  const placementCounts = {};
+  group.teams.forEach(t => {
+    const p = match.results[t.id]?.placement;
+    if(p) placementCounts[p] = (placementCounts[p]||0) + 1;
+  });
+
+  const buildRow = (t) => {
+    const r = match.results[t.id] || { kills:0, placement:"", playerKills:{} };
+    const pts = matchPointsFor(group, r.kills, r.placement);
+    const isDup = r.placement && placementCounts[r.placement] > 1;
+    let options = `<option value="">—</option>`;
+    for(let i=1;i<=n;i++){
+      options += `<option value="${i}" ${parseInt(r.placement)===i?'selected':''}>#${i}</option>`;
+    }
+    const isExpanded = !!expandedTeams[t.id];
+    const killsVal = (preserved && preserved.teamId === t.id && !preserved.playerId) ? preserved.value : r.kills;
+    // Same 4-column shape as the summary row below (team/kills/place/pts) —
+    // place and pts are just empty spacers here, so the kills column lines
+    // up exactly under the team's own Kills column with no manual math.
+    const playerRows = (t.players || []).map(p => {
+      const pkVal = (preserved && preserved.teamId === t.id && preserved.playerId === p.id) ? preserved.value : ((r.playerKills || {})[p.id] || 0);
+      return `
+        <div class="player-kill-item">
+          <span class="player-kill-name">${escapeHtml(p.name)}</span>
+          <div class="cell-kills"><input class="num-input" type="number" min="0" data-team-id="${t.id}" data-player-id="${p.id}" value="${pkVal}"
+            onchange="updatePlayerKills('${t.id}','${p.id}',this.value)"></div>
+          <div class="cell-place"></div>
+          <div class="cell-pts"></div>
+        </div>
+      `;
+    }).join('');
+    return `
+      <div class="sheet-row ${isExpanded ? 'expanded' : ''}" data-team-id="${t.id}">
+        <div class="sheet-row-summary">
+          <div class="cell-team" onclick="toggleTeamExpand('${t.id}')" style="cursor:pointer;"><span class="expand-caret">${isExpanded ? '▾' : '▸'}</span><span class="swatch" style="background:${t.color}"></span>${escapeHtml(t.name)}</div>
+          <div class="cell-kills"><input class="num-input" data-team-id="${t.id}" type="number" min="0" value="${killsVal}"
+                oninput="liveUpdatePts(this,'${t.id}')"
+                onchange="updateTeamKills('${t.id}',this.value)"></div>
+          <div class="cell-place"><select class="sheet-select ${isDup?'dup':''}" onchange="updatePlacementForTeam('${t.id}',this.value)">${options}</select></div>
+          <div class="cell-pts">${pts.toFixed(pts % 1 === 0 ? 0 : 1)}</div>
+        </div>
+        ${isExpanded ? `<div class="sheet-row-detail">${playerRows}</div>` : ''}
+      </div>
+    `;
+  };
+  const buildColumn = (teamsSubset) => `
+    <div class="sheet-col">
+      <div class="sheet-col-head">
+        <div style="flex:1 1 0;">Team</div><div class="cell-kills" style="padding:clamp(4px,0.8vh,8px) clamp(5px,0.9vw,9px);">Kills</div><div class="cell-place" style="padding:clamp(4px,0.8vh,8px) clamp(5px,0.9vw,9px);">Place</div><div class="cell-pts" style="padding:clamp(4px,0.8vh,8px) clamp(5px,0.9vw,9px);color:inherit;font-family:inherit;font-weight:inherit;">Pts</div>
+      </div>
+      <div class="sheet-rows">${teamsSubset.map(buildRow).join('')}</div>
+    </div>
+  `;
+
+  // Up to 10 teams: one column. More than 10 (max 20 supported): split
+  // 1-10 left / 11-20+ right so it always fits without scrolling.
+  const sheetHtml = (group.teams.length <= 10)
+    ? `<div class="sheet-columns">${buildColumn(group.teams)}</div>`
+    : `<div class="sheet-columns">${buildColumn(group.teams.slice(0, 10))}${buildColumn(group.teams.slice(10))}</div>`;
+
+  const hasDup = Object.values(placementCounts).some(c => c > 1);
+
+  area.innerHTML = `
+    ${sheetHtml}
+    ${hasDup ? '<div class="dup-warning">⚠ Two or more teams share the same placement in this match — check entries.</div>' : ''}
+  `;
+
+  if(preserved){
+    const sel = preserved.playerId
+      ? `.num-input[data-team-id="${preserved.teamId}"][data-player-id="${preserved.playerId}"]`
+      : `.num-input[data-team-id="${preserved.teamId}"]`;
+    const el = area.querySelector(sel);
+    if(el){ el.focus(); try{ el.setSelectionRange(preserved.selStart, preserved.selEnd); }catch(e){} }
+  }
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+init();
+</script>
+</body>
+</html>

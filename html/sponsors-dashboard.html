@@ -219,7 +219,7 @@
   document.getElementById('logout-btn').addEventListener('click', function () { token = ''; sessionStorage.removeItem('match_token'); showLogin(); });
 
   function tryAuth(pw) {
-    /* Same dashboard password as Match Board / Standings / Roster — /match/auth
+    /* Same dashboard password as Match Board / Roster — /match/auth
        just verifies it, no sponsors-specific auth endpoint needed. */
     fetch('/match/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: pw }) })
       .then(function (r) {

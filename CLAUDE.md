@@ -1,4 +1,4 @@
-# overlay_server — instruction manual
+# MineskiBR — instruction manual
 
 MLBB (Mobile Legends: Bang Bang) esports broadcast overlay system. Each
 overlay is a browser-source HTML page (OBS reads it), driven by live game

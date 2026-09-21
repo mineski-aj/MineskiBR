@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <script src="/html/js/cache-bust.js"></script>
   <script src="/html/js/overlay-sse-shim.js"></script>
-  <title>MineskiX Dashboard</title>
+  <title>MineskiBR Dashboard</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -45,7 +45,7 @@
       letter-spacing: 0.04em;
       text-transform: uppercase;
     }
-    header h1 .brand-x { color: #ffd400; }
+    header h1 .brand-br { color: #5bc8ff; }
     #header-left {
       display: flex;
       align-items: center;
@@ -317,22 +317,6 @@
       border: none;
       transform-origin: top left;
     }
-    #preview-disabled-msg {
-      display: none;
-      position: absolute;
-      inset: 0;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 6px;
-      text-align: center;
-      color: #666;
-      font-size: 13px;
-      padding: 20px;
-    }
-    #preview-disabled-msg strong { color: #aabbff; }
-    #preview-disabled-msg span { font-size: 11px; color: #444; }
-
     /* ── Button row ─────────────────────────────────────────── */
     .btn-row {
       display: flex;
@@ -573,6 +557,16 @@
       color: #8888aa;
       text-transform: uppercase;
       letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .api-toggle-btn {
+      text-transform: none;
+      letter-spacing: normal;
+      font-weight: normal;
+      min-width: 94px;
     }
     .settings-section-body {
       padding: 14px 16px;
@@ -962,7 +956,7 @@
 
 <header>
   <div id="header-left">
-    <h1>MINESKI<span class="brand-x">X</span></h1>
+    <h1>MINESKI<span class="brand-br">BR</span></h1>
     <div id="project-picker">
       <select id="project-select"><option value="">No Project</option></select>
       <button id="new-project-btn" type="button">+ New Project</button>
@@ -978,9 +972,7 @@
 
 <nav id="tab-bar">
   <button class="tab-btn" data-page="matchboard">Match Board</button>
-  <button class="tab-btn" data-page="arrangement">Arrangement</button>
-  <button class="tab-btn" data-page="mapselection">Map Selection</button>
-  <button class="tab-btn" data-page="standings">Standings</button>
+  <button class="tab-btn" data-page="tally">Tally</button>
   <button class="tab-btn active" data-page="control">Control</button>
   <button class="tab-btn" data-page="dynamic">Dynamic</button>
   <button class="tab-btn" data-page="roster">Roster</button>
@@ -995,21 +987,11 @@
     style="width:100%;flex:1;border:none;min-height:0;"></iframe>
 </div>
 
-<!-- Page: Arrangement -->
-<div id="page-arrangement" class="page">
-  <iframe id="arrangement-iframe" src="/html/arrangement-dashboard.html" allow="autoplay"
-    style="width:100%;flex:1;border:none;min-height:0;"></iframe>
-</div>
-
-<!-- Page: Map Selection -->
-<div id="page-mapselection" class="page">
-  <iframe id="mapselection-iframe" src="/html/map-selection-dashboard.html" allow="autoplay"
-    style="width:100%;flex:1;border:none;min-height:0;"></iframe>
-</div>
-
-<!-- Page: Standings -->
-<div id="page-standings" class="page">
-  <iframe id="standings-iframe" src="/html/standings-dashboard.html" allow="autoplay"
+<!-- Page: Tally (fused in from the standalone CODMTally app) — the BR
+     tournament live-scoring console: groups/teams/kills/placement points
+     and the live Google Sheets tally mirror. See routes/tally.js. -->
+<div id="page-tally" class="page">
+  <iframe id="tally-iframe" src="/html/tally-console.html" allow="autoplay"
     style="width:100%;flex:1;border:none;min-height:0;"></iframe>
 </div>
 
@@ -1058,10 +1040,6 @@
       </div>
       <div id="preview-frame-wrap">
         <iframe id="preview-iframe" src="" allow="autoplay"></iframe>
-        <div id="preview-disabled-msg">
-          Preview disabled — click <strong>◈ Preview</strong> to load<br>
-          <span>(this overlay is heavy and may be live — loading it here too would double the GPU load)</span>
-        </div>
       </div>
     </div>
   </div>
@@ -1209,7 +1187,7 @@
   </div>
 
   <div class="settings-section">
-    <div class="settings-section-hdr">Game API</div>
+    <div class="settings-section-hdr">Game API<button class="settings-btn api-toggle-btn" id="api-toggle-game" data-api="game">● Enabled</button></div>
     <div class="settings-section-body">
       <div class="settings-row">
         <label for="game-api-input">Base URL</label>
@@ -1221,7 +1199,7 @@
   </div>
 
   <div class="settings-section">
-    <div class="settings-section-hdr">Team Head to Head API</div>
+    <div class="settings-section-hdr">Team Head to Head API<button class="settings-btn api-toggle-btn" id="api-toggle-hexagon" data-api="hexagon">● Enabled</button></div>
     <div class="settings-section-body">
       <div class="settings-row">
         <label for="hexagon-api-input">Base URL</label>
@@ -1233,7 +1211,7 @@
   </div>
 
   <div class="settings-section">
-    <div class="settings-section-hdr">MVP Highlights API</div>
+    <div class="settings-section-hdr">MVP Highlights API<button class="settings-btn api-toggle-btn" id="api-toggle-highlights" data-api="highlights">● Enabled</button></div>
     <div class="settings-section-body">
       <div class="settings-row">
         <label for="highlights-api-input">Base URL</label>
@@ -1245,19 +1223,7 @@
   </div>
 
   <div class="settings-section">
-    <div class="settings-section-hdr">Standings API</div>
-    <div class="settings-section-body">
-      <div class="settings-row">
-        <label for="standings-api-input">Base URL</label>
-        <input type="text" id="standings-api-input" class="settings-input" placeholder="http://10.88.120.60:5001/api/standing/" spellcheck="false" autocomplete="off" />
-        <button id="standings-api-apply" class="settings-btn">Apply</button>
-        <span id="standings-api-status" class="settings-status"></span>
-      </div>
-    </div>
-  </div>
-
-  <div class="settings-section">
-    <div class="settings-section-hdr">HRM Server</div>
+    <div class="settings-section-hdr">HRM Server<button class="settings-btn api-toggle-btn" id="api-toggle-hrm" data-api="hrm">● Enabled</button></div>
     <div class="settings-section-body">
       <div class="settings-row">
         <label for="hrm-api-input">Base URL</label>
@@ -1269,43 +1235,7 @@
   </div>
 
   <div class="settings-section">
-    <div class="settings-section-hdr">Draft (Pick/Ban) API</div>
-    <div class="settings-section-body">
-      <div class="settings-row">
-        <label for="draft-api-input">Base URL</label>
-        <input type="text" id="draft-api-input" class="settings-input" placeholder="https://theapi.dpdns.org/sql/draft-info-only/" spellcheck="false" autocomplete="off" />
-        <button id="draft-api-apply" class="settings-btn">Apply</button>
-        <span id="draft-api-status" class="settings-status"></span>
-      </div>
-    </div>
-  </div>
-
-  <div class="settings-section">
-    <div class="settings-section-hdr">Draft Recap API</div>
-    <div class="settings-section-body">
-      <div class="settings-row">
-        <label for="draftrecap-api-input">Base URL</label>
-        <input type="text" id="draftrecap-api-input" class="settings-input" placeholder="https://theapi.dpdns.org/api/previous-draft/" spellcheck="false" autocomplete="off" />
-        <button id="draftrecap-api-apply" class="settings-btn">Apply</button>
-        <span id="draftrecap-api-status" class="settings-status"></span>
-      </div>
-    </div>
-  </div>
-
-  <div class="settings-section">
-    <div class="settings-section-hdr">Draft Index (Line-Up Rate) API</div>
-    <div class="settings-section-body">
-      <div class="settings-row">
-        <label for="lineuprate-api-input">Base URL</label>
-        <input type="text" id="lineuprate-api-input" class="settings-input" placeholder="https://theapi.dpdns.org/api/line-up-rate/" spellcheck="false" autocomplete="off" />
-        <button id="lineuprate-api-apply" class="settings-btn">Apply</button>
-        <span id="lineuprate-api-status" class="settings-status"></span>
-      </div>
-    </div>
-  </div>
-
-  <div class="settings-section">
-    <div class="settings-section-hdr">Post-Info API</div>
+    <div class="settings-section-hdr">Post-Info API<button class="settings-btn api-toggle-btn" id="api-toggle-postinfo" data-api="postinfo">● Enabled</button></div>
     <div class="settings-section-body">
       <div class="settings-row">
         <label for="postinfo-api-input">Base URL</label>
@@ -1355,25 +1285,22 @@
       }
 
       /* Release the Control tab's preview iframe / Edit tab's edit iframe
-         once navigated away from them — unlike Match Board/Map Selection
-         /Standings (always-mounted by design, meant to keep syncing in
-         the background), these two just show "whatever I'm currently
-         looking at / editing", and every distinct overlay file they've
-         ever loaded (each holding its own SSE connection to
-         /overlay/events) stays connected indefinitely otherwise. Across
-         a long dashboard session that clicks through several Control
-         entries and Edit configs, those add up against the browser's
-         ~6-connections-per-host cap until the whole dashboard hangs —
-         this is what caused the "have to close and reopen the tab"
-         lockup after the Map Selection tab's own always-on connection
-         used up the safety margin that used to absorb this. Re-picking
-         the same sidebar item / config on return reloads it fresh,
-         exactly like selecting it for the first time would. */
+         once navigated away from them — unlike Match Board/Tally
+         (always-mounted by design, meant to keep syncing in the
+         background), these two just show "whatever I'm currently looking
+         at / editing", and every distinct overlay file they've ever
+         loaded (each holding its own SSE connection to /overlay/events)
+         stays connected indefinitely otherwise. Across a long dashboard
+         session that clicks through several Control entries and Edit
+         configs, those add up against the browser's ~6-connections-per-
+         host cap until the whole dashboard hangs — this is what caused
+         the "have to close and reopen the tab" lockup after an always-on
+         tab connection used up the safety margin that used to absorb
+         this. Re-picking the same sidebar item / config on return reloads
+         it fresh, exactly like selecting it for the first time would. */
       if (leavingControl) {
         previewIframe.onload = null;
         previewIframe.src = 'about:blank';
-        draftPreviewActive = false;
-        if (previewDisabledMsg) previewDisabledMsg.style.display = 'none';
         if (activeItem) { activeItem.classList.remove('active'); activeItem = null; }
       }
       if (leavingEdit) {
@@ -1412,7 +1339,7 @@
       var ok = window.confirm(
         'Are you sure you want to switch to ' + m.toUpperCase() + ' mode?\n\n' +
         'This changes which URL every API setting below resolves to — Game, ' +
-        'Standings, Draft, Draft Recap, HRM, and the rest — for the whole server, ' +
+        'HRM, and the rest — for the whole server, ' +
         'not just this dashboard tab.\n\n' +
         'Overlay pages that are already open won\'t pick this up until they reload ' +
         '(e.g. via "Force-Refresh All Overlays" in Overlay Pages below).'
@@ -1514,90 +1441,6 @@
   hlApiApply.addEventListener('click', saveHighlightsApiUrl);
   hlApiInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') saveHighlightsApiUrl(); });
 
-  /* ── Standings API URL ───────────────────────────────────── */
-  var standingsApiInput  = document.getElementById('standings-api-input');
-  var standingsApiApply  = document.getElementById('standings-api-apply');
-  var standingsApiStatus = document.getElementById('standings-api-status');
-
-  fetch('/api/standings-url').then(function(r){ return r.json(); }).then(function(d){
-    standingsApiInput.value = d.url || '';
-  }).catch(function(){});
-
-  function saveStandingsApiUrl() {
-    var url = standingsApiInput.value.trim();
-    fetch('/api/standings-url', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: url })
-    }).then(function(r){ return r.json(); }).then(function(){
-      standingsApiStatus.textContent = 'Saved ✓';
-      standingsApiStatus.style.color = '#44cc88';
-      setTimeout(function(){ standingsApiStatus.textContent = ''; }, 2000);
-    }).catch(function(){
-      standingsApiStatus.textContent = 'Error';
-      standingsApiStatus.style.color = '#ff4455';
-    });
-  }
-
-  standingsApiApply.addEventListener('click', saveStandingsApiUrl);
-  standingsApiInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') saveStandingsApiUrl(); });
-
-  /* ── Draft (Pick/Ban) API URL ────────────────────────────── */
-  var draftApiInput  = document.getElementById('draft-api-input');
-  var draftApiApply  = document.getElementById('draft-api-apply');
-  var draftApiStatus = document.getElementById('draft-api-status');
-
-  fetch('/api/draft-url').then(function(r){ return r.json(); }).then(function(d){
-    draftApiInput.value = d.url || '';
-  }).catch(function(){});
-
-  function saveDraftApiUrl() {
-    var url = draftApiInput.value.trim();
-    fetch('/api/draft-url', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: url })
-    }).then(function(r){ return r.json(); }).then(function(){
-      draftApiStatus.textContent = 'Saved ✓';
-      draftApiStatus.style.color = '#44cc88';
-      setTimeout(function(){ draftApiStatus.textContent = ''; }, 2000);
-    }).catch(function(){
-      draftApiStatus.textContent = 'Error';
-      draftApiStatus.style.color = '#ff4455';
-    });
-  }
-
-  draftApiApply.addEventListener('click', saveDraftApiUrl);
-  draftApiInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') saveDraftApiUrl(); });
-
-  /* ── Draft Recap API URL ─────────────────────────────────── */
-  var draftRecapApiInput  = document.getElementById('draftrecap-api-input');
-  var draftRecapApiApply  = document.getElementById('draftrecap-api-apply');
-  var draftRecapApiStatus = document.getElementById('draftrecap-api-status');
-
-  fetch('/api/draft-recap-url').then(function(r){ return r.json(); }).then(function(d){
-    draftRecapApiInput.value = d.url || '';
-  }).catch(function(){});
-
-  function saveDraftRecapApiUrl() {
-    var url = draftRecapApiInput.value.trim();
-    fetch('/api/draft-recap-url', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: url })
-    }).then(function(r){ return r.json(); }).then(function(){
-      draftRecapApiStatus.textContent = 'Saved ✓';
-      draftRecapApiStatus.style.color = '#44cc88';
-      setTimeout(function(){ draftRecapApiStatus.textContent = ''; }, 2000);
-    }).catch(function(){
-      draftRecapApiStatus.textContent = 'Error';
-      draftRecapApiStatus.style.color = '#ff4455';
-    });
-  }
-
-  draftRecapApiApply.addEventListener('click', saveDraftRecapApiUrl);
-  draftRecapApiInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') saveDraftRecapApiUrl(); });
-
   /* ── HRM Server URL ───────────────────────────────────────── */
   var hrmApiInput  = document.getElementById('hrm-api-input');
   var hrmApiApply  = document.getElementById('hrm-api-apply');
@@ -1625,34 +1468,6 @@
 
   hrmApiApply.addEventListener('click', saveHrmApiUrl);
   hrmApiInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') saveHrmApiUrl(); });
-
-  /* ── Draft Index (Line-Up Rate) API URL ──────────────────── */
-  var luApiInput  = document.getElementById('lineuprate-api-input');
-  var luApiApply  = document.getElementById('lineuprate-api-apply');
-  var luApiStatus = document.getElementById('lineuprate-api-status');
-
-  fetch('/api/lineuprate-url').then(function(r){ return r.json(); }).then(function(d){
-    luApiInput.value = d.url || '';
-  }).catch(function(){});
-
-  function saveLineupRateApiUrl() {
-    var url = luApiInput.value.trim();
-    fetch('/api/lineuprate-url', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: url })
-    }).then(function(r){ return r.json(); }).then(function(){
-      luApiStatus.textContent = 'Saved ✓';
-      luApiStatus.style.color = '#44cc88';
-      setTimeout(function(){ luApiStatus.textContent = ''; }, 2000);
-    }).catch(function(){
-      luApiStatus.textContent = 'Error';
-      luApiStatus.style.color = '#ff4455';
-    });
-  }
-
-  luApiApply.addEventListener('click', saveLineupRateApiUrl);
-  luApiInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') saveLineupRateApiUrl(); });
 
   /* ── Post-Info API URL ────────────────────────────────────── */
   var piApiInput  = document.getElementById('postinfo-api-input');
@@ -1682,13 +1497,45 @@
   piApiApply.addEventListener('click', savePostInfoApiUrl);
   piApiInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') savePostInfoApiUrl(); });
 
+  /* ── Per-API enable/disable toggles ──────────────────────────
+     Each Settings section above gets an ● Enabled / ○ Disabled switch
+     (routes/overlay.js's GET /overlay/apis + GET /overlay/api/:api/:action)
+     — flips whether that API's server-side poller or proxy route actually
+     hits its upstream at all, without touching the saved URL. Server-side
+     state is in-memory (like the Control tab's feature toggles), so it
+     resets to enabled on a server restart. Live-synced below via the same
+     shared SSE stream (event 'apitoggle') the feature toggles use, so
+     another dashboard tab flipping one is reflected here too. */
+  var API_TOGGLE_IDS = ['game', 'hexagon', 'highlights', 'hrm', 'postinfo'];
+  function applyApiToggleBtn(api, enabled) {
+    var b = document.getElementById('api-toggle-' + api);
+    if (!b) return;
+    b.textContent = enabled ? '● Enabled' : '○ Disabled';
+    b.className   = 'settings-btn api-toggle-btn ' + (enabled ? 'btn-toggle-on' : 'btn-toggle-off');
+  }
+  fetch('/overlay/apis').then(function(r){ return r.json(); }).then(function(d) {
+    d = d || {};
+    API_TOGGLE_IDS.forEach(function(api) { applyApiToggleBtn(api, d[api] !== false); });
+  }).catch(function(){});
+  API_TOGGLE_IDS.forEach(function(api) {
+    var b = document.getElementById('api-toggle-' + api);
+    if (!b) return;
+    b.addEventListener('click', function() {
+      var currentlyEnabled = b.textContent.indexOf('Enabled') !== -1;
+      var action = currentlyEnabled ? 'disable' : 'enable';
+      fetch('/overlay/api/' + api + '/' + action)
+        .then(function(r){ return r.json(); })
+        .then(function(d){ if (d && d.ok) applyApiToggleBtn(api, d.enabled); })
+        .catch(function(){});
+    });
+  });
+
   document.getElementById('btn-debugoff').addEventListener('click', function() {
     fetch('/overlay/debugoff').catch(function(){});
   });
 
   /* Hard-reloads every open overlay page at once (Fullscreen.html, ENTVC.html,
-     DraftIndex.html, Draft.html, LowerThirds.html, ingame.html) via the
-     same 'reload' SSE event a dashboard Edit-tab save already triggers —
+     ingame.html) via the same 'reload' SSE event a dashboard Edit-tab save already triggers —
      see GET /overlay/force-reload in routes/overlay.js. Saves going to
      each production browser source by hand after an edit. */
   document.getElementById('btn-force-reload-overlays').addEventListener('click', function() {
@@ -1810,7 +1657,6 @@
     waiting_lobby:  'lobby',
     today_schedule: 'schedule',
     tomorrow_schedule: 'tomorrow',
-    standings:      'standings',
     team_hexagon:   'hexagon',
     highlights:     'highlights',
     mvp:            'mvp',
@@ -1831,7 +1677,7 @@
     items: 'Postgame Items', stats: 'Post Stats', richguy: 'Rich Guy',
     waiting: 'Waiting Screen TVC', lobby: 'Waiting Lobby',
     schedule: "Today's Schedule", tomorrow: "Tomorrow's Schedule",
-    standings: 'Standings', hexagon: 'Team Hexagon', highlights: 'MVP Highlights',
+    hexagon: 'Team Hexagon', highlights: 'MVP Highlights',
     mvp: 'MVP Scene', credits: 'Credit Reel', finalteam: 'Final Team',
     lineupblue: 'Team Line-Up — Blue', lineupred: 'Team Line-Up — Red',
     herolineup: 'Hero Lineup',
@@ -1906,19 +1752,9 @@
     }).catch(function(){});
   }
 
-  /* ── Lower Thirds (LowerThirds.html) — Map Selection tag state ────
-     Not a simple on/off toggle: /overlay/mapselecttag/show reveals ONE
-     more game each time it's called (and can be blocked server-side if
-     that game's map-selection data isn't locked yet), so it keeps its
-     own real Show/Hide buttons rather than becoming a single toggle
-     button like the families above. This is just the read-only
-     "● Showing (N)" / "○ Hidden" status pill next to those buttons. */
-  var mapSelectTagState = { revealedGames: 0 };
-  var mapSelectTagBadge = null;
-
   /* ── Shared "◈ Preview" toggle coordination ──────────────────
-     Every trigger-only preview button (per fullscreen feature, plus overlay-
-     level ones like LowerThirds.html's) drives the SAME previewIframe — only one
+     Every trigger-only preview button (per fullscreen feature) drives the
+     SAME previewIframe — only one
      of them can be meaningfully "active" at a time. Without this, preview-
      ing feature B while feature A's preview was still on left A's button
      stuck showing active even though the iframe had already moved on to
@@ -1983,21 +1819,6 @@
     }
   });
 
-  function applyMapSelectTagBadge() {
-    if (!mapSelectTagBadge) return;
-    var n = mapSelectTagState.revealedGames || 0;
-    var shown = n > 0;
-    mapSelectTagBadge.textContent = shown ? ('● Showing (' + n + ')') : '○ Hidden';
-    mapSelectTagBadge.className   = 'btn btn-toggle ' + (shown ? 'btn-toggle-on' : 'btn-toggle-off');
-  }
-
-  function loadMapSelectTagState() {
-    return fetch('/overlay/mapselecttag-state', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
-      mapSelectTagState = d || mapSelectTagState;
-      applyMapSelectTagBadge();
-    }).catch(function(){});
-  }
-
   /* ── Live state sync ──────────────────────────────────────────
      Every toggle above already broadcasts its show/hide over the
      shared SSE stream (routes/overlay.js) for the overlay pages
@@ -2019,7 +1840,14 @@
     } catch (err) {}
   });
 
-  ['itemcheck', 'emblemcheck', 'golddiffcheck', 'scoreboard', 'playerui', 'draftrecap'].forEach(function (key) {
+  dashboardSSE.addEventListener('apitoggle', function (e) {
+    try {
+      var d = JSON.parse(e.data);
+      applyApiToggleBtn(d.api, !!d.enabled);
+    } catch (err) {}
+  });
+
+  ['itemcheck', 'emblemcheck', 'golddiffcheck', 'scoreboard', 'playerui'].forEach(function (key) {
     dashboardSSE.addEventListener(key, function (e) {
       try {
         var d = JSON.parse(e.data);
@@ -2029,52 +1857,6 @@
         if (key === 'playerui') refreshPuiGatedButtons();
       } catch (err) {}
     });
-  });
-
-  /* Draft Overlay's whole-scene show/hide — a bespoke boolean
-     (state.draftActive, routes/overlay.js) rather than part of the flat
-     checkOverlays map above, so it needs its own small cache + listener
-     instead of joining the forEach loop. Powers the SHOWING/HIDDEN toggle
-     built in buildControlBody(). */
-  var draftShowState = false;
-  var draftShowBtn   = null;
-  function applyDraftShowBtn() {
-    if (!draftShowBtn) return;
-    draftShowBtn.textContent = draftShowState ? '● Showing' : '○ Hidden';
-    draftShowBtn.className   = 'btn btn-toggle ' + (draftShowState ? 'btn-toggle-on' : 'btn-toggle-off');
-  }
-  fetch('/overlay/draft-state').then(function (r) { return r.json(); }).then(function (d) {
-    draftShowState = !!(d && d.active);
-    applyDraftShowBtn();
-  }).catch(function () {});
-  dashboardSSE.addEventListener('draft', function (e) {
-    try {
-      var d = JSON.parse(e.data);
-      draftShowState = d.action === 'show';
-      applyDraftShowBtn();
-    } catch (err) {}
-  });
-
-  /* Draft Overlay (realme skin) — same bespoke-boolean pattern as
-     draftShowState above, just a separate state.draftRealmeActive /
-     'draftrealme' event so the two overlays show/hide independently. */
-  var draftRealmeShowState = false;
-  var draftRealmeShowBtn   = null;
-  function applyDraftRealmeShowBtn() {
-    if (!draftRealmeShowBtn) return;
-    draftRealmeShowBtn.textContent = draftRealmeShowState ? '● Showing' : '○ Hidden';
-    draftRealmeShowBtn.className   = 'btn btn-toggle ' + (draftRealmeShowState ? 'btn-toggle-on' : 'btn-toggle-off');
-  }
-  fetch('/overlay/draftrealme-state').then(function (r) { return r.json(); }).then(function (d) {
-    draftRealmeShowState = !!(d && d.active);
-    applyDraftRealmeShowBtn();
-  }).catch(function () {});
-  dashboardSSE.addEventListener('draftrealme', function (e) {
-    try {
-      var d = JSON.parse(e.data);
-      draftRealmeShowState = d.action === 'show';
-      applyDraftRealmeShowBtn();
-    } catch (err) {}
   });
 
   dashboardSSE.addEventListener('sidecheck', function (e) {
@@ -2108,48 +1890,36 @@
     dashboardSSE.addEventListener(name, loadFullscreenScene);
   });
 
-  dashboardSSE.addEventListener('mapselecttag', function (e) {
-    try {
-      var d = JSON.parse(e.data);
-      if (d.action === 'show' && typeof d.gameIndex === 'number') mapSelectTagState.revealedGames = d.gameIndex + 1;
-      else if (d.action === 'hide') mapSelectTagState.revealedGames = 0;
-      applyMapSelectTagBadge();
-    } catch (err) {}
-  });
-
   /* ── Consolidated live-data relay for always-mounted tabs ──────
-     Match Board, Map Selection, and Standings iframes used to each open
-     their own persistent EventSource (/match/events, /mapselection/events,
-     /standings/events) for the entire life of the dashboard tab, since
-     those iframes are never torn down (see the .page markup above).
-     Every such connection permanently occupies one of the browser's
+     Match Board's iframe used to open its own persistent EventSource
+     (/match/events) for the entire life of the dashboard tab, since that
+     iframe is never torn down (see the .page markup above). Such a
+     connection permanently occupies one of the browser's
      ~6-connections-per-host slots alongside whatever the Control tab's
      preview iframe or the Edit tab's edit iframe currently holds — AND
      alongside any OTHER tab open in the same browser to this same host
      (the 6-connection cap is per-origin for the whole browser, not
-     per-tab). An earlier version of this fix gave the dashboard tab its
-     own 3 dedicated connections on top of dashboardSSE below — fixed
-     count regardless of navigation, but still 4 permanent connections
-     from the dashboard tab ALONE, leaving only 2 spare for the entire
-     rest of the browser. That's why opening just one more tab (e.g.
-     Fullscreen.html, which needs its own /overlay/events connection) could
-     still tip the whole browser over the cap and hang everything.
+     per-tab). That's why opening just one more tab (e.g. Fullscreen.html,
+     which needs its own /overlay/events connection) could tip the whole
+     browser over the cap and hang everything.
      matchState.js already fans its broadcasts out over the SAME shared
      /overlay/events stream (named "match") purely so pages don't need a
-     dedicated connection just for this — standingsState.js and
-     mapSelectionState.js now do the same (named "standings"/
-     "mapselection"). So instead of 3 extra connections, this listens
-     for those 3 named events on the dashboardSSE connection this page
-     already has open — one connection total for the whole dashboard
-     tab's live data, not four. A brand-new always-mounted tab that
+     dedicated connection just for this — so this listens for that named
+     event on the dashboardSSE connection this page already has open,
+     instead of opening a second one. A brand-new always-mounted tab that
      needs live data should make its backend module forward onto
      overlayClients the same way, then just add a listener here — never
-     open its own EventSource. */
-  var relayCache = { match: null, mapselection: null, standings: null };
+     open its own EventSource.
+     "tally" is the same idea for lib/tallyState.js (see its broadcast()) —
+     Match Board's Live Preview shows which Tally sheet is currently live,
+     so it relays that channel too instead of match-dashboard.html opening
+     its own connection (it's already a SharedWorker connection either way,
+     but going through the parent's existing relay keeps this file's own
+     pattern consistent — see relay-client.js). */
+  var relayCache = { match: null, tally: null };
   var relayIframeIds = {
-    match:        ['matchboard-iframe', 'mapselection-iframe'], // Map Selection wants match/series changes too, instead of its own poll
-    mapselection: ['mapselection-iframe'],
-    standings:    ['standings-iframe'],
+    match: ['matchboard-iframe'],
+    tally: ['matchboard-iframe'],
   };
 
   function relaySend(channel, data, ok) {
@@ -2173,28 +1943,16 @@
     }).catch(function () {});
   }
   seedRelay('match', '/match/state');
-  seedRelay('mapselection', '/mapselection/state');
-  seedRelay('standings', '/standings/state');
+  seedRelay('tally', '/tally/state');
 
   dashboardSSE.addEventListener('match', function (e) {
     try { relayCache.match = JSON.parse(e.data); relaySend('match', relayCache.match, true); } catch (err) {}
   });
-  dashboardSSE.addEventListener('mapselection', function (e) {
-    try { relayCache.mapselection = JSON.parse(e.data); relaySend('mapselection', relayCache.mapselection, true); } catch (err) {}
-  });
-  dashboardSSE.addEventListener('standings', function (e) {
-    // "standings" is also used (with a {action:'show'|'hide'} payload, no
-    // .teams) for Fullscreen.html's Standings SCENE toggle on this exact same
-    // shared stream — ignore anything that isn't the team-rankings shape.
-    try {
-      var msg = JSON.parse(e.data);
-      if (!msg || !Array.isArray(msg.teams)) return;
-      relayCache.standings = msg;
-      relaySend('standings', msg, true);
-    } catch (err) {}
+  dashboardSSE.addEventListener('tally', function (e) {
+    try { relayCache.tally = JSON.parse(e.data); relaySend('tally', relayCache.tally, true); } catch (err) {}
   });
   dashboardSSE.addEventListener('error', function () {
-    ['match', 'mapselection', 'standings'].forEach(function (ch) { relaySend(ch, relayCache[ch], false); });
+    ['match', 'tally'].forEach(function (ch) { relaySend(ch, relayCache[ch], false); });
   });
 
   // Bootstrap request: an iframe that just finished loading (and logging
@@ -2211,56 +1969,6 @@
 
   /* ── Overlay definitions ──────────────────────────────────── */
   var OVERLAYS = [
-    {
-      id: 'draft',
-      name: 'Draft Overlay',
-      file: 'Draft.html',
-      show: '/overlay/draft/show',
-      hide: '/overlay/draft/hide',
-      toggleShowHide: true,
-      deferredPreview: true,
-      photoModeToggle: true,
-      checkToggles: [
-        { name: 'Draft Recap', key: 'draftrecap' },
-      ],
-      featureToggles: [
-        { name: 'Draft Stats', feature: 'draftstats' },
-      ],
-      extraActions: [
-        { label: 'Test Draft Stats (P1, both sides)', action: '/overlay/draftstats/test' },
-        { label: 'Test Debut Pick (P1, both sides)', action: '/overlay/draftstats/test-debut' },
-        { label: 'Test Buff Badge: Nerf', action: '/overlay/draftstats/test-buff/nerf' },
-        { label: 'Test Buff Badge: Buff', action: '/overlay/draftstats/test-buff/buff' },
-        { label: 'Test Buff Badge: Adjust', action: '/overlay/draftstats/test-buff/adjust' },
-        { label: 'Test Swap (badge only, no stats)', action: '/overlay/draftstats/test-swap/nerf' },
-      ],
-    },
-    {
-      /* realme-skinned pick/ban overlay — own bespoke boolean
-         (state.draftRealmeActive) and own 'draftrealme' show/hide/event
-         name, entirely independent of the 'draft' entry above so the two
-         can be shown/hidden separately. Draft Recap / Draft Stats controls
-         are intentionally NOT duplicated here — this page shares the same
-         underlying state.checkOverlays.draftrecap / draftstats toggle as
-         Draft.html (see Draft-realme.html's SSE listeners), so the
-         existing controls on the 'Draft Overlay' panel above already
-         cover it; adding a second copy here would just be a confusing
-         duplicate of the same switch. */
-      id: 'draftrealme',
-      name: 'Draft Overlay (realme)',
-      file: 'Draft-realme.html',
-      show: '/overlay/draftrealme/show',
-      hide: '/overlay/draftrealme/hide',
-      toggleShowHide: true,
-      deferredPreview: true,
-    },
-    {
-      id: 'draftindex',
-      name: 'Draft Index',
-      file: 'DraftIndex.html',
-      show: '/overlay/draftindex/show',
-      hide: '/overlay/draftindex/hide',
-    },
     {
       id: 'sponsortv',
       name: 'Sponsor TV',
@@ -2290,11 +1998,9 @@
         /* realButtons: pressing Show again while this is already live cycles
            a per-match "highlight" instead of a plain on/off toggle (see
            routes/overlay.js) — needs its own real Show/Hide buttons so
-           Show stays clickable while live, same reasoning as LowerThirds.html's
-           mapSelectTagStatus above. */
+           Show stays clickable while live. */
         { name: "Today's Schedule", show: '/overlay/today_schedule/show', hide: '/overlay/today_schedule/hide', realButtons: true },
         { name: "Tomorrow's Schedule", show: '/overlay/tomorrow_schedule/show', hide: '/overlay/tomorrow_schedule/hide' },
-        { name: 'Standings', show: '/overlay/standings/show', hide: '/overlay/standings/hide' },
         { name: 'Team Hexagon', show: '/overlay/team_hexagon/show', hide: '/overlay/team_hexagon/hide' },
         { name: 'MVP Highlights', show: '/overlay/highlights/show', hide: '/overlay/highlights/hide',
           nudges: [ { label: 'Photo', selector: '.hl-player-photo-wrap', fallback: 1360 } ] },
@@ -2341,33 +2047,6 @@
       debugPhotosToggle: true,
     },
     {
-      id: 'entvc',
-      name: 'EN TVC (Waiting TVC)',
-      file: 'ENTVC.html',
-      /* No show/hide — this is a standalone always-on browser source, not
-         part of Fullscreen.html's scene switcher (see ENTVC.html's connectSSE()
-         and restoreScene() for why it ignores remote show/hide entirely).
-         This entry is just a link + live preview for OBS setup. */
-    },
-    {
-      id: 'lowerthirds',
-      name: 'Lower Thirds',
-      file: 'LowerThirds.html',
-      show: '/overlay/mapselecttag/show',
-      hide: '/overlay/mapselecttag/hide',
-      /* "Show" reveals one more game's recap (blocked server-side until
-         that game's map-selection data is locked), not a plain on/off
-         toggle — see mapSelectTagState above — so it keeps real
-         Show/Hide buttons plus a read-only status pill instead of the
-         fullscreen-style single toggle button. */
-      mapSelectTagStatus: true,
-      /* "◈ Preview" calls window.previewTrigger('mapselecttag', action)
-         inside the loaded preview iframe directly — same as Fullscreen.html's
-         per-feature preview buttons — so it only animates in the
-         Control tab's preview pane, never the real broadcast/OBS state. */
-      previewButton: true,
-    },
-    {
       id: 'ingame_scoreboard',
       name: 'Ingame',
       file: 'ingame.html',
@@ -2401,48 +2080,6 @@
         { name: 'Fight Recap', feature: 'fights'     },
         { name: 'Objective Spawn', feature: 'objectivespawn' },
       ],
-    },
-    {
-      id: 'ingame',
-      name: 'BPM Checker',
-      file: 'ingame_camv1.html',
-      ingameControls: true,
-    },
-    {
-      id: 'ingame-blue',
-      name: 'Ingame Blue',
-      file: 'ingame_blue.html',
-      ingameHrmControls: 'blue',
-    },
-    {
-      id: 'ingame-red',
-      name: 'Ingame Red',
-      file: 'ingame_red.html',
-      ingameHrmControls: 'red',
-    },
-    {
-      id: 'bpm',
-      name: 'BPM Meter',
-      file: 'heart_stopping_moment_v14.html',
-      show: '/meter/show',
-      hide: '/meter/hide',
-      extraActions: [
-        { label: '+',     action: '/meter/plus'  },
-        { label: '−',     action: '/meter/minus' },
-        { label: 'Clear', action: '/meter/clear' },
-      ],
-    },
-    {
-      id: 'draftpredict',
-      name: 'Draft Predict',
-      file: null,
-      show: '/overlay/draftpredict/show',
-      hide: '/overlay/draftpredict/hide',
-    },
-    {
-      id: 'bpm-status',
-      name: 'BPM Status',
-      url: '/bpm/status',
     },
   ];
 
@@ -2573,12 +2210,6 @@
   var previewIframe     = document.getElementById('preview-iframe');
   var previewTitle      = document.getElementById('preview-title');
   var previewLabel      = document.getElementById('preview-label');
-  var previewDisabledMsg = document.getElementById('preview-disabled-msg');
-  /* Set only for overlays flagged `deferredPreview` (currently just Draft
-     Overlay) — whether THIS overlay's own Preview toggle currently has the
-     iframe loaded. Reset whenever selectOverlay/deselectOverlay runs so
-     switching away always leaves it off for next time. */
-  var draftPreviewActive = false;
   var controlPanel      = document.getElementById('control-panel');
   var controlPanelTitle = document.getElementById('control-panel-title');
   var controlPanelOpen  = document.getElementById('control-panel-open');
@@ -2634,21 +2265,7 @@
     buildControlBody(ov);
     previewTitle.textContent = ov.name;
     previewLabel.textContent = ov.url || ov.file || '';
-    draftPreviewActive = false;
-    if (ov.deferredPreview) {
-      /* GPU-saving: don't auto-load this overlay into the iframe just
-         because it's selected — it stays unloaded until its own Preview
-         button is pressed, and unloads again the moment that's toggled
-         off or you navigate away. See CLAUDE.md-adjacent notes on
-         Draft.html's video/canvas load for why this one overlay needs
-         this instead of the normal always-loaded preview iframe. */
-      previewIframe.onload = null;
-      previewIframe.src = 'about:blank';
-      previewDisabledMsg.style.display = 'flex';
-    } else {
-      previewDisabledMsg.style.display = 'none';
-      if (srcUrl) previewIframe.src = srcUrl + (ov.url ? '' : ('?t=' + Date.now() + '&preview=1'));
-    }
+    if (srcUrl) previewIframe.src = srcUrl + (ov.url ? '' : ('?t=' + Date.now() + '&preview=1'));
     layout.classList.add('split');
     requestAnimationFrame(scalePreview);
   }
@@ -2658,11 +2275,9 @@
     activeItem = null;
     lastOverlay = null;
     lastItem = null;
-    draftPreviewActive = false;
     layout.classList.remove('split');
     previewIframe.onload = null;
     previewIframe.src = 'about:blank';
-    previewDisabledMsg.style.display = 'none';
     controlPanelBody.innerHTML = '';
   }
 
@@ -2924,41 +2539,8 @@
   }
 
   /* ── Build sidebar + control body ────────────────────────── */
-  /* ── Draft photo mode (live API match vs. random test) ────── */
-  function buildDraftPhotoModeControl(body) {
-    if (body.children.length) body.appendChild(el('div', 'divider'));
-    body.appendChild(el('div', 'features-label', 'Player Photo Source'));
-
-    var row = el('div', 'btn-row');
-    var btnLive   = el('button', 'btn btn-action', 'Live API');
-    var btnRandom = el('button', 'btn btn-action', 'Random Test');
-
-    function applyStyle(mode) {
-      btnLive.style.cssText   = mode === 'live'   ? 'background:#001a00;color:#0a9200;border-color:#0a9200;' : '';
-      btnRandom.style.cssText = mode === 'random' ? 'background:#1a1200;color:#ffcc00;border-color:#ffcc00;' : '';
-    }
-
-    fetch('/overlay/draft-photo-mode').then(function(r){ return r.json(); }).then(function(d) {
-      applyStyle(d.mode || 'live');
-    }).catch(function(){});
-
-    btnLive.addEventListener('click', function() {
-      applyStyle('live');
-      fetch('/overlay/draft-photo-mode/live').catch(function(){});
-    });
-    btnRandom.addEventListener('click', function() {
-      applyStyle('random');
-      fetch('/overlay/draft-photo-mode/random').catch(function(){});
-    });
-
-    row.appendChild(btnLive);
-    row.appendChild(btnRandom);
-    body.appendChild(row);
-  }
-
-  /* ── Fullscreen Consolidated Post player photo source (same 'debugphotos'
-     feature toggle underneath, styled the same as the Draft Overlay
-     control above) ── */
+  /* ── Fullscreen Consolidated Post player photo source (live vs. random
+     test photos, backed by the 'debugphotos' feature toggle) ── */
   function buildDebugPhotosControl(body) {
     if (body.children.length) body.appendChild(el('div', 'divider'));
     body.appendChild(el('div', 'features-label', 'Player Photo Source'));
@@ -2994,7 +2576,6 @@
     if (_hrmSwapTimer) { clearInterval(_hrmSwapTimer); _hrmSwapTimer = null; }
     var body = controlPanelBody;
     body.innerHTML = '';
-    mapSelectTagBadge = null; // body.innerHTML just wiped any previous badge element
     fullscreenLiveBadge = null;
     activePreviewOff = null; // body.innerHTML just wiped whichever preview button held this
     previewToggleRegistry = {};
@@ -3003,47 +2584,11 @@
     if (ov.ingameControls)    { buildIngameControls(body);    return; }
     if (ov.ingameHrmControls) { buildIngameHrmControls(body, ov.ingameHrmControls); return; }
 
-    /* Status pill (currently only lowerthirds/"Lower Thirds" opts in) */
-    if (ov.mapSelectTagStatus) {
-      var statusRow = el('div', 'feature-row');
-      statusRow.appendChild(el('div', 'feature-name', 'Status'));
-      var statusBtns = el('div', 'feature-btns');
-      mapSelectTagBadge = el('button', 'btn btn-toggle btn-toggle-off', '○ Hidden');
-      mapSelectTagBadge.disabled = true;
-      statusBtns.appendChild(mapSelectTagBadge);
-      statusRow.appendChild(statusBtns);
-      body.appendChild(statusRow);
-      applyMapSelectTagBadge();
-      loadMapSelectTagState();
-    }
-
     /* Show / Hide row */
     if (ov.show || ov.hide || ov.globalHide) {
       var row = el('div', 'btn-row');
-      if (ov.toggleShowHide && ov.show && ov.hide && ov.id === 'draftrealme') {
-        /* Same single-toggle pattern as the 'draft' branch below, just
-           against draftRealmeShowState/applyDraftRealmeShowBtn's own
-           bespoke boolean (state.draftRealmeActive) instead. */
-        draftRealmeShowBtn = el('button', 'btn btn-toggle btn-toggle-off', '○ Hidden');
-        draftRealmeShowBtn.addEventListener('click', function () {
-          hit(draftRealmeShowState ? ov.hide : ov.show, body);
-        });
-        applyDraftRealmeShowBtn();
-        row.appendChild(draftRealmeShowBtn);
-      } else if (ov.toggleShowHide && ov.show && ov.hide) {
-        /* Single SHOWING/HIDDEN toggle instead of separate Show/Hide
-           buttons — same visual language as the checkToggles buttons
-           below, driven by draftShowState/applyDraftShowBtn above. */
-        draftShowBtn = el('button', 'btn btn-toggle btn-toggle-off', '○ Hidden');
-        draftShowBtn.addEventListener('click', function () {
-          hit(draftShowState ? ov.hide : ov.show, body);
-        });
-        applyDraftShowBtn();
-        row.appendChild(draftShowBtn);
-      } else {
-        if (ov.show) row.appendChild(btn('Show', 'btn-show', function () { hit(ov.show, body); }));
-        if (ov.hide) row.appendChild(btn('Hide', 'btn-hide', function () { hit(ov.hide, body); }));
-      }
+      if (ov.show) row.appendChild(btn('Show', 'btn-show', function () { hit(ov.show, body); }));
+      if (ov.hide) row.appendChild(btn('Hide', 'btn-hide', function () { hit(ov.hide, body); }));
       if (ov.show) {
         var scb = document.createElement('button');
         scb.className = 'btn btn-copy';
@@ -3081,45 +2626,6 @@
         fullscreenLiveBadge.disabled = true;
         applyFullscreenLiveBadge();
         row.appendChild(fullscreenLiveBadge);
-      }
-      if (ov.previewButton && (ov.show || ov.hide)) {
-        var route0 = ov.show || ov.hide;
-        var parts0 = route0.split('/');
-        row.appendChild(buildPreviewToggleBtn(parts0[parts0.length - 2]));
-      }
-      if (ov.deferredPreview && (ov.show || ov.hide)) {
-        /* Unlike ov.previewButton above, this overlay's iframe is NOT
-           already loaded (see selectOverlay's deferredPreview branch) —
-           this button loads it fresh, waits for it, then triggers show;
-           turning it off unloads the iframe outright instead of just
-           hiding within it, so the page (and its video decode/canvas
-           compositing) actually stops running instead of sitting idle. */
-        var dpvb = document.createElement('button');
-        dpvb.className = 'btn btn-preview-live';
-        dpvb.textContent = '◈ Preview';
-        (function (o) {
-          var route = o.show || o.hide;
-          var parts = route.split('/');
-          var eventName = parts[parts.length - 2];
-          dpvb.addEventListener('click', function () {
-            draftPreviewActive = !draftPreviewActive;
-            dpvb.classList.toggle('active', draftPreviewActive);
-            if (draftPreviewActive) {
-              previewDisabledMsg.style.display = 'none';
-              previewIframe.onload = function () {
-                previewIframe.onload = null;
-                var iw = previewIframe.contentWindow;
-                if (iw && typeof iw.previewTrigger === 'function') iw.previewTrigger(eventName, 'show');
-              };
-              previewIframe.src = '/html/' + o.file + '?t=' + Date.now() + '&preview=1';
-            } else {
-              previewIframe.onload = null;
-              previewIframe.src = 'about:blank';
-              previewDisabledMsg.style.display = 'flex';
-            }
-          });
-        })(ov);
-        row.appendChild(dpvb);
       }
       body.appendChild(row);
     }
@@ -3506,11 +3012,6 @@
       });
     }
 
-    /* Draft photo source toggle */
-    if (ov.photoModeToggle) {
-      buildDraftPhotoModeControl(body);
-    }
-
     /* Fullscreen Consolidated Post player photo source toggle */
     if (ov.debugPhotosToggle) {
       buildDebugPhotosControl(body);
@@ -3579,7 +3080,7 @@
   /* ── Fullscreen per-feature archiving ────────────────────────
      Separate from the project overlay-list filtering above — this hides
      individual FEATURES within the Fullscreen control panel (e.g. "MVP
-     Scene", "Standings") into its collapsible "Archived" section instead
+     Scene") into its collapsible "Archived" section instead
      of hiding a whole OVERLAYS entry from the sidebar. Project-scoped
      the same way (see /api/fullscreen-archived-features), but falls back
      to a root-level default with no active project, so it works either
@@ -4063,146 +3564,6 @@
     { group: 'Sponsor', id: '#tomorrow-schedule-page.tsm-count-3 #tw-sponsor', name: 'Sponsor Box'      },
   ];
 
-  /* ── Standings (Fullscreen.html) ──────────────────────────────────
-     "Header" group = #st-header (title/season/week) + #st-colheader (the
-     column-header bar). The 6 column labels are real DOM children of
-     #st-colheader now (position:absolute inside it, coordinates relative
-     to its own top-left) — dragging the bar carries every label with it
-     automatically via normal CSS containment, no group-drag needed for
-     them. Each label keeps its own entry (own unique group) so it can
-     still be nudged individually within the bar.
-     "Body" = #st-rows, a single-element group: it's position:absolute
-     and every .st-row is positioned relative to IT (not the page), so
-     dragging #st-rows carries all 8 rows with it without a new wrapper. */
-  var ST_DEFAULTS = {
-    '#st-header':    { left: 230, top: 82  },
-    '#st-colheader': { left: 118, top: 327, width: 1803, height: 27 },
-    '.st-l0':        { left: 104, top: 0,   width: 80,   height: 27 },
-    '.st-lteam':     { left: 294, top: 0,   height: 27 },
-    '.st-l1':        { left: 768, top: 0,   width: 260,  height: 27 },
-    '.st-l2':        { left: 1035, top: 0,  width: 260,  height: 27 },
-    '.st-l3':        { left: 1303, top: 0,  width: 260,  height: 27 },
-    '.st-l4':        { left: 1555, top: 0,  width: 260,  height: 27 },
-    '#st-rows':      { left: 0,    top: 0,   width: 1920, height: 1080 },
-  };
-  var ST_ELEMENTS = [
-    { group: 'Header',    id: '#st-header',    name: 'Title / Season / Week' },
-    { group: 'Header',    id: '#st-colheader', name: 'Column Header Bar (drag moves all labels)' },
-    { group: 'Rank Label',       id: '.st-l0',    name: 'Rank Label (within bar)'         },
-    { group: 'Team Label',       id: '.st-lteam', name: 'Team Label (within bar)'         },
-    { group: 'Match Point Label', id: '.st-l1',   name: 'Match Point Label (within bar)'  },
-    { group: 'Match W-L Label',   id: '.st-l2',   name: 'Match W-L Label (within bar)'    },
-    { group: 'Game W-L Label',    id: '.st-l3',   name: 'Game W-L Label (within bar)'     },
-    { group: 'Net Game Win Label', id: '.st-l4',  name: 'Net Game Win Label (within bar)' },
-    { group: 'Body',   id: '#st-rows',      name: 'Team Rows'             },
-  ];
-
-  /* ── Map bug (Draft.html) — same box as ingame.html's ingame
-     #sb-map, cloned centered above the draft area. Icon and name box
-     are absolutely positioned WITHIN #draft-map, so moving #draft-map
-     carries both along; each can also be nudged on its own. */
-  var DRAFT_MAP_DEFAULTS = {
-    '#draft-map':           { left: 813, top: 691, width: 294, height: 69 },
-    '#draft-map-logo':      { left: 9,   top: 9,   width: 52,  height: 52 },
-    '#draft-map-name':      { left: 102, top: 10,  width: 185, height: 50 },
-    '.draft-map-name-text': { fontSize: 26 },
-  };
-  var DRAFT_MAP_ELEMENTS = [
-    { group: 'Background', id: '#draft-map',           name: 'Map Bug Background' },
-    { group: 'Icon',       id: '#draft-map-logo',      name: 'Map Icon' },
-    { group: 'Text',       id: '#draft-map-name',      name: 'Map Name Box' },
-    { group: 'Text',       id: '.draft-map-name-text', name: 'Map Name Font Size' },
-  ];
-
-  /* ── Match/Game indicator (Draft.html) — "MATCH 1 - GAME 1" box
-     centered above the draft area, sourced from Match Board. ── */
-  var DRAFT_MATCHGAME_DEFAULTS = {
-    '#draft-match-game':           { left: 837, top: 851, width: 247, height: 58 },
-    '.draft-match-game-text':      { fontSize: 18 },
-  };
-  var DRAFT_MATCHGAME_ELEMENTS = [
-    { group: 'Text', id: '#draft-match-game',      name: 'Match/Game Box' },
-    { group: 'Text', id: '.draft-match-game-text', name: 'Match/Game Font Size' },
-  ];
-
-  /* ── Draft Recap (Draft.html) — previous-game pick/ban recap, blue
-     card at screen-left, red card at screen-right. Every hero/ban slot
-     within each card is positioned relative to that card's own
-     background box (#dr-blue-bg / #dr-red-bg), so moving the whole card
-     also carries its 5 picks + 5 bans + title with it; each slot is
-     still independently draggable/resizable on top of that. */
-  var DRAFT_RECAP_DEFAULTS = {
-    '#dr-blue-bg':      { left: 0,    top: 562, width: 398, height: 218 },
-    '#dr-blue-title':   { left: 7,    top: 0,   width: 384, height: 44  },
-    '.dr-blue-title-text': { fontSize: 19 },
-    '#dr-blue-pick-1':  { left: 7,    top: 50,  width: 74,  height: 117 },
-    '#dr-blue-pick-2':  { left: 84.5, top: 50,  width: 74,  height: 117 },
-    '#dr-blue-pick-3':  { left: 162,  top: 50,  width: 74,  height: 117 },
-    '#dr-blue-pick-4':  { left: 239.5,top: 50,  width: 74,  height: 117 },
-    '#dr-blue-pick-5':  { left: 317,  top: 50,  width: 74,  height: 117 },
-    '#dr-blue-ban-1':   { left: 8,    top: 172, width: 73,  height: 39  },
-    '#dr-blue-ban-2':   { left: 85.5, top: 172, width: 73,  height: 39  },
-    '#dr-blue-ban-3':   { left: 163,  top: 172, width: 73,  height: 39  },
-    '#dr-blue-ban-4':   { left: 240.5,top: 172, width: 73,  height: 39  },
-    '#dr-blue-ban-5':   { left: 318,  top: 172, width: 73,  height: 39  },
-
-    '#dr-red-bg':       { left: 1522, top: 562, width: 398, height: 218 },
-    '#dr-red-title':    { left: 7,    top: 0,   width: 384, height: 44  },
-    '.dr-red-title-text': { fontSize: 19 },
-    '#dr-red-pick-1':   { left: 7,    top: 50,  width: 74,  height: 117 },
-    '#dr-red-pick-2':   { left: 84.5, top: 50,  width: 74,  height: 117 },
-    '#dr-red-pick-3':   { left: 162,  top: 50,  width: 74,  height: 117 },
-    '#dr-red-pick-4':   { left: 239.5,top: 50,  width: 74,  height: 117 },
-    '#dr-red-pick-5':   { left: 317,  top: 50,  width: 74,  height: 117 },
-    '#dr-red-ban-1':    { left: 8,    top: 172, width: 73,  height: 39  },
-    '#dr-red-ban-2':    { left: 85.5, top: 172, width: 73,  height: 39  },
-    '#dr-red-ban-3':    { left: 163,  top: 172, width: 73,  height: 39  },
-    '#dr-red-ban-4':    { left: 240.5,top: 172, width: 73,  height: 39  },
-    '#dr-red-ban-5':    { left: 318,  top: 172, width: 73,  height: 39  },
-  };
-
-  /* ── Sponsor Loop (Draft-realme.html) — sits in the flat black cell
-     above the center RMC logo (see #rsponsor-loop's CSS comment in
-     Draft-realme.html). Saved under the same "Draft" style bucket that
-     page's loadDraftOverrides() already reads, via r-prefixed ids so it
-     never collides with Draft.html's own #sponsor-loop. */
-  var DRAFTREALME_SPONSOR_DEFAULTS = {
-    '#rsponsor-loop': { left: 772, top: 766, width: 370, height: 55 },
-  };
-  var DRAFTREALME_SPONSOR_ELEMENTS = [
-    { group: 'Sponsor', id: '#rsponsor-loop', name: 'Sponsor Box' },
-  ];
-
-  var DRAFT_RECAP_ELEMENTS = [
-    { group: 'Blue Card',       id: '#dr-blue-bg',        name: 'Blue Background' },
-    { group: 'Blue Card',       id: '#dr-blue-title',     name: 'Blue Title Box' },
-    { group: 'Blue Card',       id: '.dr-blue-title-text', name: 'Blue Title Font Size' },
-    { group: 'Blue Hero Picks', id: '#dr-blue-pick-1',    name: 'Blue Pick 1' },
-    { group: 'Blue Hero Picks', id: '#dr-blue-pick-2',    name: 'Blue Pick 2' },
-    { group: 'Blue Hero Picks', id: '#dr-blue-pick-3',    name: 'Blue Pick 3' },
-    { group: 'Blue Hero Picks', id: '#dr-blue-pick-4',    name: 'Blue Pick 4' },
-    { group: 'Blue Hero Picks', id: '#dr-blue-pick-5',    name: 'Blue Pick 5' },
-    { group: 'Blue Bans',       id: '#dr-blue-ban-1',     name: 'Blue Ban 1' },
-    { group: 'Blue Bans',       id: '#dr-blue-ban-2',     name: 'Blue Ban 2' },
-    { group: 'Blue Bans',       id: '#dr-blue-ban-3',     name: 'Blue Ban 3' },
-    { group: 'Blue Bans',       id: '#dr-blue-ban-4',     name: 'Blue Ban 4' },
-    { group: 'Blue Bans',       id: '#dr-blue-ban-5',     name: 'Blue Ban 5' },
-
-    { group: 'Red Card',        id: '#dr-red-bg',         name: 'Red Background' },
-    { group: 'Red Card',        id: '#dr-red-title',      name: 'Red Title Box' },
-    { group: 'Red Card',        id: '.dr-red-title-text', name: 'Red Title Font Size' },
-    { group: 'Red Hero Picks',  id: '#dr-red-pick-1',     name: 'Red Pick 1' },
-    { group: 'Red Hero Picks',  id: '#dr-red-pick-2',     name: 'Red Pick 2' },
-    { group: 'Red Hero Picks',  id: '#dr-red-pick-3',     name: 'Red Pick 3' },
-    { group: 'Red Hero Picks',  id: '#dr-red-pick-4',     name: 'Red Pick 4' },
-    { group: 'Red Hero Picks',  id: '#dr-red-pick-5',     name: 'Red Pick 5' },
-    { group: 'Red Bans',        id: '#dr-red-ban-1',      name: 'Red Ban 1' },
-    { group: 'Red Bans',        id: '#dr-red-ban-2',      name: 'Red Ban 2' },
-    { group: 'Red Bans',        id: '#dr-red-ban-3',      name: 'Red Ban 3' },
-    { group: 'Red Bans',        id: '#dr-red-ban-4',      name: 'Red Ban 4' },
-    { group: 'Red Bans',        id: '#dr-red-ban-5',      name: 'Red Ban 5' },
-  ];
-
   /* ── Team Line-Up (Fullscreen.html) element defaults ────────────────
      Blue and Red are two separate page divs (lub- / lur- prefixed ids) but they
      share every positioning CLASS (.lu-player-N, .lu-nametag-N, .lu-title,
@@ -4354,57 +3715,6 @@
     { group: 'Hosts', id: '.ws-hosts-slot-right',  name: 'Photo (Right)'  },
   ];
 
-  /* ── Map Selection tag (LowerThirds.html) element defaults ──────────
-     Class selectors, not IDs — LowerThirds.html repeats these once per game
-     in the series, so one saved override (a CSS rule keyed by the bare
-     class) applies to every game block at once, current and future.
-     .ms-win-text has no left/top/width/height here since it's meant to
-     always fill its parent box exactly (100%/100%) — only its fontSize
-     is exposed, matching the .draft-map-name-text precedent below of
-     only registering the keys that should actually be editable. */
-  var LOWERTHIRDS_DEFAULTS = {
-    '.ms-sidebox':      { left: 29,  top: 747,  width: 353, height: 154 },
-    '.ms-title':        { left: 15,  top: 5,    width: 176, height: 22,  fontSize: 18 },
-    '.ms-toss-logo':    { left: 17,  top: 41,   width: 103, height: 103 },
-    '.ms-toss-tricode': { left: 174, top: 41,   width: 166, height: 103, fontSize: 92 },
-    '.ms-mapbox-mask':  { left: 29,  top: 898,  width: 353, height: 123 },
-    '.ms-map-icon':     { left: 10,  top: 27,   width: 64,  height: 64  },
-    '.ms-map-name':     { left: 115, top: 44,   width: 230, height: 31,  fontSize: 34 },
-    '.ms-map-label':    { left: 115, top: 76,   width: 230, height: 18,  fontSize: 17 },
-    '.ms-winbox-mask':  { left: 30,  top: 1020, width: 139, height: 31 },
-    '.ms-win-text':     { fontSize: 24 },
-  };
-
-  var LOWERTHIRDS_ELEMENTS = [
-    { group: 'Side Select', id: '.ms-sidebox',      name: 'Side Select Box' },
-    { group: 'Side Select', id: '.ms-title',        name: 'Match/Game Title' },
-    { group: 'Side Select', id: '.ms-toss-logo',    name: 'Toss Winner Logo' },
-    { group: 'Side Select', id: '.ms-toss-tricode', name: 'Toss Winner Tricode' },
-    { group: 'Map Select',  id: '.ms-mapbox-mask',  name: 'Map Select Box' },
-    { group: 'Map Select',  id: '.ms-map-icon',     name: 'Map Icon' },
-    { group: 'Map Select',  id: '.ms-map-name',     name: 'Map Name' },
-    { group: 'Map Select',  id: '.ms-map-label',    name: 'Map Selected Label' },
-    { group: 'Win Banner',  id: '.ms-winbox-mask',  name: 'Win Banner Box' },
-    { group: 'Win Banner',  id: '.ms-win-text',     name: 'Win Banner Text' },
-  ];
-
-  /* ── EN Casters (ENTVC.html standalone Waiting TVC) element defaults ──
-     Same 3-up layout as Casters, but these selectors only exist inside
-     ENTVC.html's DOM (ws-encasters-slot-*, not ws-casters-slot-*), so they
-     can be dragged independently of the real Casters box in Fullscreen.html
-     even though both configs persist to the same 'fullscreen' style bucket. */
-  var EN_CASTER_DEFAULTS = {
-    '.ws-encasters-slot-left':   { left: 0,   top: 14, width: 354, height: 464 },
-    '.ws-encasters-slot-middle': { left: 125, top: 0,  width: 320, height: 478 },
-    '.ws-encasters-slot-right':  { left: 217, top: 14, width: 354, height: 464 },
-  };
-
-  var EN_CASTER_ELEMENTS = [
-    { group: 'EN Casters', id: '.ws-encasters-slot-left',   name: 'Photo (Left)'   },
-    { group: 'EN Casters', id: '.ws-encasters-slot-middle', name: 'Photo (Middle)' },
-    { group: 'EN Casters', id: '.ws-encasters-slot-right',  name: 'Photo (Right)'  },
-  ];
-
   /* ── MVP Highlights (Fullscreen.html) element defaults ───────────────
      Signature-pose hires photo behind the plaque, then the plaque's own
      pieces (team logo / role icon / name / hero art) positioned per
@@ -4511,49 +3821,6 @@
 
   var CREDITS_ELEMENTS = [
     { group: 'Credit Reel', id: '#credits-viewport', name: 'Credit Reel Viewport' },
-  ];
-
-  /* ── Draft Index (DraftIndex.html) element defaults ──────────────
-     Two sub-configs share one file: the intro (Smart logo + DRAFT
-     INDEX title lockup) and the comparison (mini logo + blue/red team
-     panels + stat bars). Both write into the same overlay_styles.json
-     bucket (styleFile: 'DraftIndex'), same as Fullscreen.html's multiple
-     sub-scenes sharing styleFile 'fullscreen'. The 7 stat bars themselves
-     aren't individually editable — only the container box is
-     drag/resize-able, same philosophy as Credit Reel's viewport. */
-  var DI_INTRO_DEFAULTS = {
-    '#di-smart-logo-p1': { left: 377, top: 469, width: 424, height: 154 },
-    '#di-title-text':    { left: 855, top: 469, width: 700, height: 154, fontSize: 145 },
-  };
-  var DI_INTRO_ELEMENTS = [
-    { group: 'Smart Logo', id: '#di-smart-logo-p1', name: 'Smart Logo (Intro)' },
-    { group: 'Title',      id: '#di-title-text',     name: 'DRAFT INDEX Title' },
-  ];
-
-  var DI_COMPARE_DEFAULTS = {
-    '#di-smart-logo-p2': { left: 874, top: 301, width: 172, height: 63  },
-    '#di-blue-box':      { left: 166, top: 340, width: 285, height: 414 },
-    '#di-red-box':       { left: 1429, top: 342, width: 285, height: 414 },
-    '#di-bars-container': { left: 634, top: 370, width: 622, height: 420 },
-    /* Grouped fonts — each selector is a class shared by every instance
-       of that text family (blue+red names, all 4 stat rows, all 7 bar
-       rows), so one fontSize edit resizes them all at once. */
-    '.di-team-name span': { fontSize: 34 },
-    '.di-stat-label':     { fontSize: 12 },
-    '.di-stat-value':     { fontSize: 30 },
-    '.di-bar-label':      { fontSize: 14 },
-    '.di-bar-num':        { fontSize: 22 },
-  };
-  var DI_COMPARE_ELEMENTS = [
-    { group: 'Smart Logo',    id: '#di-smart-logo-p2',  name: 'Smart Logo (Mini)' },
-    { group: 'Blue Team',     id: '#di-blue-box',       name: 'Blue Team Panel'   },
-    { group: 'Red Team',      id: '#di-red-box',        name: 'Red Team Panel'    },
-    { group: 'Stat Bars',     id: '#di-bars-container', name: 'Stat Bars Panel'   },
-    { group: 'Team Name Font',  id: '.di-team-name span', name: 'Team Name Size'  },
-    { group: 'Stat Label Font', id: '.di-stat-label',     name: 'Stat Label Size' },
-    { group: 'Stat Value Font', id: '.di-stat-value',     name: 'Stat Value Size' },
-    { group: 'Bar Label Font',  id: '.di-bar-label',      name: 'Bar Label Size'  },
-    { group: 'Bar Number Font', id: '.di-bar-num',        name: 'Bar Number Size' },
   ];
 
   /* ── Sponsor TV (sponsortv.html) element defaults ─────────────────
@@ -4964,15 +4231,6 @@
       defaults:    HOST_DEFAULTS,
       showFn:      'showHostsForEdit',
     },
-    entvc_encasters: {
-      label:       'EN Casters · ENTVC',
-      file:        'ENTVC.html',
-      styleFile:   'fullscreen',
-      defaultsKey: 'sb_edit_defaults_entvc_encasters',
-      elements:    EN_CASTER_ELEMENTS,
-      defaults:    EN_CASTER_DEFAULTS,
-      showFn:      'showCastersForEdit',
-    },
     fullscreen_highlights: {
       label:       'MVP Highlights · Fullscreen',
       file:        'Fullscreen.html',
@@ -5135,67 +4393,6 @@
       defaults:    TW_COUNT3_DEFAULTS,
       showFn:      'showTomorrowScheduleEdit3',
     },
-    draft_mapbug: {
-      label:       'Map Bug · Draft',
-      file:        'Draft.html',
-      styleFile:   'Draft',
-      defaultsKey: 'sb_edit_defaults_draft_mapbug',
-      elements:    DRAFT_MAP_ELEMENTS,
-      defaults:    DRAFT_MAP_DEFAULTS,
-    },
-    draft_matchgame: {
-      label:       'Match/Game Indicator · Draft',
-      file:        'Draft.html',
-      styleFile:   'Draft',
-      defaultsKey: 'sb_edit_defaults_draft_matchgame',
-      elements:    DRAFT_MATCHGAME_ELEMENTS,
-      defaults:    DRAFT_MATCHGAME_DEFAULTS,
-    },
-    draft_recap: {
-      label:       'Draft Recap · Draft',
-      file:        'Draft.html',
-      styleFile:   'Draft',
-      defaultsKey: 'sb_edit_defaults_draft_recap',
-      elements:    DRAFT_RECAP_ELEMENTS,
-      defaults:    DRAFT_RECAP_DEFAULTS,
-      showFn:      'showDraftRecapForEdit',
-    },
-    draftrealme_sponsor: {
-      label:       'Sponsor Loop · Draft (realme)',
-      file:        'Draft-realme.html',
-      styleFile:   'Draft',
-      defaultsKey: 'sb_edit_defaults_draftrealme_sponsor',
-      elements:    DRAFTREALME_SPONSOR_ELEMENTS,
-      defaults:    DRAFTREALME_SPONSOR_DEFAULTS,
-      showFn:      'showDraftRealmeForEdit',
-    },
-    fullscreen_standings: {
-      label:       'Standings · Fullscreen',
-      file:        'Fullscreen.html',
-      styleFile:   'fullscreen',
-      defaultsKey: 'sb_edit_defaults_fullscreen_standings',
-      elements:    ST_ELEMENTS,
-      defaults:    ST_DEFAULTS,
-      showFn:      'showStandings',
-    },
-    draftindex_intro: {
-      label:       'Draft Index — Intro',
-      file:        'DraftIndex.html',
-      styleFile:   'DraftIndex',
-      defaultsKey: 'sb_edit_defaults_draftindex_intro',
-      elements:    DI_INTRO_ELEMENTS,
-      defaults:    DI_INTRO_DEFAULTS,
-      showFn:      'showDraftIndexIntroForEdit',
-    },
-    draftindex_compare: {
-      label:       'Draft Index — Comparison',
-      file:        'DraftIndex.html',
-      styleFile:   'DraftIndex',
-      defaultsKey: 'sb_edit_defaults_draftindex_compare',
-      elements:    DI_COMPARE_ELEMENTS,
-      defaults:    DI_COMPARE_DEFAULTS,
-      showFn:      'showDraftIndexCompareForEdit',
-    },
     sponsortv: {
       label:       'Sponsor TV',
       file:        'sponsortv.html',
@@ -5203,15 +4400,6 @@
       defaultsKey: 'sb_edit_defaults_sponsortv',
       elements:    STV_ELEMENTS,
       defaults:    STV_DEFAULTS,
-    },
-    lowerthirds_mapselect: {
-      label:       'Map Selection · Lower Thirds',
-      file:        'LowerThirds.html',
-      styleFile:   'lowerthirds',
-      defaultsKey: 'sb_edit_defaults_lowerthirds_mapselect',
-      elements:    LOWERTHIRDS_ELEMENTS,
-      defaults:    LOWERTHIRDS_DEFAULTS,
-      showFn:      'showLowerThirdsForEdit',
     },
   };
   var currentConfigKey = 'ingame_scoreboard';

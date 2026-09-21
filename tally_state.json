@@ -1,0 +1,712 @@
+{
+  "tournamentName": "CODM:BR",
+  "groups": [
+    {
+      "id": "0d076118-c875-4bed-8ec7-c7d440294fad",
+      "name": "Group A",
+      "teams": [
+        {
+          "id": "e5d57f37-53cb-4c30-b852-7ee570b91cc3",
+          "name": "Team ALpha",
+          "color": "#F2A93B",
+          "players": [
+            {
+              "id": "a66573dd-6e7f-4af4-902c-55edfebfffee",
+              "name": "Player 1"
+            },
+            {
+              "id": "fee69ddd-8ac7-44bd-9912-be69a613d1f4",
+              "name": "Player 2"
+            },
+            {
+              "id": "64fdcaf5-a9c6-4f26-b97f-00804acb1a2d",
+              "name": "Player 3"
+            },
+            {
+              "id": "b6540e93-3cad-4063-a461-b4a881b2c1c2",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "c134670f-1a36-4387-b89e-758e8cd997c0",
+          "name": "Team B",
+          "color": "#6E8F4C",
+          "players": [
+            {
+              "id": "eed26d63-6bfb-4bba-b8c9-e611965fd1b8",
+              "name": "Player 1"
+            },
+            {
+              "id": "870f5b95-1521-4231-9628-e84778ea563c",
+              "name": "Player 2"
+            },
+            {
+              "id": "bd492da6-157b-4ddf-ab31-530e16688aa5",
+              "name": "Player 3"
+            },
+            {
+              "id": "354a80cf-f1fb-4d11-8614-3b995890a7d3",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "3f99c14d-b467-4a36-93aa-c327ffed6657",
+          "name": "Crystal",
+          "color": "#D9584C",
+          "players": [
+            {
+              "id": "0a61566f-2430-4b52-b121-9e4068a7b6a2",
+              "name": "Player 1"
+            },
+            {
+              "id": "ebd6544d-2868-46c5-88a7-a42a3f68e267",
+              "name": "Player 2"
+            },
+            {
+              "id": "271f0f55-70f0-46f2-aeee-887a46fb8e39",
+              "name": "Player 3"
+            },
+            {
+              "id": "10afb190-6000-4e9f-81c8-55924bfc3578",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "5a7369a7-1494-4cc2-b2fb-c5f31d15e266",
+          "name": "Deadlock",
+          "color": "#4C8FA0",
+          "players": [
+            {
+              "id": "d3001f88-97a6-4e38-866a-d1a6fe99cb21",
+              "name": "Player 1"
+            },
+            {
+              "id": "19ca0e9b-9009-405d-bf2e-e179d1945b7b",
+              "name": "Player 2"
+            },
+            {
+              "id": "9de2fe7c-b853-4df3-9500-20d53f1f2f21",
+              "name": "Player 3"
+            },
+            {
+              "id": "7bcb72af-65ca-47c3-850c-8628f7c81c5d",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "3bb7039f-8947-4033-b33b-bc9119de5a78",
+          "name": "Elephant",
+          "color": "#B07CC6",
+          "players": [
+            {
+              "id": "270f25d2-5867-46ab-98e5-29fbc5fdf173",
+              "name": "Player 1"
+            },
+            {
+              "id": "aedb2329-e919-4f65-ad3f-fd95e146a971",
+              "name": "Player 2"
+            },
+            {
+              "id": "21285583-2632-4bcb-b62a-a8eaacee1af2",
+              "name": "Player 3"
+            },
+            {
+              "id": "c61ccac6-879f-4601-8704-53f2d109fbb9",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "5086d20f-13f9-4f26-8a55-0c640f7eb972",
+          "name": "Fast",
+          "color": "#C98449",
+          "players": [
+            {
+              "id": "ce4ab4c3-4ad3-45af-a852-a66cde70307e",
+              "name": "Player 1"
+            },
+            {
+              "id": "406b9c38-cd6e-4735-9503-663e12f1a7c9",
+              "name": "Player 2"
+            },
+            {
+              "id": "d71aa446-814c-4841-923c-beb594aa4f26",
+              "name": "Player 3"
+            },
+            {
+              "id": "d8e70514-17bb-4816-805f-c9acf8cae2d0",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "f2d6a0ee-83a1-4d93-8746-0a1c678756b6",
+          "name": "Gengar GIants",
+          "color": "#5FAE7A",
+          "players": [
+            {
+              "id": "9cd2aa46-09c0-4d35-9b60-0f6a1b45e87e",
+              "name": "Player 1"
+            },
+            {
+              "id": "04ba1c57-2a3b-4ba6-872a-d40f4cc8756a",
+              "name": "Player 2"
+            },
+            {
+              "id": "297ac72f-b26a-4773-ad30-f086e6757bb3",
+              "name": "Player 3"
+            },
+            {
+              "id": "7cd2b3b3-4be4-4ff5-bbc9-4a5ae9740371",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "6c15a1a1-4128-4fbb-afb2-4cbbd6cef473",
+          "name": "Hubris",
+          "color": "#C9C24C",
+          "players": [
+            {
+              "id": "7feaa057-6d2e-4984-aa88-8fe9f33c6295",
+              "name": "Player 1"
+            },
+            {
+              "id": "d4965e52-067f-4247-9132-8b528c127b07",
+              "name": "Player 2"
+            },
+            {
+              "id": "e0d4fa86-a261-41e8-a32e-2208abc7a858",
+              "name": "Player 3"
+            },
+            {
+              "id": "bd58f0e4-4db6-4c62-b88a-847091a6fd6e",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "15327a98-9fa1-4278-837f-8604ce21bb3f",
+          "name": "Igloo",
+          "color": "#E07BA0",
+          "players": [
+            {
+              "id": "a86f2c12-ef31-4c29-8281-b7670680737b",
+              "name": "Player 1"
+            },
+            {
+              "id": "4e319d4e-9f3e-4b35-8540-ef9dc748f6ba",
+              "name": "Player 2"
+            },
+            {
+              "id": "6abba53c-366b-4c74-b068-028fb3eede25",
+              "name": "Player 3"
+            },
+            {
+              "id": "55deb685-488e-461f-a5a6-838b48e2f5e2",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "197dad10-0427-4640-842d-aa0ea9bfb1f2",
+          "name": "Raster",
+          "color": "#7A8FE0",
+          "players": [
+            {
+              "id": "15d0c68c-cfd5-4001-9455-d5e1c2b7f96d",
+              "name": "Player 1"
+            },
+            {
+              "id": "b7e77817-dd15-4848-b617-5345c1378a28",
+              "name": "Player 2"
+            },
+            {
+              "id": "55f7593f-a5e3-40d4-b9c0-5f1fa448cd88",
+              "name": "Player 3"
+            },
+            {
+              "id": "d4958e29-ed9f-47bc-8b75-54d0e375d587",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "20bc6ee5-362f-4114-ba8d-0a9e91ae983b",
+          "name": "Queens",
+          "color": "#E4BA3E",
+          "players": [
+            {
+              "id": "d4eab755-0234-4f81-ab19-3f79443c4e71",
+              "name": "Player 1"
+            },
+            {
+              "id": "5793724c-3821-4b88-a852-7919e8fc575d",
+              "name": "Player 2"
+            },
+            {
+              "id": "fb9b0670-1bb0-4022-9300-ef1aaf527353",
+              "name": "Player 3"
+            },
+            {
+              "id": "d6d7985b-68cf-4bf2-ad21-0c29ba43b7f5",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "1beff012-bcda-4b2f-a186-4a3ac215d8e5",
+          "name": "Renegade",
+          "color": "#8FA08D",
+          "players": [
+            {
+              "id": "d66a3857-5836-46f9-84c0-50481c0e86da",
+              "name": "Player 1"
+            },
+            {
+              "id": "ca728ae9-e5dc-45a2-b4a1-492f3e2ef253",
+              "name": "Player 2"
+            },
+            {
+              "id": "9358bc98-9162-4b73-aa40-8b19e7267c1b",
+              "name": "Player 3"
+            },
+            {
+              "id": "f123d5ec-f766-470f-b08b-bad12789fb73",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "a647b696-6b3e-4c6a-80cb-9642dc318b03",
+          "name": "Zebras",
+          "color": "#F2A93B",
+          "players": [
+            {
+              "id": "821ce992-20f1-4a0d-bf2c-2900edb2a45e",
+              "name": "Player 1"
+            },
+            {
+              "id": "66be1dcd-64a7-4d43-a287-410e9cf9ea99",
+              "name": "Player 2"
+            },
+            {
+              "id": "3789e383-c924-48b5-aa8f-73143afebc44",
+              "name": "Player 3"
+            },
+            {
+              "id": "4efee9a2-1980-401f-99a1-b29d435dd82e",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "5c784bb6-e885-417d-9aa2-964ebd38974a",
+          "name": "Roberts",
+          "color": "#6E8F4C",
+          "players": [
+            {
+              "id": "7938fbec-a483-4245-a749-2fb03ad1cfad",
+              "name": "Player 1"
+            },
+            {
+              "id": "4826ec96-1f07-4d05-a1de-4f9089abf06e",
+              "name": "Player 2"
+            },
+            {
+              "id": "4e5d9114-fe9c-4012-bc05-7b994839089c",
+              "name": "Player 3"
+            },
+            {
+              "id": "40dfa5e9-b225-449e-b61d-a762a17441aa",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "15460c3b-00c1-46ab-8c98-b7cc580137b1",
+          "name": "Institutions",
+          "color": "#D9584C",
+          "players": [
+            {
+              "id": "c23976dc-f763-4b93-9419-e761fd519e08",
+              "name": "Player 1"
+            },
+            {
+              "id": "b0a1ab52-89b5-40f9-8927-2787bd225516",
+              "name": "Player 2"
+            },
+            {
+              "id": "d1492927-c562-417e-9976-66f349268b30",
+              "name": "Player 3"
+            },
+            {
+              "id": "bfcfc91d-83a0-44c7-8a6f-9f0cc537e5b1",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "01e7df8b-dbc6-474b-b459-791d05faf2f3",
+          "name": "Zymurgy",
+          "color": "#4C8FA0",
+          "players": [
+            {
+              "id": "2c886b0e-cb78-447e-9f6a-d76f4b40ae61",
+              "name": "Player 1"
+            },
+            {
+              "id": "2210699e-dc69-41e7-82c3-b580b6da5eca",
+              "name": "Player 2"
+            },
+            {
+              "id": "a617fbca-c769-41e7-ace5-470c27d49fa9",
+              "name": "Player 3"
+            },
+            {
+              "id": "44e03da8-d484-430d-92ba-ba154ef8b2a1",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "66947eb5-842b-48ba-9511-424b52b96001",
+          "name": "Aardvarks",
+          "color": "#B07CC6",
+          "players": [
+            {
+              "id": "8bb108bd-9f6b-4275-b91a-5a9f9197998c",
+              "name": "Player 1"
+            },
+            {
+              "id": "a1e0ac30-03b1-4eb3-b41f-ca3c16520e07",
+              "name": "Player 2"
+            },
+            {
+              "id": "cd24ace3-a52b-4d3a-9fc9-19291f67ce04",
+              "name": "Player 3"
+            },
+            {
+              "id": "cbb9b47e-5733-4893-b9ad-6fec140f7407",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "8589c2fc-37f7-452d-88be-ac7f86a3201c",
+          "name": "Polyphia",
+          "color": "#C98449",
+          "players": [
+            {
+              "id": "71e7476c-e166-4152-9ce3-0ee93e3cddb7",
+              "name": "Player 1"
+            },
+            {
+              "id": "c6757f26-5ce6-4886-8074-74d7be71c8b5",
+              "name": "Player 2"
+            },
+            {
+              "id": "68455a32-a6ca-49f2-a4d1-14c80507b223",
+              "name": "Player 3"
+            },
+            {
+              "id": "8b515c3e-6486-4ac7-b78c-3bbfca810ff6",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "e19f9cef-08a9-4f41-b97e-f4aa9745b28f",
+          "name": "Epee",
+          "color": "#5FAE7A",
+          "players": [
+            {
+              "id": "72ed7e79-674b-4e8a-9015-36c12453f9ef",
+              "name": "Player 1"
+            },
+            {
+              "id": "7684fda1-77b0-4681-b26b-01a917f41eb1",
+              "name": "Player 2"
+            },
+            {
+              "id": "b7d595b9-9081-4b74-98c6-6e7539775e3b",
+              "name": "Player 3"
+            },
+            {
+              "id": "7f7f452f-24ac-4784-884e-3b542d14bae1",
+              "name": "Player 4"
+            }
+          ]
+        },
+        {
+          "id": "b1805c1f-8873-4e5b-884f-3463d16728cf",
+          "name": "Kotaku",
+          "color": "#C9C24C",
+          "players": [
+            {
+              "id": "cc6166f4-0f84-4de9-a48d-181b52e58207",
+              "name": "Player 1"
+            },
+            {
+              "id": "d4a56a85-60b5-4cb5-a5ac-d868ef5a0e8f",
+              "name": "Player 2"
+            },
+            {
+              "id": "34769cb3-055f-4fb2-b22d-42cc933758d6",
+              "name": "Player 3"
+            },
+            {
+              "id": "4b5b0543-5427-4851-a26d-7985e06cf41b",
+              "name": "Player 4"
+            }
+          ]
+        }
+      ],
+      "matches": [
+        {
+          "id": "942d335f-e334-4448-a530-f30c421d53ef",
+          "label": "Match 1",
+          "results": {
+            "e5d57f37-53cb-4c30-b852-7ee570b91cc3": {
+              "placement": "1",
+              "playerKills": {
+                "a66573dd-6e7f-4af4-902c-55edfebfffee": 4,
+                "fee69ddd-8ac7-44bd-9912-be69a613d1f4": 1,
+                "64fdcaf5-a9c6-4f26-b97f-00804acb1a2d": 2,
+                "b6540e93-3cad-4063-a461-b4a881b2c1c2": 3
+              },
+              "kills": 0
+            },
+            "c134670f-1a36-4387-b89e-758e8cd997c0": {
+              "placement": "",
+              "playerKills": {
+                "eed26d63-6bfb-4bba-b8c9-e611965fd1b8": 4
+              },
+              "kills": 4
+            }
+          }
+        },
+        {
+          "id": "00f61419-4025-42c6-8cd6-ac86a51d1df6",
+          "label": "Match 2",
+          "results": {
+            "e5d57f37-53cb-4c30-b852-7ee570b91cc3": {
+              "placement": "",
+              "playerKills": {
+                "a66573dd-6e7f-4af4-902c-55edfebfffee": 0
+              },
+              "kills": 0
+            },
+            "c134670f-1a36-4387-b89e-758e8cd997c0": {
+              "placement": "",
+              "playerKills": {
+                "eed26d63-6bfb-4bba-b8c9-e611965fd1b8": 0
+              },
+              "kills": 0
+            },
+            "3f99c14d-b467-4a36-93aa-c327ffed6657": {
+              "placement": "",
+              "playerKills": {
+                "0a61566f-2430-4b52-b121-9e4068a7b6a2": 0
+              },
+              "kills": 0
+            },
+            "5a7369a7-1494-4cc2-b2fb-c5f31d15e266": {
+              "placement": "",
+              "playerKills": {
+                "d3001f88-97a6-4e38-866a-d1a6fe99cb21": 0
+              },
+              "kills": 0
+            },
+            "3bb7039f-8947-4033-b33b-bc9119de5a78": {
+              "placement": "",
+              "playerKills": {
+                "270f25d2-5867-46ab-98e5-29fbc5fdf173": 0
+              },
+              "kills": 0
+            },
+            "5086d20f-13f9-4f26-8a55-0c640f7eb972": {
+              "placement": "",
+              "playerKills": {
+                "ce4ab4c3-4ad3-45af-a852-a66cde70307e": 0
+              },
+              "kills": 0
+            },
+            "f2d6a0ee-83a1-4d93-8746-0a1c678756b6": {
+              "placement": "",
+              "playerKills": {
+                "9cd2aa46-09c0-4d35-9b60-0f6a1b45e87e": 0
+              },
+              "kills": 0
+            },
+            "6c15a1a1-4128-4fbb-afb2-4cbbd6cef473": {
+              "placement": "",
+              "playerKills": {
+                "7feaa057-6d2e-4984-aa88-8fe9f33c6295": 0
+              },
+              "kills": 0
+            },
+            "15327a98-9fa1-4278-837f-8604ce21bb3f": {
+              "placement": "",
+              "playerKills": {
+                "a86f2c12-ef31-4c29-8281-b7670680737b": 0
+              },
+              "kills": 0
+            },
+            "197dad10-0427-4640-842d-aa0ea9bfb1f2": {
+              "placement": "",
+              "playerKills": {
+                "15d0c68c-cfd5-4001-9455-d5e1c2b7f96d": 0
+              },
+              "kills": 0
+            }
+          }
+        },
+        {
+          "id": "447a48e3-9f33-4dc6-9db9-55553e78e082",
+          "label": "Match 3",
+          "results": {
+            "e5d57f37-53cb-4c30-b852-7ee570b91cc3": {
+              "placement": "",
+              "playerKills": {
+                "a66573dd-6e7f-4af4-902c-55edfebfffee": 4
+              },
+              "kills": 4
+            },
+            "c134670f-1a36-4387-b89e-758e8cd997c0": {
+              "placement": "1",
+              "playerKills": {
+                "eed26d63-6bfb-4bba-b8c9-e611965fd1b8": 6
+              },
+              "kills": 6
+            },
+            "3f99c14d-b467-4a36-93aa-c327ffed6657": {
+              "placement": "",
+              "playerKills": {
+                "0a61566f-2430-4b52-b121-9e4068a7b6a2": 0
+              },
+              "kills": 0
+            },
+            "5a7369a7-1494-4cc2-b2fb-c5f31d15e266": {
+              "placement": "",
+              "playerKills": {
+                "d3001f88-97a6-4e38-866a-d1a6fe99cb21": 0
+              },
+              "kills": 0
+            },
+            "3bb7039f-8947-4033-b33b-bc9119de5a78": {
+              "placement": "",
+              "playerKills": {
+                "270f25d2-5867-46ab-98e5-29fbc5fdf173": 0
+              },
+              "kills": 0
+            },
+            "5086d20f-13f9-4f26-8a55-0c640f7eb972": {
+              "placement": "",
+              "playerKills": {
+                "ce4ab4c3-4ad3-45af-a852-a66cde70307e": 0
+              },
+              "kills": 0
+            },
+            "f2d6a0ee-83a1-4d93-8746-0a1c678756b6": {
+              "placement": "",
+              "playerKills": {
+                "9cd2aa46-09c0-4d35-9b60-0f6a1b45e87e": 0
+              },
+              "kills": 0
+            },
+            "6c15a1a1-4128-4fbb-afb2-4cbbd6cef473": {
+              "placement": "",
+              "playerKills": {
+                "7feaa057-6d2e-4984-aa88-8fe9f33c6295": 0
+              },
+              "kills": 0
+            },
+            "15327a98-9fa1-4278-837f-8604ce21bb3f": {
+              "placement": "",
+              "playerKills": {
+                "a86f2c12-ef31-4c29-8281-b7670680737b": 0
+              },
+              "kills": 0
+            },
+            "197dad10-0427-4640-842d-aa0ea9bfb1f2": {
+              "placement": "",
+              "playerKills": {
+                "15d0c68c-cfd5-4001-9455-d5e1c2b7f96d": 0
+              },
+              "kills": 0
+            }
+          }
+        }
+      ],
+      "settings": {
+        "killPoint": 1,
+        "placementPoints": {
+          "1": 10,
+          "2": 6,
+          "3": 5,
+          "4": 4,
+          "5": 3,
+          "6": 2,
+          "7": 1,
+          "8": 1,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0,
+          "13": 0,
+          "14": 0,
+          "15": 0,
+          "16": 0,
+          "17": 0,
+          "18": 0,
+          "19": 0,
+          "20": 0
+        }
+      }
+    },
+    {
+      "id": "8771a6e9-c96a-4738-9443-3011419e7049",
+      "name": "Group B",
+      "teams": [],
+      "matches": [],
+      "settings": {
+        "killPoint": 1,
+        "placementPoints": {
+          "1": 10
+        }
+      }
+    },
+    {
+      "id": "272657c3-a0b1-4f36-855c-d4784a991ea9",
+      "name": "Group C",
+      "teams": [],
+      "matches": [],
+      "settings": {
+        "killPoint": 1,
+        "placementPoints": {
+          "1": 10
+        }
+      }
+    },
+    {
+      "id": "e04bca21-e8a4-4ae1-a8c3-1821afd0bbba",
+      "name": "Group D",
+      "teams": [],
+      "matches": [],
+      "settings": {
+        "killPoint": 1,
+        "placementPoints": {
+          "1": 10
+        }
+      }
+    }
+  ],
+  "liveGroupId": "0d076118-c875-4bed-8ec7-c7d440294fad",
+  "liveMatchId": "00f61419-4025-42c6-8cd6-ac86a51d1df6",
+  "liveTallyTab": "Q1"
+}

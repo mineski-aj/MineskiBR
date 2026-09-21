@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/html/js/cache-bust.js"></script>
+<script src="/html/js/overlay-sse-shim.js"></script>
+<title>BR Scoreboard — Tournament Tally</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0F0D;
+    --surface:#141A17;
+    --surface2:#1B231D;
+    --surface3:#212B22;
+    --border:#2A352C;
+    --border-soft:#1F2921;
+    --text:#E8E6DC;
+    --text-dim:#8FA08D;
+    --text-faint:#5C6B5A;
+    --accent:#F2A93B;
+    --accent-dim:#8A6423;
+    --accent2:#6E8F4C;
+    --danger:#D9584C;
+    --gold:#E4BA3E;
+    --silver:#C7CDC6;
+    --bronze:#C98449;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 1200px 600px at 50% -10%, #1A2318 0%, transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+  }
+  .wrap{max-width:1180px;margin:0 auto;}
+  .page[hidden]{display:none;}
+
+  /* ---------- App shell: sidebar + main content ---------- */
+  .app-shell{display:flex;align-items:flex-start;min-height:100vh;}
+  .sidebar{
+    width:230px;flex-shrink:0;min-height:100vh;position:sticky;top:0;
+    background:var(--surface);border-right:1px solid var(--border);
+    padding:20px 14px;display:flex;flex-direction:column;gap:18px;
+  }
+  .main-content{flex:1;min-width:0;padding:28px 24px 80px;}
+
+  .live-box{
+    background:var(--surface2);border:1px solid var(--accent-dim);border-radius:10px;
+    padding:12px 14px;transition:border-color .15s, background .15s;
+  }
+  .live-box.no-live{border-color:var(--border);}
+  .live-box-label{
+    display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:.12em;color:var(--danger);text-transform:uppercase;
+    font-weight:700;margin-bottom:8px;
+  }
+  .live-box.no-live .live-box-label{color:var(--text-faint);}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:var(--danger);box-shadow:0 0 6px var(--danger);flex-shrink:0;}
+  .live-box.no-live .live-dot{background:var(--text-faint);box-shadow:none;}
+  .live-tab-select{
+    width:100%;background:var(--surface3);border:1px solid var(--border);
+    color:var(--text);border-radius:6px;padding:8px 8px;font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;outline:none;cursor:pointer;
+  }
+  .live-tab-select:focus{border-color:var(--accent-dim);}
+  .live-box.no-live .live-tab-select{color:var(--text-faint);}
+
+  .side-nav{display:flex;flex-direction:column;gap:4px;}
+  .side-nav-btn{
+    display:flex;align-items:center;gap:10px;text-align:left;
+    background:transparent;border:1px solid transparent;color:var(--text-dim);
+    padding:10px 12px;border-radius:8px;font-size:14px;font-weight:600;
+    font-family:'Inter',sans-serif;cursor:pointer;width:100%;
+  }
+  .side-nav-btn:hover{background:var(--surface2);color:var(--text);}
+  .side-nav-btn.active{background:var(--surface3);border-color:var(--accent-dim);color:var(--accent);}
+  .side-nav-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0;}
+  .experimental-badge{
+    font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:800;letter-spacing:.05em;
+    background:var(--surface3);border:1px solid var(--accent-dim);color:var(--accent);
+    padding:1px 5px;border-radius:4px;margin-left:auto;
+  }
+  .section-head h2 .experimental-badge{margin-left:0;}
+
+  .live-badge{
+    font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:800;letter-spacing:.05em;
+    background:var(--danger);color:#fff;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle;
+  }
+
+  @media (max-width:860px){
+    .app-shell{flex-direction:column;}
+    .sidebar{
+      width:100%;min-height:auto;position:relative;flex-direction:row;
+      align-items:center;overflow-x:auto;gap:14px;
+    }
+    .live-box{flex-shrink:0;min-width:200px;}
+    .side-nav{flex-direction:row;flex-shrink:0;}
+  }
+
+  /* ---------- Header ---------- */
+  .hero{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    gap:20px;flex-wrap:wrap;
+    border-bottom:1px solid var(--border);
+    padding-bottom:20px;margin-bottom:24px;
+    position:relative;
+  }
+  .hero::before{
+    content:"";position:absolute;left:0;bottom:-1px;width:120px;height:3px;
+    background:linear-gradient(90deg,var(--accent),transparent);
+  }
+  .hero-title-block .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:.18em;color:var(--accent);
+    text-transform:uppercase;margin-bottom:6px;display:block;
+  }
+  .hero h1{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:44px;letter-spacing:.03em;margin:0;
+    color:var(--text);line-height:1;
+  }
+  .tname-input{
+    background:transparent;border:none;border-bottom:2px dashed var(--border);
+    color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:44px;
+    letter-spacing:.03em;padding:0 2px;outline:none;width:520px;max-width:60vw;
+  }
+  .tname-input:focus{border-bottom-color:var(--accent);}
+  .hero-meta{
+    display:flex;gap:10px;flex-wrap:wrap;
+  }
+  .pill{
+    font-family:'JetBrains Mono',monospace;font-size:12px;
+    background:var(--surface2);border:1px solid var(--border);
+    color:var(--text-dim);padding:7px 12px;border-radius:999px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .pill b{color:var(--text);font-weight:700;}
+  .conn-dot{width:7px;height:7px;border-radius:50%;background:var(--text-faint);display:inline-block;}
+  .conn-dot.live{background:var(--accent2);box-shadow:0 0 6px var(--accent2);}
+  .conn-dot.down{background:var(--danger);}
+
+  /* ---------- Buttons ---------- */
+  button{
+    font-family:'Inter',sans-serif;cursor:pointer;border-radius:8px;
+    border:1px solid var(--border);background:var(--surface2);color:var(--text);
+    padding:9px 14px;font-size:13.5px;font-weight:600;
+    transition:border-color .15s, background .15s, transform .1s;
+  }
+  button:hover{border-color:var(--accent-dim);background:var(--surface3);}
+  button:active{transform:scale(.97);}
+  button.primary{
+    background:var(--accent);border-color:var(--accent);color:#231802;
+  }
+  button.primary:hover{background:#ffbb52;}
+  button.ghost-danger{color:var(--danger);}
+  button.ghost-danger:hover{border-color:var(--danger);}
+  button.small{padding:5px 10px;font-size:12px;}
+  button.small.active{background:var(--surface3);border-color:var(--accent-dim);color:var(--accent);}
+  button:disabled{opacity:.35;cursor:not-allowed;}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;}
+
+  /* ---------- Sections ---------- */
+  .section{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);padding:20px;margin-bottom:22px;
+  }
+  .section-head{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:16px;flex-wrap:wrap;gap:10px;
+  }
+  .section-head h2{
+    font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;
+    margin:0;color:var(--text);display:flex;align-items:center;gap:10px;
+  }
+  .section-head h2 .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;}
+  .subtext{color:var(--text-dim);font-size:13px;margin-top:2px;}
+
+  /* ---------- Teams ---------- */
+  .team-add-row{display:flex;gap:8px;margin-bottom:14px;}
+  .team-add-row input{
+    flex:1;background:var(--surface2);border:1px solid var(--border);
+    color:var(--text);border-radius:8px;padding:9px 12px;font-size:14px;outline:none;
+  }
+  .team-add-row input:focus{border-color:var(--accent-dim);}
+  /* Roster cards: one per team, auto-derived from the Tally sheet (read-only) */
+  .roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;}
+  .roster-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+  .roster-card-head{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;}
+  .roster-card-head .swatch{width:9px;height:9px;border-radius:2px;flex-shrink:0;margin-top:4px;}
+  .roster-card-head .roster-team-name{flex:1;min-width:0;font-weight:700;font-size:14px;line-height:1.25;word-break:break-word;}
+  .roster-group-badge{
+    font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.04em;
+    color:var(--text-faint);border:1px solid var(--border);border-radius:4px;padding:1px 4px;
+    margin-left:6px;vertical-align:middle;white-space:nowrap;
+  }
+  .roster-kill-total{
+    font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--accent);
+    background:var(--surface3);border:1px solid var(--border);border-radius:999px;padding:2px 8px;
+    flex-shrink:0;white-space:nowrap;
+  }
+  .roster-score-row{
+    display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;padding-bottom:10px;
+    border-bottom:1px solid var(--border-soft);font-size:11px;color:var(--text-dim);
+    font-family:'JetBrains Mono',monospace;
+  }
+  .roster-score-row b{color:var(--text);font-weight:700;}
+  .roster-score-row .roster-score-total b{color:var(--accent);}
+  .roster-players{display:flex;flex-direction:column;gap:2px;}
+  .roster-player-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 2px;font-size:12.5px;}
+  .roster-player-name{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .roster-player-kills{font-family:'JetBrains Mono',monospace;color:var(--text-dim);flex-shrink:0;}
+  .roster-appearances{
+    margin-top:8px;padding-top:8px;border-top:1px solid var(--border-soft);
+    font-size:10.5px;color:var(--text-faint);font-family:'JetBrains Mono',monospace;
+  }
+  .empty-note{color:var(--text-faint);font-size:13px;font-style:italic;}
+
+  /* ---------- Group / Match tabs (shared look) ---------- */
+  .match-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .match-tab{
+    font-family:'JetBrains Mono',monospace;font-size:12.5px;
+    padding:8px 14px;border-radius:8px 8px 0 0;border:1px solid var(--border);
+    border-bottom:none;background:var(--surface2);color:var(--text-dim);cursor:pointer;
+  }
+  .match-tab.active{background:var(--surface3);color:var(--accent);border-color:var(--accent-dim);}
+  .match-tab .x{margin-left:8px;color:var(--text-faint);}
+  .match-tab .x:hover{color:var(--danger);}
+
+  table{width:100%;border-collapse:collapse;}
+  thead th{
+    text-align:left;font-family:'JetBrains Mono',monospace;font-size:11px;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--text-faint);
+    padding:10px 12px;border-bottom:1px solid var(--border);font-weight:500;
+  }
+  tbody td{
+    padding:9px 12px;border-bottom:1px solid var(--border-soft);font-size:14px;
+  }
+  tbody tr:hover{background:rgba(255,255,255,0.02);}
+  .num-input, select.sheet-select{
+    width:78px;background:var(--surface2);border:1px solid var(--border);
+    color:var(--text);border-radius:6px;padding:7px 8px;font-family:'JetBrains Mono',monospace;
+    font-size:13.5px;outline:none;
+  }
+  select.sheet-select{width:100px;}
+  .num-input:focus, select.sheet-select:focus{border-color:var(--accent-dim);}
+  .num-input.dup, select.sheet-select.dup{border-color:var(--danger);}
+  .match-pts-cell{font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;}
+  .team-name-cell{font-weight:700;display:flex;align-items:center;gap:8px;}
+  .team-name-cell .swatch{width:8px;height:16px;border-radius:2px;}
+  .dup-warning{color:var(--danger);font-size:12px;font-family:'JetBrains Mono',monospace;margin-top:10px;}
+  /* Up to 20 teams: 10 left / 10 right, so the sheet stays compact instead of one tall scrolling list */
+  .sheet-columns{display:flex;gap:20px;align-items:flex-start;}
+  .sheet-col-table{flex:1;min-width:0;}
+  .sheet-col-table table{table-layout:fixed;}
+  .sheet-col-table .team-name-cell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  @media (max-width:760px){
+    .sheet-columns{flex-direction:column;}
+  }
+  /* Optional per-player kills breakdown, expanded from a team's row. Each
+     player is its own <tr> in the SAME table/columns as the summary row, so
+     its kills input lines up exactly under the team's own Kills column for
+     free — placement/pts cells are just left empty (team-level only). */
+  .team-summary-row:hover{background:rgba(255,255,255,0.03);}
+  .expand-caret{display:inline-block;width:12px;flex-shrink:0;color:var(--text-faint);font-size:11px;}
+  .player-kill-row td{background:var(--surface2);border-bottom:1px solid var(--border-soft);}
+  .player-kill-name-cell{font-size:12.5px;color:var(--text-dim);padding:9px 12px 9px 34px;}
+
+  /* ---------- Leaderboard ---------- */
+  .lb-row{
+    display:grid;grid-template-columns:56px 1fr 90px 90px 90px 110px;
+    align-items:center;gap:6px;padding:12px 10px;border-bottom:1px solid var(--border-soft);
+  }
+  .lb-row.head{
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--text-faint);border-bottom:1px solid var(--border);
+  }
+  .lb-rank{
+    font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--text-dim);text-align:center;
+  }
+  .lb-row:nth-child(2) .lb-rank{color:var(--gold);}
+  .lb-row:nth-child(3) .lb-rank{color:var(--silver);}
+  .lb-row:nth-child(4) .lb-rank{color:var(--bronze);}
+  .lb-team{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;}
+  .lb-team .swatch{width:10px;height:22px;border-radius:2px;flex-shrink:0;}
+  .badge-wwcd{
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;background:var(--accent);
+    color:#231802;padding:2px 6px;border-radius:4px;font-weight:700;letter-spacing:.04em;
+  }
+  .lb-stat{font-family:'JetBrains Mono',monospace;font-size:13.5px;color:var(--text-dim);text-align:center;}
+  .lb-total{
+    font-family:'JetBrains Mono',monospace;font-size:19px;color:var(--accent);
+    text-align:center;font-weight:700;
+  }
+
+  details summary{
+    cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;
+    list-style:none;display:flex;align-items:center;gap:10px;
+  }
+  details summary::-webkit-details-marker{display:none;}
+  details summary::before{content:"▸";color:var(--accent);transition:transform .15s;}
+  details[open] summary::before{transform:rotate(90deg);}
+
+  /* ---------- Export bar ---------- */
+  .export-bar{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+  }
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--surface3);border:1px solid var(--accent-dim);color:var(--accent);
+    padding:11px 20px;border-radius:8px;font-size:13.5px;font-weight:600;
+    opacity:0;transition:opacity .2s, transform .2s;pointer-events:none;
+    font-family:'JetBrains Mono',monospace;z-index:50;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .file-btn{position:relative;overflow:hidden;}
+  .file-btn input[type=file]{
+    position:absolute;inset:0;opacity:0;cursor:pointer;
+  }
+
+  @media (max-width:640px){
+    .hero h1, .tname-input{font-size:30px;}
+    .lb-row{grid-template-columns:40px 1fr 60px 60px;font-size:12px;}
+    .lb-row .lb-stat:nth-child(4){display:none;}
+    .lb-row.head span:nth-child(4){display:none;}
+  }
+  ::selection{background:var(--accent);color:#231802;}
+
+  /* ---------- Tally (experimental external mirror) ---------- */
+  .tally-table-wrap{overflow-x:auto;overflow-y:auto;max-height:70vh;border:1px solid var(--border);border-radius:8px;}
+  .tally-table{border-collapse:collapse;font-size:12.5px;white-space:nowrap;}
+  .tally-table th, .tally-table td{
+    padding:6px 10px;border-bottom:1px solid var(--border-soft);border-right:1px solid var(--border-soft);
+  }
+  .tally-table thead th{
+    position:sticky;top:0;background:var(--surface3);z-index:1;
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.04em;
+    text-transform:uppercase;color:var(--text-dim);text-align:center;font-weight:600;
+  }
+  .tally-table thead tr:first-child th{top:0;}
+  .tally-table thead tr:nth-child(2) th{top:29px;}
+  .tally-table tbody td.tally-num{font-family:'JetBrains Mono',monospace;text-align:right;color:var(--text);}
+  .tally-table tbody td.tally-squad{font-weight:700;color:var(--text);}
+  .tally-table tbody tr.tally-team-start td{border-top:2px solid var(--border);}
+  .tally-table tbody tr:hover td{background:rgba(255,255,255,0.02);}
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="live-box no-live" id="liveBox" title="Which Tally tab is currently live">
+      <div class="live-box-label"><span class="live-dot"></span>Live Now</div>
+      <select class="live-tab-select" id="liveTallyTabSelect" onchange="setLiveTallyTabPick(this.value)">
+        <option value="">— none —</option>
+      </select>
+    </div>
+    <nav class="side-nav">
+      <button class="side-nav-btn active" data-page="dashboard" onclick="switchPage('dashboard')"><span class="side-nav-icon">▤</span>Dashboard</button>
+      <button class="side-nav-btn" data-page="roster" onclick="switchPage('roster')"><span class="side-nav-icon">☰</span>Roster</button>
+      <button class="side-nav-btn" data-page="settings" onclick="switchPage('settings')"><span class="side-nav-icon">⚙</span>Settings</button>
+      <button class="side-nav-btn" data-page="tally" onclick="switchPage('tally')"><span class="side-nav-icon">⇄</span>Tally</button>
+    </nav>
+  </aside>
+
+  <div class="main-content">
+    <div class="wrap">
+
+      <div class="hero">
+        <div class="hero-title-block">
+          <span class="eyebrow"><span class="conn-dot" id="connDot"></span> BR Scoreboard // Live Collaborative Console</span>
+          <input class="tname-input" id="tournamentName" value="Untitled BR League" spellcheck="false">
+        </div>
+        <div class="hero-meta">
+          <div class="pill">Group <b id="metaGroup">—</b></div>
+          <div class="pill">Teams <b id="metaTeams">0</b></div>
+          <div class="pill">Matches <b id="metaMatches">0</b></div>
+          <div class="pill">Kill pt <b id="metaKillPt">1</b></div>
+        </div>
+      </div>
+
+      <!-- DASHBOARD: groups, match sheet, leaderboard, export -->
+      <div id="page-dashboard" class="page">
+
+        <!-- MATCH SHEET: read-only mirror of whichever Tally tab is
+             currently marked live, picked from the sidebar's "Live Now"
+             selector (populated with the Tally sheet's own tab names) — see
+             lib/tallyState.js's liveTallyTab / setLiveTallyTab. -->
+        <div class="section">
+          <div class="section-head">
+            <h2><span class="dot"></span>Match Sheet</h2>
+            <span class="subtext" id="dashboardMatchSheetStatus">Pick a tab from "Live Now" in the sidebar</span>
+          </div>
+          <div class="tally-table-wrap" id="dashboardMatchSheetWrap"><p class="empty-note">No live match selected yet.</p></div>
+        </div>
+
+        <!-- LEADERBOARD: sourced from the Tally sheet's group-stage tabs
+             only (everything except Playoffs/Grand Finals) — see
+             lib/tallyRoster.js's getGroupStageQualifiers(). Global across
+             the whole group stage, not tied to the group selected above. -->
+        <div class="section">
+          <div class="section-head">
+            <h2><span class="dot"></span>Group Leaderboard</h2>
+            <span class="subtext" id="groupLeaderboardStatus">From the Tally sheet's group-stage tabs · Total pts, then kills as tiebreaker</span>
+          </div>
+          <div class="lb-row head">
+            <span>Rk</span><span>Team</span><span style="text-align:center;">Kills</span><span style="text-align:center;">Kill Pts</span><span style="text-align:center;">Placement Pts</span><span style="text-align:center;">Total Pts</span>
+          </div>
+          <div id="leaderboardBody"></div>
+        </div>
+
+        <!-- EXPORT -->
+        <div class="section">
+          <div class="section-head">
+            <h2><span class="dot"></span>Export</h2>
+          </div>
+          <div class="export-bar">
+            <div class="btn-row">
+              <button onclick="saveJSON()">💾 Backup whole tournament (.json)</button>
+              <button class="file-btn ghost-danger">📂 Restore backup (replaces live data)
+                <input type="file" accept=".json" onchange="loadJSON(event)">
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ROSTER: auto-derived from the Tally sheet (the official scoring
+           source now — see lib/tallyRoster.js / GET /api/roster). Read-only:
+           a squad's name/players/kills/score come straight from the Google
+           Sheet, merged across every sheet it appears in (e.g. a team that
+           advances from a Group Stage into Grand Finals shows up as one
+           card, not two). Fix a name or a number in the sheet itself, not
+           here. -->
+      <div id="page-roster" class="page" hidden>
+        <div class="section">
+          <div class="section-head">
+            <h2><span class="dot"></span>Roster</h2>
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+              <span class="subtext" id="rosterStatus" style="margin:0;">Auto-derived from the Tally sheet — same squad across multiple sheets is merged into one card</span>
+              <div class="btn-row">
+                <button class="small" id="rosterSortKillsBtn" onclick="setRosterSort('kills')">Sort: Kills</button>
+                <button class="small" id="rosterSortAlphaBtn" onclick="setRosterSort('alpha')">Sort: A–Z</button>
+              </div>
+            </div>
+          </div>
+          <div class="btn-row" id="rosterFilterBar" style="margin-bottom:16px;"></div>
+          <div class="roster-grid" id="teamChips"></div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="page-settings" class="page" hidden>
+        <!-- TALLY DATA SOURCE: which Google Sheet the Tally tab reads
+             from — global (not per-group), applies to everyone. -->
+        <div class="section">
+          <div class="section-head">
+            <h2><span class="dot"></span>Tally Data Source</h2>
+            <span class="subtext">Google Sheet the Tally tab reads from — shared, not per-group</span>
+          </div>
+          <div class="team-add-row">
+            <input type="text" id="tallySourceUrlInput" placeholder="Paste the Google Sheet's URL or ID" spellcheck="false">
+            <button class="primary" onclick="applyTallySourceUrl()">Apply</button>
+          </div>
+          <div class="subtext" id="tallySourceStatus" style="margin-top:8px;"></div>
+        </div>
+      </div>
+
+      <!-- TALLY: read-only live mirror of an external Google Sheets tally,
+           refreshed every 3s — the primary source of truth for scoring.
+           Unrelated to the Groups above, which are the older
+           manually-entered collaborative model. -->
+      <div id="page-tally" class="page" hidden>
+        <div class="section">
+          <div class="section-head">
+            <h2><span class="dot"></span>Tally</h2>
+            <span class="subtext" id="tallyStatus">Loading…</span>
+          </div>
+          <div class="match-tabs" id="tallySheetTabs"></div>
+          <div class="tally-table-wrap" id="tallyTableWrap"><p class="empty-note">Loading…</p></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ SHARED STATE (server-authoritative, live via SSE) ============
+   serverState is the whole tournament (all groups) as broadcast by the
+   server — every connected browser holds the same copy. Which group/match
+   tab THIS browser is looking at is local-only, so one scorekeeper switching
+   tabs never jumps another scorekeeper's screen around. */
+let serverState = null;
+let localActiveGroupId = null;
+let currentPage = 'dashboard'; // local-only: which sidebar page this browser is viewing
+
+function currentGroup(){
+  return serverState ? (serverState.groups.find(g => g.id === localActiveGroupId) || null) : null;
+}
+
+/* ============ SIDEBAR: pages + live indicator ============ */
+function switchPage(page){
+  currentPage = page;
+  document.querySelectorAll('.page').forEach(el => { el.hidden = (el.id !== 'page-' + page); });
+  document.querySelectorAll('.side-nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+}
+
+// "Live" is a shared, manually-set flag for which Tally sheet tab is
+// currently being played (routes/tally.js `setLiveTallyTab` /
+// lib/tallyState.js's liveTallyTab) — picked from the sidebar's Live Now
+// selector, and what the Dashboard's Match Sheet section renders below.
+async function setLiveTallyTabPick(tabName){
+  await act('setLiveTallyTab', { tabName });
+  showToast(tabName ? `"${tabName}" marked live ✓` : 'Cleared live tab');
+}
+function renderLiveBox(){
+  const box = document.getElementById('liveBox');
+  const select = document.getElementById('liveTallyTabSelect');
+  const sheetNames = (tallyData && tallyData.sheets) ? tallyData.sheets.map(s => s.name) : [];
+  const live = serverState ? serverState.liveTallyTab : null;
+  // Always include the currently-live tab as an option even if it's not in
+  // the sheet list right now (renamed/removed tab) so the selector doesn't
+  // silently reset to "none" out from under whoever set it live.
+  const options = ['', ...sheetNames];
+  if(live && !options.includes(live)) options.push(live);
+  select.innerHTML = options.map(name =>
+    `<option value="${escapeHtml(name)}" ${((live || '') === name) ? 'selected' : ''}>${name ? escapeHtml(name) : '— none —'}</option>`
+  ).join('');
+  box.classList.toggle('no-live', !live);
+}
+
+/* ============ TALLY (experimental): read-only mirror of an external
+   Google Sheets tally, polled every 3s — see routes/externalTally.js.
+   Fully separate from serverState/Groups above; this data isn't owned or
+   editable by this app. ============ */
+let tallyData = null;          // last payload from GET /tally/external
+let currentTallySheet = null;  // local-only: which sheet tab this browser is viewing
+async function fetchTallyExternal(){
+  try{
+    const res = await fetch('/tally/external', { cache: 'no-store' });
+    const data = await res.json();
+    // Skip re-rendering if nothing actually changed since the last poll —
+    // avoids fighting text selection in the table on every 3s tick.
+    if(tallyData && tallyData.fetchedAt === data.fetchedAt && tallyData.error === data.error) return;
+    tallyData = data;
+    if(!currentTallySheet || !tallyData.sheets.find(s => s.name === currentTallySheet)){
+      currentTallySheet = tallyData.sheets.length ? tallyData.sheets[0].name : null;
+    }
+    renderTally();
+    fetchRosterData(); // Roster is Tally-derived — refresh it on the same poll
+    fetchGroupStageLeaderboard(); // same for the Dashboard's Group Leaderboard
+    renderLiveBox(); // sidebar's tab list can change (renamed/added tabs)
+    renderDashboardMatchSheet(); // and so can the live tab's own contents
+  }catch(e){
+    // Local server unreachable (not the same as the upstream Google fetch
+    // failing, which the server already reports via tallyData.error).
+  }
+}
+function setTallySheet(name){
+  currentTallySheet = name;
+  renderTally();
+}
+// Settings tab: switch which Google Sheet the Tally tab reads from. The
+// server validates by actually fetching from it before committing — if it
+// fails (bad ID, not shared with the service account, etc.) the previous
+// working sheet stays in place and we just report the error here.
+async function applyTallySourceUrl(){
+  const input = document.getElementById('tallySourceUrlInput');
+  const url = input.value.trim();
+  const statusEl = document.getElementById('tallySourceStatus');
+  if(!url){ showToast('Paste a Google Sheet URL or ID first.'); return; }
+  statusEl.textContent = 'Checking…';
+  statusEl.style.color = '';
+  try{
+    const res = await fetch('/tally/external/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+    const data = await res.json();
+    if(data.ok){
+      statusEl.textContent = '✓ Switched — the Tally tab now reads from this sheet.';
+      statusEl.style.color = 'var(--accent2)';
+      showToast('Tally source updated ✓');
+      fetchTallyExternal();
+    } else {
+      statusEl.textContent = '⚠ ' + (data.error || "Couldn't use that sheet.");
+      statusEl.style.color = 'var(--danger)';
+    }
+  }catch(e){
+    statusEl.textContent = '⚠ Network error — is the server running?';
+    statusEl.style.color = 'var(--danger)';
+  }
+}
+function renderTally(){
+  const statusEl = document.getElementById('tallyStatus');
+  const tabsEl = document.getElementById('tallySheetTabs');
+  const wrapEl = document.getElementById('tallyTableWrap');
+  if(!tallyData){ statusEl.textContent = 'Loading…'; return; }
+
+  // Keep the Settings-tab input showing the currently-configured source —
+  // it's shared/global config, so another browser could have changed it.
+  // Skip while the user is actively typing in it (same guard pattern used
+  // throughout this app for live-synced text inputs).
+  const srcInput = document.getElementById('tallySourceUrlInput');
+  if(srcInput && document.activeElement !== srcInput) srcInput.value = tallyData.sourceUrl || '';
+
+  const updated = tallyData.fetchedAt ? new Date(tallyData.fetchedAt).toLocaleTimeString() : '—';
+  statusEl.textContent = tallyData.error
+    ? `⚠ Could not refresh from the source sheet (${escapeHtml(tallyData.error)}) — showing last good data from ${updated}`
+    : `Live from Google Sheets · refreshes every 3.5s · last updated ${updated}`;
+  statusEl.style.color = tallyData.error ? 'var(--danger)' : '';
+
+  if(tallyData.sheets.length === 0){
+    tabsEl.innerHTML = '';
+    wrapEl.innerHTML = '<p class="empty-note">No matching sheets found in the source spreadsheet yet.</p>';
+    return;
+  }
+
+  tabsEl.innerHTML = tallyData.sheets.map(s => `
+    <div class="match-tab ${s.name === currentTallySheet ? 'active' : ''}" onclick="setTallySheet('${escapeHtml(s.name).replace(/'/g,"\\'")}')">${escapeHtml(s.name)}</div>
+  `).join('');
+
+  const sheet = tallyData.sheets.find(s => s.name === currentTallySheet) || tallyData.sheets[0];
+  wrapEl.innerHTML = buildTallyTableHtml(sheet);
+}
+function tallyCellHtml(v, asHeader){
+  if(v === '' || v === null || v === undefined) return '';
+  const s = escapeHtml(String(v));
+  return asHeader ? s.replace(/\n/g, '<br>') : s;
+}
+function buildTallyTableHtml(sheet){
+  const groupHeaderCells = sheet.headerGroups.map(g =>
+    `<th colspan="${g.span}">${tallyCellHtml(g.label, true)}</th>`
+  ).join('');
+  const subHeaderCells = sheet.subHeader.map(c => `<th>${tallyCellHtml(c, true)}</th>`).join('');
+  const bodyRows = sheet.dataRows.map(row => {
+    const isTeamStart = row[0] !== '' && row[0] !== null && row[0] !== undefined;
+    const cells = row.map((v, i) => {
+      const classes = [];
+      if(i === 0) classes.push('tally-squad');
+      if(typeof v === 'number') classes.push('tally-num');
+      return `<td class="${classes.join(' ')}">${tallyCellHtml(v, false)}</td>`;
+    }).join('');
+    return `<tr class="${isTeamStart ? 'tally-team-start' : ''}">${cells}</tr>`;
+  }).join('');
+  return `
+    <table class="tally-table">
+      <thead>
+        <tr>${groupHeaderCells}</tr>
+        <tr>${subHeaderCells}</tr>
+      </thead>
+      <tbody>${bodyRows}</tbody>
+    </table>
+  `;
+}
+
+// The Dashboard's Match Sheet — reuses buildTallyTableHtml above to render
+// whichever Tally tab serverState.liveTallyTab currently names, read-only.
+// Depends on BOTH serverState (which tab is live) and tallyData (that tab's
+// actual contents), so this is called from wherever either one refreshes:
+// applyServerState (SSE/initial load) and fetchTallyExternal (3.5s poll).
+function renderDashboardMatchSheet(){
+  const statusEl = document.getElementById('dashboardMatchSheetStatus');
+  const wrapEl = document.getElementById('dashboardMatchSheetWrap');
+  const live = serverState ? serverState.liveTallyTab : null;
+  if(!live){
+    statusEl.textContent = 'Pick a tab from "Live Now" in the sidebar';
+    wrapEl.innerHTML = '<p class="empty-note">No live match selected yet.</p>';
+    return;
+  }
+  if(!tallyData){
+    statusEl.textContent = `Live: ${live} · loading…`;
+    wrapEl.innerHTML = '<p class="empty-note">Loading…</p>';
+    return;
+  }
+  const sheet = tallyData.sheets.find(s => s.name === live);
+  if(!sheet){
+    statusEl.textContent = `Live: ${live}`;
+    wrapEl.innerHTML = '<p class="empty-note">This tab is no longer in the source spreadsheet.</p>';
+    return;
+  }
+  const updated = tallyData.fetchedAt ? new Date(tallyData.fetchedAt).toLocaleTimeString() : '—';
+  statusEl.textContent = `Live: ${live} · refreshes every 3.5s · last updated ${updated}`;
+  wrapEl.innerHTML = buildTallyTableHtml(sheet);
+}
+
+/* ============ NETWORK ============ */
+async function postAction(action, payload){
+  try{
+    const res = await fetch('/tally/action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ action }, payload || {})),
+    });
+    const data = await res.json();
+    if(!data.ok){ showToast(data.error || 'Action failed'); return null; }
+    return data; // { ok, state, createdId? }
+  }catch(e){
+    showToast('Network error — is the server running?');
+    return null;
+  }
+}
+// Fire an action and immediately adopt the state it returns (don't wait on
+// the SSE round-trip to see your own edit reflected).
+async function act(action, payload){
+  const data = await postAction(action, payload);
+  if(data) applyServerState(data.state);
+  return data;
+}
+
+function applyServerState(newState){
+  serverState = newState;
+  if(!localActiveGroupId || !serverState.groups.find(g => g.id === localActiveGroupId)){
+    localActiveGroupId = serverState.groups.length ? serverState.groups[0].id : null;
+  }
+  renderAll();
+}
+
+function connectSSE(){
+  const dot = document.getElementById('connDot');
+  // Shared-connection SSE (see html/js/overlay-sse-shim.js) instead of a
+  // raw EventSource — this page is meant to be opened in its own tab by
+  // each of several scorekeepers at once, and a raw per-tab EventSource is
+  // exactly the pattern that once exhausted the browser's ~6-connections-
+  // per-host cap elsewhere in this app. lib/tallyState.js also broadcasts
+  // onto the shared /overlay/events stream (named 'tally') for this.
+  const sse = createOverlaySSE();
+  sse.onopen = () => { dot.classList.remove('down'); dot.classList.add('live'); };
+  sse.addEventListener('tally', (e) => {
+    try{ applyServerState(JSON.parse(e.data)); }catch(err){}
+  });
+  sse.onerror = () => { dot.classList.remove('live'); dot.classList.add('down'); };
+}
+
+async function init(){
+  try{
+    const res = await fetch('/tally/state', { cache: 'no-store' });
+    applyServerState(await res.json());
+  }catch(e){
+    showToast('Could not reach server — is it running?');
+  }
+  connectSSE();
+  fetchTallyExternal();
+  setInterval(fetchTallyExternal, 3500);
+}
+
+/* ============ RENDER ============ */
+function renderAll(){
+  const group = currentGroup();
+
+  const tnEl = document.getElementById('tournamentName');
+  if(document.activeElement !== tnEl) tnEl.value = serverState ? serverState.tournamentName : '';
+
+  document.getElementById('metaGroup').textContent = group ? group.name : '—';
+  document.getElementById('metaTeams').textContent = group ? group.teams.length : 0;
+  document.getElementById('metaMatches').textContent = group ? group.matches.length : 0;
+  document.getElementById('metaKillPt').textContent = group ? group.settings.killPoint : 0;
+
+  renderLiveBox();
+  renderRoster();
+  renderDashboardMatchSheet();
+  renderLeaderboard();
+}
+
+const TALLY_PALETTE = ["#F2A93B","#6E8F4C","#D9584C","#4C8FA0","#B07CC6","#C98449","#5FAE7A","#C9C24C","#E07BA0","#7A8FE0","#E4BA3E","#8FA08D"];
+// Hash-based (not index-based) so a team keeps the same swatch color
+// regardless of sort order — an index-based color would visually "shuffle"
+// every time you toggle Kills vs A–Z.
+function colorForTeam(name){
+  let hash = 0;
+  for(let i=0;i<name.length;i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+  return TALLY_PALETTE[hash % TALLY_PALETTE.length];
+}
+
+// The whole-tournament roster (teams/players/kills/score), fetched from
+// GET /api/roster — computed server-side in lib/tallyRoster.js so the page
+// and the public JSON endpoint always agree. Sort order is local-only (a
+// per-viewer preference), applied client-side to a copy of this data.
+let rosterData = null;
+let rosterSortMode = 'kills'; // 'kills' | 'alpha' — also governs player order within each card
+// 'all' | 'group:<letter>' | 'playoffs' | 'grandfinals' — which subset of
+// teams to show. Group letters come from the sheet's own "Roster" tab
+// (lib/tallyRoster.js), Playoffs/Grand Finals from whether a team appears
+// in a sheet by that exact name — both local-only, per-viewer preferences.
+let rosterFilterMode = 'all';
+async function fetchRosterData(){
+  try{
+    const res = await fetch('/api/tally-roster', { cache: 'no-store' });
+    rosterData = await res.json();
+    renderRoster();
+  }catch(e){ /* local server unreachable; keep showing last-known roster */ }
+}
+function setRosterSort(mode){
+  rosterSortMode = mode;
+  renderRoster();
+}
+function setRosterFilter(mode){
+  rosterFilterMode = mode;
+  renderRoster();
+}
+function renderRosterFilterBar(){
+  const bar = document.getElementById('rosterFilterBar');
+  const groups = (rosterData && rosterData.groups) || [];
+  const options = [{ value: 'all', label: 'All Teams' }]
+    .concat(groups.map(g => ({ value: 'group:' + g, label: 'Group ' + g })))
+    .concat([{ value: 'playoffs', label: 'Playoffs Teams' }, { value: 'grandfinals', label: 'Grand Finals Teams' }]);
+  bar.innerHTML = options.map(o => `
+    <button class="small ${rosterFilterMode === o.value ? 'active' : ''}" onclick="setRosterFilter('${o.value}')">${escapeHtml(o.label)}</button>
+  `).join('');
+}
+function renderRoster(){
+  const el = document.getElementById('teamChips');
+  const statusEl = document.getElementById('rosterStatus');
+  document.getElementById('rosterSortKillsBtn').classList.toggle('active', rosterSortMode === 'kills');
+  document.getElementById('rosterSortAlphaBtn').classList.toggle('active', rosterSortMode === 'alpha');
+
+  if(!rosterData){
+    el.innerHTML = '<span class="empty-note">Loading roster from the Tally sheet…</span>';
+    return;
+  }
+  renderRosterFilterBar();
+  if(statusEl){
+    statusEl.textContent = rosterData.error && rosterData.teams.length === 0
+      ? `⚠ Could not load the Tally sheet (${escapeHtml(rosterData.error)})`
+      : 'Auto-derived from the Tally sheet — same squad across multiple sheets is merged into one card';
+  }
+  if(rosterData.teams.length === 0){
+    el.innerHTML = '<span class="empty-note">No teams found in the Tally sheet yet.</span>';
+    return;
+  }
+
+  let teams = rosterData.teams.map(t => ({ ...t, players: t.players.slice() }));
+  if(rosterFilterMode.startsWith('group:')){
+    const letter = rosterFilterMode.slice('group:'.length);
+    teams = teams.filter(t => t.group === letter);
+  } else if(rosterFilterMode === 'playoffs'){
+    teams = teams.filter(t => t.appearances.includes('Playoffs'));
+  } else if(rosterFilterMode === 'grandfinals'){
+    teams = teams.filter(t => t.appearances.includes('Grand Finals'));
+  }
+
+  if(rosterSortMode === 'alpha'){
+    teams.sort((a,b) => a.name.localeCompare(b.name));
+    teams.forEach(t => t.players.sort((a,b) => a.name.localeCompare(b.name)));
+  } else {
+    teams.sort((a,b) => b.totalKills - a.totalKills || a.name.localeCompare(b.name));
+    teams.forEach(t => t.players.sort((a,b) => b.kills - a.kills || a.name.localeCompare(b.name)));
+  }
+
+  if(teams.length === 0){
+    el.innerHTML = '<span class="empty-note">No teams match this filter.</span>';
+    return;
+  }
+
+  el.innerHTML = teams.map(t => `
+    <div class="roster-card">
+      <div class="roster-card-head">
+        <span class="swatch" style="background:${colorForTeam(t.name)}"></span>
+        <span class="roster-team-name">${escapeHtml(t.name)}${t.group ? `<span class="roster-group-badge">GRP ${escapeHtml(t.group)}</span>` : ''}</span>
+        <span class="roster-kill-total">${t.totalKills} kills</span>
+      </div>
+      <div class="roster-score-row">
+        <span>Kill Pts <b>${formatTallyNum(t.killPoints)}</b></span>
+        <span>Placement Pts <b>${formatTallyNum(t.placementPoints)}</b></span>
+        <span class="roster-score-total">Total <b>${formatTallyNum(t.totalScore)}</b></span>
+      </div>
+      <div class="roster-players">
+        ${t.players.map(p => `
+          <div class="roster-player-row">
+            <span class="roster-player-name">${escapeHtml(p.name)}</span>
+            <span class="roster-player-kills">${p.kills}</span>
+          </div>
+        `).join('')}
+      </div>
+      ${t.appearances.length > 1 ? `<div class="roster-appearances">${t.appearances.map(a => escapeHtml(a)).join(' · ')}</div>` : ''}
+    </div>
+  `).join('');
+}
+function formatTallyNum(n){ return n % 1 === 0 ? String(n) : n.toFixed(2); }
+
+// The Dashboard's Group Leaderboard — sourced from the Tally sheet's
+// group-stage tabs only (Playoffs/Grand Finals excluded), every team
+// ranked (not capped at the top-20 qualifiers) — see
+// GET /api/groupstage-qualifiers?limit=all and lib/tallyRoster.js.
+let groupStageLeaderboard = null;
+async function fetchGroupStageLeaderboard(){
+  try{
+    const res = await fetch('/api/groupstage-qualifiers?limit=all', { cache: 'no-store' });
+    groupStageLeaderboard = await res.json();
+    renderLeaderboard();
+  }catch(e){ /* local server unreachable; keep showing last-known leaderboard */ }
+}
+function renderLeaderboard(){
+  const el = document.getElementById('leaderboardBody');
+  const statusEl = document.getElementById('groupLeaderboardStatus');
+  if(!groupStageLeaderboard){
+    el.innerHTML = '<p class="empty-note" style="padding:14px 10px;">Loading from the Tally sheet…</p>';
+    return;
+  }
+  if(statusEl){
+    statusEl.textContent = groupStageLeaderboard.error && groupStageLeaderboard.qualifiers.length === 0
+      ? `⚠ Could not load the Tally sheet (${escapeHtml(groupStageLeaderboard.error)})`
+      : `From the Tally sheet's group-stage tabs (${groupStageLeaderboard.sourceSheets.map(s => escapeHtml(s)).join(', ')}) · Total pts, then kills as tiebreaker`;
+  }
+  if(groupStageLeaderboard.qualifiers.length === 0){
+    el.innerHTML = '<p class="empty-note" style="padding:14px 10px;">No group-stage teams found in the Tally sheet yet.</p>';
+    return;
+  }
+  el.innerHTML = groupStageLeaderboard.qualifiers.map(row => `
+    <div class="lb-row">
+      <div class="lb-rank">${row.rank}</div>
+      <div class="lb-team">
+        <span class="swatch" style="background:${colorForTeam(row.name)}"></span>
+        ${escapeHtml(row.name)}
+        ${row.rank <= 20 ? '<span class="badge-wwcd">QUALIFIED</span>' : ''}
+      </div>
+      <div class="lb-stat">${row.totalKills}</div>
+      <div class="lb-stat">${formatTallyNum(row.killPoints)}</div>
+      <div class="lb-stat">${formatTallyNum(row.placementPoints)}</div>
+      <div class="lb-total">${formatTallyNum(row.totalScore)}</div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+/* ============ BACKUP / RESTORE (whole tournament, server-authoritative) ============ */
+function saveJSON(){
+  if(!serverState) return;
+  const blob = new Blob([JSON.stringify(serverState, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const safeName = (serverState.tournamentName || "tournament").replace(/[^a-z0-9]+/gi,"_").toLowerCase();
+  a.download = `${safeName}_backup.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast("Backup downloaded ✓");
+}
+function loadJSON(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try{
+      const loaded = JSON.parse(e.target.result);
+      if(!Array.isArray(loaded.groups) || !loaded.groups.length) throw new Error("bad shape");
+      if(!confirm("Import this file? This will REPLACE the live tournament data for everyone currently connected.")) return;
+      const data = await act('importState', { data: loaded });
+      if(data) showToast("Tournament restored ✓");
+    }catch(err){
+      showToast("Couldn't read that file — is it a CODMTally backup?");
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = "";
+}
+
+/* ============ MISC ============ */
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+document.getElementById('tournamentName').addEventListener('change', (e) => {
+  act('setTournamentName', { name: e.target.value });
+});
+
+/* ============ INIT ============ */
+init();
+</script>
+</body>
+</html>

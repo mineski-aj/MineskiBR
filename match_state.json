@@ -175,11 +175,57 @@
     "endAt": null,
     "remaining": 900
   },
-  "map": "Broken Walls",
+  "map": "Isolated",
   "enCasters": [
     "Leo",
     "Naisou",
     "Wolf"
   ],
-  "stage": "Grand Finals"
+  "stage": "Grand Finals",
+  "todayMapsCount": 5,
+  "todayMaps": [
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "winner": ""
+    }
+  ],
+  "tomorrowMapsCount": 3,
+  "tomorrowMaps": [
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "winner": ""
+    }
+  ]
 }

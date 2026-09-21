@@ -1,6 +1,6 @@
 // html/js/relay-client.js — shared client for dashboard.html's consolidated
-// live-data relay. Match Board, Map Selection, and Standings used to each
-// open their own persistent EventSource, permanently, for the life of the
+// live-data relay. Match Board used to open its own persistent EventSource,
+// permanently, for the life of the
 // dashboard tab (these iframes are never torn down) — every such connection
 // eats into the browser's ~6-connections-per-host cap alongside whatever
 // Control/Edit tab currently holds, and adding a new always-mounted tab's
@@ -11,8 +11,8 @@
 // backend channel; it relays data down to whichever iframe(s) care via
 // postMessage. This file is the iframe side of that relay.
 //
-// connectRelay(channel, onData, onStatus) — channel is 'match' |
-// 'mapselection' | 'standings' (must match one of dashboard.html's
+// connectRelay(channel, onData, onStatus) — channel is 'match'
+// (must match one of dashboard.html's
 // relayIframeIds keys). onData(data) fires with the parsed JSON payload
 // whenever the parent has fresh data (including once immediately after
 // calling this, via a request/response bootstrap so the iframe doesn't

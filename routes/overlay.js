@@ -1,13 +1,10 @@
-// routes/overlay.js — SSE + all /overlay/* + /meter/*
+// routes/overlay.js — SSE + all /overlay/*
 const express = require('express');
 const fs      = require('fs');
 const path    = require('path');
 const router  = express.Router();
 const state   = require('../lib/state');
 const matchState = require('../lib/matchState');
-
-// Local state for draftpredict commands
-const _draftpredictCmds = [];
 
 // GET /api/player-photos — basenames with both FRONT and VICTORY photos available
 const PHOTOS_DIR = path.join(__dirname, '..', 'photos');
@@ -31,9 +28,9 @@ router.get('/api/player-photos', (req, res) => {
   res.set({ 'Cache-Control': 'no-store' }).json({ names: _playerPhotoNames });
 });
 
-// GET /overlay/force-reload — hard-reload every open overlay page (Fullscreen.html,
-// ENTVC.html, DraftIndex.html, Draft.html, LowerThirds.html, ingame.html) at
-// once, so production browser sources don't need to be refreshed by hand
+// GET /overlay/force-reload — hard-reload every open overlay page
+// (Fullscreen.html, ENTVC.html, ingame.html) at once, so production
+// browser sources don't need to be refreshed by hand
 // after a dashboard Edit-tab save or any other change. Reuses the exact
 // 'reload' SSE event routes/overlayStyles.js already broadcasts after a
 // style save — every overlay page already listens for it, so no client-side
@@ -42,23 +39,6 @@ router.get('/api/player-photos', (req, res) => {
 router.get('/overlay/force-reload', (req, res) => {
   state.overlayClients.forEach(c => { try { c.write('event: reload\ndata: {}\n\n'); } catch {} });
   res.set({ 'Cache-Control': 'no-store' }).json({ ok: true, clients: state.overlayClients.length });
-});
-
-// GET /overlay/draft-photo-mode — current player-photo source ('live' | 'random')
-router.get('/overlay/draft-photo-mode', (req, res) => {
-  res.set({ 'Cache-Control': 'no-store' }).json({ mode: state.draftPhotoMode });
-});
-
-// GET /overlay/draft-photo-mode/:mode — set mode, broadcast to connected overlays
-router.get('/overlay/draft-photo-mode/:mode', (req, res) => {
-  const mode = req.params.mode;
-  if (mode !== 'live' && mode !== 'random') {
-    return res.status(400).json({ ok: false, error: 'unknown mode' });
-  }
-  state.draftPhotoMode = mode;
-  const payload = JSON.stringify({ mode });
-  state.overlayClients.forEach(c => { try { c.write(`event: draftphotomode\ndata: ${payload}\n\n`); } catch {} });
-  res.set({ 'Cache-Control': 'no-store' }).json({ ok: true, mode });
 });
 
 // SSE heartbeat
@@ -79,83 +59,6 @@ router.get('/overlay/events', (req, res) => {
     const i = state.overlayClients.indexOf(res);
     if (i !== -1) state.overlayClients.splice(i, 1);
   });
-});
-
-// GET /meter/show|hide|plus|minus|clear
-router.get('/meter/:cmd', (req, res) => {
-  const cmd = req.params.cmd;
-  if (["show", "hide", "plus", "minus", "clear"].includes(cmd)) {
-    state.overlayClients.forEach(c => { try { c.write(`event: meter\ndata: {"cmd":"${cmd}"}\n\n`); } catch {} });
-    res.set({ "Cache-Control": "no-store" }).json({ ok: true, cmd });
-  } else {
-    res.status(404).json({ error: "unknown meter command" });
-  }
-});
-
-// GET /api/draft-roles — returns server-locked player→role assignments for current battleid
-router.get('/api/draft-roles', (req, res) => {
-  res.set({ 'Cache-Control': 'no-store' }).json(state.draftRoles);
-});
-
-// GET /overlay/draftindex-state — current shown/hidden state, so a
-// freshly (re)loaded DraftIndex.html can restore instead of guessing.
-router.get('/overlay/draftindex-state', (req, res) => {
-  res.set({ 'Cache-Control': 'no-store' }).json({ active: state.draftIndexActive });
-});
-
-// GET /overlay/draftindex/show
-router.get('/overlay/draftindex/show', (req, res) => {
-  state.draftIndexActive = true;
-  state.overlayClients.forEach(c => { try { c.write('event: draftindex\ndata: {"action":"show"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/draftindex/hide
-router.get('/overlay/draftindex/hide', (req, res) => {
-  state.draftIndexActive = false;
-  state.overlayClients.forEach(c => { try { c.write('event: draftindex\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
-// GET /overlay/draft-state — current shown/hidden state, so a
-// freshly (re)loaded Draft.html can restore instead of guessing.
-router.get('/overlay/draft-state', (req, res) => {
-  res.set({ 'Cache-Control': 'no-store' }).json({ active: state.draftActive });
-});
-
-// GET /overlay/draft/show
-router.get('/overlay/draft/show', (req, res) => {
-  state.draftActive = true;
-  state.overlayClients.forEach(c => { try { c.write('event: draft\ndata: {"action":"show"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/draft/hide
-router.get('/overlay/draft/hide', (req, res) => {
-  state.draftActive = false;
-  state.overlayClients.forEach(c => { try { c.write('event: draft\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
-// GET /overlay/draftrealme-state — current shown/hidden state for
-// Draft-realme.html, the realme-skinned pick/ban overlay (own bespoke
-// boolean, independent of the regular Draft Overlay's draftActive).
-router.get('/overlay/draftrealme-state', (req, res) => {
-  res.set({ 'Cache-Control': 'no-store' }).json({ active: state.draftRealmeActive });
-});
-
-// GET /overlay/draftrealme/show
-router.get('/overlay/draftrealme/show', (req, res) => {
-  state.draftRealmeActive = true;
-  state.overlayClients.forEach(c => { try { c.write('event: draftrealme\ndata: {"action":"show"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/draftrealme/hide
-router.get('/overlay/draftrealme/hide', (req, res) => {
-  state.draftRealmeActive = false;
-  state.overlayClients.forEach(c => { try { c.write('event: draftrealme\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/fights/show
@@ -247,74 +150,6 @@ router.get('/overlay/playerui/hide', (req, res) => {
   state.checkOverlays.playerui = false;
   state.overlayClients.forEach(c => { try { c.write('event: playerui\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
-// GET /overlay/draftrecap/show
-router.get('/overlay/draftrecap/show', (req, res) => {
-  state.checkOverlays.draftrecap = true;
-  state.overlayClients.forEach(c => { try { c.write('event: draftrecap\ndata: {"action":"show"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/draftrecap/hide
-router.get('/overlay/draftrecap/hide', (req, res) => {
-  state.checkOverlays.draftrecap = false;
-  state.overlayClients.forEach(c => { try { c.write('event: draftrecap\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
-// GET /overlay/draftstats/test — Control-tab manual test trigger for the
-// Draft Stats pick reveal (Draft.html). Fixed placeholder values, Player 1
-// of BOTH sides at once (campid 1 and 2, seat_1) — fires two separate
-// events so each side's card animates independently but simultaneously.
-router.get('/overlay/draftstats/test', (req, res) => {
-  [1, 2].forEach((campid) => {
-    const payload = JSON.stringify({ campid, seatIdx: 0, pick: 27, contention: 64, winrate: 58 });
-    state.overlayClients.forEach(c => { try { c.write(`event: draftstats\ndata: ${payload}\n\n`); } catch {} });
-  });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true });
-});
-
-// GET /overlay/draftstats/test-debut — same as above, but a pick count of 0
-// so Draft.html plays the "DEBUT PICK!" reveal instead of the normal
-// PICK/CONTENTION RATE/WIN RATE one (see startDraftStats()'s isDebut check).
-router.get('/overlay/draftstats/test-debut', (req, res) => {
-  [1, 2].forEach((campid) => {
-    const payload = JSON.stringify({ campid, seatIdx: 0, pick: 0, contention: 0, winrate: 0 });
-    state.overlayClients.forEach(c => { try { c.write(`event: draftstats\ndata: ${payload}\n\n`); } catch {} });
-  });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true });
-});
-
-// GET /overlay/draftstats/test-buff/:status — same as /test above, but also
-// carries a buffStatus (NERF/BUFF/ADJUST) so Draft.html's corner badge pops
-// in once the reveal finishes sliding out (see showBuffBadge()).
-router.get('/overlay/draftstats/test-buff/:status', (req, res) => {
-  const status = String(req.params.status || '').toUpperCase();
-  if (!['NERF', 'BUFF', 'ADJUST'].includes(status)) {
-    return res.status(400).json({ ok: false, error: 'status must be nerf, buff, or adjust' });
-  }
-  [1, 2].forEach((campid) => {
-    const payload = JSON.stringify({ campid, seatIdx: 0, pick: 27, contention: 64, winrate: 58, buffStatus: status });
-    state.overlayClients.forEach(c => { try { c.write(`event: draftstats\ndata: ${payload}\n\n`); } catch {} });
-  });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, status });
-});
-
-// GET /overlay/draftstats/test-swap/:status — simulates a Final Changes
-// seat swap: Draft.html's showBadgeOnly() pops the corner badge directly,
-// skipping the PICK/CONTENTION RATE/WIN RATE (or DEBUT PICK) reveal
-// entirely (see the draftStatsAllowed gate in poll() / onBannerIn()).
-router.get('/overlay/draftstats/test-swap/:status', (req, res) => {
-  const status = String(req.params.status || '').toUpperCase();
-  if (!['NERF', 'BUFF', 'ADJUST'].includes(status)) {
-    return res.status(400).json({ ok: false, error: 'status must be nerf, buff, or adjust' });
-  }
-  [1, 2].forEach((campid) => {
-    const payload = JSON.stringify({ campid, seatIdx: 0, swapOnly: true, buffStatus: status });
-    state.overlayClients.forEach(c => { try { c.write(`event: draftstats\ndata: ${payload}\n\n`); } catch {} });
-  });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, status });
 });
 
 // GET /overlay/hrm-state — current per-player heart-rate meter on/off
@@ -629,20 +464,6 @@ router.get('/overlay/tomorrow_schedule/hide', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
-// GET /overlay/standings/show
-router.get('/overlay/standings/show', (req, res) => {
-  state.fullscreenScene.activeFeature = 'standings';
-  state.overlayClients.forEach(c => { try { c.write('event: standings\ndata: {"action":"show"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/standings/hide
-router.get('/overlay/standings/hide', (req, res) => {
-  state.fullscreenScene.activeFeature = null;
-  state.overlayClients.forEach(c => { try { c.write('event: standings\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
 // GET /overlay/fs/debugoff
 router.get('/overlay/fs/debugoff', (req, res) => {
   state.overlayClients.forEach(c => { try { c.write('event: fs_debugoff\ndata: {}\n\n'); } catch {} });
@@ -865,22 +686,6 @@ router.get('/overlay/post4key/hide', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
-// GET /overlay/draftpredict/show|hide|poll
-router.get('/overlay/draftpredict/:cmd', (req, res) => {
-  const cmd = req.params.cmd;
-  res.set({ "Cache-Control": "no-store" });
-  if (cmd === "show" || cmd === "hide") {
-    _draftpredictCmds.push(cmd);
-    state.overlayClients.forEach(c => { try { c.write(`event: draftpredict\ndata: {"cmd":"${cmd}"}\n\n`); } catch {} });
-    res.json({ ok: true });
-  } else if (cmd === "poll") {
-    const cmds = _draftpredictCmds.splice(0);
-    res.json({ commands: cmds });
-  } else {
-    res.status(404).json({});
-  }
-});
-
 // GET /overlay/debugoff — hide debug bars on all overlays
 router.get('/overlay/debugoff', (req, res) => {
   state.overlayClients.forEach(c => { try { c.write('event: debugoff\ndata: {}\n\n'); } catch {} });
@@ -893,7 +698,7 @@ router.get('/overlay/features', (req, res) => {
 });
 
 // GET /overlay/feature/:feature/enable|disable
-const VALID_FEATURES = ['killevents','items','trinity','swap','lvl15','conceal','fights','objectivespawn','debugphotos','draftstats'];
+const VALID_FEATURES = ['killevents','items','trinity','swap','lvl15','conceal','fights','objectivespawn','debugphotos'];
 router.get('/overlay/feature/:feature/:action', (req, res) => {
   const { feature, action } = req.params;
   if (!VALID_FEATURES.includes(feature) || !['enable','disable'].includes(action)) {
@@ -904,6 +709,27 @@ router.get('/overlay/feature/:feature/:action', (req, res) => {
   const payload = JSON.stringify({ feature, enabled });
   state.overlayClients.forEach(c => { try { c.write(`event: featuretoggle\ndata: ${payload}\n\n`); } catch {} });
   res.set({ 'Cache-Control': 'no-store' }).json({ ok: true, feature, enabled });
+});
+
+// GET /overlay/apis — current per-API enable/disable states (Settings page)
+router.get('/overlay/apis', (req, res) => {
+  res.set({ 'Cache-Control': 'no-store' }).json(state.apiEnabled);
+});
+
+// GET /overlay/api/:api/enable|disable — flips whether that API's poller/
+// proxy actually hits its upstream (see lib/pollers.js, lib/hrmPoller.js,
+// and routes/devapi.js's *-data proxies).
+const VALID_APIS = ['game','hrm','postinfo','hexagon','highlights'];
+router.get('/overlay/api/:api/:action', (req, res) => {
+  const { api, action } = req.params;
+  if (!VALID_APIS.includes(api) || !['enable','disable'].includes(action)) {
+    return res.status(400).json({ ok: false, error: 'unknown api or action' });
+  }
+  const enabled = action === 'enable';
+  state.apiEnabled[api] = enabled;
+  const payload = JSON.stringify({ api, enabled });
+  state.overlayClients.forEach(c => { try { c.write(`event: apitoggle\ndata: ${payload}\n\n`); } catch {} });
+  res.set({ 'Cache-Control': 'no-store' }).json({ ok: true, api, enabled });
 });
 
 // GET /overlay/killevent — broadcast a kill event video to all overlays
@@ -939,64 +765,6 @@ router.get('/overlay/objectivespawn', (req, res) => {
   const payload = JSON.stringify({ kind });
   state.overlayClients.forEach(c => { try { c.write(`event: objectivespawn\ndata: ${payload}\n\n`); } catch {} });
   res.set({ 'Cache-Control': 'no-store' }).json({ ok: true, kind });
-});
-
-// Map Selection tag (html/LowerThirds.html) — sequential per-game reveal.
-// Each "show" call does ONE of, in priority order:
-//   1. If an already-revealed game is still waiting on its winner, and
-//      the winner has since been picked — reveal just that game's win
-//      banner (phase 3) and stop there.
-//   2. Otherwise, reveal the next game's side+map recap (phases 1-2),
-//      gated on toss winner + side + map being picked (the winner is
-//      NOT required — it can be left open). If that game's winner
-//      already happens to be known at reveal time, its win banner is
-//      included in the same reveal instead of requiring an extra press.
-// "hide" clears everything at once and resets both counters so the
-// next show cycle starts back at game 1.
-const mapSelectionState = require('../lib/mapSelectionState');
-
-router.get('/overlay/mapselecttag-state', (req, res) => {
-  res.set({ 'Cache-Control': 'no-store' }).json(state.mapSelectTag);
-});
-
-router.get('/overlay/mapselecttag/show', (req, res) => {
-  const ms  = mapSelectionState.get();
-  const tag = state.mapSelectTag;
-
-  // Priority 1 — catch up a pending win for an already-revealed game.
-  if (tag.revealedWins < tag.revealedGames) {
-    const idx = tag.revealedWins;
-    const pending = ms.games[idx];
-    if (pending && pending.winner) {
-      tag.revealedWins = idx + 1;
-      const payload = JSON.stringify({ action: 'showWinner', gameIndex: idx, game: pending, match: ms.match, home: ms.home, away: ms.away });
-      state.overlayClients.forEach(c => { try { c.write(`event: mapselecttag\ndata: ${payload}\n\n`); } catch {} });
-      return res.set({ 'Cache-Control': 'no-store' }).json({ ok: true, action: 'showWinner', gameIndex: idx });
-    }
-  }
-
-  // Priority 2 — reveal the next new game's side + map.
-  const nextIdx = tag.revealedGames;
-  const game = ms.games[nextIdx];
-  const ready = game && game.tossWinner && game.tossSide && game.map;
-  if (nextIdx >= ms.maxGames || !ready) {
-    return res.set({ 'Cache-Control': 'no-store' }).json({
-      ok: false, blocked: true,
-      reason: (nextIdx >= ms.maxGames) ? 'All games in this series are already revealed.' : `Game ${nextIdx + 1}'s team and map selection isn't complete yet.`,
-    });
-  }
-  tag.revealedGames = nextIdx + 1;
-  if (game.winner) tag.revealedWins = tag.revealedGames; // winner already known — include it in this same reveal
-  const payload = JSON.stringify({ action: 'show', gameIndex: nextIdx, game: game, match: ms.match, home: ms.home, away: ms.away });
-  state.overlayClients.forEach(c => { try { c.write(`event: mapselecttag\ndata: ${payload}\n\n`); } catch {} });
-  res.set({ 'Cache-Control': 'no-store' }).json({ ok: true, action: 'show', gameIndex: nextIdx });
-});
-
-router.get('/overlay/mapselecttag/hide', (req, res) => {
-  state.mapSelectTag.revealedGames = 0;
-  state.mapSelectTag.revealedWins  = 0;
-  state.overlayClients.forEach(c => { try { c.write('event: mapselecttag\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ 'Cache-Control': 'no-store' }).json({ ok: true, action: 'hide' });
 });
 
 // GET/POST /overlay/:slot — generic show/hide slot handler (must be LAST)

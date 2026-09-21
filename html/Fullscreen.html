@@ -1794,161 +1794,6 @@
     }
     #today-schedule-page.ts-on { display: block; }
     #today-schedule-page.ts-visible { opacity: 1; }
-    /* ── STANDINGS PAGE ── */
-    #standings-page {
-      position: absolute;
-      top: 0; left: 0;
-      width: 1920px; height: 1080px;
-      display: none;
-      overflow: hidden;
-      background: transparent; /* #bg-video shows through */
-      opacity: 0;
-      transition: opacity 400ms ease;
-    }
-    #standings-page.st-on { display: block; }
-    #standings-page.st-visible { opacity: 1; }
-    /* Standings — title block (asset bakes season text + blank week/day chip) */
-    #st-header {
-      position: absolute;
-      left: 230px; top: 82px;
-      width: 845px;
-    }
-    #st-header > img { display: block; width: 845px; }
-    #st-weekday {
-      position: absolute;
-      left: 559px; top: 100px;
-      width: 249px; height: 33px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'General Sans', sans-serif;
-      font-weight: 800;
-      font-size: 23px;
-      color: #fff;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-    /* Standings — stats column header bar. Standing_Header.png is now the
-       same width as Team_Box.png (1803px) and sits flush above row 1
-       (top = ST_ROW_TOP − its own height, no gap) so the header and the
-       row stack looks like one continuous table. The 6 labels are real
-       DOM children of #st-colheader (position:absolute inside a
-       position:absolute parent), positioned relative to the bar's own
-       top-left instead of the page — so dragging the bar in the dashboard
-       Edit tab carries every label with it automatically, no group-drag
-       step required. Each label can still be nudged on its own by
-       clicking directly on it. */
-    #st-colheader {
-      position: absolute;
-      left: 118px; top: 327px;
-      width: 1803px; height: 27px;
-      background-image: url('/assets/Standings/Standing_Header.png');
-      background-size: 100% 100%;
-    }
-    .st-col-label {
-      position: absolute;
-      top: 0;
-      width: 260px; height: 27px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'General Sans', sans-serif;
-      font-weight: 700;
-      font-size: 19px;
-      color: #fff;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-    /* RANK centers over .str-rank; TEAM left-aligns with .str-tri — both
-       new labels the wider full-width header now has room for. Left
-       values are relative to #st-colheader now (page-left 118 already
-       subtracted). */
-    .st-l0 { left: 104px; width: 80px; }
-    .st-lteam {
-      position: absolute;
-      left: 294px; top: 0;
-      height: 27px;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      font-family: 'General Sans', sans-serif;
-      font-weight: 700;
-      font-size: 19px;
-      color: #fff;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-    .st-l1 { left: 768px; }
-    .st-l2 { left: 1035px; }
-    .st-l3 { left: 1303px; }
-    .st-l4 { left: 1555px; }
-    /* Standings — team rows */
-    #st-rows { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; }
-    .st-row {
-      position: absolute;
-      left: 118px;
-      width: 1803px; height: 71px;
-      font-family: 'General Sans', sans-serif;
-    }
-    .st-row .str-bg { position: absolute; top: 0; left: 0; width: 1803px; height: 71px; }
-    .str-move {
-      position: absolute;
-      left: 30px; top: 4px;
-      width: 36px; height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .str-rank {
-      position: absolute;
-      left: 84px; top: 4px;
-      width: 40px; height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 30px;
-      color: #0e0e0e;
-    }
-    .str-logo {
-      position: absolute;
-      left: 182px; top: 5px;
-      width: 54px; height: 54px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .str-logo img { max-width: 54px; max-height: 54px; }
-    .str-tri {
-      position: absolute;
-      left: 294px; top: 4px;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      font-weight: 800;
-      font-size: 30px;
-      color: #0e0e0e;
-      letter-spacing: 0.02em;
-    }
-    .str-status { position: absolute; left: 572px; top: 14px; width: 194px; height: 37px; }
-    .str-stat {
-      position: absolute;
-      top: 4px;
-      width: 260px; height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 30px;
-      color: #0e0e0e;
-    }
-    .str-c1 { left: 768px; }
-    .str-c2 { left: 1035px; }
-    .str-c3 { left: 1303px; }
-    .str-c4 { left: 1555px; }
     /* Today's Schedule — header over the matches column */
     #ts-header {
       position: absolute;
@@ -3113,16 +2958,6 @@
       </div>
     </div>
 
-    <!-- STANDINGS -->
-    <div class="feature-card">
-      <div class="feature-card-label">Standings</div>
-      <div class="feature-card-btns">
-        <button class="dbg-btn show" onclick="showStandings()">▶ SHOW</button>
-        <button class="dbg-btn hide" onclick="hideStandings()">■ HIDE</button>
-        <button class="dbg-btn preview" id="preview-standings" onclick="toggleLocalPreview('standings', this)">◈ PREVIEW</button>
-      </div>
-    </div>
-
     <!-- POST TIMELINE -->
     <div class="feature-card">
       <div class="feature-card-label">Post Timeline</div>
@@ -3540,21 +3375,6 @@
       </div>
       <div id="tw-matches"></div>
       <div id="tw-sponsor"></div>
-    </div>
-    <div id="standings-page">
-      <div id="st-header">
-        <img src="/assets/Standings/Infinix Standing.png" alt="Infinix Standings — Season 18 Regular Season">
-        <div id="st-weekday">WEEK 1 - DAY 1</div>
-      </div>
-      <div id="st-colheader">
-        <span class="st-col-label st-l0">RANK</span>
-        <span class="st-lteam">TEAM</span>
-        <span class="st-col-label st-l1">MATCH POINT</span>
-        <span class="st-col-label st-l2">MATCH W/L</span>
-        <span class="st-col-label st-l3">GAME W/L</span>
-        <span class="st-col-label st-l4">NET GAME WIN</span>
-      </div>
-      <div id="st-rows"></div>
     </div>
     <div id="highlights-page">
       <div id="hl-title">MVP HIGHLIGHTS</div>
@@ -4011,14 +3831,6 @@
         } else if (msg.action === 'hide') hideActiveFeature();
       });
 
-      sseSource.addEventListener('standings', (e) => {
-        const msg = JSON.parse(e.data);
-        if (msg.action === 'show') {
-          document.getElementById('config-bar').classList.remove('debug-open');
-          setTimeout(showStandings, 100);
-        } else if (msg.action === 'hide') hideActiveFeature();
-      });
-
       sseSource.addEventListener('team_hexagon', (e) => {
         const msg = JSON.parse(e.data);
         if (msg.action === 'show') {
@@ -4183,19 +3995,14 @@
         } catch {}
       });
 
-      /* Match Board + Standings live updates — fanned out over this same
-         connection (named "match"/"standings" events) instead of each
-         opening its own EventSource, so this page holds only 1 persistent
-         connection instead of 3. See onMatchEvent/onStandingsEvent below. */
+      /* Match Board live updates — fanned out over this same connection
+         (named "match" events) instead of opening its own EventSource, so
+         this page holds one fewer persistent connection. See
+         onMatchEvent below. */
       sseSource.addEventListener('match', (e) => {
         let ms = null;
         try { ms = JSON.parse(e.data); } catch { return; }
         onMatchEvent(ms);
-      });
-      sseSource.addEventListener('standings', (e) => {
-        let changed = false;
-        try { changed = stApplyTeams(JSON.parse(e.data)); } catch { return; }
-        if (changed && activeFeature === 'standings') buildStandings();
       });
     }
 
@@ -6935,7 +6742,7 @@
     }
 
     function hluApplyTitle(ms) {
-      const stage  = ((ms && ms.stage)  || 'Quarter Finals').toUpperCase();
+      const stage  = ((ms && ms.stage)  || 'Qualifiers').toUpperCase();
       const series = ((ms && ms.series) || 'BO5').toUpperCase();
       const game   = (ms && ms.game != null) ? ms.game : 1;
       document.getElementById('hlu-title').textContent = stage + ' - ' + series + ' - GAME ' + game;
@@ -7525,105 +7332,6 @@
       });
     }
 
-    /* ════════════════════════════════════════════════
-       STANDINGS
-    ════════════════════════════════════════════════ */
-    const stPage  = document.getElementById('standings-page');
-
-    /* Standings table — driven by the Standings tab on the dashboard
-       (GET /standings/state + SSE /standings/events). ST_TEAMS is only the
-       fallback when the server has no standings state yet.
-       move:   'up' | 'down' | 'neutral'   (rank movement arrow)
-       status: null | 'secured' | 'eliminated' (playoffs chip on the team box) */
-    const ST_ASSET = '/assets/Standings/';
-    const ST_TEAMS = [
-      { tri: 'TLPH', move: 'neutral', status: null, mp: 0, mwl: '0-0', gwl: '0-0', ngw: 0 },
-      { tri: 'FLCN', move: 'neutral', status: null, mp: 0, mwl: '0-0', gwl: '0-0', ngw: 0 },
-      { tri: 'ONIC', move: 'neutral', status: null, mp: 0, mwl: '0-0', gwl: '0-0', ngw: 0 },
-      { tri: 'RORA', move: 'neutral', status: null, mp: 0, mwl: '0-0', gwl: '0-0', ngw: 0 },
-      { tri: 'APBR', move: 'neutral', status: null, mp: 0, mwl: '0-0', gwl: '0-0', ngw: 0 },
-      { tri: 'TWIS', move: 'neutral', status: null, mp: 0, mwl: '0-0', gwl: '0-0', ngw: 0 },
-      { tri: 'OMG',  move: 'neutral', status: null, mp: 0, mwl: '0-0', gwl: '0-0', ngw: 0 },
-      { tri: 'TNC',  move: 'neutral', status: null, mp: 0, mwl: '0-0', gwl: '0-0', ngw: 0 },
-    ];
-    const ST_ROW_TOP = 354, ST_ROW_PITCH = 77;
-    let stTeams = ST_TEAMS;
-    let stTeamsKey = null; /* last-applied team data, so an unchanged re-broadcast (or the show/hide toggle, which shares this same "standings" SSE event name) doesn't force a full row/logo rebuild */
-
-    function buildStandings() {
-      const root = document.getElementById('st-rows');
-      const moveImg   = { up: 'Standing_Up.png', down: 'Standing_Down.png', neutral: 'Standing_Neutral.png' };
-      const statusImg = { secured: 'Indicator_Secured.png', eliminated: 'Indicator_Eliminated.png' };
-      root.innerHTML = stTeams.map((t, i) => {
-        const status = statusImg[t.status]
-          ? `<img class="str-status" src="${ST_ASSET}${statusImg[t.status]}" alt="${t.status}">` : '';
-        return `<div class="st-row" style="top:${Math.round(ST_ROW_TOP + i * ST_ROW_PITCH)}px">` +
-          `<img class="str-bg" src="${ST_ASSET}Team_Box.png" alt="">` +
-          `<div class="str-move"><img src="${ST_ASSET}${moveImg[t.move] || moveImg.neutral}" alt=""></div>` +
-          `<div class="str-rank">${i + 1}</div>` +
-          `<div class="str-logo"><img src="/logos/${encodeURIComponent(t.tri)}.png" onerror="this.style.display='none'" alt=""></div>` +
-          `<div class="str-tri">${t.tri}</div>` + status +
-          `<div class="str-stat str-c1">${t.mp}</div>` +
-          `<div class="str-stat str-c2">${t.mwl}</div>` +
-          `<div class="str-stat str-c3">${t.gwl}</div>` +
-          `<div class="str-stat str-c4">${t.ngw}</div>` +
-          `</div>`;
-      }).join('');
-    }
-    buildStandings();
-
-    /* Returns true only when the team data actually changed, so callers
-       can skip a redundant buildStandings() rebuild — this event also
-       carries the plain show/hide toggle payload ({action:"show"/"hide"},
-       no .teams), which now cleanly no-ops here instead of still forcing
-       a rebuild downstream. */
-    function stApplyTeams(s) {
-      if (!s || !Array.isArray(s.teams) || !s.teams.length) return false;
-      const key = JSON.stringify(s.teams);
-      if (key === stTeamsKey) return false;
-      stTeamsKey = key;
-      stTeams = s.teams;
-      return true;
-    }
-
-    function stApplyWeekDay(ms) {
-      if (ms && ms.week != null && ms.day != null) {
-        document.getElementById('st-weekday').textContent = 'WEEK ' + ms.week + ' - DAY ' + ms.day;
-      }
-    }
-
-    async function showStandings() {
-      /* Week/Day chip follows the Match Board state; table follows the
-         dashboard's Standings tab */
-      const msPromise = fetch(buildUrl('/match/state'), { cache: 'no-store' })
-        .then(r => r.ok ? r.json() : null).catch(() => null);
-      const stPromise = fetch(buildUrl('/standings/state'), { cache: 'no-store' })
-        .then(r => r.ok ? r.json() : null).catch(() => null);
-      await transitionTo('standings');
-      const ms = await msPromise, st = await stPromise;
-      if (activeFeature !== 'standings') return; /* superseded while awaiting state */
-      stApplyWeekDay(ms);
-      stApplyTeams(st);
-      buildStandings();
-      showBgVideo();
-      wsMatchesSlideIn('st-rows');
-      stPage.classList.add('st-on');
-      void stPage.offsetWidth; /* force reflow so the opacity transition runs */
-      stPage.classList.add('st-visible');
-    }
-
-    function hideStandings() {
-      activeFeature = null;
-      stPage.classList.remove('st-visible');
-      return new Promise(resolve => {
-        setTimeout(() => {
-          stPage.classList.remove('st-on');
-          hideBgVideo();
-          resolve();
-        }, 420);
-      });
-    }
-
     /* Live match-state updates — any Match Board change refreshes everything
        bound to it that is currently on air, as soon as it is saved. Called
        from the 'match' listener registered inside connectSSE() above. */
@@ -7650,8 +7358,6 @@
         }
         buildTwMatches(ms);
       }
-      /* Standings week/day chip */
-      if (activeFeature === 'standings') stApplyWeekDay(ms);
       /* MVP Scene no longer reads /match/state at all (it has no
          match/game plate anymore) — it's fully driven by the live Game
          API + the dashboard's MVP player-select, so there's nothing here
@@ -7791,7 +7497,6 @@
       if (prev === 'herolineup') return hideHeroLineupScene();
       if (prev === 'schedule') return hideTodaySchedule();
       if (prev === 'tomorrow') return hideTomorrowSchedule();
-      if (prev === 'standings') return hideStandings();
       if (prev === 'timeline') return hideItemTimeline();
       if (prev === 'emblems')  return hidePostEmblems();
       if (prev === 'items')    return hidePostgameItems();
@@ -8352,16 +8057,14 @@
 
     async function fetchCmbData(ckmIconId = 'ckm-icon', ckmNameId = 'ckm-name', singleLineName = false) {
       try {
-        const [gameR, msR, piR, mapSelR] = await Promise.allSettled([
+        const [gameR, msR, piR] = await Promise.allSettled([
           fetch(buildUrl('/api/gamedata-proxy'), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
           fetch(buildUrl('/match/state'), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
           fetch(buildUrl('/api/postinfo-proxy'), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
-          fetch(buildUrl('/mapselection/state'), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
         ]);
         const gd = gameR.value?.data ?? null;
         const ms = msR.value ?? null;
         const pi = piR.value?.data ?? null;
-        const mapSel = mapSelR.value ?? null;
         const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
         if (gd) {
           const camps = gd.camp_list || [];
@@ -8400,16 +8103,7 @@
           const matchNum = ms.match || 1;
           set('cmb-game-label', 'GAME ' + gameNum + ' - MATCH ' + matchNum);
 
-          /* ms.map is a single field last-overwritten by whichever game's
-             map was most recently set on the Match Board's Map Selection
-             tab (lib/mapSelectionState.js setMap()) — it can go stale if
-             a different game's map gets edited after this one's. Prefer
-             this specific game's own map straight from the Map Selection
-             tab's per-game list, indexed by the same gameNum the label
-             above already shows; fall back to ms.map only when that
-             game's slot hasn't actually been picked yet (still null). */
-          const gameEntry = mapSel && Array.isArray(mapSel.games) ? mapSel.games[gameNum - 1] : null;
-          const mapName = (gameEntry && gameEntry.map) || ms.map || '';
+          const mapName = ms.map || '';
           const iconEl  = document.getElementById(ckmIconId);
           const nameEl  = document.getElementById(ckmNameId);
           if (iconEl) iconEl.src = mapName ? buildUrl('/maps/' + encodeURIComponent(mapName) + '.png') : '';
@@ -9884,7 +9578,6 @@
           else if (scene.activeFeature === 'herolineup') showHeroLineupScene();
           else if (scene.activeFeature === 'schedule') showTodaySchedule().then(() => applyTsHighlight(scene.scheduleHighlight || 0));
           else if (scene.activeFeature === 'tomorrow') showTomorrowSchedule();
-          else if (scene.activeFeature === 'standings') showStandings();
           else if (!scene.activeFeature)                hideActiveFeature();
         }
         if (scene.matchboard)  showMatchBoard();  else hideMatchBoard();
@@ -9920,7 +9613,6 @@
         if (feature === 'herolineup') showHeroLineupScene();
         if (feature === 'schedule') showTodaySchedule();
         if (feature === 'tomorrow') showTomorrowSchedule();
-        if (feature === 'standings') showStandings();
         if (feature === 'timeline') showItemTimeline();
         if (feature === 'emblems')  showPostEmblems();
         if (feature === 'consolidated_post') showConsolidatedPost();
@@ -9932,7 +9624,7 @@
     window.previewTrigger = function(event, action) {
       document.querySelectorAll('.dbg-btn.preview').forEach(b => b.classList.remove('active'));
       if (action === 'show') {
-        const btnMap = { post_hearts: 'preview-hearts', post_itemline: 'preview-timeline', post_richguy: 'preview-richguy', post_emblems: 'preview-emblems', post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_lobby: 'preview-lobby', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', standings: 'preview-standings', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post4key: 'preview-post4key', herolineup: 'preview-herolineup' };
+        const btnMap = { post_hearts: 'preview-hearts', post_itemline: 'preview-timeline', post_richguy: 'preview-richguy', post_emblems: 'preview-emblems', post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_lobby: 'preview-lobby', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post4key: 'preview-post4key', herolineup: 'preview-herolineup' };
         const btn = document.getElementById(btnMap[event]);
         if (btn) btn.classList.add('active');
       }
@@ -9951,7 +9643,6 @@
         if (event === 'herolineup')    showHeroLineupScene();
         if (event === 'today_schedule') showTodaySchedule();
         if (event === 'tomorrow_schedule') showTomorrowSchedule();
-        if (event === 'standings')     showStandings();
         if (event === 'post_emblems')  showPostEmblems();
         if (event === 'post_items')    showPostgameItems();
         if (event === 'post4key')      showPost4Key();

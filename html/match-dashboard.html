@@ -68,10 +68,7 @@
     .btn { padding: 6px 14px; border-radius: 6px; border: 1px solid transparent; font-size: 13px; font-weight: 500; cursor: pointer; transition: filter .15s; line-height: 20px; }
     .btn:hover  { filter: brightness(1.2); }
     .btn:active { filter: brightness(.85); }
-    .btn-plus   { background: #1a3a2a; border-color: #2a5a3a; color: #44cc88; font-size: 20px; padding: 1px 14px; line-height: 1.3; }
-    .btn-minus  { background: #3a1a1a; border-color: #5a2a2a; color: #ff6677; font-size: 20px; padding: 1px 14px; line-height: 1.3; }
     .btn-reset  { background: #222230; border-color: #33334a; color: #9090c0; }
-    .btn-swap   { background: #1a2030; border-color: #2a3050; color: #88aaff; font-size: 13px; padding: 7px 20px; }
     .btn-login  { background: #1e2a4a; border-color: #2a3a6a; color: #7aabff; width: 100%; padding: 10px; font-size: 14px; margin-top: 4px; }
     .btn-logout { background: transparent; border-color: #333; color: #555; font-size: 12px; }
     .err { color: #ff6677; font-size: 12px; margin-top: 8px; min-height: 18px; }
@@ -97,123 +94,44 @@
     .official-wrap span { font-size: 12px; font-weight: 600; color: #555; letter-spacing: .04em; text-transform: uppercase; transition: color .2s; }
     .official-wrap.on span { color: #33dd88; }
 
-    /* ── Teams grid ── */
-    .teams-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; }
-
-    .swap-indicator {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 4px; padding: 0 6px; opacity: 0; transition: opacity .3s;
-    }
-    .swap-indicator.active { opacity: 1; }
-    .swap-indicator-icon { font-size: 22px; color: #88aaff; }
-    .swap-indicator-label {
-      font-size: 10px; font-weight: 800; letter-spacing: .14em; color: #88aaff;
-      text-transform: uppercase;
-    }
-    .team-col { display: flex; flex-direction: column; gap: 10px; }
-
-    .col-hdr { display: flex; align-items: center; gap: 8px; }
-    .col-hdr-right { justify-content: flex-end; }
-    .side-lbl { font-size: 13px; font-weight: 700; color: #aaa; letter-spacing: .06em; }
-    .side-badge {
-      font-size: 10px; font-weight: 700; letter-spacing: .06em;
-      padding: 2px 7px; border-radius: 10px;
-    }
-    .side-badge.blue { background: #0f1a33; color: #6699ff; border: 1px solid #2244aa; }
-    .side-badge.red  { background: #2a0f0f; color: #ff7788; border: 1px solid #aa2233; }
-
-    .team-select { width: 100%; }
-
-    /* ── Roster ── */
-    .role-slots { display: flex; flex-direction: column; gap: 4px; }
-    .role-slot {
-      display: flex; align-items: center; gap: 8px;
-      padding: 5px 8px; border-radius: 6px; border: 1px solid transparent;
-      transition: border-color .15s, background .15s;
-      min-height: 36px;
-    }
-    .role-slot.drag-over { border-color: #5566cc; background: #12122a; }
-    .role-label { font-size: 10px; color: #444; width: 76px; flex-shrink: 0; text-transform: uppercase; letter-spacing: .04em; }
-
-    .player-chip {
-      padding: 4px 11px; border-radius: 20px; font-size: 12px; font-weight: 500;
-      cursor: grab; border: 1px solid #2a2a3a; background: #111120;
-      color: #ccd; user-select: none; white-space: nowrap;
-      transition: border-color .15s;
-    }
-    .player-chip:hover { border-color: #4455aa; }
-    .player-chip:active { cursor: grabbing; }
-    .player-chip.bench-chip { background: #181408; border-color: #2e2810; color: #887744; font-size: 11px; }
-
-    .slot-empty { font-size: 11px; color: #333; font-style: italic; }
-
-    /* Coach row — sits right under Gold Laner; read-only, sourced straight
-       from mainroster.json's teams[id].coach when a team is picked (same
-       as the player slots above — edited only from the Roster tab). This
-       is what Draft.html's coach box reads via /match/state. */
-    .coach-slot { border-top: 1px dashed #1a1a28; margin-top: 4px; padding-top: 8px; }
-    .coach-slot .player-chip { cursor: default; }
-
-    .bench { margin-top: 6px; padding-top: 8px; border-top: 1px dashed #1a1a28; }
-    .bench-label { font-size: 10px; color: #333; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
-    .bench-chips { display: flex; flex-wrap: wrap; gap: 5px; }
-
-    /* ── Score row ── */
-    .score-section { margin-top: 12px; padding-top: 12px; border-top: 1px solid #1a1a28; }
-    .score-row { display: flex; align-items: center; justify-content: center; gap: 20px; }
-    .score-side { display: flex; align-items: center; gap: 14px; }
-    .score-ctrl { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .score-short { font-size: 13px; font-weight: 700; color: #888; width: 42px; text-align: center; }
-    .score-val { font-size: 48px; font-weight: 800; color: #fff; min-width: 52px; text-align: center; line-height: 1; }
-    .score-sep { font-size: 16px; color: #333; padding: 0 4px; }
-    .btn-plus, .btn-minus { width: 52px; text-align: center; }
-
-    .action-row { display: flex; justify-content: center; gap: 10px; margin-top: 14px; }
-
     /* ── Preview ── */
-    .score-preview { display: flex; align-items: center; justify-content: center; gap: 24px; padding: 14px; background: #0a0a14; border-radius: 8px; margin-top: 4px; }
-    .preview-team { text-align: center; }
-    .preview-short { font-size: 22px; font-weight: 800; letter-spacing: .04em; }
-    .preview-short.blue { color: #6699ff; }
-    .preview-short.red  { color: #ff6677; }
-    .preview-side { font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: .08em; margin-top: 3px; }
-    .preview-score { font-size: 44px; font-weight: 800; line-height: 1; margin-top: 4px; }
-    .preview-score.blue { color: #4a8fff; }
-    .preview-score.red  { color: #ff5566; }
-    .preview-vs { font-size: 13px; color: #333; }
-    .preview-meta { font-size: 11px; color: #444; text-align: center; margin-top: 8px; }
+    .preview-meta { font-size: 11px; color: #444; text-align: center; margin-top: 14px; }
+    .preview-status-row { display: flex; gap: 16px; }
+    .preview-status-item {
+      flex: 1; min-width: 0; text-align: center;
+      background: #0a0a14; border-radius: 8px; padding: 18px 14px;
+    }
+    .preview-status-label {
+      font-size: 11px; color: #555; text-transform: uppercase;
+      letter-spacing: .08em; margin-bottom: 10px;
+    }
+    .preview-status-val {
+      color: #aabbff; font-size: 28px; font-weight: 800; line-height: 1.1;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* ── Teams (live tally standings) ── */
+    .teams-meta { font-size: 11px; color: #555; text-align: center; margin-bottom: 12px; }
+    .teams-list { display: flex; flex-direction: column; gap: 6px; max-height: 560px; overflow-y: auto; }
+    .teams-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 6px;
+      background: #0f0f18; border: 1px solid #1e1e2e;
+    }
+    .teams-rank { width: 22px; flex: none; text-align: center; font-size: 12px; font-weight: 700; color: #555; }
+    .teams-row.rank-1 .teams-rank { color: #e0b84a; }
+    .teams-row.rank-2 .teams-rank { color: #b9c2d0; }
+    .teams-row.rank-3 .teams-rank { color: #c08a52; }
+    .teams-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: #ddd; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .teams-region { width: 42px; flex: none; text-align: center; font-size: 11px; font-weight: 600; color: #7788aa; text-transform: uppercase; letter-spacing: .04em; }
+    .teams-score { width: 46px; flex: none; text-align: right; font-size: 15px; font-weight: 800; color: #aabbff; }
+    .teams-empty { font-size: 12px; color: #444; text-align: center; padding: 24px 0; }
 
     /* ── Panel tabs ── */
     .panel-tab-bar { display: flex; margin: -4px 0 14px; border-bottom: 1px solid #1e1e2e; }
     .panel-tab { padding: 7px 16px; font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; border: none; background: transparent; color: #444; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
     .panel-tab:hover { color: #888; }
     .panel-tab.active { color: #aabbff; border-bottom-color: #5566cc; }
-
-    /* ── Today's Matches ── */
-    .match-slots { display: flex; flex-direction: column; gap: 8px; }
-    .match-card { background: #0f0f18; border: 1px solid #1e1e2e; border-radius: 8px; padding: 10px 12px; transition: opacity .2s; }
-    .match-card.disabled { opacity: 0.28; pointer-events: none; }
-    .match-card.rivalry { border-color: #8a6d1a; }
-    .match-card-hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-    .match-type-sel { margin-left: auto; background: #0a0a14; border: 1px solid #2a2a3a; border-radius: 6px; color: #666; font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 4px 6px; cursor: pointer; outline: none; transition: color .15s, border-color .15s; }
-    .match-type-sel:hover { color: #888; }
-    .match-type-sel.on { color: #e6b422; border-color: #8a6d1a; }
-    .match-num-lbl { font-size: 10px; font-weight: 700; letter-spacing: .1em; color: #555; text-transform: uppercase; }
-    .match-time-inp { width: 76px; font-size: 12px; text-align: center; }
-    .match-body { display: flex; align-items: center; gap: 6px; }
-    .match-team-sel { flex: 1; font-size: 12px; min-width: 0; }
-    .match-score-ctrl { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
-    .match-score-num { min-width: 20px; text-align: center; font-size: 14px; font-weight: 700; color: #fff; }
-    .btn-sm { font-size: 13px; padding: 2px 7px; line-height: 1.4; }
-    .match-vs-disp { min-width: 44px; text-align: center; font-size: 12px; font-weight: 700; color: #fff; background: #0a0a14; border: 1px solid #2a2a3a; border-radius: 6px; padding: 4px 6px; flex-shrink: 0; }
-    .match-vs-disp.vs { color: #444; }
-
-    /* ── Logos ── */
-    .team-logo-sm  { width: 44px; height: 44px; object-fit: contain; display: block; margin: 2px auto 4px; background:#fff; border-radius:8px; padding:3px; box-sizing:content-box; }
-    .preview-logo  { width: 48px; height: 48px; object-fit: contain; display: block; margin: 0 auto 4px; background:#fff; border-radius:8px; padding:3px; box-sizing:content-box; }
-    .match-team-wrap { display: flex; align-items: center; gap: 5px; flex: 1; min-width: 0; }
-    .match-team-wrap .match-team-sel { flex: 1; min-width: 0; }
-    .match-team-logo { width: 24px; height: 24px; object-fit: contain; flex-shrink: 0; background:#fff; border-radius:4px; padding:2px; box-sizing:content-box; }
 
     /* ── Show label ── */
     .show-label-wrap { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #1e1e2e; }
@@ -294,25 +212,21 @@
   <!-- Preview -->
   <div class="panel" id="panel-preview">
     <div class="panel-title">Live Preview</div>
-    <div class="score-preview">
-      <div class="preview-team">
-        <img id="pv-left-logo" class="preview-logo" src="" alt="" onerror="this.style.display='none'" style="display:none">
-        <div class="preview-short blue" id="pv-left-short">HME</div>
-        <div class="preview-score blue" id="pv-left-score">0</div>
-        <div class="preview-side"       id="pv-left-side">HOME</div>
+    <div class="preview-status-row">
+      <div class="preview-status-item">
+        <div class="preview-status-label">Live Tally Sheet</div>
+        <div class="preview-status-val" id="pv-tally-sheet">—</div>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
-        <div class="preview-vs">vs</div>
-        <button class="btn btn-swap" id="swap-btn">⇄ SWAP</button>
+      <div class="preview-status-item">
+        <div class="preview-status-label">Map</div>
+        <div class="preview-status-val" id="pv-map-num">Map 1</div>
       </div>
-      <div class="preview-team">
-        <img id="pv-right-logo" class="preview-logo" src="" alt="" onerror="this.style.display='none'" style="display:none">
-        <div class="preview-short red"  id="pv-right-short">AWY</div>
-        <div class="preview-score red"  id="pv-right-score">0</div>
-        <div class="preview-side"       id="pv-right-side">AWAY</div>
+      <div class="preview-status-item">
+        <div class="preview-status-label">Current Map</div>
+        <div class="preview-status-val" id="pv-map-name">Isolated</div>
       </div>
     </div>
-    <div class="preview-meta" id="pv-meta">BO5 · Game 1</div>
+    <div class="preview-meta" id="pv-meta">Qualifiers · W1 D1</div>
   </div>
 
   <!-- Match Info -->
@@ -329,33 +243,21 @@
     <div id="tab-content-details">
     <div class="meta-row">
       <div class="meta-field grow">
-        <div class="meta-label">Format</div>
-        <select id="series">
-          <option value="BO1">Best of 1</option>
-          <option value="BO3">Best of 3</option>
-          <option value="BO5" selected>Best of 5</option>
-          <option value="BO7">Best of 7</option>
-        </select>
-      </div>
-      <div class="meta-field grow">
         <div class="meta-label">Stage</div>
         <select id="stage">
-          <option value="Quarter Finals" selected>Quarter Finals</option>
-          <option value="Semi Finals">Semi Finals</option>
+          <option value="Qualifiers" selected>Qualifiers</option>
+          <option value="Groupstage">Groupstage</option>
+          <option value="Playoffs">Playoffs</option>
           <option value="Grand Finals">Grand Finals</option>
         </select>
       </div>
       <div class="meta-field">
-        <div class="meta-label">Match</div>
-        <select id="match-picker">
-          <option value="0">Match 1</option>
-          <option value="1">Match 2</option>
-          <option value="2">Match 3</option>
-        </select>
+        <div class="meta-label">Map</div>
+        <select id="match-picker"></select>
       </div>
       <div class="meta-field">
-        <div class="meta-label">Game</div>
-        <div id="game-display" class="game-display">Game 1</div>
+        <div class="meta-label">Map Name</div>
+        <div id="match-picker-mapname" class="game-display">Isolated</div>
       </div>
       <div class="meta-field">
         <label class="official-wrap" id="official-wrap" for="official-cb">
@@ -386,18 +288,9 @@
           <button class="btn btn-spin" id="day-plus">+</button>
         </div>
       </div>
-      <div class="meta-field" style="flex:1.6;">
+      <div class="meta-field grow">
         <div class="meta-label">Patch</div>
         <input type="text" id="patch-input" value="Decisive Battle 420">
-      </div>
-      <div class="meta-field" style="flex:1;">
-        <div class="meta-label">Map</div>
-        <select id="map-select">
-          <option value="Broken Walls">Broken Walls</option>
-          <option value="Dangerous Grass">Dangerous Grass</option>
-          <option value="Expanding Rivers">Expanding Rivers</option>
-          <option value="Flying Cloud">Flying Cloud</option>
-        </select>
       </div>
     </div>
 
@@ -471,14 +364,32 @@
     </div>
     </div><!-- /tab-content-details -->
 
-    <!-- Today's Matches tab -->
+    <!-- Today's Matches tab — Battle Royale maps for the day -->
     <div id="tab-content-today" style="display:none">
-      <div class="match-slots" id="today-matches-list"></div>
+      <div class="meta-row" style="align-items:center;">
+        <div class="meta-field grow">
+          <div class="meta-label">Today's Maps</div>
+        </div>
+        <div class="meta-field" style="flex:0 0 90px;">
+          <div class="meta-label"># of Maps</div>
+          <select id="today-maps-count"></select>
+        </div>
+      </div>
+      <div id="today-maps-list" style="margin-top:10px;"></div>
     </div>
 
-    <!-- Tomorrow's Matches tab -->
+    <!-- Tomorrow's Matches tab — Battle Royale maps for tomorrow -->
     <div id="tab-content-tomorrow" style="display:none">
-      <div class="match-slots" id="tomorrow-matches-list"></div>
+      <div class="meta-row" style="align-items:center;">
+        <div class="meta-field grow">
+          <div class="meta-label">Tomorrow's Maps</div>
+        </div>
+        <div class="meta-field" style="flex:0 0 90px;">
+          <div class="meta-label"># of Maps</div>
+          <select id="tomorrow-maps-count"></select>
+        </div>
+      </div>
+      <div id="tomorrow-maps-list" style="margin-top:10px;"></div>
       <div class="show-label-wrap">
         <span class="show-label-key">Goodbye label</span>
         <input type="text" class="show-label-val" id="goodbye-label-val" readonly value="SEE YOU TOMORROW">
@@ -492,66 +403,8 @@
   <!-- Teams -->
   <div class="panel" id="panel-teams">
     <div class="panel-title">Teams &amp; Series Score</div>
-    <div class="teams-grid">
-
-      <!-- HOME -->
-      <div class="team-col">
-        <div class="col-hdr">
-          <span class="side-lbl">HOME</span>
-          <span id="home-badge" class="side-badge blue">● BLUE</span>
-        </div>
-        <img id="home-logo" class="team-logo-sm" src="" alt="" onerror="this.style.display='none'" style="display:none">
-        <select id="home-sel" class="team-select">
-          <option value="">— pick team —</option>
-        </select>
-        <div id="home-roster"></div>
-      </div>
-
-      <!-- SWAP INDICATOR -->
-      <div class="swap-indicator" id="swap-indicator">
-        <div class="swap-indicator-icon">⇄</div>
-        <div class="swap-indicator-label">Swapped</div>
-      </div>
-
-      <!-- AWAY -->
-      <div class="team-col">
-        <div class="col-hdr col-hdr-right">
-          <span id="away-badge" class="side-badge red">● RED</span>
-          <span class="side-lbl">AWAY</span>
-        </div>
-        <img id="away-logo" class="team-logo-sm" src="" alt="" onerror="this.style.display='none'" style="display:none">
-        <select id="away-sel" class="team-select">
-          <option value="">— pick team —</option>
-        </select>
-        <div id="away-roster"></div>
-      </div>
-    </div>
-
-    <!-- Score -->
-    <div class="score-section">
-      <div class="score-row">
-        <div class="score-side">
-          <span id="home-short-disp" class="score-short">HME</span>
-          <div class="score-ctrl">
-            <button class="btn btn-plus"  id="home-plus">+</button>
-            <div class="score-val" id="home-score-val">0</div>
-            <button class="btn btn-minus" id="home-minus">−</button>
-          </div>
-        </div>
-        <div class="score-sep">vs</div>
-        <div class="score-side">
-          <div class="score-ctrl">
-            <button class="btn btn-plus"  id="away-plus">+</button>
-            <div class="score-val" id="away-score-val">0</div>
-            <button class="btn btn-minus" id="away-minus">−</button>
-          </div>
-          <span id="away-short-disp" class="score-short">AWY</span>
-        </div>
-      </div>
-      <div class="action-row">
-        <button class="btn btn-reset" id="reset-score-btn">Reset Scores</button>
-      </div>
-    </div>
+    <div class="teams-meta" id="teams-meta">No live tally sheet selected</div>
+    <div class="teams-list" id="teams-list"></div>
   </div>
 
   </div><!-- /app-col right -->
@@ -560,23 +413,18 @@
 
 <script>
 (function () {
-  var ROLES = ['EXP LANER', 'JUNGLER', 'MID LANER', 'ROAMER', 'GOLD LANER'];
   var token       = sessionStorage.getItem('match_token') || '';
   var roster      = null;
-  var teamLineups = {}; // last-used role assignment per teamId — see /match/team-lineups
-  var dragData    = null;
   var localState  = {
     home:    { teamId: '', name: 'Home Team', short: 'HME', score: 0, lineup: [] },
     away:    { teamId: '', name: 'Away Team', short: 'AWY', score: 0, lineup: [] },
-    series:  'BO5',
-    stage:   'Quarter Finals',
-    game:    1,
+    stage:   'Qualifiers',
     swapped: false,
     official: false,
     week:    1,
     day:     1,
     patch:   'Decisive Battle 420',
-    map:     'Broken Walls',
+    map:     'Isolated',
     hosts:     ['None', 'None', 'None'],
     casters:   ['None', 'None', 'None'],
     enCasters: ['None', 'None', 'None'],
@@ -599,7 +447,7 @@
           token = pw;
           sessionStorage.setItem('match_token', token);
           document.getElementById('login-err').textContent = '';
-          Promise.all([loadRoster(), loadTeamLineups()]).then(function () { showApp(); connectSSE(); startTimerTick(); });
+          loadRoster().then(function () { showApp(); connectSSE(); startTimerTick(); startLiveStandingsPoll(); });
         } else {
           document.getElementById('login-err').textContent = 'Incorrect password.';
         }
@@ -607,31 +455,14 @@
   }
 
   /* ── ROSTER LOADING ── */
+  /* Talent (host/caster) name list only now — team/roster pickers and their
+     lineup drag-drop were removed in the BR redesign (no home/away team
+     series in a single-lobby BR match). */
   function loadRoster() {
     return fetch('/mainroster.json', { cache: 'no-store' })
       .then(function (r) { return r.json(); })
-      .then(function (data) { roster = data; populateTeamDropdowns(); populateTalentSelects(); })
+      .then(function (data) { roster = data; populateTalentSelects(); })
       .catch(function () { console.warn('Could not load mainroster.json'); });
-  }
-
-  /* Last-used role assignment per team (bench swaps) — restored the next
-     time that team is picked instead of resetting to the roster's
-     role-sorted default. See server.js's /match/team-lineups. */
-  function loadTeamLineups() {
-    return fetch('/match/team-lineups', { cache: 'no-store' })
-      .then(function (r) { return r.json(); })
-      .then(function (data) { teamLineups = data || {}; })
-      .catch(function () { console.warn('Could not load team lineups'); });
-  }
-
-  function saveTeamLineup(teamId, lineup) {
-    if (!teamId) return;
-    teamLineups[teamId] = lineup;
-    fetch('/match/team-lineups', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: token, teamId: teamId, lineup: lineup }),
-    }).catch(function () {});
   }
 
   function populateTalentSelects() {
@@ -659,30 +490,68 @@
     });
   }
 
-  function populateTeamDropdowns() {
-    if (!roster) return;
-    var sorted = Object.entries(roster.teams).sort(function (a, b) { return a[1].name.localeCompare(b[1].name); });
-    ['home-sel', 'away-sel'].forEach(function (id) {
-      var sel = document.getElementById(id);
-      var cur = sel.value;
-      while (sel.options.length > 1) sel.remove(1);
-      sorted.forEach(function (e) {
-        var opt = document.createElement('option');
-        opt.value = e[0];
-        opt.textContent = e[1].name + ' (' + e[1].tag + ')';
-        sel.appendChild(opt);
-      });
-      if (cur) sel.value = cur;
-    });
-  }
-
   /* ── SSE (relayed via the parent dashboard — see html/js/relay-client.js) ── */
   function connectSSE() {
     connectRelay('match', applyState, setSyncStatus);
+    connectRelay('tally', applyTallyLiveState);
   }
   function setSyncStatus(ok) {
     document.getElementById('sync-dot').className    = ok ? 'ok' : 'err';
     document.getElementById('sync-label').textContent = ok ? 'Synced' : 'Disconnected';
+  }
+
+  /* Live Preview's "Live Tally Sheet" readout — lib/tallyState.js's own
+     liveTallyTab (set from the Tally console's Settings, see
+     html/tally-console.html), relayed the same way match state is (see
+     the big comment on dashboard.html's relayIframeIds). */
+  function applyTallyLiveState(t) {
+    var el = document.getElementById('pv-tally-sheet');
+    if (el) el.textContent = (t && t.liveTallyTab) ? t.liveTallyTab : '—';
+  }
+
+  /* "Teams & Series Score" panel — Team / Region / Total Score for whichever
+     Tally sheet is currently marked live, ranked highest score first. Polled
+     directly (not relayed) since it comes from the Google Sheets poll in
+     lib/externalTally.js, not lib/matchState.js/tallyState.js — see
+     lib/tallyRoster.js's getLiveSheetStandings() and its route in
+     routes/tallyApi.js. Cadence matches externalTally.js's own 3.5s poll. */
+  function startLiveStandingsPoll() {
+    fetchLiveTallyStandings();
+    setInterval(fetchLiveTallyStandings, 3500);
+  }
+  function fetchLiveTallyStandings() {
+    fetch('/api/live-tally-standings', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(renderLiveTallyStandings)
+      .catch(function () { /* leave last-known standings on screen */ });
+  }
+  function renderLiveTallyStandings(data) {
+    var meta = document.getElementById('teams-meta');
+    var list = document.getElementById('teams-list');
+    if (!meta || !list) return;
+
+    var teams = (data && data.teams) || [];
+    meta.textContent = data && data.sheet ? ('Live sheet: ' + data.sheet) : 'No live tally sheet selected';
+
+    if (!teams.length) {
+      list.innerHTML = '<div class="teams-empty">No team standings yet.</div>';
+      return;
+    }
+
+    list.innerHTML = teams.map(function (t, i) {
+      var rank = i + 1;
+      return '<div class="teams-row rank-' + rank + '">' +
+        '<div class="teams-rank">' + rank + '</div>' +
+        '<div class="teams-name">' + escapeHtml(t.name) + '</div>' +
+        '<div class="teams-region">' + escapeHtml(t.region || '—') + '</div>' +
+        '<div class="teams-score">' + (typeof t.totalScore === 'number' ? t.totalScore : 0) + '</div>' +
+      '</div>';
+    }).join('');
+  }
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
   }
 
   /* ── APPLY / RENDER ── */
@@ -692,8 +561,6 @@
       s = {
         home:    Object.assign({ teamId: '', lineup: [], coach: '' }, s.teamA),
         away:    Object.assign({ teamId: '', lineup: [], coach: '' }, s.teamB || {}),
-        series:  s.series  || 'BO5',
-        game:    s.game    || 1,
         swapped: s.blueTeam === 'B',
       };
     }
@@ -702,33 +569,15 @@
     renderAll();
   }
 
-  function computeGame() {
-    return (localState.home.score || 0) + (localState.away.score || 0) + 1;
-  }
-
   function renderAll() {
     var s = localState;
-    document.getElementById('series').value = s.series || 'BO5';
-    document.getElementById('stage').value  = s.stage  || 'Quarter Finals';
+    document.getElementById('stage').value  = s.stage  || 'Qualifiers';
     var cb = document.getElementById('official-cb');
     cb.checked = !!s.official;
     document.getElementById('official-wrap').classList.toggle('on', !!s.official);
-    document.getElementById('game-display').textContent = 'Game ' + computeGame();
-    document.getElementById('home-score-val').textContent = s.home.score || 0;
-    document.getElementById('away-score-val').textContent = s.away.score || 0;
-    document.getElementById('home-short-disp').textContent = (s.home.short || 'HME').toUpperCase();
-    document.getElementById('away-short-disp').textContent = (s.away.short || 'AWY').toUpperCase();
-    if (s.home.teamId && document.getElementById('home-sel')) document.getElementById('home-sel').value = s.home.teamId;
-    if (s.away.teamId && document.getElementById('away-sel')) document.getElementById('away-sel').value = s.away.teamId;
-    ['home', 'away'].forEach(function (side) {
-      var tag = s[side] && s[side].short;
-      var logoEl = document.getElementById(side + '-logo');
-      if (logoEl) { if (tag) { logoEl.src = logoUrl(tag); logoEl.style.display = ''; } else logoEl.style.display = 'none'; }
-    });
     document.getElementById('week-val').textContent   = s.week  || 1;
     document.getElementById('day-val').textContent    = s.day   || 1;
     document.getElementById('patch-input').value      = s.patch || 'Decisive Battle 420';
-    document.getElementById('map-select').value       = s.map   || 'Broken Walls';
     var hosts     = s.hosts     || ['None','None','None'];
     var casters   = s.casters   || ['None','None','None'];
     var enCasters = s.enCasters || ['None','None','None'];
@@ -737,215 +586,21 @@
       var cs = document.getElementById('caster-'    + i); if (cs) cs.value = casters[i]   || 'None';
       var ec = document.getElementById('en-caster-' + i); if (ec) ec.value = enCasters[i] || 'None';
     });
-    updateBadges(s.swapped);
-    renderRoster('home');
-    renderRoster('away');
     updatePreview();
-    if (document.getElementById('tab-content-today').style.display    !== 'none') renderTodayMatches();
-    if (document.getElementById('tab-content-tomorrow').style.display !== 'none') renderTomorrowMatches();
-    updateShowLabel();
-    updateMatchPicker();
+    updateMatchPickerOptions();
     var mp = document.getElementById('match-picker');
     if (mp) mp.value = String((s.match || 1) - 1);
+    updateMatchPickerMirror();
+    if (document.getElementById('tab-content-today').style.display    !== 'none') renderMapsSection('today');
+    if (document.getElementById('tab-content-tomorrow').style.display !== 'none') renderMapsSection('tomorrow');
+    updateShowLabel();
     var goodbyeEl = document.getElementById('goodbye-label-val');
     if (goodbyeEl) goodbyeEl.value = s.goodbyeLabel || computeGoodbye(s.day || 1);
   }
 
-  function updateBadges(swapped) {
-    var hb = document.getElementById('home-badge');
-    var ab = document.getElementById('away-badge');
-    var si = document.getElementById('swap-indicator');
-    if (swapped) {
-      hb.textContent = '● RED';  hb.className = 'side-badge red';
-      ab.textContent = '● BLUE'; ab.className = 'side-badge blue';
-      si.classList.add('active');
-    } else {
-      hb.textContent = '● BLUE'; hb.className = 'side-badge blue';
-      ab.textContent = '● RED';  ab.className = 'side-badge red';
-      si.classList.remove('active');
-    }
-  }
-
   function updatePreview() {
-    var s     = localState;
-    var left  = s.swapped ? s.away : s.home;
-    var right = s.swapped ? s.home : s.away;
-    function setPvLogo(id, tag) {
-      var el = document.getElementById(id); if (!el) return;
-      if (tag) { el.src = logoUrl(tag); el.style.display = ''; } else el.style.display = 'none';
-    }
-    setPvLogo('pv-left-logo',  left.short);
-    setPvLogo('pv-right-logo', right.short);
-    document.getElementById('pv-left-short').textContent  = left.short  || 'HME';
-    document.getElementById('pv-left-score').textContent  = left.score  || 0;
-    document.getElementById('pv-left-side').textContent   = s.swapped ? 'AWAY' : 'HOME';
-    document.getElementById('pv-right-short').textContent = right.short || 'AWY';
-    document.getElementById('pv-right-score').textContent = right.score || 0;
-    document.getElementById('pv-right-side').textContent  = s.swapped ? 'HOME' : 'AWAY';
-    document.getElementById('pv-meta').textContent = (s.stage || 'Quarter Finals') + ' · W' + (s.week||1) + ' D' + (s.day||1) + ' · ' + (s.series || 'BO5') + ' · Game ' + computeGame();
-  }
-
-  /* ── ROSTER HELPERS ── */
-  function getTeamPlayers(teamId) {
-    if (!roster || !teamId) return [];
-    return Object.entries(roster.players)
-      .filter(function (e) { return String(e[1].teamId) === String(teamId); })
-      .map(function (e)    { return Object.assign({ id: e[0] }, e[1]); });
-  }
-
-  function buildDefaultLineup(teamId) {
-    var players = getTeamPlayers(teamId);
-    var used = {};
-    return ROLES.map(function (role) {
-      var p = null;
-      for (var i = 0; i < players.length; i++) {
-        if (players[i].role === role && !used[players[i].id]) { p = players[i]; break; }
-      }
-      if (p) { used[p.id] = true; return { role: role, ign: p.ign, id: p.id }; }
-      return { role: role, ign: '', id: '' };
-    });
-  }
-
-  function getBench(teamId, lineup) {
-    var players = getTeamPlayers(teamId);
-    var inLineup = {};
-    (lineup || []).forEach(function (p) { if (p.id) inLineup[p.id] = true; });
-    return players.filter(function (p) { return !inLineup[p.id]; });
-  }
-
-  /* ── ROSTER RENDER ── */
-  function renderRoster(side) {
-    var st  = localState[side];
-    var div = document.getElementById(side + '-roster');
-    div.innerHTML = '';
-    if (!st || !st.teamId) return;
-
-    var lineup  = st.lineup && st.lineup.length ? st.lineup : buildDefaultLineup(st.teamId);
-    var slotsEl = document.createElement('div');
-    slotsEl.className = 'role-slots';
-
-    ROLES.forEach(function (role, i) {
-      var player = lineup[i] || { role: role, ign: '', id: '' };
-      var slot = document.createElement('div');
-      slot.className = 'role-slot';
-
-      slot.addEventListener('dragover',  function (e) { e.preventDefault(); slot.classList.add('drag-over'); });
-      slot.addEventListener('dragleave', function ()  { slot.classList.remove('drag-over'); });
-      slot.addEventListener('drop',      function (e) { e.preventDefault(); slot.classList.remove('drag-over'); onDrop(side, i); });
-
-      var lbl = document.createElement('span');
-      lbl.className = 'role-label';
-      lbl.textContent = role;
-      slot.appendChild(lbl);
-
-      if (player.id) {
-        slot.appendChild(makeChip(player.ign, player.id, player.role, 'slot', i, side));
-      } else {
-        var empty = document.createElement('span');
-        empty.className = 'slot-empty';
-        empty.textContent = '(empty)';
-        slot.appendChild(empty);
-      }
-      slotsEl.appendChild(slot);
-    });
-
-    // Coach — right under Gold Laner, read-only display like the player
-    // slots above: sourced from the roster (mainroster.json), edited only
-    // from the Roster tab, never typed in here.
-    var coachSlot = document.createElement('div');
-    coachSlot.className = 'role-slot coach-slot';
-    var coachLbl = document.createElement('span');
-    coachLbl.className = 'role-label';
-    coachLbl.textContent = 'COACH';
-    coachSlot.appendChild(coachLbl);
-    if (st.coach) {
-      var coachChip = document.createElement('div');
-      coachChip.className = 'player-chip';
-      coachChip.textContent = st.coach;
-      coachSlot.appendChild(coachChip);
-    } else {
-      var coachEmpty = document.createElement('span');
-      coachEmpty.className = 'slot-empty';
-      coachEmpty.textContent = '(no coach set)';
-      coachSlot.appendChild(coachEmpty);
-    }
-    slotsEl.appendChild(coachSlot);
-
-    div.appendChild(slotsEl);
-
-    // Bench
-    var bench = getBench(st.teamId, lineup);
-    if (bench.length) {
-      var benchDiv   = document.createElement('div');
-      benchDiv.className = 'bench';
-      var benchLbl   = document.createElement('div');
-      benchLbl.className = 'bench-label';
-      benchLbl.textContent = 'Bench';
-      benchDiv.appendChild(benchLbl);
-      var chipsWrap  = document.createElement('div');
-      chipsWrap.className = 'bench-chips';
-      bench.forEach(function (p) {
-        var shortRole = p.role === 'MULTIROLE' ? 'MR' : p.role.split(' ')[0];
-        var chip = makeChip(p.ign, p.id, p.role, 'bench', -1, side);
-        chip.classList.add('bench-chip');
-        chip.textContent = p.ign + ' (' + shortRole + ')';
-        chip.dataset.ign = p.ign; // keep raw ign separate from display label
-        chipsWrap.appendChild(chip);
-      });
-      benchDiv.appendChild(chipsWrap);
-      div.appendChild(benchDiv);
-    }
-  }
-
-  function makeChip(ign, playerId, role, source, sourceIndex, sourceSide) {
-    var chip = document.createElement('div');
-    chip.className = 'player-chip';
-    chip.textContent = ign;
-    chip.draggable = true;
-    chip.dataset.ign         = ign;
-    chip.dataset.playerId    = playerId;
-    chip.dataset.playerRole  = role;
-    chip.dataset.source      = source;
-    chip.dataset.sourceIndex = String(sourceIndex);
-    chip.dataset.sourceSide  = sourceSide;
-    chip.addEventListener('dragstart', function (e) {
-      dragData = {
-        ign:         chip.dataset.ign,
-        playerId:    chip.dataset.playerId,
-        role:        chip.dataset.playerRole,
-        source:      chip.dataset.source,
-        sourceIndex: parseInt(chip.dataset.sourceIndex),
-        sourceSide:  chip.dataset.sourceSide,
-      };
-      e.dataTransfer.effectAllowed = 'move';
-    });
-    return chip;
-  }
-
-  /* ── DRAG-DROP ── */
-  function onDrop(targetSide, targetIndex) {
-    if (!dragData || dragData.sourceSide !== targetSide) return;
-
-    var st     = localState[targetSide];
-    var lineup = (st.lineup && st.lineup.length ? st.lineup : buildDefaultLineup(st.teamId)).slice();
-    var target = lineup[targetIndex];
-
-    if (dragData.source === 'bench') {
-      // Bench → slot: bench player fills slot, displaced player returns to bench (derived)
-      lineup[targetIndex] = { role: ROLES[targetIndex], ign: dragData.ign, id: dragData.playerId };
-    } else if (dragData.source === 'slot') {
-      // Slot → slot: swap
-      var srcIdx = dragData.sourceIndex;
-      lineup[targetIndex] = { role: ROLES[targetIndex], ign: lineup[srcIdx].ign, id: lineup[srcIdx].id };
-      lineup[srcIdx]      = { role: ROLES[srcIdx],      ign: target.ign,         id: target.id };
-    }
-
-    dragData = null;
-    localState[targetSide].lineup = lineup;
-    renderRoster(targetSide);
-    var patch = {}; patch[targetSide] = { lineup: lineup };
-    push(patch);
-    saveTeamLineup(st.teamId, lineup);
+    var s = localState;
+    document.getElementById('pv-meta').textContent = (s.stage || 'Qualifiers') + ' · W' + (s.week||1) + ' D' + (s.day||1);
   }
 
   /* ── PUSH ── */
@@ -969,78 +624,57 @@
     }).catch(function () { setSyncStatus(false); });
   }
 
-  /* ── TEAM SELECTION ── */
-  function onTeamSelect(side) {
-    var teamId = document.getElementById(side + '-sel').value;
-    if (!teamId || !roster) return;
-    var team   = roster.teams[teamId] || {};
-    var saved  = teamLineups[teamId];
-    var lineup = (saved && saved.length) ? saved : buildDefaultLineup(teamId);
-    localState[side] = { teamId: teamId, name: team.name || '', short: team.tag || '', score: localState[side].score || 0, lineup: lineup, coach: team.coach || '' };
-    renderRoster(side);
-    updatePreview();
-    document.getElementById(side + '-short-disp').textContent = (team.tag || '').toUpperCase();
-    var logoEl = document.getElementById(side + '-logo');
-    if (logoEl) { if (team.tag) { logoEl.src = logoUrl(team.tag); logoEl.style.display = ''; } else logoEl.style.display = 'none'; }
-    var patch = {}; patch[side] = localState[side];
-    push(patch);
+  /* ── MAP PICKER ── (labeled "Map" — was "Match" before the BR redesign;
+     tracks which map of the day this dashboard is pointed at, for the
+     "SHOW STARTS IN"/"SHOW RESUMES IN" label below. Its option count
+     tracks Today's Maps' own count (see MAPS_CONFIG.today below) instead
+     of a fixed list, and selecting one mirrors that slot's map name into
+     match-picker-mapname (and into localState.map, for any downstream
+     consumer that still reads the plain "current map" field — e.g.
+     Fullscreen.html's Consolidated Post board). */
+  function updateMatchPickerOptions() {
+    var sel = document.getElementById('match-picker');
+    var n   = getMapsCount('today');
+    var cur = sel.value;
+    sel.innerHTML = '';
+    for (var i = 0; i < n; i++) {
+      var opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = 'Map ' + (i + 1);
+      sel.appendChild(opt);
+    }
+    if (cur !== '' && parseInt(cur, 10) < n) sel.value = cur;
   }
 
-  document.getElementById('home-sel').addEventListener('change', function () { onTeamSelect('home'); });
-  document.getElementById('away-sel').addEventListener('change', function () { onTeamSelect('away'); });
-
-  function updateMatchPicker() {
-    var isDay2 = (localState.day || 1) === 2;
-    var opt3 = document.querySelector('#match-picker option[value="2"]');
-    if (opt3) opt3.style.display = isDay2 ? '' : 'none';
+  function updateMatchPickerMirror() {
+    var idx  = parseInt(document.getElementById('match-picker').value, 10) || 0;
+    var maps = getMapsList('today');
+    var name = (maps[idx] && maps[idx].mapName) || BR_MAP_NAMES[0];
+    var el = document.getElementById('match-picker-mapname');
+    if (el) el.textContent = name;
+    // Live Preview's "Map" / "Current Map" pills mirror the same values.
+    var pvNum  = document.getElementById('pv-map-num');
+    if (pvNum) pvNum.textContent = 'Map ' + (idx + 1);
+    var pvName = document.getElementById('pv-map-name');
+    if (pvName) pvName.textContent = name;
+    if (localState.map !== name) {
+      localState.map = name;
+      push({ map: name });
+    }
   }
 
   document.getElementById('match-picker').addEventListener('change', function () {
-    var idx = parseInt(this.value);
-    var tmIdx = idx;
-    var matchNum = idx + 1;
+    var matchNum = parseInt(this.value) + 1;
     localState.match = matchNum;
     push({ match: matchNum });
     updateShowLabel();
-    var tm = (localState.todayMatches || [])[tmIdx];
-    if (!tm || (!tm.team1Id && !tm.team2Id)) return;
-    var homeSel = document.getElementById('home-sel');
-    var awaySel = document.getElementById('away-sel');
-    if (tm.team1Id) { homeSel.value = tm.team1Id; onTeamSelect('home'); }
-    if (tm.team2Id) { awaySel.value = tm.team2Id; onTeamSelect('away'); }
+    updateMatchPickerMirror();
   });
-
-  /* ── SCORE BUTTONS ── */
-  function maxScore(series) { return Math.ceil(parseInt((series || 'BO5').replace('BO', '')) / 2) || 1; }
-
-  function changeScore(side, delta) {
-    var cur   = localState[side].score || 0;
-    var next  = Math.max(0, Math.min(cur + delta, maxScore(localState.series)));
-    localState[side].score = next;
-    var game  = computeGame();
-    localState.game = game;
-    document.getElementById(side + '-score-val').textContent  = next;
-    document.getElementById('game-display').textContent       = 'Game ' + game;
-    updatePreview();
-    var patch = { game: game }; patch[side] = { score: next };
-    push(patch);
-  }
-
-  document.getElementById('home-plus').addEventListener('click',  function () { changeScore('home',  1); });
-  document.getElementById('home-minus').addEventListener('click', function () { changeScore('home', -1); });
-  document.getElementById('away-plus').addEventListener('click',  function () { changeScore('away',  1); });
-  document.getElementById('away-minus').addEventListener('click', function () { changeScore('away', -1); });
 
   /* ── OFFICIAL MATCH ── */
   document.getElementById('official-cb').addEventListener('change', function () {
     document.getElementById('official-wrap').classList.toggle('on', this.checked);
     push({ official: this.checked });
-  });
-
-  /* ── FORMAT ── */
-  document.getElementById('series').addEventListener('change', function () {
-    localState.series = this.value;
-    push({ series: this.value });
   });
 
   /* ── STAGE ── */
@@ -1119,22 +753,10 @@
   function resetScores() {
     localState.home.score = 0;
     localState.away.score = 0;
-    localState.game = 1;
-    document.getElementById('home-score-val').textContent = 0;
-    document.getElementById('away-score-val').textContent = 0;
-    document.getElementById('game-display').textContent = 'Game 1';
     updatePreview();
-    push({ home: { score: 0 }, away: { score: 0 }, game: 1 });
+    push({ home: { score: 0 }, away: { score: 0 } });
   }
   document.getElementById('reset-btn').addEventListener('click', resetScores);
-  document.getElementById('reset-score-btn').addEventListener('click', resetScores);
-
-  /* ── SWAP ── */
-  document.getElementById('swap-btn').addEventListener('click', function () {
-    localState.swapped = !localState.swapped;
-    updateBadges(localState.swapped);
-    push({ swapped: localState.swapped });
-  });
 
   /* ── WEEK SPINNER ── */
   document.getElementById('week-minus').addEventListener('click', function () {
@@ -1155,19 +777,15 @@
     localState.day = Math.max(1, (localState.day || 1) - 1);
     document.getElementById('day-val').textContent = localState.day;
     updatePreview();
-    updateMatchPicker();
     localState.goodbyeLabel = computeGoodbye(localState.day);
     push({ day: localState.day, goodbyeLabel: localState.goodbyeLabel });
-    renderTodayMatches(); renderTomorrowMatches();
   });
   document.getElementById('day-plus').addEventListener('click', function () {
     localState.day = Math.min(3, (localState.day || 1) + 1);
     document.getElementById('day-val').textContent = localState.day;
     updatePreview();
-    updateMatchPicker();
     localState.goodbyeLabel = computeGoodbye(localState.day);
     push({ day: localState.day, goodbyeLabel: localState.goodbyeLabel });
-    renderTodayMatches(); renderTomorrowMatches();
   });
 
   /* ── PATCH ── */
@@ -1178,10 +796,153 @@
     pi.addEventListener('keydown', function (e) { if (e.key === 'Enter') { pushPatch(); pi.blur(); } });
   })();
 
-  /* ── MAP ── */
+  /* ── BATTLE ROYALE MAPS (Today's Matches / Tomorrow's Matches tabs) ──
+     Both tabs are the same structure: an operator-set "# of Maps" count
+     (1-8) and that many rows of {time, map name, winner}. Backed by
+     localState.todayMaps/todayMapsCount and .tomorrowMaps/tomorrowMapsCount
+     respectively — same shape, kept as two independent lists/counts since
+     tomorrow's maps are usually still being planned while today's are live.
+     Map Name is a fixed-choice dropdown, not free text — the map pool is
+     a short, known set. Rows are built in JS (not static HTML) since the
+     count can change at any time. */
+  var BR_MAPS_MAX  = 8;
+  var BR_MAP_NAMES = ['Isolated', 'Blackout', 'Alcatraz', 'Krai'];
+  var MAPS_CONFIG = {
+    today:    { listField: 'todayMaps',    countField: 'todayMapsCount',    listId: 'today-maps-list',    countSelId: 'today-maps-count',    defaultCount: 5 },
+    tomorrow: { listField: 'tomorrowMaps', countField: 'tomorrowMapsCount', listId: 'tomorrow-maps-list', countSelId: 'tomorrow-maps-count', defaultCount: 3 },
+  };
+
+  function getMapsCount(key) {
+    var cfg = MAPS_CONFIG[key];
+    var n = parseInt(localState[cfg.countField], 10);
+    if (!n || n < 1) n = cfg.defaultCount;
+    return Math.min(BR_MAPS_MAX, Math.max(1, n));
+  }
+
+  function getMapsList(key) {
+    var cfg  = MAPS_CONFIG[key];
+    var maps = (localState[cfg.listField] || []).slice();
+    var n    = getMapsCount(key);
+    while (maps.length < n) maps.push({ time: '', mapName: BR_MAP_NAMES[0], winner: '' });
+    return maps.slice(0, n);
+  }
+
+  function saveMapsList(key, maps) {
+    var cfg = MAPS_CONFIG[key];
+    localState[cfg.listField] = maps;
+    var patch = {}; patch[cfg.listField] = maps;
+    push(patch);
+    if (key === 'today') updateMatchPickerMirror();
+  }
+
+  function commitMapField(key, idx, field, value) {
+    var maps  = getMapsList(key);
+    var patch = {}; patch[field] = value;
+    maps[idx] = Object.assign({}, maps[idx], patch);
+    saveMapsList(key, maps);
+  }
+
+  function buildMapRow(key, idx, m) {
+    var row = document.createElement('div');
+    row.className = 'meta-row br-map-row';
+    row.style.marginTop = '10px';
+
+    var numField = document.createElement('div');
+    numField.className = 'meta-field';
+    numField.style.flex = '0 0 44px';
+    numField.innerHTML = '<div class="meta-label">Map</div><div class="game-display" style="padding:7px 0;">' + (idx + 1) + '</div>';
+    row.appendChild(numField);
+
+    var timeField = document.createElement('div');
+    timeField.className = 'meta-field grow';
+    timeField.innerHTML = '<div class="meta-label">Time</div>';
+    var timeInput = document.createElement('input');
+    timeInput.type = 'text'; timeInput.className = 'br-map-time'; timeInput.placeholder = '2:30 PM';
+    timeInput.value = m.time || '';
+    timeInput.addEventListener('blur', function () { commitMapField(key, idx, 'time', timeInput.value); });
+    timeInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') timeInput.blur(); });
+    timeField.appendChild(timeInput);
+    row.appendChild(timeField);
+
+    var nameField = document.createElement('div');
+    nameField.className = 'meta-field grow';
+    nameField.innerHTML = '<div class="meta-label">Map Name</div>';
+    var sel = document.createElement('select');
+    sel.className = 'br-map-select';
+    BR_MAP_NAMES.forEach(function (name) {
+      var o = document.createElement('option'); o.value = name; o.textContent = name;
+      sel.appendChild(o);
+    });
+    sel.value = m.mapName || BR_MAP_NAMES[0];
+    sel.addEventListener('change', function () { commitMapField(key, idx, 'mapName', sel.value); });
+    nameField.appendChild(sel);
+    row.appendChild(nameField);
+
+    var winField = document.createElement('div');
+    winField.className = 'meta-field grow';
+    winField.innerHTML = '<div class="meta-label">Winner</div>';
+    var winInput = document.createElement('input');
+    winInput.type = 'text'; winInput.className = 'br-map-winner'; winInput.placeholder = 'Team name';
+    winInput.value = m.winner || '';
+    winInput.addEventListener('blur', function () { commitMapField(key, idx, 'winner', winInput.value); });
+    winInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') winInput.blur(); });
+    winField.appendChild(winInput);
+    row.appendChild(winField);
+
+    return row;
+  }
+
+  function renderMapsSection(key) {
+    var cfg       = MAPS_CONFIG[key];
+    var container = document.getElementById(cfg.listId);
+    var countSel  = document.getElementById(cfg.countSelId);
+    if (!container || !countSel) return;
+    var n = getMapsCount(key);
+    if (document.activeElement !== countSel) countSel.value = String(n);
+    var maps = getMapsList(key);
+    // Only rebuild the DOM when the row count actually changed — an
+    // in-place row-count match means just a field value changed elsewhere
+    // (e.g. an SSE echo of this tab's own edit), and rebuilding on every
+    // keystroke's round-trip would steal focus mid-type.
+    if (container.children.length !== n) {
+      container.innerHTML = '';
+      maps.forEach(function (m, idx) { container.appendChild(buildMapRow(key, idx, m)); });
+    } else {
+      maps.forEach(function (m, idx) {
+        var row = container.children[idx];
+        var timeEl = row.querySelector('.br-map-time');
+        var selEl  = row.querySelector('.br-map-select');
+        var winEl  = row.querySelector('.br-map-winner');
+        if (timeEl && document.activeElement !== timeEl) timeEl.value = m.time || '';
+        if (selEl  && document.activeElement !== selEl)  selEl.value  = m.mapName || BR_MAP_NAMES[0];
+        if (winEl  && document.activeElement !== winEl)  winEl.value  = m.winner || '';
+      });
+    }
+  }
+
+  function onMapsCountChange(key, rawValue) {
+    var cfg = MAPS_CONFIG[key];
+    var n = Math.min(BR_MAPS_MAX, Math.max(1, parseInt(rawValue, 10) || cfg.defaultCount));
+    localState[cfg.countField] = n;
+    var maps = getMapsList(key);
+    localState[cfg.listField] = maps;
+    var patch = {}; patch[cfg.countField] = n; patch[cfg.listField] = maps;
+    push(patch);
+    renderMapsSection(key);
+    if (key === 'today') { updateMatchPickerOptions(); updateMatchPickerMirror(); }
+  }
+
   (function () {
-    var ms = document.getElementById('map-select');
-    ms.addEventListener('change', function () { localState.map = ms.value; push({ map: ms.value }); });
+    ['today', 'tomorrow'].forEach(function (key) {
+      var cfg = MAPS_CONFIG[key];
+      var countSel = document.getElementById(cfg.countSelId);
+      for (var i = 1; i <= BR_MAPS_MAX; i++) {
+        var opt = document.createElement('option');
+        opt.value = String(i); opt.textContent = String(i);
+        countSel.appendChild(opt);
+      }
+      countSel.addEventListener('change', function (k) { return function () { onMapsCountChange(k, this.value); }; }(key));
+    });
   })();
 
   /* ── PANEL TABS ── */
@@ -1193,201 +954,12 @@
           document.getElementById('panel-tab-' + x).classList.toggle('active', x === t);
           document.getElementById('tab-content-' + x).style.display = (x === t) ? '' : 'none';
         });
-        if (t === 'today')    renderTodayMatches();
-        if (t === 'tomorrow') renderTomorrowMatches();
+        if (t === 'today')    renderMapsSection('today');
+        if (t === 'tomorrow') renderMapsSection('tomorrow');
       });
     });
   })();
 
-  /* ── TODAY'S MATCHES ── */
-  var DEFAULT_TIMES = ['2:30 PM', '5:00 PM', '7:30 PM'];
-  var MATCH_TYPES = [
-    { value: 'regular',       label: 'Regular Match' },
-    { value: 'epic',          label: 'Epic Rivalry' },
-    { value: 'international', label: 'International Rivalry' },
-    { value: 'golden',        label: 'Golden Rivalry' },
-    { value: 'clash',         label: 'Clash of Titans' },
-  ];
-  function matchTypeOf(m) { return m.matchType || (m.star ? 'clash' : 'regular'); }
-
-  function getMatches() {
-    return localState.todayMatches || DEFAULT_TIMES.map(function (t) {
-      return { team1Id: '', team1Name: '', team1Short: '', team2Id: '', team2Name: '', team2Short: '', score1: 0, score2: 0, vsDisplay: 'VS', time: t };
-    });
-  }
-
-  function computeVsStr(m) {
-    var s1 = m.score1 || 0, s2 = m.score2 || 0;
-    return (s1 === 0 && s2 === 0) ? 'VS' : s1 + ' - ' + s2;
-  }
-
-  function saveMatches(tm) {
-    localState.todayMatches = tm;
-    push({ todayMatches: tm });
-  }
-
-  function renderTodayMatches() {
-    var container = document.getElementById('today-matches-list');
-    if (!container) return;
-    container.innerHTML = '';
-    var isDay2 = (localState.day || 1) === 2;
-    var matches = getMatches();
-
-    matches.forEach(function (m, i) {
-      var disabled = (i === 2 && !isDay2);
-      var mt = matchTypeOf(m);
-      var card = document.createElement('div');
-      card.className = 'match-card' + (disabled ? ' disabled' : '') + (mt !== 'regular' ? ' rivalry' : '');
-
-      /* header */
-      var hdr = document.createElement('div');
-      hdr.className = 'match-card-hdr';
-      var lbl = document.createElement('span');
-      lbl.className = 'match-num-lbl';
-      lbl.textContent = disabled ? '' : 'MATCH ' + (i + 1);
-      hdr.appendChild(lbl);
-      var timeInp = document.createElement('input');
-      timeInp.type = 'text'; timeInp.className = 'match-time-inp';
-      timeInp.value = m.time || DEFAULT_TIMES[i];
-      timeInp.addEventListener('blur', (function (idx, inp) { return function () {
-        var tm = getMatches().slice();
-        tm[idx] = Object.assign({}, tm[idx], { time: inp.value });
-        saveMatches(tm);
-      }; })(i, timeInp));
-      timeInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') timeInp.blur(); });
-      hdr.appendChild(timeInp);
-
-      /* match type selector — picks the Waiting Screen TVC match box art */
-      var typeSel = document.createElement('select');
-      typeSel.className = 'match-type-sel' + (mt !== 'regular' ? ' on' : '');
-      MATCH_TYPES.forEach(function (opt) {
-        var o = document.createElement('option');
-        o.value = opt.value; o.textContent = opt.label;
-        if (opt.value === mt) o.selected = true;
-        typeSel.appendChild(o);
-      });
-      typeSel.addEventListener('change', function () {
-        var tm = getMatches().slice();
-        tm[i] = Object.assign({}, tm[i], { matchType: typeSel.value, star: typeSel.value !== 'regular' });
-        saveMatches(tm);
-        typeSel.classList.toggle('on', typeSel.value !== 'regular');
-        card.classList.toggle('rivalry', typeSel.value !== 'regular');
-      });
-      hdr.appendChild(typeSel);
-      card.appendChild(hdr);
-
-      /* body */
-      var body = document.createElement('div');
-      body.className = 'match-body';
-
-      var t1Logo = makeTeamLogo(m.team1Short);
-      var t1Sel = buildMatchTeamSel(m.team1Id, function (val) {
-        var team = (roster && roster.teams && roster.teams[val]) || {};
-        var tm = getMatches().slice();
-        tm[i] = Object.assign({}, tm[i], { team1Id: val, team1Name: team.name || '', team1Short: team.tag || '' });
-        saveMatches(tm); updateLogoEl(t1Logo, team.tag);
-      });
-      var t1Wrap = document.createElement('div'); t1Wrap.className = 'match-team-wrap';
-      t1Wrap.appendChild(t1Logo); t1Wrap.appendChild(t1Sel);
-
-      /* score 1 */
-      var s1Ctrl = document.createElement('div'); s1Ctrl.className = 'match-score-ctrl';
-      var s1m = makeSmBtn('−', 'btn-minus'); var s1n = makeScoreNum(m.score1);
-      var s1p = makeSmBtn('+', 'btn-plus');
-      s1Ctrl.appendChild(s1m); s1Ctrl.appendChild(s1n); s1Ctrl.appendChild(s1p);
-
-      var vsEl = document.createElement('div');
-      refreshVs(vsEl, m);
-
-      /* score 2 */
-      var s2Ctrl = document.createElement('div'); s2Ctrl.className = 'match-score-ctrl';
-      var s2p = makeSmBtn('+', 'btn-plus'); var s2n = makeScoreNum(m.score2);
-      var s2m = makeSmBtn('−', 'btn-minus');
-      s2Ctrl.appendChild(s2p); s2Ctrl.appendChild(s2n); s2Ctrl.appendChild(s2m);
-
-      var t2Logo = makeTeamLogo(m.team2Short);
-      var t2Sel = buildMatchTeamSel(m.team2Id, function (val) {
-        var team = (roster && roster.teams && roster.teams[val]) || {};
-        var tm = getMatches().slice();
-        tm[i] = Object.assign({}, tm[i], { team2Id: val, team2Name: team.name || '', team2Short: team.tag || '' });
-        saveMatches(tm); updateLogoEl(t2Logo, team.tag);
-      });
-      var t2Wrap = document.createElement('div'); t2Wrap.className = 'match-team-wrap';
-      t2Wrap.appendChild(t2Logo); t2Wrap.appendChild(t2Sel);
-
-      /* score button wiring */
-      function wireScore(btn, side, delta, numEl) {
-        btn.addEventListener('click', function () {
-          var tm = getMatches().slice();
-          var key = side === 1 ? 'score1' : 'score2';
-          tm[i][key] = Math.max(0, (tm[i][key] || 0) + delta);
-          tm[i].vsDisplay = computeVsStr(tm[i]);
-          numEl.textContent = tm[i][key];
-          saveMatches(tm);
-          refreshVs(vsEl, tm[i]);
-          updateShowLabel();
-        });
-      }
-      wireScore(s1m, 1, -1, s1n); wireScore(s1p, 1,  1, s1n);
-      wireScore(s2m, 2, -1, s2n); wireScore(s2p, 2,  1, s2n);
-
-      body.appendChild(t1Wrap); body.appendChild(s1Ctrl); body.appendChild(vsEl);
-      body.appendChild(s2Ctrl); body.appendChild(t2Wrap);
-      card.appendChild(body);
-      container.appendChild(card);
-    });
-
-    updateShowLabel();
-  }
-
-  var LOGO_V = Date.now();
-  function logoUrl(tag) { return '/logos/' + tag + '.png?v=' + LOGO_V; }
-
-  function makeTeamLogo(tag) {
-    var img = document.createElement('img');
-    img.className = 'match-team-logo'; img.alt = '';
-    img.onerror = function () { this.style.display = 'none'; };
-    updateLogoEl(img, tag);
-    return img;
-  }
-  function updateLogoEl(img, tag) {
-    if (tag) { img.src = logoUrl(tag); img.style.display = ''; }
-    else { img.src = ''; img.style.display = 'none'; }
-  }
-
-  function buildMatchTeamSel(selectedId, onChange) {
-    var sel = document.createElement('select');
-    sel.className = 'match-team-sel';
-    var none = document.createElement('option');
-    none.value = ''; none.textContent = '— pick —';
-    sel.appendChild(none);
-    if (roster && roster.teams) {
-      Object.entries(roster.teams)
-        .sort(function (a, b) { return a[1].name.localeCompare(b[1].name); })
-        .forEach(function (e) {
-          var opt = document.createElement('option');
-          opt.value = e[0]; opt.textContent = e[1].name;
-          sel.appendChild(opt);
-        });
-    }
-    if (selectedId) sel.value = selectedId;
-    sel.addEventListener('change', function () { onChange(this.value); });
-    return sel;
-  }
-
-  function makeSmBtn(label, cls) {
-    var b = document.createElement('button');
-    b.className = 'btn ' + cls + ' btn-sm'; b.textContent = label; return b;
-  }
-  function makeScoreNum(val) {
-    var s = document.createElement('span');
-    s.className = 'match-score-num'; s.textContent = val || 0; return s;
-  }
-  function refreshVs(el, m) {
-    var str = computeVsStr(m);
-    el.className = 'match-vs-disp' + (str === 'VS' ? ' vs' : '');
-    el.textContent = str;
-  }
   function computeGoodbye(day) {
     return (day === 3) ? 'SEE YOU NEXT WEEK' : 'SEE YOU TOMORROW';
   }
@@ -1407,109 +979,6 @@
     renderTimerControls();
   }
 
-  /* ── TOMORROW'S MATCHES ── */
-  function getTomorrowMatches() {
-    return localState.tomorrowMatches || DEFAULT_TIMES.map(function (t) {
-      return { team1Id: '', team1Name: '', team1Short: '', team2Id: '', team2Name: '', team2Short: '', vsDisplay: 'VS', time: t };
-    });
-  }
-
-  function saveTomorrowMatches(tm) {
-    localState.tomorrowMatches = tm;
-    push({ tomorrowMatches: tm });
-  }
-
-  function renderTomorrowMatches() {
-    var container = document.getElementById('tomorrow-matches-list');
-    if (!container) return;
-    container.innerHTML = '';
-    var today = localState.day || 1;
-    // Day 1→tomorrow Day 2 (3 matches), Day 2→Day 3 (2), Day 3→Day 1 next week (2)
-    var tomorrowDay = (today % 3) + 1;
-    var isThreeMatch = (tomorrowDay === 2);
-    var matches = getTomorrowMatches();
-
-    matches.forEach(function (m, i) {
-      var disabled = (i === 0 && !isThreeMatch);
-      var mt = matchTypeOf(m);
-      var card = document.createElement('div');
-      card.className = 'match-card' + (disabled ? ' disabled' : '') + (mt !== 'regular' ? ' rivalry' : '');
-
-      /* header */
-      var hdr = document.createElement('div');
-      hdr.className = 'match-card-hdr';
-      var numLbl = document.createElement('span');
-      numLbl.className = 'match-num-lbl';
-      numLbl.textContent = 'MATCH ' + (i + 1);
-      hdr.appendChild(numLbl);
-      var timeInp = document.createElement('input');
-      timeInp.type = 'text'; timeInp.className = 'match-time-inp';
-      timeInp.value = m.time || DEFAULT_TIMES[i];
-      timeInp.addEventListener('blur', (function (idx, inp) { return function () {
-        var tm = getTomorrowMatches().slice();
-        tm[idx] = Object.assign({}, tm[idx], { time: inp.value });
-        saveTomorrowMatches(tm);
-      }; })(i, timeInp));
-      timeInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') timeInp.blur(); });
-      hdr.appendChild(timeInp);
-
-      /* match type selector — same star/rivalry options as Today's
-         Matches; drives StarMatch_Match_Box.png in Tomorrow's Schedule */
-      var typeSel = document.createElement('select');
-      typeSel.className = 'match-type-sel' + (mt !== 'regular' ? ' on' : '');
-      MATCH_TYPES.forEach(function (opt) {
-        var o = document.createElement('option');
-        o.value = opt.value; o.textContent = opt.label;
-        if (opt.value === mt) o.selected = true;
-        typeSel.appendChild(o);
-      });
-      typeSel.addEventListener('change', function () {
-        var tm = getTomorrowMatches().slice();
-        tm[i] = Object.assign({}, tm[i], { matchType: typeSel.value, star: typeSel.value !== 'regular' });
-        saveTomorrowMatches(tm);
-        typeSel.classList.toggle('on', typeSel.value !== 'regular');
-        card.classList.toggle('rivalry', typeSel.value !== 'regular');
-      });
-      hdr.appendChild(typeSel);
-      card.appendChild(hdr);
-
-      /* body: team1 | VS | team2 (no scores) */
-      var body = document.createElement('div');
-      body.className = 'match-body';
-
-      var t1Logo = makeTeamLogo(m.team1Short);
-      var t1Sel = buildMatchTeamSel(m.team1Id, function (val) {
-        var team = (roster && roster.teams && roster.teams[val]) || {};
-        var tm = getTomorrowMatches().slice();
-        tm[i] = Object.assign({}, tm[i], { team1Id: val, team1Name: team.name || '', team1Short: team.tag || '' });
-        saveTomorrowMatches(tm); updateLogoEl(t1Logo, team.tag);
-      });
-      var t1Wrap = document.createElement('div'); t1Wrap.className = 'match-team-wrap';
-      t1Wrap.appendChild(t1Logo); t1Wrap.appendChild(t1Sel);
-
-      var vsEl = document.createElement('div');
-      vsEl.className = 'match-vs-disp vs';
-      vsEl.textContent = 'VS';
-
-      var t2Logo = makeTeamLogo(m.team2Short);
-      var t2Sel = buildMatchTeamSel(m.team2Id, function (val) {
-        var team = (roster && roster.teams && roster.teams[val]) || {};
-        var tm = getTomorrowMatches().slice();
-        tm[i] = Object.assign({}, tm[i], { team2Id: val, team2Name: team.name || '', team2Short: team.tag || '' });
-        saveTomorrowMatches(tm); updateLogoEl(t2Logo, team.tag);
-      });
-      var t2Wrap = document.createElement('div'); t2Wrap.className = 'match-team-wrap';
-      t2Wrap.appendChild(t2Logo); t2Wrap.appendChild(t2Sel);
-
-      body.appendChild(t1Wrap); body.appendChild(vsEl); body.appendChild(t2Wrap);
-      card.appendChild(body);
-      container.appendChild(card);
-    });
-
-    /* goodbye label */
-    var lbl = document.getElementById('goodbye-label-val');
-    if (lbl) lbl.value = localState.goodbyeLabel || computeGoodbye(today);
-  }
 
   /* ── HOSTS & CASTERS ──
      Text inputs + a shared <datalist> for autocomplete (was a plain
