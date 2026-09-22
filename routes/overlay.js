@@ -82,48 +82,6 @@ router.get('/overlay/check-overlays', (req, res) => {
   res.set({ 'Cache-Control': 'no-store' }).json(state.checkOverlays);
 });
 
-// GET /overlay/itemcheck/show
-router.get('/overlay/itemcheck/show', (req, res) => {
-  state.checkOverlays.itemcheck = true;
-  state.overlayClients.forEach(c => { try { c.write('event: itemcheck\ndata: {"action":"show"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/itemcheck/hide
-router.get('/overlay/itemcheck/hide', (req, res) => {
-  state.checkOverlays.itemcheck = false;
-  state.overlayClients.forEach(c => { try { c.write('event: itemcheck\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
-// GET /overlay/emblemcheck/show
-router.get('/overlay/emblemcheck/show', (req, res) => {
-  state.checkOverlays.emblemcheck = true;
-  state.overlayClients.forEach(c => { try { c.write('event: emblemcheck\ndata: {"action":"show"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/emblemcheck/hide
-router.get('/overlay/emblemcheck/hide', (req, res) => {
-  state.checkOverlays.emblemcheck = false;
-  state.overlayClients.forEach(c => { try { c.write('event: emblemcheck\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
-// GET /overlay/golddiffcheck/show
-router.get('/overlay/golddiffcheck/show', (req, res) => {
-  state.checkOverlays.golddiffcheck = true;
-  state.overlayClients.forEach(c => { try { c.write('event: golddiffcheck\ndata: {"action":"show"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/golddiffcheck/hide
-router.get('/overlay/golddiffcheck/hide', (req, res) => {
-  state.checkOverlays.golddiffcheck = false;
-  state.overlayClients.forEach(c => { try { c.write('event: golddiffcheck\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
 // GET /overlay/scoreboard/show
 router.get('/overlay/scoreboard/show', (req, res) => {
   state.checkOverlays.scoreboard = true;
@@ -135,20 +93,6 @@ router.get('/overlay/scoreboard/show', (req, res) => {
 router.get('/overlay/scoreboard/hide', (req, res) => {
   state.checkOverlays.scoreboard = false;
   state.overlayClients.forEach(c => { try { c.write('event: scoreboard\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
-// GET /overlay/playerui/show
-router.get('/overlay/playerui/show', (req, res) => {
-  state.checkOverlays.playerui = true;
-  state.overlayClients.forEach(c => { try { c.write('event: playerui\ndata: {"action":"show"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/playerui/hide
-router.get('/overlay/playerui/hide', (req, res) => {
-  state.checkOverlays.playerui = false;
-  state.overlayClients.forEach(c => { try { c.write('event: playerui\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
@@ -179,61 +123,6 @@ router.get('/overlay/hrm/:slot/hide', (req, res) => {
   const payload = JSON.stringify({ slot, isOff: true });
   state.overlayClients.forEach(c => { try { c.write(`event: hrm\ndata: ${payload}\n\n`); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, slot, isOff: true });
-});
-
-// "Side *check" ranking panels (exp, damage taken, and future ones)
-// all broadcast over ONE shared SSE event — 'sidecheck' — with a
-// `check` field identifying which panel, instead of a separate named
-// event per panel. Keeps the client down to one listener and keeps
-// adding a new side-check down to one array entry.
-const SIDE_CHECK_KEYS = ['sideexpcheck', 'sidetakencheck', 'sidedamagecheck', 'sidegoldcheck'];
-SIDE_CHECK_KEYS.forEach((key) => {
-  router.get(`/overlay/${key}/show`, (req, res) => {
-    state.checkOverlays[key] = true;
-    const payload = JSON.stringify({ check: key, action: 'show' });
-    state.overlayClients.forEach(c => { try { c.write(`event: sidecheck\ndata: ${payload}\n\n`); } catch {} });
-    res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-  });
-
-  router.get(`/overlay/${key}/hide`, (req, res) => {
-    state.checkOverlays[key] = false;
-    const payload = JSON.stringify({ check: key, action: 'hide' });
-    state.overlayClients.forEach(c => { try { c.write(`event: sidecheck\ndata: ${payload}\n\n`); } catch {} });
-    res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-  });
-});
-
-// GET /overlay/sideoverlays/hide — universal hide for every "side *check"
-// ranking panel at once (side EXP/taken/damage/gold). Reuses the same
-// shared 'sidecheck' SSE event each panel already listens for, so no
-// client-side changes were needed to wire this up.
-router.get('/overlay/sideoverlays/hide', (req, res) => {
-  SIDE_CHECK_KEYS.forEach((key) => {
-    state.checkOverlays[key] = false;
-    const payload = JSON.stringify({ check: key, action: 'hide' });
-    state.overlayClients.forEach(c => { try { c.write(`event: sidecheck\ndata: ${payload}\n\n`); } catch {} });
-  });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true });
-});
-
-// GET /overlay/bottomoverlays/hide — universal hide for every "bottom"
-// panel at once (item check, emblem check, gold-diff check, fight
-// recap). Reuses the same named SSE events each panel already listens
-// for, so no client-side changes were needed to wire this up.
-router.get('/overlay/bottomoverlays/hide', (req, res) => {
-  state.checkOverlays.itemcheck     = false;
-  state.checkOverlays.emblemcheck   = false;
-  state.checkOverlays.golddiffcheck = false;
-  state.fightsPendingAction = { action: "hide", ts: Date.now() };
-  state.overlayClients.forEach(c => {
-    try {
-      c.write('event: itemcheck\ndata: {"action":"hide"}\n\n');
-      c.write('event: emblemcheck\ndata: {"action":"hide"}\n\n');
-      c.write('event: golddiffcheck\ndata: {"action":"hide"}\n\n');
-      c.write('event: fights\ndata: {"action":"hide"}\n\n');
-    } catch {}
-  });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true });
 });
 
 // GET /overlay/fights/pending
@@ -293,17 +182,17 @@ router.get('/overlay/waiting_tvc/hide', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
-// GET /overlay/waiting_lobby/show
-router.get('/overlay/waiting_lobby/show', (req, res) => {
-  state.fullscreenScene.activeFeature = 'lobby';
-  state.overlayClients.forEach(c => { try { c.write('event: waiting_lobby\ndata: {"action":"show"}\n\n'); } catch {} });
+// GET /overlay/waiting_timer/show
+router.get('/overlay/waiting_timer/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'timer';
+  state.overlayClients.forEach(c => { try { c.write('event: waiting_timer\ndata: {"action":"show"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 
-// GET /overlay/waiting_lobby/hide
-router.get('/overlay/waiting_lobby/hide', (req, res) => {
+// GET /overlay/waiting_timer/hide
+router.get('/overlay/waiting_timer/hide', (req, res) => {
   state.fullscreenScene.activeFeature = null;
-  state.overlayClients.forEach(c => { try { c.write('event: waiting_lobby\ndata: {"action":"hide"}\n\n'); } catch {} });
+  state.overlayClients.forEach(c => { try { c.write('event: waiting_timer\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
@@ -318,6 +207,48 @@ router.get('/overlay/team_hexagon/show', (req, res) => {
 router.get('/overlay/team_hexagon/hide', (req, res) => {
   state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: team_hexagon\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/overall_ranking/show
+router.get('/overlay/overall_ranking/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'overallranking';
+  state.overlayClients.forEach(c => { try { c.write('event: overall_ranking\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/overall_ranking/hide
+router.get('/overlay/overall_ranking/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: overall_ranking\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/map_ranking/show
+router.get('/overlay/map_ranking/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'mapranking';
+  state.overlayClients.forEach(c => { try { c.write('event: map_ranking\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/map_ranking/hide
+router.get('/overlay/map_ranking/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: map_ranking\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/group_ranking/show
+router.get('/overlay/group_ranking/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'groupranking';
+  state.overlayClients.forEach(c => { try { c.write('event: group_ranking\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/group_ranking/hide
+router.get('/overlay/group_ranking/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: group_ranking\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
@@ -698,7 +629,7 @@ router.get('/overlay/features', (req, res) => {
 });
 
 // GET /overlay/feature/:feature/enable|disable
-const VALID_FEATURES = ['killevents','items','trinity','swap','lvl15','conceal','fights','objectivespawn','debugphotos'];
+const VALID_FEATURES = ['fights','debugphotos'];
 router.get('/overlay/feature/:feature/:action', (req, res) => {
   const { feature, action } = req.params;
   if (!VALID_FEATURES.includes(feature) || !['enable','disable'].includes(action)) {
@@ -730,41 +661,6 @@ router.get('/overlay/api/:api/:action', (req, res) => {
   const payload = JSON.stringify({ api, enabled });
   state.overlayClients.forEach(c => { try { c.write(`event: apitoggle\ndata: ${payload}\n\n`); } catch {} });
   res.set({ 'Cache-Control': 'no-store' }).json({ ok: true, api, enabled });
-});
-
-// GET /overlay/killevent — broadcast a kill event video to all overlays
-const KILL_EVENT_PRIORITIES = {
-  'firstblood.webm': 1, 'doublekill.webm': 2, 'triplekill.webm': 3,
-  'maniac.webm': 4, 'savage.webm': 5,
-  'lordslain.webm': 1, 'turtleslain.webm': 1, 'wipedout.webm': 3,
-};
-router.get('/overlay/killevent', (req, res) => {
-  const video = req.query.video;
-  if (!video || !KILL_EVENT_PRIORITIES[video]) {
-    return res.status(400).json({ ok: false, error: 'unknown video' });
-  }
-  const priority = KILL_EVENT_PRIORITIES[video];
-  const playerName = req.query.playerName ? String(req.query.playerName) : null;
-  const roleNum = parseInt(req.query.role, 10);
-  const role = roleNum >= 1 && roleNum <= 5 ? roleNum : null;
-  const camp = req.query.camp === 'red' || req.query.camp === 'blue' ? req.query.camp : null;
-  const payload = JSON.stringify({ video, priority, playerIdx: null, playerName, role, camp });
-  state.overlayClients.forEach(c => { try { c.write(`event: killevent\ndata: ${payload}\n\n`); } catch {} });
-  res.set({ 'Cache-Control': 'no-store' }).json({ ok: true, video, playerName, role, camp });
-});
-
-// GET /overlay/objectivespawn — dashboard Control tab's remote trigger for
-// Lord/Turtle spawn (see html/js/overlay-debug.js's 'objectivespawn' SSE
-// listener, which routes straight into objSpawnEnqueue() — the same queue
-// the live game_time/tortoise_left_time/lord_left_time countdown uses).
-router.get('/overlay/objectivespawn', (req, res) => {
-  const kind = req.query.kind;
-  if (kind !== 'lord' && kind !== 'turtle') {
-    return res.status(400).json({ ok: false, error: 'unknown kind' });
-  }
-  const payload = JSON.stringify({ kind });
-  state.overlayClients.forEach(c => { try { c.write(`event: objectivespawn\ndata: ${payload}\n\n`); } catch {} });
-  res.set({ 'Cache-Control': 'no-store' }).json({ ok: true, kind });
 });
 
 // GET/POST /overlay/:slot — generic show/hide slot handler (must be LAST)

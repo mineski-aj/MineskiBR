@@ -48,7 +48,7 @@ router.get('/api/sub-info/', (req, res) => {
 // categorization (grouping, per-category loop duration, display order),
 // resolved fresh on every call via lib/projects.js (same "same file shape
 // everywhere, just a different copy per active project" pattern as
-// overlay_styles.json / killevent_settings.json — never cache these paths,
+// overlay_styles.json — never cache these paths,
 // the active project can change between any two calls). Falls back to the
 // repo-root copies when no project is active. The actual logo files at
 // whatever this resolves to are served by server.js's dedicated
@@ -173,6 +173,26 @@ router.post('/api/credits-speed', (req, res) => {
   res.json({ ok: true, speed });
 });
 
+// Waiting Screen TVC — seconds each page (scoreboard or maps) stays on
+// screen before cascading to the next one — GET to read, POST { seconds }
+// to update. Fullscreen.html fetches this fresh on every standings poll
+// while the scene is showing (see wtvcFetchData), same as credits_speed.
+const WTVC_PAGE_SPEED_FILE = path.join(__dirname, '..', 'wtvc_page_speed.json');
+
+router.get('/api/wtvc-page-speed', (req, res) => {
+  try {
+    res.set('Cache-Control', 'no-store').json(JSON.parse(fs.readFileSync(WTVC_PAGE_SPEED_FILE, 'utf8')));
+  } catch (e) {
+    res.set('Cache-Control', 'no-store').json({ seconds: 5 });
+  }
+});
+
+router.post('/api/wtvc-page-speed', (req, res) => {
+  const seconds = Math.max(1, Math.min(60, Number((req.body || {}).seconds) || 5));
+  fs.writeFileSync(WTVC_PAGE_SPEED_FILE, JSON.stringify({ seconds }));
+  res.json({ ok: true, seconds });
+});
+
 // MVP Scene player pick — GET to read, POST { roleid } to update. The
 // caster picks who's MVP from the dashboard's MVP player-select dropdown
 // (built from /api/gamedata-proxy's current seat list), storing a roleid
@@ -214,63 +234,6 @@ router.post('/api/credits-style', (req, res) => {
   res.json({ ok: true, headingSize, bodySize });
 });
 
-// Bottom-events layout tuning (ingame.html's Item Check / Gold Diff Check /
-// Emblem Check panels) — all three are built the same way (shared CSS
-// classes reused per row/card, JS-computed positions from fixed
-// constants), so instead of exposing 10 individually-draggable boxes each,
-// they share this "a few offsets shift the whole side together" model:
-// homeOffsetX/Y and awayOffsetX/Y shift every element on that side
-// (portraits, bars/items/runes, text) together. Item Check additionally
-// has goldFontSize — one shared font size for every gold-amount row
-// (not per-player) since they're all "similar" elements. Same file
-// shape/route shape for all three — one factory instead of three
-// hand-copied GET/POST pairs. Project-scoped like overlay_styles.json
-// (lib/projects.js's getProjectScopedFilePath): each project gets its own
-// copy, root files are the no-project-active default.
-function registerLayoutRoutes(filename, apiPath, fieldSpecs) {
-  router.get(apiPath, (req, res) => {
-    try {
-      res.set('Cache-Control', 'no-store').json(JSON.parse(fs.readFileSync(projects.getProjectScopedFilePath(filename), 'utf8')));
-    } catch (e) {
-      const defaults = {};
-      Object.keys(fieldSpecs).forEach((k) => { defaults[k] = fieldSpecs[k].default; });
-      res.set('Cache-Control', 'no-store').json(defaults);
-    }
-  });
-  router.post(apiPath, (req, res) => {
-    const b = req.body || {};
-    const clampNum = (v, d, lo, hi) => Math.max(lo, Math.min(hi, Number(v) || d));
-    const layout = {};
-    Object.keys(fieldSpecs).forEach((k) => {
-      const spec = fieldSpecs[k];
-      layout[k] = clampNum(b[k], spec.default, spec.min, spec.max);
-    });
-    fs.writeFileSync(projects.getProjectScopedFilePath(filename), JSON.stringify(layout));
-    /* Same 'reload' broadcast overlay_styles.json saves already trigger
-       (routes/overlayStyles.js) — so every other open ingame.html
-       instance/OBS browser source picks up the change too, not just
-       this dashboard's own live preview (which already updates instantly
-       via icPreviewLayout/gdcPreviewLayout/eccPreviewLayout while
-       dragging, with no reload needed for that part). */
-    state.overlayClients.forEach((c) => { try { c.write('event: reload\ndata: {}\n\n'); } catch (e) {} });
-    res.json({ ok: true, ...layout });
-  });
-}
-
-const SIDE_OFFSET_FIELDS = {
-  homeOffsetX: { default: 0, min: -400, max: 400 },
-  homeOffsetY: { default: 0, min: -400, max: 400 },
-  awayOffsetX: { default: 0, min: -400, max: 400 },
-  awayOffsetY: { default: 0, min: -400, max: 400 },
-};
-
-registerLayoutRoutes('itemcheck_layout.json', '/api/itemcheck-layout', {
-  goldFontSize: { default: 30, min: 10, max: 60 },
-  ...SIDE_OFFSET_FIELDS,
-});
-registerLayoutRoutes('golddiffcheck_layout.json', '/api/golddiffcheck-layout', SIDE_OFFSET_FIELDS);
-registerLayoutRoutes('emblemcheck_layout.json', '/api/emblemcheck-layout', SIDE_OFFSET_FIELDS);
-
 // Dashboard Control tab — which Fullscreen features the user has archived
 // (moved out of the main "Features" list into the collapsible "Archived"
 // section, purely to declutter the panel for a show that doesn't need
@@ -309,20 +272,6 @@ router.post('/api/game-url', (req, res) => {
 
 // Player photo manifest — returns available filenames per pose for client-side lookup
 const PHOTOS_DIR = path.join(__dirname, '..', 'photos');
-
-// GET /api/signature-photos — player names (igns) with a SIGNATURE cutout
-// available in photos/SIGNATURE/, e.g. for the kill-event photo popup.
-// Filename convention: <ign>_SIGNATURE_resized.png
-router.get('/api/signature-photos', (req, res) => {
-  try {
-    const names = fs.readdirSync(path.join(PHOTOS_DIR, 'SIGNATURE'))
-      .filter(f => f.endsWith('_SIGNATURE_resized.png'))
-      .map(f => f.slice(0, -'_SIGNATURE_resized.png'.length));
-    res.set('Cache-Control', 'no-store').json({ names });
-  } catch (e) {
-    res.status(500).json({ names: [] });
-  }
-});
 
 router.get('/api/photo-manifest', (req, res) => {
   try {

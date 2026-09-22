@@ -1,199 +1,114 @@
-/* ── [FEATURE: scoreboard] — always-on ingame scoreboard overlay ── */
+/* ── [FEATURE: scoreboard] — always-on tournament ID card + team
+   scoreboard. The old 1920x1080 sliding MLBB scoreboard (kills/tower/
+   lord/turtle/gold/casters/map box/sponsor loop/team logos) has been
+   removed — this now only builds mainheader1 (logo + name/tally text),
+   header1 (banner strip above it), and the team scoreboard plate. ── */
 
 (function buildScoreboard() {
-  var overlay = document.createElement('div');
-  overlay.id = 'scoreboard-overlay';
-
-  var bg = document.createElement('img');
-  bg.id  = 'scoreboard-bg';
-  bg.src = 'assets/ingame/ingamepng2.png';
-  bg.alt = '';
-  overlay.appendChild(bg);
-
-  var gt = document.createElement('div');
-  gt.id          = 'scoreboard-gametime';
-  gt.textContent = '00:00';
-  overlay.appendChild(gt);
-
-  var k1 = document.createElement('div');
-  k1.id = 'scoreboard-kills-c1';
-  var k1v = document.createElement('span'); k1v.className = 'sb-kval'; k1v.textContent = '0';
-  k1.appendChild(k1v);
-  overlay.appendChild(k1);
-
-  var k2 = document.createElement('div');
-  k2.id = 'scoreboard-kills-c2';
-  var k2v = document.createElement('span'); k2v.className = 'sb-kval'; k2v.textContent = '0';
-  k2.appendChild(k2v);
-  overlay.appendChild(k2);
-
-  var t1 = document.createElement('div');
-  t1.id          = 'scoreboard-tricode-c1';
-  t1.textContent = '';
-  overlay.appendChild(t1);
-
-  var t2 = document.createElement('div');
-  t2.id          = 'scoreboard-tricode-c2';
-  t2.textContent = '';
-  overlay.appendChild(t2);
-
-  var g1 = document.createElement('div');
-  g1.id          = 'scoreboard-gold-c1';
-  g1.textContent = '';
-  overlay.appendChild(g1);
-
-  var g2 = document.createElement('div');
-  g2.id          = 'scoreboard-gold-c2';
-  g2.textContent = '';
-  overlay.appendChild(g2);
-
-  var tw1 = document.createElement('div');
-  tw1.id          = 'scoreboard-tower-c1';
-  tw1.textContent = '0';
-  overlay.appendChild(tw1);
-
-  var lo1 = document.createElement('div');
-  lo1.id          = 'scoreboard-lord-c1';
-  lo1.textContent = '0';
-  overlay.appendChild(lo1);
-
-  var tu1 = document.createElement('div');
-  tu1.id          = 'scoreboard-turtle-c1';
-  tu1.textContent = '0';
-  overlay.appendChild(tu1);
-
-  var tw2 = document.createElement('div');
-  tw2.id          = 'scoreboard-tower-c2';
-  tw2.textContent = '0';
-  overlay.appendChild(tw2);
-
-  var lo2 = document.createElement('div');
-  lo2.id          = 'scoreboard-lord-c2';
-  lo2.textContent = '0';
-  overlay.appendChild(lo2);
-
-  var tu2 = document.createElement('div');
-  tu2.id          = 'scoreboard-turtle-c2';
-  tu2.textContent = '0';
-  overlay.appendChild(tu2);
-
-  /* Icon + amount span, not plain text — see sbUpdateGoldLead below,
-     which only ever writes to the .sb-goldlead-amount span so the icon
-     (ingameitemgold.png) survives every update instead of being wiped by
-     a textContent overwrite. */
-  function buildGoldLeadEl(id) {
-    var el = document.createElement('div');
-    el.id = id;
-    var icon = document.createElement('img');
-    icon.className = 'sb-goldlead-icon';
-    icon.src = 'assets/ingame/ingameitemgold.png';
-    icon.alt = '';
-    var amount = document.createElement('span');
-    amount.className = 'sb-goldlead-amount';
-    el.appendChild(icon);
-    el.appendChild(amount);
-    return el;
-  }
-  var gl1 = buildGoldLeadEl('sb-goldlead-c1');
-  overlay.appendChild(gl1);
-
-  var gl2 = buildGoldLeadEl('sb-goldlead-c2');
-  overlay.appendChild(gl2);
-
-  var ms1 = document.createElement('div');
-  ms1.id = 'sb-score-c1';
-  overlay.appendChild(ms1);
-
-  var ms2 = document.createElement('div');
-  ms2.id = 'sb-score-c2';
-  overlay.appendChild(ms2);
-
-  /* "GRAND FINALS" label — static text, sits just left of the sponsor
-     loop. Two lines, GRAND above FINALS. */
-  var mi = document.createElement('div');
-  mi.id = 'sb-matchinfo';
-  var miLine1 = document.createElement('div');
-  miLine1.className = 'sb-gf-line';
-  miLine1.textContent = 'GRAND';
-  var miLine2 = document.createElement('div');
-  miLine2.className = 'sb-gf-line';
-  miLine2.textContent = 'FINALS';
-  mi.appendChild(miLine1);
-  mi.appendChild(miLine2);
-  overlay.appendChild(mi);
-
-  /* Casters — transparent, sits directly on the scoreboard art, renders
-     as "<mic icon> CASTER1 | CASTER2 | CASTER3". */
-  var miCasters = document.createElement('div');
-  miCasters.id = 'sb-mi-casters';
-  miCasters.innerHTML = '<svg class="sb-mi-mic" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">' +
-    '<path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"/>' +
-    '<path d="M19 11a1 1 0 0 0-2 0 5 5 0 0 1-10 0 1 1 0 0 0-2 0 7 7 0 0 0 6 6.92V20H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-2.08A7 7 0 0 0 19 11z"/>' +
-    '</svg><span class="sb-mi-casters-text"></span>';
-  overlay.appendChild(miCasters);
-
-  /* Map box — background art + logo + map name, pulled from the match
-     board (/match/state). Map name shrinks to fit via sbFitText since
-     "Expanding Rivers" runs much longer than "Flying Cloud". */
-  var mapBox = document.createElement('div');
-  mapBox.id = 'sb-map';
-  var mapLogo = document.createElement('div');
-  mapLogo.id = 'sb-map-logo';
-  var mapLogoImg = document.createElement('img');
-  mapLogoImg.id  = 'sb-map-logo-img';
-  mapLogoImg.alt = '';
-  mapLogo.appendChild(mapLogoImg);
-  var mapName = document.createElement('div');
-  mapName.id = 'sb-map-name';
-  mapName.innerHTML = '<span class="sb-map-name-text"></span>';
-  mapBox.appendChild(mapLogo);
-  mapBox.appendChild(mapName);
-  overlay.appendChild(mapBox);
-
-  var sbSponBox = document.createElement('div');
-  sbSponBox.id = 'sb-sponsor-loop';
-  var sbSponImg = document.createElement('img');
-  sbSponImg.id  = 'sb-sponsor-img';
-  sbSponBox.appendChild(sbSponImg);
-  overlay.appendChild(sbSponBox);
-
-  /* Team logo containers — fallback circle shown until img loads */
-  var logo1 = document.createElement('div');
-  logo1.id = 'sb-logo-c1';
-  var logo1fb = document.createElement('div'); logo1fb.className = 'sb-logo-fallback';
-  var logo1img = document.createElement('img'); logo1img.className = 'sb-logo-img'; logo1img.alt = '';
-  logo1img.style.display = 'none';
-  logo1img.onload  = function() { this.style.display = 'block'; logo1fb.style.display = 'none'; };
-  logo1img.onerror = function() { this.style.display = 'none';  logo1fb.style.display = ''; };
-  logo1.appendChild(logo1fb); logo1.appendChild(logo1img);
-  overlay.appendChild(logo1);
-
-  var logo2 = document.createElement('div');
-  logo2.id = 'sb-logo-c2';
-  var logo2fb = document.createElement('div'); logo2fb.className = 'sb-logo-fallback';
-  var logo2img = document.createElement('img'); logo2img.className = 'sb-logo-img'; logo2img.alt = '';
-  logo2img.style.display = 'none';
-  logo2img.onload  = function() { this.style.display = 'block'; logo2fb.style.display = 'none'; };
-  logo2img.onerror = function() { this.style.display = 'none';  logo2fb.style.display = ''; };
-  logo2.appendChild(logo2fb); logo2.appendChild(logo2img);
-  overlay.appendChild(logo2);
-
-  /* Insert as first child of scene — always behind every other feature */
   var scene = document.getElementById('scene');
-  scene.insertBefore(overlay, scene.firstChild);
+
+  /* Tournament ID card — mainheader1 (logo + name/tally text) + header1
+     (thin banner strip above it). Text is filled/kept in sync by
+     sbPollTallyState/sbPollMatchState below; see ingame.css for
+     positioning and the slide-in transition. */
+  var mh1 = document.createElement('div');
+  mh1.id = 'sb-mainheader1';
+
+  var mh1Logo = document.createElement('div');
+  mh1Logo.id = 'sb-mh1-logo';
+  var mh1LogoImg = document.createElement('img');
+  mh1LogoImg.src = 'gbrc_logo.png';
+  mh1LogoImg.alt = '';
+  mh1Logo.appendChild(mh1LogoImg);
+  mh1.appendChild(mh1Logo);
+
+  var mh1Text = document.createElement('div');
+  mh1Text.id = 'sb-mh1-text';
+  var mh1Name = document.createElement('div');
+  mh1Name.className = 'sb-mh1-name';
+  var mh1Tally = document.createElement('div');
+  mh1Tally.className = 'sb-mh1-tally';
+  mh1Text.appendChild(mh1Name);
+  mh1Text.appendChild(mh1Tally);
+  mh1.appendChild(mh1Text);
+  scene.appendChild(mh1);
+
+  var h1 = document.createElement('div');
+  h1.id = 'sb-header1';
+  scene.appendChild(h1);
+
+  /* Team scoreboard plate (right side) — column header + rows are filled
+     in by sbRenderScoreboard/sbPollTeamScores below. */
+  var scoreBack = document.createElement('div');
+  scoreBack.id = 'sb-scoreboard-back';
+
+  var scoreHeader = document.createElement('div');
+  scoreHeader.id = 'sb-score-header';
+  scoreHeader.innerHTML =
+    '<div class="ssh-rank">Rank</div>' +
+    '<div class="ssh-team">Team</div>' +
+    '<div class="ssh-pts">PTS</div>' +
+    '<div class="ssh-elim">Elim</div>' +
+    '<div class="ssh-elim-solo">ELIM</div>';
+  scoreBack.appendChild(scoreHeader);
+
+  scene.appendChild(scoreBack);
 })();
 
-/* ── Scoreboard show/hide with animation (slide only, no fade) ── */
+/* ── Show/hide (slide only, no fade) ── */
 function sbHandleToggle(shown) {
-  var el = document.getElementById('scoreboard-overlay');
-  if (!el) return;
   if (shown) {
-    el.style.transition = 'transform 0.5s ease-out';
-    el.classList.add('sb-on');
+    sbAnimateHeaders();
   } else {
-    el.style.transition = 'transform 0.35s ease-in';
-    el.classList.remove('sb-on');
+    var mh1    = document.getElementById('sb-mainheader1');
+    var h1     = document.getElementById('sb-header1');
+    var sbBack = document.getElementById('sb-scoreboard-back');
+    if (mh1)    mh1.classList.remove('sb-slide-in');
+    if (h1)     h1.classList.remove('sb-slide-in');
+    if (sbBack) sbBack.classList.remove('sb-slide-in');
   }
+}
+
+/* mainheader1 slides in from the left first, header1 follows ~120ms
+   behind (almost together, but one after the other); the scoreboard
+   plate slides in from the right in lockstep with mainheader1, and each
+   team row cascades in one after another AT THE SAME TIME as the plate's
+   own slide (see sbAnimateRowsIn — same technique as the Waiting Screen
+   TVC scoreboard's row cascade). Reset-then-reapply so this replays
+   identically every time the scoreboard is shown, not just on first page
+   load. */
+function sbAnimateHeaders() {
+  var mh1    = document.getElementById('sb-mainheader1');
+  var h1     = document.getElementById('sb-header1');
+  var sbBack = document.getElementById('sb-scoreboard-back');
+  if (mh1)    mh1.classList.remove('sb-slide-in');
+  if (h1)     h1.classList.remove('sb-slide-in');
+  if (sbBack) sbBack.classList.remove('sb-slide-in');
+  void document.body.offsetWidth; /* force reflow so the removal above actually takes effect before re-adding */
+  if (mh1)    mh1.classList.add('sb-slide-in');
+  if (sbBack) sbBack.classList.add('sb-slide-in');
+  setTimeout(function() { if (h1) h1.classList.add('sb-slide-in'); }, 120);
+  sbAnimateRowsIn();
+}
+
+/* One team at a time, not all at once — each row gets its own staggered
+   delay so the cascade lands across a full 1s span regardless of row
+   count (fewer rows just means bigger gaps between them), same
+   opacity+translateY entrance and stagger-step math as Fullscreen.html's
+   wtvcAnimateRows/wtvc-row-in. */
+var SB_ROW_ANIM_MS = 400;
+var SB_ROW_TRANSITION_MS = 1000;
+
+function sbAnimateRowsIn() {
+  var back = document.getElementById('sb-scoreboard-back');
+  if (!back) return;
+  var rows = back.querySelectorAll('.sb-score-row');
+  var step = rows.length > 1 ? (SB_ROW_TRANSITION_MS - SB_ROW_ANIM_MS) / (rows.length - 1) : 0;
+  rows.forEach(function(row, i) {
+    row.style.animation = 'none';
+    void row.offsetWidth; /* restart the animation every time the scoreboard is (re)shown */
+    row.style.animation = 'ssr-row-in ' + SB_ROW_ANIM_MS + 'ms ease-in-out ' + (i * step) + 'ms both';
+  });
 }
 
 /* Apply real server-side shown/hidden state on load, so a (re)loaded
@@ -202,260 +117,7 @@ fetch('/overlay/check-overlays').then(function(r) { return r.json(); }).then(fun
   sbHandleToggle(!(d && d.scoreboard === false));
 }).catch(function() { sbHandleToggle(true); });
 
-function formatGold(g) {
-  if (g < 1000) return String(g);
-  return (g / 1000).toFixed(1) + 'k';
-}
-
-/* Match Board's per-camp team (campid 1/2, resolved from home/away via
-   swapped) — see sbPollMatchState(). Tricode + logo for the scoreboard
-   come from here, not the live game feed's team_simple_name. */
-var sbMsC1Team = null;
-var sbMsC2Team = null;
-
-/* ── Local timer (smooth game clock) ── */
-var _sb = {
-  running:    false,
-  startMs:    0,       // Date.now() at last sync point
-  offsetSec:  0,       // game_time seconds at last sync point
-  frozenSec:  0,       // display value when paused
-  prevApi:    -1,      // last seen api game_time
-  sameCount:  0,       // consecutive polls with identical api time
-  syncTick:   0,       // polls since last drift-sync
-  PAUSE_AT:   2,       // same-time polls before pausing local timer
-  SYNC_EVERY: 10,      // drift-check every N polls
-  DRIFT_MAX:  2,       // seconds of allowed drift before snap
-};
-
-function _sbNow() {
-  if (!_sb.running) return _sb.frozenSec;
-  return _sb.offsetSec + (Date.now() - _sb.startMs) / 1000;
-}
-
-function _sbSetAt(sec) {
-  _sb.offsetSec = sec;
-  _sb.startMs   = Date.now();
-}
-
-/* 100ms tick — only redraws when the displayed second changes */
-var _sbLastSec = -1;
-setInterval(function() {
-  var sec = Math.floor(_sbNow());
-  if (sec < 0) sec = 0;
-  if (sec === _sbLastSec) return;
-  _sbLastSec = sec;
-  var el = document.getElementById('scoreboard-gametime');
-  if (el) el.textContent = formatTime(sec);
-}, 100);
-
-registerPollHandler(function(data) {
-  var k1 = document.getElementById('scoreboard-kills-c1');
-  var k2 = document.getElementById('scoreboard-kills-c2');
-
-  var apiSec = data.game_time || 0;
-
-  if (apiSec === 0) {
-    /* Game not started / ended — reset */
-    if (_sb.running || _sb.frozenSec > 0) {
-      _sb.running = false; _sb.frozenSec = 0;
-      _sb.prevApi = -1;    _sb.sameCount = 0;
-    }
-  } else if (!_sb.running && _sb.frozenSec === 0) {
-    /* First positive time seen — start local timer */
-    _sbSetAt(apiSec);
-    _sb.running = true; _sb.frozenSec = apiSec;
-    _sb.prevApi = apiSec; _sb.sameCount = 0;
-  } else if (apiSec === _sb.prevApi) {
-    /* Time not advancing — count toward pause */
-    _sb.sameCount++;
-    if (_sb.sameCount >= _sb.PAUSE_AT && _sb.running) {
-      _sb.frozenSec = Math.round(_sbNow());
-      _sb.running   = false;
-    }
-  } else {
-    /* Time advanced */
-    if (!_sb.running) {
-      /* Resume from pause */
-      _sbSetAt(apiSec);
-      _sb.running = true;
-    } else {
-      /* Drift-sync check every SYNC_EVERY polls */
-      _sb.syncTick++;
-      if (_sb.syncTick >= _sb.SYNC_EVERY) {
-        _sb.syncTick = 0;
-        if (Math.abs(Math.floor(_sbNow()) - apiSec) > _sb.DRIFT_MAX) {
-          _sbSetAt(apiSec);
-        }
-      }
-    }
-    _sb.sameCount = 0;
-    _sb.prevApi   = apiSec;
-    _sb.frozenSec = apiSec;
-  }
-
-  var camps = data.camp_list || [];
-  var c1 = camps.find(function(c) { return c.campid === 1; });
-  var c2 = camps.find(function(c) { return c.campid === 2; });
-
-  sbUpdateKill('scoreboard-kills-c1', c1 ? (c1.score != null ? c1.score : 0) : 0);
-  sbUpdateKill('scoreboard-kills-c2', c2 ? (c2.score != null ? c2.score : 0) : 0);
-
-  /* Tricode + logo come from Match Board (/match/state), not this live
-     game feed — see sbMsC1Team/sbMsC2Team in sbPollMatchState(). */
-  var t1 = document.getElementById('scoreboard-tricode-c1');
-  var t2 = document.getElementById('scoreboard-tricode-c2');
-  if (t1) {
-    var name1 = (sbMsC1Team && sbMsC1Team.short) || '';
-    if (name1) t1.textContent = name1.toUpperCase();
-  }
-  if (t2) {
-    var name2 = (sbMsC2Team && sbMsC2Team.short) || '';
-    if (name2) t2.textContent = name2.toUpperCase();
-  }
-
-  /* Team logos — only reload when team name changes */
-  var li1 = document.getElementById('sb-logo-c1');
-  var li2 = document.getElementById('sb-logo-c2');
-  if (li1) {
-    var limg1  = li1.querySelector('.sb-logo-img');
-    var lname1 = ((sbMsC1Team && sbMsC1Team.short) || '').toUpperCase();
-    if (limg1 && lname1 && limg1.dataset.team !== lname1) {
-      limg1.dataset.team    = lname1;
-      limg1.style.display   = 'none';
-      limg1.src             = '/logos/' + lname1 + '.png';
-    }
-  }
-  if (li2) {
-    var limg2  = li2.querySelector('.sb-logo-img');
-    var lname2 = ((sbMsC2Team && sbMsC2Team.short) || '').toUpperCase();
-    if (limg2 && lname2 && limg2.dataset.team !== lname2) {
-      limg2.dataset.team    = lname2;
-      limg2.style.display   = 'none';
-      limg2.src             = '/logos/' + lname2 + '.png';
-    }
-  }
-
-  var tw1 = document.getElementById('scoreboard-tower-c1');
-  var lo1 = document.getElementById('scoreboard-lord-c1');
-  var tu1 = document.getElementById('scoreboard-turtle-c1');
-  var tw1 = document.getElementById('scoreboard-tower-c1');
-  var lo1 = document.getElementById('scoreboard-lord-c1');
-  var tu1 = document.getElementById('scoreboard-turtle-c1');
-  var tw2 = document.getElementById('scoreboard-tower-c2');
-  var lo2 = document.getElementById('scoreboard-lord-c2');
-  var tu2 = document.getElementById('scoreboard-turtle-c2');
-  if (c1) {
-    if (tw1) tw1.textContent = c1.kill_tower    != null ? c1.kill_tower    : 0;
-    if (lo1) lo1.textContent = c1.kill_lord     != null ? c1.kill_lord     : 0;
-    if (tu1) tu1.textContent = c1.kill_tortoise != null ? c1.kill_tortoise : 0;
-  }
-  if (c2) {
-    if (tw2) tw2.textContent = c2.kill_tower    != null ? c2.kill_tower    : 0;
-    if (lo2) lo2.textContent = c2.kill_lord     != null ? c2.kill_lord     : 0;
-    if (tu2) tu2.textContent = c2.kill_tortoise != null ? c2.kill_tortoise : 0;
-  }
-
-  var g1 = document.getElementById('scoreboard-gold-c1');
-  var g2 = document.getElementById('scoreboard-gold-c2');
-  var total1 = 0, total2 = 0;
-  if (c1) { for (var s = 1; s <= 5; s++) { var seat = c1['seat_' + s]; if (seat) total1 += seat.gold || 0; } }
-  if (c2) { for (var s = 1; s <= 5; s++) { var seat = c2['seat_' + s]; if (seat) total2 += seat.gold || 0; } }
-  if (g1) g1.textContent = c1 ? formatGold(total1) : '';
-  if (g2) g2.textContent = c2 ? formatGold(total2) : '';
-  sbUpdateGoldLead(total1, total2);
-});
-
-/* ── Kill score flip animation ── */
-var _sbKillVals = {};
-
-function sbUpdateKill(id, newVal) {
-  newVal = String(newVal);
-  if (_sbKillVals[id] === newVal) return;
-  _sbKillVals[id] = newVal;
-
-  var container = document.getElementById(id);
-  if (!container) return;
-
-  /* purge any stale spans left over from backgrounded-tab missed animationends */
-  var all = container.querySelectorAll('.sb-kval');
-  var current = all[all.length - 1] || null;
-  for (var i = 0; i < all.length - 1; i++) {
-    if (all[i].parentNode) all[i].parentNode.removeChild(all[i]);
-  }
-  if (!current) return;
-
-  /* entering digit — behind the exiting one */
-  var next = document.createElement('span');
-  next.className = 'sb-kval';
-  next.style.zIndex = '1';
-  next.style.animation = 'sb-k-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
-  next.textContent = newVal;
-  container.appendChild(next);
-
-  /* exiting digit — stays on top while it falls */
-  current.style.zIndex = '2';
-  current.style.animation = 'sb-k-out 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
-  var removed = false;
-  function removeOld() {
-    if (removed) return;
-    removed = true;
-    if (current.parentNode) current.parentNode.removeChild(current);
-  }
-  current.addEventListener('animationend', removeOld, { once: true });
-  setTimeout(removeOld, 400);
-}
-
-/* ── Gold lead indicator ── */
-var _glSide = null;
-
-function sbUpdateGoldLead(total1, total2) {
-  var el1 = document.getElementById('sb-goldlead-c1');
-  var el2 = document.getElementById('sb-goldlead-c2');
-  if (!el1 || !el2) return;
-  var amt1 = el1.querySelector('.sb-goldlead-amount');
-  var amt2 = el2.querySelector('.sb-goldlead-amount');
-
-  var diff    = total1 - total2;
-  var newSide = diff > 0 ? 'c1' : diff < 0 ? 'c2' : null;
-  var amount  = '+' + formatGold(Math.abs(diff));
-
-  if (newSide === null) {
-    var hideSide = _glSide;
-    _glSide = null;
-    if (hideSide) {
-      var hideEl = hideSide === 'c1' ? el1 : el2;
-      hideEl.style.animation = 'sb-gl-out-' + hideSide + ' 0.3s ease-in forwards';
-    }
-    return;
-  }
-
-  var newEl  = newSide === 'c1' ? el1  : el2;
-  var newAmt = newSide === 'c1' ? amt1 : amt2;
-
-  if (newSide === _glSide) {
-    if (newAmt) newAmt.textContent = amount;
-    return;
-  }
-
-  var oldSide = _glSide;
-  var oldEl   = oldSide === 'c1' ? el1 : oldSide === 'c2' ? el2 : null;
-  _glSide = newSide;
-
-  if (oldEl) {
-    oldEl.style.animation = 'sb-gl-out-' + oldSide + ' 0.3s ease-in forwards';
-    setTimeout(function() {
-      oldEl.style.animation = 'none';
-      if (newAmt) newAmt.textContent = amount;
-      newEl.style.animation = 'sb-gl-in-' + newSide + ' 0.4s ease-out forwards';
-    }, 320);
-  } else {
-    if (newAmt) newAmt.textContent = amount;
-    newEl.style.animation = 'sb-gl-in-' + newSide + ' 0.4s ease-out forwards';
-  }
-}
-
-/* ── Shrink-to-fit text (binary search font-size) — used by the
-   caster box below since its content length varies a lot. ── */
+/* ── Shrink-to-fit text (binary search font-size) ── */
 function sbFitText(el, maxWidth, maxPx) {
   maxPx = maxPx || 13;
   el.style.fontSize = maxPx + 'px';
@@ -469,87 +131,53 @@ function sbFitText(el, maxWidth, maxPx) {
   el.style.fontSize = lo + 'px';
 }
 
-/* Caster box text-fit budget — NOT a plain CSS font-size, because
-   sbFitText() above sets an inline font-size on the text span every poll
-   tick, and an inline style always beats an inherited value no matter how
-   the inherited value was set (even via !important on the box), so a
-   blanket CSS override on #sb-mi-casters would never actually reach
-   .sb-mi-casters-text. Same reasoning as .sidecheck-name's
-   SIDECHECK_NAME_FONT_CEILING (see dashboard.html) — the Edit tab's saved
-   fontSize/width become the ceiling sbFitText starts from, not a fixed
-   size, so it can still shrink further for long strings instead of
-   overflowing. The width offset below (38px) reproduces the original
-   hardcoded 241 maxWidth value exactly at the default 279 box width,
-   then scales proportionally from there. */
-var SB_MI_WIDTH_OFFSET = { casters: 38 };
-var SB_MI_FIT_CONFIG = {
-  casters: { maxWidth: 241, maxPx: 13 },
-};
-function sbMiTextBudget(which, containerWidth) {
-  return Math.max(10, containerWidth - (SB_MI_WIDTH_OFFSET[which] || 0));
-}
-function sbRefitMi() {
-  var miCastersTxt = document.querySelector('#sb-mi-casters .sb-mi-casters-text');
-  if (miCastersTxt) sbFitText(miCastersTxt, SB_MI_FIT_CONFIG.casters.maxWidth, SB_MI_FIT_CONFIG.casters.maxPx);
-}
-/* Called from the Edit tab (dashboard.html's applyToEditIframe, cross-
-   frame) and from loadSbOverrides below (real page load) whenever the
-   saved width/fontSize for the caster box changes. */
-window.sbSetMiFit = function(which, opts) {
-  var cfg = SB_MI_FIT_CONFIG[which];
-  if (!cfg || !opts) return;
-  if (opts.width    !== undefined) cfg.maxWidth = sbMiTextBudget(which, opts.width);
-  if (opts.fontSize !== undefined) cfg.maxPx    = opts.fontSize;
-  sbRefitMi();
-};
+/* ── Tournament ID card text — top line is Match Board's Stage field
+   (/match/state's `stage`, e.g. "Grand Finals" — same value shown under
+   Stage on match-dashboard.html); tally line ("Q1 | MAP 1") is that
+   tally's liveTallyTab plus the current map number, both from
+   /match/state and /tally/state below, and always rendered upper-case
+   (see .sb-mh1-tally's text-transform in ingame.css). ── */
+var _sbLiveTallyTab = '';
+var _sbMatchNum = 1;
+var SB_MH1_TEXT_WIDTH = 195; /* #sb-mh1-text's 203px width, minus a little breathing room */
 
-/* ── Match score bars ── */
-function sbRenderBars(container, total, scored, fromRight) {
-  container.innerHTML = '';
-  for (var i = 0; i < total; i++) {
-    var bar = document.createElement('div');
-    bar.className = 'sb-score-bar';
-    var filled = fromRight ? (i >= total - scored) : (i < scored);
-    if (filled) bar.classList.add('filled');
-    container.appendChild(bar);
-  }
+function sbUpdateMh1Tally() {
+  var tallyEl = document.querySelector('.sb-mh1-tally');
+  if (!tallyEl) return;
+  var parts = [];
+  if (_sbLiveTallyTab) parts.push(_sbLiveTallyTab);
+  parts.push('Map ' + _sbMatchNum);
+  tallyEl.textContent = parts.join(' | ');
+  sbFitText(tallyEl, SB_MH1_TEXT_WIDTH, 28.46);
 }
+
+function sbPollTallyState() {
+  fetch('/tally/state', { cache: 'no-store' })
+    .then(function(r) { return r.json(); })
+    .then(function(t) {
+      _sbLiveTallyTab = (t && t.liveTallyTab) || '';
+      sbUpdateMh1Tally();
+    })
+    .catch(function() {});
+}
+
+sbPollTallyState();
+setInterval(sbPollTallyState, 3500);
 
 function sbPollMatchState() {
   fetch('/match/state', { cache: 'no-store' })
     .then(function(r) { return r.json(); })
     .then(function(s) {
-      var maxWins = Math.ceil(parseInt((s.series || 'BO3').replace('BO', '')) / 2);
-      var home    = s.home || s.teamA;
-      var away    = s.away || s.teamB;
-      var swapped = s.swapped !== undefined ? s.swapped : (s.blueTeam === 'B');
-      var c1Team  = swapped ? away : home;
-      var c2Team  = swapped ? home : away;
-      sbMsC1Team = c1Team;
-      sbMsC2Team = c2Team;
-      sbRenderBars(document.getElementById('sb-score-c1'), maxWins, c1Team.score, true);
-      sbRenderBars(document.getElementById('sb-score-c2'), maxWins, c2Team.score, false);
+      var nameEl = document.querySelector('.sb-mh1-name');
+      if (nameEl) {
+        nameEl.textContent = s.stage || '';
+        sbFitText(nameEl, SB_MH1_TEXT_WIDTH, 36.88);
+      }
+      _sbMatchNum = s.match || 1;
+      sbUpdateMh1Tally();
 
-      /* maxWidth/maxPx come from SB_MI_FIT_CONFIG (see sbFitText above) —
-         driven by the saved Caster Box width+fontSize, not hardcoded, so
-         an Edit-tab resize actually changes what fits. */
-      var miCastersTxt = document.querySelector('#sb-mi-casters .sb-mi-casters-text');
-      if (miCastersTxt) {
-        miCastersTxt.textContent = (s.casters || []).filter(Boolean).join(' | ').toUpperCase();
-        sbFitText(miCastersTxt, SB_MI_FIT_CONFIG.casters.maxWidth, SB_MI_FIT_CONFIG.casters.maxPx);
-      }
-
-      var mapVal     = s.map || 'Broken Walls';
-      var mapNameTxt = document.querySelector('#sb-map-name .sb-map-name-text');
-      var mapLogoImg = document.getElementById('sb-map-logo-img');
-      if (mapNameTxt) {
-        mapNameTxt.textContent = mapVal.toUpperCase();
-        sbFitText(mapNameTxt, 129, 29.17);
-      }
-      if (mapLogoImg && mapLogoImg.dataset.map !== mapVal) {
-        mapLogoImg.dataset.map = mapVal;
-        mapLogoImg.src = '/maps/' + encodeURIComponent(mapVal) + '.png';
-      }
+      _sbStage = s.stage || '';
+      sbRenderScoreboard();
     })
     .catch(function() {});
 }
@@ -557,102 +185,301 @@ function sbPollMatchState() {
 sbPollMatchState();
 setInterval(sbPollMatchState, 3000);
 
-/* ── Sponsor loop ── */
-(function() {
-  var SPONSORS = [];
-  var idx = 0;
+/* ── Team scoreboard rows — one .sb-score-row per team on the live Tally
+   sheet (capped at 20). The plate itself (#sb-scoreboard-back) NEVER
+   resizes — it's each row's height that's recomputed to fill the
+   plate's fixed space evenly, so 10 teams means 10 taller rows, not a
+   shorter plate; each row's own content keeps its fixed Figma size and
+   just re-centers vertically (see ingame.css). Same 3.5s cadence as
+   match-dashboard.html's own live-standings poll for the roster, plus
+   /match/state's Stage above for the Qualifiers column swap: Qualifiers
+   has no separate placement points, so PTS+Elim collapse into one
+   ELIM-only column (.ssr-elim-solo / .ssh-elim-solo) instead. */
+var SB_SCORE_ROW_TOP = 48;   /* first row's offset from the plate's own top */
+var SB_SCORE_PLATE_H  = 713; /* #sb-scoreboard-back's fixed height */
+var SB_SCORE_MAX_ROWS = 20;
+var SB_SCORE_TEAM_WIDTH = 165; /* .ssr-team's 173px width, minus a little breathing room */
+var SB_SCORE_LOGO_SPACE = 32;  /* .ssr-team-logo's 26px width + its 6px margin-right */
 
-  function runLoop() {
-    var img = document.getElementById('sb-sponsor-img');
-    (function next() {
-      var s = SPONSORS[idx];
-      img.className = '';
-      img.src = s.src;
-      void img.offsetWidth;
-      img.classList.add('sb-spon-in');
+var _sbTeams = [];
+var _sbStage = '';
 
-      function onIn(ev) {
-        if (ev.propertyName !== 'transform') return;
-        img.removeEventListener('transitionend', onIn);
-        setTimeout(function() {
-          img.classList.remove('sb-spon-in');
-          img.classList.add('sb-spon-out');
-          function onOut(ev) {
-            if (ev.propertyName !== 'transform') return;
-            img.removeEventListener('transitionend', onOut);
-            idx = (idx + 1) % SPONSORS.length;
-            next();
-          }
-          img.addEventListener('transitionend', onOut);
-        }, s.dur);
+function sbIsQualifiers() {
+  return /qualifier/i.test(_sbStage);
+}
+
+/* Shrinks .ssr-team-name to fit whatever width is actually left in the
+   173px team box — the full width when there's no logo (current state,
+   e.g. Qualifiers), or minus the logo's own space once one loads. Reruns
+   on every logo onload/onerror too, since that changes the budget. */
+function sbFitTeamName(row) {
+  var nameEl = row.querySelector('.ssr-team-name');
+  if (!nameEl) return;
+  var logo = row.querySelector('.ssr-team-logo');
+  var hasLogo = logo && logo.style.display !== 'none';
+  var maxWidth = SB_SCORE_TEAM_WIDTH - (hasLogo ? SB_SCORE_LOGO_SPACE : 0);
+  sbFitText(nameEl, maxWidth, 27.42);
+}
+
+function sbBuildScoreRow() {
+  var row = document.createElement('div');
+  row.className = 'sb-score-row';
+
+  var rank = document.createElement('div');
+  rank.className = 'ssr-rank';
+  row.appendChild(rank);
+
+  var flag = document.createElement('div');
+  flag.className = 'ssr-flag';
+  var flagImg = document.createElement('img');
+  flagImg.className = 'ssr-flag-img';
+  flagImg.alt = '';
+  flagImg.style.display = 'none';
+  var flagTxt = document.createElement('span');
+  flagTxt.className = 'ssr-flag-text';
+  /* Same fallback idiom as the old team-logo containers: try the image
+     (assets/flag/<REGION>_flag.png), fall back to the region text (from
+     the live Tally sheet, e.g. "PH") if it 404s. */
+  flagImg.onload  = function() { flagImg.style.display = 'block'; flagTxt.style.display = 'none'; };
+  flagImg.onerror = function() { flagImg.style.display = 'none';  flagTxt.style.display = ''; };
+  flag.appendChild(flagImg);
+  flag.appendChild(flagTxt);
+  row.appendChild(flag);
+
+  var divider = document.createElement('div');
+  divider.className = 'ssr-divider';
+  row.appendChild(divider);
+
+  /* Team box — logo (once one exists) + name, or just the name filling
+     the whole box when there's no logo (e.g. Qualifiers). Same
+     img-with-fallback idiom as the flag above. */
+  var team = document.createElement('div');
+  team.className = 'ssr-team';
+  var teamLogo = document.createElement('img');
+  teamLogo.className = 'ssr-team-logo';
+  teamLogo.alt = '';
+  teamLogo.style.display = 'none';
+  var teamName = document.createElement('span');
+  teamName.className = 'ssr-team-name';
+  teamLogo.onload  = function() { teamLogo.style.display = ''; sbFitTeamName(row); };
+  teamLogo.onerror = function() { teamLogo.style.display = 'none'; sbFitTeamName(row); };
+  team.appendChild(teamLogo);
+  team.appendChild(teamName);
+  row.appendChild(team);
+
+  var pts = document.createElement('div');
+  pts.className = 'ssr-pts';
+  row.appendChild(pts);
+
+  var elim = document.createElement('div');
+  elim.className = 'ssr-elim';
+  row.appendChild(elim);
+
+  var elimSolo = document.createElement('div');
+  elimSolo.className = 'ssr-elim-solo';
+  row.appendChild(elimSolo);
+
+  return row;
+}
+
+/* Rank is deliberately NOT set here — sbRenderScoreboard sets it directly
+   (immediately for an unchanged/new row) or defers it to the end of the
+   move animation (see sbAnimateRowMove) when a team's rank has actually
+   changed, so the number-fade-in always shows the NEW rank exactly when
+   the row lands in its new spot. */
+function sbSetRank(row, rank) {
+  var rankEl = row.querySelector('.ssr-rank');
+  if (rankEl) rankEl.textContent = rank;
+}
+
+function sbFillScoreRow(row, team, qualifiers) {
+  var region = ((team && team.region) || '').toUpperCase();
+  var flagImg = row.querySelector('.ssr-flag-img');
+  var flagTxt = row.querySelector('.ssr-flag-text');
+  if (flagTxt) flagTxt.textContent = region;
+  if (flagImg) {
+    if (region) {
+      if (flagImg.dataset.region !== region) {
+        flagImg.dataset.region  = region;
+        flagImg.style.display   = 'none';
+        if (flagTxt) flagTxt.style.display = '';
+        flagImg.src = '/flag/' + encodeURIComponent(region) + '_flag.png';
       }
-      img.addEventListener('transitionend', onIn);
-    })();
+    } else {
+      flagImg.style.display = 'none';
+      flagImg.removeAttribute('src');
+    }
   }
 
-  fetch('/api/sponsors?ingame=1')
-    .then(function(r) { return r.json(); })
-    .then(function(list) {
-      if (!list || !list.length) return;
-      SPONSORS = list;
-      runLoop();
-    })
-    .catch(function() {});
-})();
+  var teamName = (team && team.name) || '';
+  var teamLogo = row.querySelector('.ssr-team-logo');
+  var teamNameEl = row.querySelector('.ssr-team-name');
+  if (teamNameEl) teamNameEl.textContent = teamName;
+  if (teamLogo) {
+    if (teamName) {
+      if (teamLogo.dataset.team !== teamName) {
+        teamLogo.dataset.team  = teamName;
+        teamLogo.style.display = 'none'; /* onload/onerror (set in sbBuildScoreRow) re-show + refit */
+        teamLogo.src = '/logos/' + encodeURIComponent(teamName) + '.png';
+      }
+    } else {
+      teamLogo.style.display = 'none';
+      teamLogo.removeAttribute('src');
+    }
+  }
+  sbFitTeamName(row);
 
-/* ── Load saved position/style overrides from dashboard editor ── */
-(function loadSbOverrides() {
-  fetch('/api/overlay-styles?file=ingame_scoreboard')
+  var ptsEl      = row.querySelector('.ssr-pts');
+  var elimEl     = row.querySelector('.ssr-elim');
+  var elimSoloEl = row.querySelector('.ssr-elim-solo');
+  if (qualifiers) {
+    if (ptsEl)  ptsEl.style.display  = 'none';
+    if (elimEl) elimEl.style.display = 'none';
+    if (elimSoloEl) {
+      elimSoloEl.style.display = 'flex';
+      elimSoloEl.textContent   = (team && team.currentMapKills) || 0;
+    }
+  } else {
+    if (elimSoloEl) elimSoloEl.style.display = 'none';
+    /* PTS = total score so far (all maps), ELIM = +kills on THIS map only
+       (not the season-long running kill total — see currentMapKills in
+       lib/tallyRoster.js's getLiveSheetStandings). */
+    if (ptsEl)  { ptsEl.style.display  = 'flex'; ptsEl.textContent  = (team && team.totalScore) || 0; }
+    if (elimEl) { elimEl.style.display = 'flex'; elimEl.textContent = '+' + ((team && team.currentMapKills) || 0); }
+  }
+}
+
+function sbUpdateScoreHeaderLabels(qualifiers) {
+  var pts  = document.querySelector('.ssh-pts');
+  var elim = document.querySelector('.ssh-elim');
+  var solo = document.querySelector('.ssh-elim-solo');
+  if (pts)  pts.style.display  = qualifiers ? 'none' : 'flex';
+  if (elim) elim.style.display = qualifiers ? 'none' : 'flex';
+  if (solo) solo.style.display = qualifiers ? 'flex' : 'none';
+}
+
+/* Overtake animation — a row that's changing rank gets raised above every
+   other row (elevated z-index) and its rank number fades out BEFORE the
+   move starts, then transitions to its new top/height, then (once the
+   move finishes) the rank text updates to the new number and fades back
+   in, and the row drops back to its normal stacking. .ssr-moving only
+   carries the `transition` — it's added right before the top/height
+   change and removed once settled, so a brand-new row's very first
+   placement (in sbRenderScoreboard) never itself transitions in from
+   some stale/zero position. */
+var SB_ROW_MOVE_MS = 500;
+
+function sbAnimateRowMove(row, newTop, newHeight, newRank) {
+  row.classList.add('ssr-moving');
+  void row.offsetWidth; /* force reflow so the class above is applied before top/height change below, or the browser may coalesce them and skip the transition */
+  row.style.zIndex = 500;
+  var rankEl = row.querySelector('.ssr-rank');
+  if (rankEl) rankEl.style.opacity = '0';
+
+  row.style.top    = newTop + 'px';
+  row.style.height = newHeight + 'px';
+
+  var done = false;
+  function finish() {
+    if (done) return;
+    done = true;
+    row.removeEventListener('transitionend', onEnd);
+    row.classList.remove('ssr-moving');
+    row.style.zIndex = '';
+    sbSetRank(row, newRank);
+    if (rankEl) {
+      void rankEl.offsetWidth; /* force reflow so the opacity transition below actually plays instead of being coalesced with the '0' set above */
+      rankEl.style.opacity = '1';
+    }
+  }
+  function onEnd(ev) {
+    if (ev.target !== row || ev.propertyName !== 'top') return;
+    finish();
+  }
+  row.addEventListener('transitionend', onEnd);
+  setTimeout(finish, SB_ROW_MOVE_MS + 150); /* safety net, same idiom as this file's other transition/animation cleanups */
+}
+
+var _sbRowsByTeam = {}; /* team name -> row element, so a reorder moves the SAME element instead of just swapping text between fixed slots */
+
+function sbRenderScoreboard() {
+  var back = document.getElementById('sb-scoreboard-back');
+  if (!back) return;
+  var teams = _sbTeams.slice(0, SB_SCORE_MAX_ROWS);
+  var n = teams.length;
+  var qualifiers = sbIsQualifiers();
+  var rowH = n ? (SB_SCORE_PLATE_H - SB_SCORE_ROW_TOP) / n : 0;
+
+  var seen = {};
+  teams.forEach(function(team, i) {
+    var rank = i + 1;
+    var name = (team && team.name) || ('#' + rank);
+    seen[name] = true;
+
+    var row = _sbRowsByTeam[name];
+    var isNew = !row;
+    if (isNew) {
+      row = sbBuildScoreRow();
+      _sbRowsByTeam[name] = row;
+      back.appendChild(row);
+    }
+
+    sbFillScoreRow(row, team, qualifiers);
+
+    var newTop = SB_SCORE_ROW_TOP + i * rowH;
+    var prevRank = row.dataset.rank ? parseInt(row.dataset.rank, 10) : null;
+
+    if (isNew) {
+      row.style.top    = newTop + 'px';
+      row.style.height = rowH + 'px';
+      row.dataset.rank = rank;
+      sbSetRank(row, rank);
+      /* .sb-score-row's own CSS default is opacity:0 (see ingame.css) so
+         the whole plate starts empty for sbAnimateRowsIn's entrance
+         cascade — a row built AFTER that cascade already ran (a new team
+         showing up mid-broadcast) needs its own one-off reveal here, or
+         it would just stay invisible forever. Harmless to always run
+         this even before the scoreboard's first show: sbAnimateRowsIn
+         resets `animation` from scratch for every row anyway. */
+      row.style.animation = 'ssr-row-in ' + SB_ROW_ANIM_MS + 'ms ease-in-out both';
+    } else if (prevRank !== rank) {
+      row.dataset.rank = rank;
+      sbAnimateRowMove(row, newTop, rowH, rank);
+    } else if (parseFloat(row.style.top) !== newTop || parseFloat(row.style.height) !== rowH) {
+      /* Same rank, but the plate's own row height shifted (team count
+         changed) — glide to the new size/slot too, just without the
+         overtake z-index/rank-fade theatrics since nothing overtook
+         anything. */
+      row.classList.add('ssr-moving');
+      void row.offsetWidth;
+      row.style.top    = newTop + 'px';
+      row.style.height = rowH + 'px';
+      setTimeout(function() { row.classList.remove('ssr-moving'); }, SB_ROW_MOVE_MS + 150);
+      sbSetRank(row, rank);
+    } else {
+      sbSetRank(row, rank);
+    }
+  });
+
+  Object.keys(_sbRowsByTeam).forEach(function(name) {
+    if (seen[name]) return;
+    var row = _sbRowsByTeam[name];
+    if (row.parentNode) row.parentNode.removeChild(row);
+    delete _sbRowsByTeam[name];
+  });
+
+  sbUpdateScoreHeaderLabels(qualifiers);
+}
+
+function sbPollTeamScores() {
+  fetch('/api/live-tally-standings', { cache: 'no-store' })
     .then(function(r) { return r.json(); })
-    .then(function(styles) {
-      if (!styles || !Object.keys(styles).length) return;
-      /* Seed SB_MI_FIT_CONFIG from the saved Caster Box width+fontSize
-         (see sbFitText above for why this one skips the blanket
-         !important path below). */
-      ['casters'].forEach(function(which) {
-        var props = styles['#sb-mi-casters'];
-        if (!props) return;
-        var opts = {};
-        if (props.width    !== undefined) opts.width    = parseFloat(props.width);
-        if (props.fontSize !== undefined) opts.fontSize = parseFloat(props.fontSize);
-        if (opts.width !== undefined || opts.fontSize !== undefined) window.sbSetMiFit(which, opts);
-      });
-      var css = Object.keys(styles).map(function(sel) {
-        var props = styles[sel];
-        /* .sidecheck-name's saved font-size (only — left/top go through
-           the normal path below) is read directly by
-           overlay-sidecheck-core.js (SIDECHECK_NAME_FONT_CEILING) instead
-           of being injected as a blanket override here — a `!important`
-           rule would always win over that script's own inline font-size
-           assignment, permanently defeating its shrink-to-fit-the-box
-           protection for long names. See the SIDECHECK_DEFAULTS comment
-           in dashboard.html for the full reasoning. #sb-mi-casters'
-           saved font-size is excluded the same way and for the same
-           reason (see SB_MI_FIT_CONFIG above) — its width is NOT
-           excluded, since it's still a real CSS box dimension on top of
-           also feeding the fit budget. */
-        var skipFontSize = (sel === '.sidecheck-name' || sel === '#sb-mi-casters');
-        var decls = Object.keys(props).filter(function(prop) {
-          return prop !== 'asset' && !(skipFontSize && prop === 'fontSize');
-        }).map(function(prop) {
-          var cssProp = prop === 'fontSize' ? 'font-size' : prop;
-          return cssProp + ':' + props[prop] + ' !important';
-        }).join(';');
-        return sel + '{' + decls + '}';
-      }).join('\n');
-      var style = document.createElement('style');
-      style.id = 'sb-overrides';
-      style.textContent = css;
-      document.head.appendChild(style);
-      /* `asset` overrides can't go through CSS !important (a src attribute
-         can't be overridden that way) — apply directly to any matching
-         IMG/VIDEO element instead. */
-      Object.keys(styles).forEach(function(sel) {
-        if (styles[sel].asset === undefined) return;
-        document.querySelectorAll(sel).forEach(function(el) {
-          if (el.tagName === 'IMG' || el.tagName === 'VIDEO') el.src = styles[sel].asset;
-        });
-      });
+    .then(function(d) {
+      _sbTeams = (d && d.teams) || [];
+      sbRenderScoreboard();
     })
     .catch(function() {});
-})();
+}
+
+sbPollTeamScores();
+setInterval(sbPollTeamScores, 3500);

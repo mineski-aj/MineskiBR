@@ -171,22 +171,22 @@
   "match": 1,
   "countdownLabelAuto": true,
   "timer": {
-    "running": false,
-    "endAt": null,
-    "remaining": 900
+    "running": true,
+    "endAt": 1790005292162,
+    "remaining": 3540
   },
-  "map": "Isolated",
+  "map": "Rebirth Island",
   "enCasters": [
     "Leo",
     "Naisou",
     "Wolf"
   ],
-  "stage": "Grand Finals",
+  "stage": "Qualifiers",
   "todayMapsCount": 5,
   "todayMaps": [
     {
       "time": "",
-      "mapName": "Isolated",
+      "mapName": "Rebirth Island",
       "winner": ""
     },
     {
@@ -196,17 +196,17 @@
     },
     {
       "time": "",
-      "mapName": "Isolated",
+      "mapName": "Blackout",
       "winner": ""
     },
     {
       "time": "",
-      "mapName": "Isolated",
+      "mapName": "Krai",
       "winner": ""
     },
     {
       "time": "",
-      "mapName": "Isolated",
+      "mapName": "Alcatraz",
       "winner": ""
     }
   ],

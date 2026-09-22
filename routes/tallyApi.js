@@ -46,6 +46,14 @@ router.get('/api/live-tally-standings', function (req, res) {
   res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getLiveSheetStandings());
 });
 
+router.get('/api/current-map-standings', function (req, res) {
+  res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getCurrentMapStandings());
+});
+
+router.get('/api/live-sheet-overall-standings', function (req, res) {
+  res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getLiveSheetOverallStandings());
+});
+
 router.get(/^\/api\/tab(\d+)$/, function (req, res) {
   const n = parseInt(req.params[0], 10);
   const data = externalTally.get();
