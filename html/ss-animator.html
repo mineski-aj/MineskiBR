@@ -1566,10 +1566,14 @@ function startAnimation(bank, from, to, duration) {
     }
   });
 
-  // Animate position/size with easing
+  // Animate position/size with easing — driven by real elapsed time
+  // (performance.now() - startMs), not a fixed tick count, so a delayed
+  // setInterval tick (background-tab throttling, a GC pause, etc.) just
+  // catches up instead of stretching the whole animation out. See the
+  // matching comment on the server-side runAnimation() in
+  // lib/ssAnimatorBridge.js for the bug this avoids.
   const STEPS = 60;
   const interval = duration / STEPS;
-  let step = 0;
 
   // Start progress bar
   requestAnimationFrame(() => {
@@ -1577,8 +1581,7 @@ function startAnimation(bank, from, to, duration) {
   });
 
   const timer = setInterval(() => {
-    step++;
-    const t = Math.min(step / STEPS, 1);
+    const t = Math.min((performance.now() - startMs) / duration, 1);
     const eased = easeInOut(t);
 
     const frame = {
@@ -1597,7 +1600,7 @@ function startAnimation(bank, from, to, duration) {
     const filteredBoxes = frame.boxes.map((fb, i) => to.boxes[i]?.enabled ? fb : null);
     sendWS({ cmd: 'set_ssrc_positions', ssrc: bank.ssIndex - 1, boxes: filteredBoxes });
 
-    if (step >= STEPS) {
+    if (t >= 1) {
       clearInterval(timer);
       state.animatingBanks.delete(bank.id);
 
