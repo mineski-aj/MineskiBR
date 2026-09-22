@@ -1786,11 +1786,20 @@ function loadState() {
   }
 }
 
-// Auto-save on any input change (debounced)
+// Auto-save on any input change (debounced). Also re-registers banks with
+// the server bridge — duration, box coords/sources, fill/art, etc. were
+// previously only pushed to the server on addBank/removeBank/connect, so
+// an HTTP trigger (GET /ss-animator/ss1/1) kept animating with whatever
+// stale duration/positions were registered at that last point, ignoring
+// any edit made since (e.g. changing the DURATION field never reached
+// the server at all until you added or removed a bank).
 let saveTimer = null;
 function scheduleSave() {
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(saveState, 600);
+  saveTimer = setTimeout(function () {
+    saveState();
+    registerBanks();
+  }, 600);
 }
 document.addEventListener('input',  scheduleSave);
 document.addEventListener('change', scheduleSave);
