@@ -858,6 +858,7 @@
 <nav id="tab-bar">
   <button class="tab-btn" data-page="matchboard">Match Board</button>
   <button class="tab-btn" data-page="tally">Tally</button>
+  <button class="tab-btn" data-page="ssanimator">SS Animator</button>
   <button class="tab-btn active" data-page="control">Control</button>
   <button class="tab-btn" data-page="dynamic">Dynamic</button>
   <button class="tab-btn" data-page="roster">Roster</button>
@@ -877,6 +878,15 @@
      and the live Google Sheets tally mirror. See routes/tally.js. -->
 <div id="page-tally" class="page">
   <iframe id="tally-iframe" src="/html/tally-console.html" allow="autoplay"
+    style="width:100%;flex:1;border:none;min-height:0;"></iframe>
+</div>
+
+<!-- Page: SS Animator (ATEM SuperSource bank animator, see
+     lib/ssAnimatorBridge.js / routes/ssAnimator.js). Always-mounted like
+     Match Board/Tally so its WebSocket to the ATEM bridge stays live and
+     registered banks/HTTP triggers keep working while on another tab. -->
+<div id="page-ssanimator" class="page">
+  <iframe id="ssanimator-iframe" src="/html/ss-animator.html" allow="autoplay"
     style="width:100%;flex:1;border:none;min-height:0;"></iframe>
 </div>
 
@@ -1013,6 +1023,18 @@
         <label>All Pages</label>
         <button id="btn-force-reload-overlays" class="settings-btn">Force-Refresh All Overlays</button>
         <span id="force-reload-status" class="settings-status"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-section-hdr">ATEM SuperSource (SS Animator)<span id="atem-ip-conn-status" class="settings-status"></span></div>
+    <div class="settings-section-body">
+      <div class="settings-row">
+        <label for="atem-ip-input">ATEM IP</label>
+        <input type="text" id="atem-ip-input" class="settings-input" placeholder="192.168.1.240" spellcheck="false" autocomplete="off" />
+        <button id="atem-ip-apply" class="settings-btn">Apply</button>
+        <span id="atem-ip-status" class="settings-status"></span>
       </div>
     </div>
   </div>
@@ -1243,6 +1265,38 @@
 
   gameApiApply.addEventListener('click', saveGameApiUrl);
   gameApiInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') saveGameApiUrl(); });
+
+  /* ── ATEM IP (SS Animator) ─────────────────────────────────── */
+  var atemIpInput  = document.getElementById('atem-ip-input');
+  var atemIpApply  = document.getElementById('atem-ip-apply');
+  var atemIpStatus = document.getElementById('atem-ip-status');
+  var atemConnStatus = document.getElementById('atem-ip-conn-status');
+
+  fetch('/api/atem-ip').then(function(r){ return r.json(); }).then(function(d){
+    atemIpInput.value = d.ip || '';
+    atemConnStatus.textContent = d.connected ? '● Connected' : '○ Not connected';
+    atemConnStatus.style.color = d.connected ? '#44cc88' : '#888';
+  }).catch(function(){});
+
+  function saveAtemIp() {
+    var ip = atemIpInput.value.trim();
+    if (!ip) return;
+    fetch('/api/atem-ip', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ip: ip })
+    }).then(function(r){ return r.json(); }).then(function(){
+      atemIpStatus.textContent = 'Saved — reconnecting…';
+      atemIpStatus.style.color = '#44cc88';
+      setTimeout(function(){ atemIpStatus.textContent = ''; }, 3000);
+    }).catch(function(){
+      atemIpStatus.textContent = 'Error';
+      atemIpStatus.style.color = '#ff4455';
+    });
+  }
+
+  atemIpApply.addEventListener('click', saveAtemIp);
+  atemIpInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') saveAtemIp(); });
 
   /* ── Team Head to Head (Team Hexagon) API URL ─────────────── */
   var hexApiInput  = document.getElementById('hexagon-api-input');

@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SuperSource Animator — ATEM Control</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0a0b0d;
+    --surface: #111318;
+    --surface2: #171b22;
+    --surface3: #1e2330;
+    --border: #2a3040;
+    --border-bright: #3d4f6a;
+    --accent: #00d4ff;
+    --accent-dim: #0099bb;
+    --green: #00e676;
+    --green-dim: #00a854;
+    --amber: #ffab00;
+    --red: #ff3d57;
+    --red-dim: #cc1e35;
+    --text: #c8d6e8;
+    --text-dim: #6a7d96;
+    --text-bright: #eaf2ff;
+    --mono: 'Share Tech Mono', monospace;
+    --sans: 'Barlow Condensed', sans-serif;
+    --body: 'Barlow', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-bright);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-badge {
+    background: var(--accent);
+    color: #000;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    letter-spacing: 2px;
+    border-radius: 2px;
+  }
+
+  /* ── CONNECTION BAR ── */
+  .connection-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .conn-label {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .atem-ip-display {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-bright);
+    letter-spacing: 1px;
+  }
+
+  .atem-ip-display {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    border-radius: 3px;
+    min-width: 140px;
+    text-align: center;
+    letter-spacing: 0.05em;
+  }
+
+  .btn-io {
+    background: transparent;
+    border: 1px solid var(--border-bright);
+    color: var(--text-dim);
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    padding: 5px 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+    border-radius: 3px;
+    transition: all 0.15s;
+  }
+  .btn-io:hover { border-color: var(--amber); color: var(--amber); }
+
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 0 0 rgba(255,61,87,0.4);
+    transition: background 0.3s;
+    flex-shrink: 0;
+  }
+
+  .status-dot.connected {
+    background: var(--green);
+    animation: pulse-green 2s infinite;
+  }
+
+  .status-dot.connecting {
+    background: var(--amber);
+    animation: pulse-amber 0.8s infinite;
+  }
+
+  @keyframes pulse-green {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,230,118,0.5); }
+    50% { box-shadow: 0 0 0 5px rgba(0,230,118,0); }
+  }
+
+  @keyframes pulse-amber {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,171,0,0.6); }
+    50% { box-shadow: 0 0 0 5px rgba(255,171,0,0); }
+  }
+
+  .status-text {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .status-text.connected { color: var(--green); }
+  .status-text.connecting { color: var(--amber); }
+  .status-text.error { color: var(--red); }
+
+  /* ── TOAST ── */
+  #toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9998;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toast {
+    background: var(--surface2);
+    border-left: 3px solid var(--accent);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 10px 16px;
+    border-radius: 3px;
+    color: var(--text);
+    animation: toast-in 0.3s ease;
+    max-width: 320px;
+  }
+
+  .toast.error { border-left-color: var(--red); }
+  .toast.success { border-left-color: var(--green); }
+  .toast.warn { border-left-color: var(--amber); }
+
+  @keyframes toast-in {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  /* ── SUPERSOURCE PANEL ── */
+  .ss-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .ss-header {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .ss-title {
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-bright);
+  }
+
+  .ss-title span {
+    color: var(--accent);
+  }
+
+  .anim-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .anim-label {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .anim-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 4px 8px;
+    width: 72px;
+    outline: none;
+    border-radius: 3px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+
+  .anim-input:focus { border-color: var(--accent); }
+
+  /* ── BANKS CONTAINER ── */
+  .banks-container {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* ── BANK CARD ── */
+  .bank-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .bank-card:hover { border-color: var(--border-bright); }
+  .bank-card.active-bank { border-color: var(--accent); }
+
+  .bank-card-header {
+    background: var(--surface3);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .bank-name-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .bank-number {
+    font-family: var(--mono);
+    font-size: 18px;
+    color: var(--accent);
+    font-weight: bold;
+    line-height: 1;
+  }
+
+  .bank-name-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-bright);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    padding: 2px 4px;
+    width: 160px;
+    outline: none;
+    text-transform: uppercase;
+    transition: border-color 0.2s;
+  }
+
+  .bank-name-input:focus { border-color: var(--accent); }
+  .bank-name-input::placeholder { color: var(--text-dim); }
+
+  /* ── THUMBNAIL ── */
+  .bank-thumb {
+    width: 96px;
+    height: 54px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+    display: block;
+    image-rendering: pixelated;
+  }
+
+  /* ── ART ROW ── */
+  .art-row {
+    padding: 0 14px 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    flex-wrap: wrap;
+  }
+
+  .art-option-btns {
+    display: flex;
+    gap: 4px;
+  }
+
+  .art-opt {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    transition: all 0.12s;
+  }
+
+  .art-opt.active {
+    background: rgba(255,0,255,0.15);
+    border-color: magenta;
+    color: magenta;
+  }
+
+  .bank-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .btn {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid;
+    transition: all 0.12s;
+    white-space: nowrap;
+  }
+
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-get {
+    background: transparent;
+    border-color: var(--border-bright);
+    color: var(--text-dim);
+  }
+  .btn-get:hover:not(:disabled) { border-color: var(--amber); color: var(--amber); }
+
+  .btn-apply {
+    background: transparent;
+    border-color: var(--border-bright);
+    color: var(--text-dim);
+  }
+  .btn-apply:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+
+  .btn-go {
+    background: var(--green-dim);
+    border-color: var(--green);
+    color: #000;
+    font-weight: 800;
+  }
+  .btn-go:hover:not(:disabled) { background: var(--green); box-shadow: 0 0 12px rgba(0,230,118,0.3); }
+  .btn-go:disabled { background: transparent; color: var(--text-dim); border-color: var(--border); }
+
+  /* ── BOX SOURCES ── */
+  .box-sources {
+    padding: 10px 14px 12px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .box-slot {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 8px;
+  }
+
+  .box-slot-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  .box-enabled {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 5px;
+  }
+
+  .toggle {
+    width: 28px;
+    height: 14px;
+    background: var(--border);
+    border-radius: 7px;
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s;
+    border: none;
+    outline: none;
+  }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: var(--text-dim);
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: all 0.2s;
+  }
+
+  .toggle.on { background: var(--accent-dim); }
+  .toggle.on::after { left: 16px; background: var(--accent); }
+
+  .toggle-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .select-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 6px;
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    margin-bottom: 4px;
+  }
+
+  .select-input:focus { border-color: var(--accent); }
+
+  .coord-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  .coord-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .coord-label {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .coord-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 5px;
+    border-radius: 2px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+
+  .coord-input:focus { border-color: var(--accent); }
+
+  /* Background source row */
+  .bg-row {
+    padding: 8px 14px 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .bg-label {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* ── ADD BANK BTN ── */
+  .add-bank-btn {
+    background: transparent;
+    border: 1px dashed var(--border-bright);
+    color: var(--text-dim);
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    width: 100%;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .add-bank-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.03); }
+
+  /* ── ANIMATION PROGRESS ── */
+  .anim-progress {
+    height: 2px;
+    background: var(--border);
+    border-radius: 1px;
+    overflow: hidden;
+    margin: 0 14px 10px;
+    display: none;
+  }
+
+  .anim-progress.running { display: block; }
+
+  .anim-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--green));
+    width: 0%;
+    transition: width linear;
+    border-radius: 1px;
+  }
+
+  /* ── SECTION DIVIDER ── */
+  .section-div {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 4px 0;
+  }
+
+  .section-div::before, .section-div::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .section-div-text {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+  /* Log panel */
+  .log-panel {
+    grid-column: 1 / -1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .log-header {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .log-title {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .log-clear {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+  }
+
+  .log-clear:hover { border-color: var(--red); color: var(--red); }
+
+  .log-body {
+    padding: 10px 16px;
+    height: 120px;
+    overflow-y: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .log-entry {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+  }
+
+  .log-time { color: var(--text-dim); flex-shrink: 0; }
+  .log-msg { color: var(--text); }
+  .log-entry.ok .log-msg { color: var(--green); }
+  .log-entry.err .log-msg { color: var(--red); }
+  .log-entry.warn .log-msg { color: var(--amber); }
+  .log-entry.info .log-msg { color: var(--accent); }
+
+  /* Connecting animation */
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--border-bright);
+    border-top-color: var(--amber);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  select option { background: #1a1f2b; }
+
+  /* ── ROUTES PANEL ── */
+  .routes-panel {
+    grid-column: 1 / -1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .routes-header {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .routes-title {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .http-port-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .http-port-label span {
+    color: var(--accent);
+  }
+
+  .routes-grid {
+    padding: 10px 16px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .route-chip {
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    text-decoration: none;
+  }
+
+  .route-chip:hover { border-color: var(--green); }
+  .route-chip:hover .route-path { color: var(--green); }
+
+  .route-chip.animating { border-color: var(--green); animation: route-pulse 0.8s ease infinite; }
+
+  @keyframes route-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,230,118,0.3); }
+    50%       { box-shadow: 0 0 0 4px rgba(0,230,118,0); }
+  }
+
+  .route-path {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    transition: color 0.15s;
+  }
+
+  .route-name {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+  }
+
+  .route-dur {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--border-bright);
+  }
+
+  .routes-empty {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    padding: 4px 0;
+  }
+
+  .demo-note {
+    grid-column: 1 / -1;
+    background: rgba(255,171,0,0.06);
+    border: 1px solid rgba(255,171,0,0.2);
+    border-radius: 4px;
+    padding: 10px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--amber);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <span>SuperSource</span>
+    <span class="logo-badge">ANIM</span>
+  </div>
+  <div class="connection-bar">
+    <button class="btn-io" onclick="importSetup()" title="Import setup from JSON">⬆ IMPORT</button>
+    <button class="btn-io" onclick="exportSetup()" title="Export setup to JSON">⬇ EXPORT</button>
+    <div style="width:1px;height:24px;background:var(--border);margin:0 4px"></div>
+    <span class="conn-label">ATEM</span>
+    <span class="atem-ip-display" id="atem-ip-display">—</span>
+    <div class="status-dot" id="status-dot"></div>
+    <span class="status-text" id="status-text">CONNECTING…</span>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main id="main-grid">
+
+  <div class="demo-note" id="demo-note">
+    ⚠ &nbsp;<strong>Setup:</strong> Set the ATEM's IP address in the dashboard's <strong>Settings</strong> tab (ATEM SuperSource section) — this bridge runs inside MineskiBR's own server and reconnects automatically whenever that IP changes. Your banks are saved automatically in browser memory on this machine.
+  </div>
+
+  <!-- SS1 PANEL -->
+  <div class="ss-panel" id="ss1-panel">
+    <div class="ss-header">
+      <div class="ss-title">SUPER<span>SOURCE</span> · 1</div>
+      <div class="anim-controls">
+        <span class="anim-label">DURATION</span>
+        <input class="anim-input" id="ss1-duration" type="number" value="1000" min="100" max="10000" step="100">
+        <span class="anim-label" style="font-size:10px;color:var(--text-dim)">ms</span>
+      </div>
+    </div>
+    <div class="banks-container" id="ss1-banks"></div>
+    <div style="padding:0 16px 16px">
+      <button class="add-bank-btn" onclick="addBank(1)">＋ &nbsp;ADD BANK</button>
+    </div>
+  </div>
+
+  <!-- SS2 PANEL -->
+  <div class="ss-panel" id="ss2-panel">
+    <div class="ss-header">
+      <div class="ss-title">SUPER<span>SOURCE</span> · 2</div>
+      <div class="anim-controls">
+        <span class="anim-label">DURATION</span>
+        <input class="anim-input" id="ss2-duration" type="number" value="1000" min="100" max="10000" step="100">
+        <span class="anim-label" style="font-size:10px;color:var(--text-dim)">ms</span>
+      </div>
+    </div>
+    <div class="banks-container" id="ss2-banks"></div>
+    <div style="padding:0 16px 16px">
+      <button class="add-bank-btn" onclick="addBank(2)">＋ &nbsp;ADD BANK</button>
+    </div>
+  </div>
+
+  <!-- ROUTES -->
+  <div class="routes-panel">
+    <div class="routes-header">
+      <span class="routes-title">// HTTP TRIGGERS</span>
+      <span class="http-port-label">same host/port as this dashboard &nbsp;·&nbsp; accessible from any device on the network</span>
+    </div>
+    <div class="routes-grid" id="routes-grid">
+      <span class="routes-empty">Open browser UI to register banks…</span>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="log-panel">
+    <div class="log-header">
+      <span class="log-title">// ACTIVITY LOG</span>
+      <button class="log-clear" onclick="clearLog()">CLEAR</button>
+    </div>
+    <div class="log-body" id="log-body"></div>
+  </div>
+
+</main>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<script>
+// ──────────────────────────────────────────
+//  STATE
+// ──────────────────────────────────────────
+const state = {
+  connected:    false,
+  bridgeOpen:   false,
+  ws:           null,
+  ss1Banks:     [],
+  ss2Banks:     [],
+  nextBankId:   1,
+  animatingBanks: new Set(),
+  // Tracks which bankId is waiting for a GET response per SSrc
+  pendingGet_ss1: null,
+  pendingGet_ss2: null,
+  // Tracks a pending GO animation waiting for a state fetch
+  pendingGo_ss1:  null,
+  pendingGo_ss2:  null,
+  // Last known ATEM state per SSrc (used as animation start point)
+  ss1CurrentState: null,
+  ss2CurrentState: null,
+  // Auto-retry timer for bridge reconnect
+  retryTimer: null,
+};
+
+// ATEM source list (common)
+const SOURCES = [
+  { id: 0,    label: 'Black' },
+  { id: 1,    label: 'Input 1' },
+  { id: 2,    label: 'Input 2' },
+  { id: 3,    label: 'Input 3' },
+  { id: 4,    label: 'Input 4' },
+  { id: 5,    label: 'Input 5' },
+  { id: 6,    label: 'Input 6' },
+  { id: 7,    label: 'Input 7' },
+  { id: 8,    label: 'Input 8' },
+  { id: 1000, label: 'Color Bars' },
+  { id: 2001, label: 'Color 1' },
+  { id: 2002, label: 'Color 2' },
+  { id: 3010, label: 'MP1' },
+  { id: 3011, label: 'MP1 Key' },
+  { id: 3020, label: 'MP2' },
+  { id: 3021, label: 'MP2 Key' },
+];
+
+function sourceOptions(selectedId) {
+  return SOURCES.map(s =>
+    `<option value="${s.id}" ${s.id == selectedId ? 'selected' : ''}>${s.label}</option>`
+  ).join('');
+}
+
+// Default box layout
+function defaultBank(ssIndex, bankNum) {
+  const id = state.nextBankId++;
+  return {
+    id,
+    name: `BANK ${bankNum}`,
+    ssIndex,
+    bg:        1,       // fill source
+    artFill:   0,       // art fill source (0=black)
+    artOption: 0,       // 0=background, 1=foreground
+    boxes: [
+      { enabled: true,  source: 1, x: -480, y: 270,  size: 0.5, crop: false },
+      { enabled: true,  source: 2, x: 480,  y: 270,  size: 0.5, crop: false },
+      { enabled: false, source: 3, x: -480, y: -270, size: 0.5, crop: false },
+      { enabled: false, source: 4, x: 480,  y: -270, size: 0.5, crop: false },
+    ]
+  };
+}
+
+// ──────────────────────────────────────────
+//  CONNECTION
+//  The bridge lives inside MineskiBR's own server (see
+//  lib/ssAnimatorBridge.js) — same host/port as this page, no
+//  separate process. The ATEM IP itself is set from the dashboard's
+//  Settings tab, not here.
+// ──────────────────────────────────────────
+const BRIDGE_WS = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ss-animator/ws';
+
+// No manual connect button — auto-connects on load
+
+function connect() {
+  setStatus('connecting');
+  log(`Connecting to bridge at ${BRIDGE_WS}...`, 'info');
+
+  try {
+    state.ws = new WebSocket(BRIDGE_WS);
+
+    state.ws.onopen = () => {
+      state.bridgeOpen = true;
+      log('Bridge connected — awaiting ATEM status...', 'info');
+      // Register current banks immediately so HTTP triggers work right away
+      setTimeout(registerBanks, 200);
+    };
+
+    state.ws.onmessage = (ev) => {
+      try {
+        const msg = JSON.parse(ev.data);
+        handleMessage(msg);
+      } catch(e) {
+        log('Received non-JSON from bridge', 'warn');
+      }
+    };
+
+    state.ws.onclose = () => {
+      state.bridgeOpen = false;
+      state.connected  = false;
+      setStatus('disconnected');
+      log('Bridge disconnected — retrying in 5s...', 'warn');
+      // Auto-retry the bridge connection
+      clearTimeout(state.retryTimer);
+      state.retryTimer = setTimeout(connect, 5000);
+    };
+
+    state.ws.onerror = () => {
+      state.bridgeOpen = false;
+      state.connected  = false;
+      setStatus('disconnected');
+      log(`Bridge not reachable at ${BRIDGE_WS} — is server.js running?`, 'err');
+      state.ws = null;
+    };
+
+  } catch(e) {
+    setStatus('disconnected');
+    log(`Bridge connection error: ${e.message}`, 'err');
+  }
+}
+
+function disconnect() {
+  clearTimeout(state.retryTimer);
+  if (state.ws) { state.ws.close(); state.ws = null; }
+  state.bridgeOpen = false;
+  state.connected  = false;
+  setStatus('disconnected');
+}
+
+function setStatus(s) {
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
+  dot.className = 'status-dot';
+  txt.className = 'status-text';
+
+  if (s === 'connected') {
+    dot.classList.add('connected');
+    txt.classList.add('connected');
+    txt.textContent = 'ONLINE';
+    state.connected = true;
+  } else if (s === 'connecting') {
+    dot.classList.add('connecting');
+    txt.classList.add('connecting');
+    txt.textContent = 'CONNECTING…';
+  } else {
+    txt.classList.add('error');
+    txt.textContent = 'OFFLINE';
+    state.connected = false;
+  }
+}
+
+function handleMessage(msg) {
+  switch (msg.type) {
+
+    case 'bridge_status':
+      // Show the ATEM IP from the bridge config in the header
+      if (msg.atemIp) {
+        const el = document.getElementById('atem-ip-display');
+        if (el) el.textContent = msg.atemIp;
+      }
+      if (msg.atemConnected) {
+        setStatus('connected');
+        log(`ATEM connected at ${msg.atemIp}`, 'ok');
+        toast(`ATEM online: ${msg.atemIp}`, 'success');
+      } else if (state.bridgeOpen) {
+        // Bridge is up but ATEM dropped — show as "connecting" since bridge will retry
+        setStatus('connecting');
+        if (msg.error) {
+          log(`ATEM error: ${msg.error}`, 'err');
+        } else if (msg.message) {
+          log(msg.message, 'info');
+        } else {
+          log('ATEM disconnected — bridge retrying...', 'warn');
+        }
+      }
+      break;
+
+    case 'ssrc_state':
+      log(`← SSrc ${msg.ssrc + 1} state received from ATEM`, 'ok');
+      handleSSrcState(msg);
+      break;
+
+    case 'routes_updated':
+      renderRoutes(msg.routes || []);
+      break;
+
+    case 'http_go':
+      // HTTP trigger fired — show progress on the matching bank card
+      highlightHttpGo(msg.ssrc, msg.bankIndex, msg.name);
+      log(`← HTTP GO: SS${msg.ssrc + 1} "${msg.name}"`, 'info');
+      break;
+
+    case 'http_go_done':
+      log(`← HTTP GO done: SS${msg.ssrc + 1} "${msg.name}"`, 'ok');
+      break;
+
+    case 'error':
+      log(`Bridge error: ${msg.message}`, 'err');
+      toast(msg.message, 'error');
+      break;
+  }
+}
+
+// When the bridge sends a full SSrc state:
+//  1. Store it as the live ATEM current state
+//  2. If a GET was pending → fill that bank
+//  3. If a GO was pending → start the animation from this state
+function handleSSrcState(msg) {
+  const ssrc    = msg.ssrc; // 0 or 1
+  const ssIndex = ssrc + 1;
+
+  // Always update our picture of where the ATEM is right now
+  const liveState = {
+    bg:    msg.bg,
+    boxes: msg.boxes.map(b => ({ ...b }))
+  };
+  state[`ss${ssIndex}CurrentState`] = liveState;
+
+  // Pending GET → fill that bank with the live values
+  const pendingGetId = state[`pendingGet_ss${ssIndex}`];
+  if (pendingGetId != null) {
+    state[`pendingGet_ss${ssIndex}`] = null;
+    const bank = findBank(pendingGetId);
+    if (bank) {
+      writeStateToBank(bank, msg);
+      toast(`GET applied to "${bank.name}"`, 'success');
+      log(`GET → "${bank.name}" updated from live ATEM SS${ssIndex}`, 'ok');
+    }
+  }
+
+  // Pending GO → now we have the start state, kick off animation
+  const pendingGo = state[`pendingGo_ss${ssIndex}`];
+  if (pendingGo) {
+    state[`pendingGo_ss${ssIndex}`] = null;
+    const { bankId, target, duration } = pendingGo;
+    const bank = findBank(bankId);
+    if (bank) {
+      log(`GO → got start state, beginning animation...`, 'info');
+      startAnimation(bank, liveState, target, duration);
+    }
+  }
+}
+
+// ──────────────────────────────────────────
+//  SEND TO ATEM
+// ──────────────────────────────────────────
+function sendWS(obj) {
+  if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+    state.ws.send(JSON.stringify(obj));
+    return true;
+  }
+  return false;
+}
+
+// ──────────────────────────────────────────
+//  BANKS
+// ──────────────────────────────────────────
+function addBank(ssIndex) {
+  const banks = ssIndex === 1 ? state.ss1Banks : state.ss2Banks;
+  const bank = defaultBank(ssIndex, banks.length + 1);
+  banks.push(bank);
+  renderBanks(ssIndex);
+  log(`Added bank "${bank.name}" to SS${ssIndex}`, 'info');
+}
+
+function removeBank(ssIndex, bankId) {
+  if (ssIndex === 1) {
+    state.ss1Banks = state.ss1Banks.filter(b => b.id !== bankId);
+  } else {
+    state.ss2Banks = state.ss2Banks.filter(b => b.id !== bankId);
+  }
+  renderBanks(ssIndex);
+}
+
+function renderBanks(ssIndex) {
+  const container = document.getElementById(`ss${ssIndex}-banks`);
+  const banks = ssIndex === 1 ? state.ss1Banks : state.ss2Banks;
+  container.innerHTML = '';
+  banks.forEach(bank => {
+    container.appendChild(buildBankCard(bank));
+  });
+  // Keep server bank registry in sync
+  setTimeout(registerBanks, 100);
+}
+
+// ── Box colors for thumbnail ─────────────────────────────────────────────────
+const BOX_COLORS = ['#3a8fff', '#ff3d57', '#ffdd00', '#00e676']; // blue red yellow green
+
+function drawThumb(canvas, bank) {
+  const W = canvas.width  = 192;
+  const H = canvas.height = 108;
+  const ctx = canvas.getContext('2d');
+
+  // Art color: magenta unless artFill is 0 (black)
+  const artColor = (bank.artFill === 0) ? '#000000' : '#ff00ff';
+
+  // Background — fill entire canvas with artColor if artOption==0 (BG), else dark
+  if (bank.artOption === 0) {
+    ctx.fillStyle = artColor;
+  } else {
+    ctx.fillStyle = '#1a1a2e';
+  }
+  ctx.fillRect(0, 0, W, H);
+
+  // Draw each enabled box
+  // ATEM coords: x/y in range roughly -4800..4800, size 0..1
+  // Map to canvas pixels
+  bank.boxes.forEach((box, i) => {
+    if (!box.enabled) return;
+
+    // box.size is fraction of screen height (ATEM uses height as reference)
+    const bh = box.size * H;
+    const bw = bh * (16 / 9);  // boxes are always 16:9
+
+    // ATEM x/y: 0,0 = center. x positive = right, y positive = up
+    // Scale: full width is ±1600 units in ATEM coords (empirical)
+    const scale = W / 3200;
+    const cx = W / 2 + box.x * scale;
+    const cy = H / 2 - box.y * scale;  // y flipped
+
+    const bx = cx - bw / 2;
+    const by = cy - bh / 2;
+
+    ctx.fillStyle = BOX_COLORS[i] || '#fff';
+    ctx.globalAlpha = 0.85;
+    ctx.fillRect(Math.round(bx), Math.round(by), Math.round(bw), Math.round(bh));
+
+    // Box number label
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.font = `bold ${Math.max(8, Math.round(bh * 0.35))}px monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(i + 1, Math.round(cx), Math.round(cy));
+  });
+
+  // If artOption==1 (foreground), draw art on top as a semi-transparent overlay
+  if (bank.artOption === 1) {
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = artColor;
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = 1;
+  }
+
+  // Art label bottom-left
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillRect(2, H - 14, 58, 12);
+  ctx.fillStyle = artColor === '#000000' ? '#555' : '#ff00ff';
+  ctx.font = '8px monospace';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`ART:${bank.artOption===0?'BG':'FG'}`, 5, H - 8);
+}
+
+function refreshThumb(bankId) {
+  const bank    = findBank(bankId);
+  const canvas  = document.getElementById(`thumb-${bankId}`);
+  if (!bank || !canvas) return;
+  const live = readBankFromUI(bank);
+  drawThumb(canvas, live);
+}
+
+function buildBankCard(bank) {
+  const card = document.createElement('div');
+  card.className = 'bank-card';
+  card.id = `bank-${bank.id}`;
+
+  const artOpt = bank.artOption ?? 0;
+
+  const boxSlots = bank.boxes.map((box, i) => `
+    <div class="box-slot">
+      <div class="box-slot-label" style="color:${BOX_COLORS[i]};font-weight:700">BOX ${i+1}</div>
+      <div class="box-enabled">
+        <button class="toggle ${box.enabled ? 'on' : ''}" id="toggle-${bank.id}-${i}"
+          onclick="toggleBox(${bank.id}, ${i}, this); refreshThumb(${bank.id})"></button>
+        <span class="toggle-label">${box.enabled ? 'ON' : 'OFF'}</span>
+      </div>
+      <select class="select-input" id="src-${bank.id}-${i}"
+        onchange="refreshThumb(${bank.id})">
+        ${sourceOptions(box.source)}
+      </select>
+      <div class="coord-row">
+        <div class="coord-field">
+          <span class="coord-label">X</span>
+          <input class="coord-input" id="x-${bank.id}-${i}" type="number" value="${box.x}" step="10"
+            oninput="refreshThumb(${bank.id})">
+        </div>
+        <div class="coord-field">
+          <span class="coord-label">Y</span>
+          <input class="coord-input" id="y-${bank.id}-${i}" type="number" value="${box.y}" step="10"
+            oninput="refreshThumb(${bank.id})">
+        </div>
+        <div class="coord-field">
+          <span class="coord-label">SIZE</span>
+          <input class="coord-input" id="size-${bank.id}-${i}" type="number" value="${box.size}" step="0.05" min="0.07" max="1"
+            oninput="refreshThumb(${bank.id})">
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  card.innerHTML = `
+    <div class="bank-card-header">
+      <div class="bank-name-wrap">
+        <span class="bank-number">#</span>
+        <input class="bank-name-input" type="text" value="${bank.name}" placeholder="BANK NAME"
+          onchange="updateBankName(${bank.id}, this.value)">
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+        <canvas class="bank-thumb" id="thumb-${bank.id}" width="96" height="54"></canvas>
+        <div class="bank-actions">
+          <button class="btn btn-get" onclick="getBank(${bank.id})" title="GET current ATEM settings into this bank">GET</button>
+          <button class="btn btn-apply" onclick="applyBank(${bank.id})" title="Apply this bank to ATEM immediately">APPLY TO ATEM</button>
+          <button class="btn btn-go" onclick="goBank(${bank.id})" title="Animate to this bank">▶ GO</button>
+          <button class="btn" style="border-color:var(--border);color:var(--text-dim);font-size:10px;" onclick="removeBank(${bank.ssIndex}, ${bank.id})" title="Delete bank">✕</button>
+        </div>
+      </div>
+    </div>
+    <div class="anim-progress" id="prog-${bank.id}">
+      <div class="anim-bar" id="progbar-${bank.id}"></div>
+    </div>
+    <div class="bg-row">
+      <span class="bg-label">FILL</span>
+      <select class="select-input" id="bg-${bank.id}" style="width:130px">
+        ${sourceOptions(bank.bg)}
+      </select>
+    </div>
+    <div class="art-row">
+      <span class="bg-label">ART</span>
+      <select class="select-input" id="artfill-${bank.id}" style="width:130px"
+        onchange="refreshThumb(${bank.id})">
+        ${sourceOptions(bank.artFill ?? 0)}
+      </select>
+      <input type="hidden" id="artopt-${bank.id}" value="${artOpt}">
+      <div class="art-option-btns">
+        <button class="art-opt ${artOpt===0?'active':''}" id="artbg-${bank.id}"
+          onclick="setArtOption(${bank.id}, 0)">BG</button>
+        <button class="art-opt ${artOpt===1?'active':''}" id="artfg-${bank.id}"
+          onclick="setArtOption(${bank.id}, 1)">FG</button>
+      </div>
+    </div>
+    <div class="box-sources">${boxSlots}</div>
+  `;
+
+  // Draw thumbnail after DOM is inserted (next tick)
+  requestAnimationFrame(() => drawThumb(document.getElementById(`thumb-${bank.id}`), bank));
+
+  return card;
+}
+
+function setArtOption(bankId, option) {
+  const bank = findBank(bankId);
+  if (bank) bank.artOption = option;
+  const hiddenEl = document.getElementById(`artopt-${bankId}`);
+  if (hiddenEl) hiddenEl.value = option;
+  document.getElementById(`artbg-${bankId}`)?.classList.toggle('active', option === 0);
+  document.getElementById(`artfg-${bankId}`)?.classList.toggle('active', option === 1);
+  refreshThumb(bankId);
+}
+
+function updateBankName(bankId, name) {
+  const bank = findBank(bankId);
+  if (bank) { bank.name = name; scheduleSave(); }
+}
+
+function toggleBox(bankId, boxIndex, btn) {
+  const bank = findBank(bankId);
+  if (!bank) return;
+  bank.boxes[boxIndex].enabled = !bank.boxes[boxIndex].enabled;
+  btn.classList.toggle('on');
+  btn.nextElementSibling.textContent = bank.boxes[boxIndex].enabled ? 'ON' : 'OFF';
+}
+
+function findBank(bankId) {
+  return [...state.ss1Banks, ...state.ss2Banks].find(b => b.id === bankId);
+}
+
+function readBankFromUI(bank) {
+  const b = { ...bank, boxes: bank.boxes.map(bx => ({ ...bx })) };
+  b.bg        = parseInt(document.getElementById(`bg-${bank.id}`)?.value       || bank.bg);
+  b.artFill   = parseInt(document.getElementById(`artfill-${bank.id}`)?.value  ?? bank.artFill ?? 0);
+  const artOptEl = document.getElementById(`artopt-${bank.id}`);
+  b.artOption = artOptEl ? parseInt(artOptEl.value) : (bank.artOption ?? 0);
+  b.boxes.forEach((box, i) => {
+    box.source  = parseInt(document.getElementById(`src-${bank.id}-${i}`)?.value  || box.source);
+    box.x       = parseFloat(document.getElementById(`x-${bank.id}-${i}`)?.value  || box.x);
+    box.y       = parseFloat(document.getElementById(`y-${bank.id}-${i}`)?.value  || box.y);
+    box.size    = parseFloat(document.getElementById(`size-${bank.id}-${i}`)?.value || box.size);
+    const toggle = document.getElementById(`toggle-${bank.id}-${i}`);
+    box.enabled = toggle ? toggle.classList.contains('on') : box.enabled;
+  });
+  return b;
+}
+
+// ──────────────────────────────────────────
+//  GET — Fetch current ATEM state into bank
+// ──────────────────────────────────────────
+function getBank(bankId) {
+  const bank = findBank(bankId);
+  if (!bank) return;
+
+  if (!state.connected || !state.ws) {
+    log(`[SIM] No ATEM connection — simulating GET for SS${bank.ssIndex}`, 'warn');
+    const simState = {
+      bg: 1,
+      boxes: [
+        { enabled: true,  source: 1, x: -480, y: 270,  size: 0.5 },
+        { enabled: true,  source: 2, x: 480,  y: 270,  size: 0.5 },
+        { enabled: false, source: 3, x: -480, y: -270, size: 0.5 },
+        { enabled: false, source: 4, x: 480,  y: -270, size: 0.5 },
+      ]
+    };
+    writeStateToBank(bank, simState);
+    toast('GET simulated (ATEM offline)', 'warn');
+    return;
+  }
+
+  // Register this bank as the pending GET recipient for this SSrc
+  state[`pendingGet_ss${bank.ssIndex}`] = bankId;
+  log(`GET → requesting SS${bank.ssIndex} state from ATEM...`, 'info');
+  sendWS({ cmd: 'get_ssrc', ssrc: bank.ssIndex - 1 });
+}
+
+function writeStateToBank(bank, s) {
+  bank.bg        = s.bg        ?? bank.bg;
+  bank.artFill   = s.artFill   ?? bank.artFill   ?? 0;
+  bank.artOption = s.artOption ?? bank.artOption ?? 0;
+  s.boxes?.forEach((sb, i) => {
+    if (bank.boxes[i]) {
+      bank.boxes[i].source  = sb.source  ?? bank.boxes[i].source;
+      bank.boxes[i].x       = sb.x       ?? bank.boxes[i].x;
+      bank.boxes[i].y       = sb.y       ?? bank.boxes[i].y;
+      bank.boxes[i].size    = sb.size    ?? bank.boxes[i].size;
+      bank.boxes[i].enabled = sb.enabled ?? bank.boxes[i].enabled;
+    }
+  });
+  // Re-render UI
+  renderBanks(bank.ssIndex);
+}
+
+// ──────────────────────────────────────────
+//  APPLY TO ATEM — Set immediately, no anim
+// ──────────────────────────────────────────
+function applyBank(bankId) {
+  const bank = findBank(bankId);
+  if (!bank) return;
+  const data = readBankFromUI(bank);
+
+  log(`APPLY → SS${bank.ssIndex} "${bank.name}"`, 'info');
+
+  const payload = buildSSrcPayload(bank.ssIndex, data, null);
+  const sent = sendWS(payload);
+
+  if (!sent) {
+    log(`[SIM] Applied "${bank.name}" to SS${bank.ssIndex} (simulated)`, 'warn');
+    toast(`Applied "${bank.name}" (simulated)`, 'warn');
+  } else {
+    log(`Applied "${bank.name}" to ATEM SS${bank.ssIndex}`, 'ok');
+    toast(`Applied "${bank.name}" to ATEM`, 'success');
+  }
+}
+
+// ──────────────────────────────────────────
+//  GO — Animate to bank
+// ──────────────────────────────────────────
+function goBank(bankId) {
+  if (state.animatingBanks.has(bankId)) {
+    log('Animation already in progress', 'warn');
+    return;
+  }
+
+  const bank = findBank(bankId);
+  if (!bank) return;
+  const target   = readBankFromUI(bank);
+  const duration = parseInt(document.getElementById(`ss${bank.ssIndex}-duration`)?.value || 1000);
+  const ssKey    = `ss${bank.ssIndex}CurrentState`;
+
+  const doAnimate = (from) => {
+    log(`GO → SS${bank.ssIndex} "${bank.name}" ${duration}ms ease-in-out`, 'info');
+    startAnimation(bank, from, target, duration);
+  };
+
+  if (state[ssKey]) {
+    // We already have a known state — animate straight away
+    doAnimate(state[ssKey]);
+  } else if (state.connected && state.ws) {
+    // Fetch live state first, then animate from it
+    log(`GO → fetching current SS${bank.ssIndex} state before animating...`, 'info');
+    state[`pendingGo_ss${bank.ssIndex}`] = { bankId, target, duration };
+    sendWS({ cmd: 'get_ssrc', ssrc: bank.ssIndex - 1 });
+  } else {
+    // Offline — use target as both from and to (still sends commands, shows progress)
+    log(`[SIM] GO offline — animating from default positions`, 'warn');
+    doAnimate({
+      bg: target.bg,
+      boxes: target.boxes.map(b => ({ ...b, x: 0, y: 0, size: 0.5 }))
+    });
+  }
+}
+
+function startAnimation(bank, from, to, duration) {
+  state.animatingBanks.add(bank.id);
+
+  const progEl  = document.getElementById(`prog-${bank.id}`);
+  const barEl   = document.getElementById(`progbar-${bank.id}`);
+  const startMs = performance.now();
+
+  if (progEl) { progEl.classList.add('running'); }
+  if (barEl)  { barEl.style.transition = `width ${duration}ms ease-in-out`; }
+
+  // Switch sources immediately (non-animatable)
+  if (to.bg !== from.bg) {
+    sendWS({ cmd: 'set_ssrc_bg', ssrc: bank.ssIndex - 1, source: to.bg });
+  }
+  // Art fill + art option
+  if ((to.artFill ?? 0) !== (from.artFill ?? 0) || (to.artOption ?? 0) !== (from.artOption ?? 0)) {
+    sendWS({ cmd: 'set_ssrc_art', ssrc: bank.ssIndex - 1, artFill: to.artFill ?? 0, artOption: to.artOption ?? 0 });
+  }
+  to.boxes.forEach((tb, i) => {
+    const fb = from.boxes[i];
+    if (tb.source !== fb?.source || tb.enabled !== fb?.enabled) {
+      sendWS({
+        cmd: 'set_ssrc_box_source',
+        ssrc: bank.ssIndex - 1,
+        box: i,
+        source: tb.source,
+        enabled: tb.enabled
+      });
+    }
+  });
+
+  // Animate position/size with easing
+  const STEPS = 60;
+  const interval = duration / STEPS;
+  let step = 0;
+
+  // Start progress bar
+  requestAnimationFrame(() => {
+    if (barEl) barEl.style.width = '100%';
+  });
+
+  const timer = setInterval(() => {
+    step++;
+    const t = Math.min(step / STEPS, 1);
+    const eased = easeInOut(t);
+
+    const frame = {
+      ssIndex: bank.ssIndex,
+      boxes: from.boxes.map((fb, i) => {
+        const tb = to.boxes[i] || fb;
+        return {
+          x:    lerp(fb.x,    tb.x,    eased),
+          y:    lerp(fb.y,    tb.y,    eased),
+          size: lerp(fb.size, tb.size, eased),
+        };
+      })
+    };
+
+    // Only send position updates for boxes that are enabled in the target
+    const filteredBoxes = frame.boxes.map((fb, i) => to.boxes[i]?.enabled ? fb : null);
+    sendWS({ cmd: 'set_ssrc_positions', ssrc: bank.ssIndex - 1, boxes: filteredBoxes });
+
+    if (step >= STEPS) {
+      clearInterval(timer);
+      state.animatingBanks.delete(bank.id);
+
+      // Update stored state
+      state[`ss${bank.ssIndex}CurrentState`] = JSON.parse(JSON.stringify(to));
+
+      setTimeout(() => {
+        if (progEl) { progEl.classList.remove('running'); }
+        if (barEl)  { barEl.style.width = '0%'; barEl.style.transition = 'none'; }
+      }, 300);
+
+      log(`Animation complete → SS${bank.ssIndex} "${bank.name}"`, 'ok');
+      toast(`GO complete: "${bank.name}"`, 'success');
+    }
+  }, interval);
+
+  if (!state.connected) {
+    log(`[SIM] Animating "${bank.name}" on SS${bank.ssIndex} (${duration}ms, ease-in-out) — OFFLINE`, 'warn');
+  }
+}
+
+function easeInOut(t) {
+  return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function buildSSrcPayload(ssIndex, data, frame) {
+  return {
+    cmd:       'set_ssrc',
+    ssrc:      ssIndex - 1,
+    bg:        data.bg,
+    artFill:   data.artFill   ?? 0,
+    artOption: data.artOption ?? 0,
+    boxes: data.boxes.map((box, i) => ({
+      box:     i,
+      enabled: box.enabled,
+      source:  box.source,
+      x:       frame ? frame.boxes[i]?.x    : box.x,
+      y:       frame ? frame.boxes[i]?.y    : box.y,
+      size:    frame ? frame.boxes[i]?.size : box.size,
+    }))
+  };
+}
+
+// ──────────────────────────────────────────
+//  LOG
+// ──────────────────────────────────────────
+function log(msg, type = '') {
+  const body = document.getElementById('log-body');
+  const now  = new Date();
+  const ts   = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  const entry = document.createElement('div');
+  entry.className = `log-entry ${type}`;
+  entry.innerHTML = `<span class="log-time">${ts}</span><span class="log-msg">${msg}</span>`;
+  body.appendChild(entry);
+  body.scrollTop = body.scrollHeight;
+}
+
+function clearLog() {
+  document.getElementById('log-body').innerHTML = '';
+}
+
+// ──────────────────────────────────────────
+//  TOAST
+// ──────────────────────────────────────────
+function toast(msg, type = '') {
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// ──────────────────────────────────────────
+//  HTTP TRIGGER SUPPORT
+// ──────────────────────────────────────────
+
+// Push current bank state to server so HTTP triggers know what to animate
+function registerBanks() {
+  if (!state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+
+  // Sync UI values into bank state first
+  [...state.ss1Banks, ...state.ss2Banks].forEach(bank => {
+    const live = readBankFromUI(bank);
+    bank.bg    = live.bg;
+    bank.boxes = live.boxes;
+  });
+
+  const ss1 = state.ss1Banks.map(b => ({
+    name:     b.name,
+    duration: parseInt(document.getElementById('ss1-duration')?.value || 1000),
+    bg:       b.bg,
+    boxes:    b.boxes,
+  }));
+  const ss2 = state.ss2Banks.map(b => ({
+    name:     b.name,
+    duration: parseInt(document.getElementById('ss2-duration')?.value || 1000),
+    bg:       b.bg,
+    boxes:    b.boxes,
+  }));
+
+  state.ws.send(JSON.stringify({ cmd: 'register_banks', ss1, ss2 }));
+}
+
+function renderRoutes(routes) {
+  const grid = document.getElementById('routes-grid');
+  if (!grid) return;
+
+  if (!routes || routes.length === 0) {
+    grid.innerHTML = '<span class="routes-empty">No banks registered yet.</span>';
+    return;
+  }
+
+  grid.innerHTML = routes.map((r, idx) => {
+    // r is { path, name, duration, ssrc, bankIndex } — see buildRouteList()
+    // in lib/ssAnimatorBridge.js. The URL is built here (not server-side)
+    // so it always matches whatever host this dashboard was loaded from.
+    const url  = location.origin + r.path;
+    const name = r.name || '';
+    const dur  = r.duration ? r.duration + 'ms' : '';
+    return `<a class="route-chip" id="route-chip-${idx}" href="${url}" target="_blank" title="Click to trigger via browser, or use: GET ${url}">
+      <span class="route-path">${r.path}</span>
+      <span class="route-name">${name}</span>
+      ${dur ? `<span class="route-dur">${dur}</span>` : ''}
+    </a>`;
+  }).join('');
+}
+
+function highlightHttpGo(ssrcId, bankIndex, name) {
+  // Find the route chip for this ssrc + bank
+  const ssKey = ssrcId === 0 ? 'ss1' : 'ss2';
+  const path  = `/ss-animator/${ssKey}/${bankIndex + 1}`;
+  const chips = document.querySelectorAll('.route-chip');
+  chips.forEach(chip => {
+    const pathEl = chip.querySelector('.route-path');
+    if (pathEl && pathEl.textContent === path) {
+      chip.classList.add('animating');
+      setTimeout(() => chip.classList.remove('animating'), 2000);
+    }
+  });
+}
+
+// ──────────────────────────────────────────
+//  PERSISTENCE — localStorage
+// ──────────────────────────────────────────
+const LS_KEY = 'ssanim_v1';
+
+function saveState() {
+  // Sync UI values into state before saving
+  [...state.ss1Banks, ...state.ss2Banks].forEach(bank => {
+    const live = readBankFromUI(bank);
+    bank.bg = live.bg;
+    bank.boxes = live.boxes;
+  });
+  const data = {
+    ss1Duration: document.getElementById('ss1-duration')?.value,
+    ss2Duration: document.getElementById('ss2-duration')?.value,
+    // atemIp is now managed by server config.json, not stored here
+    ss1Banks:    state.ss1Banks,
+    ss2Banks:    state.ss2Banks,
+    nextBankId:  state.nextBankId,
+  };
+  try { localStorage.setItem(LS_KEY, JSON.stringify(data)); }
+  catch(e) { console.warn('localStorage save failed:', e); }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    // atemIp comes from server config.json
+    if (data.ss1Duration) document.getElementById('ss1-duration').value = data.ss1Duration;
+    if (data.ss2Duration) document.getElementById('ss2-duration').value = data.ss2Duration;
+    if (Array.isArray(data.ss1Banks)) state.ss1Banks = data.ss1Banks;
+    if (Array.isArray(data.ss2Banks)) state.ss2Banks = data.ss2Banks;
+    if (data.nextBankId)  state.nextBankId = data.nextBankId;
+    return true;
+  } catch(e) {
+    console.warn('localStorage load failed:', e);
+    return false;
+  }
+}
+
+// Auto-save on any input change (debounced)
+let saveTimer = null;
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveState, 600);
+}
+document.addEventListener('input',  scheduleSave);
+document.addEventListener('change', scheduleSave);
+
+// ──────────────────────────────────────────
+//  EXPORT / IMPORT
+// ──────────────────────────────────────────
+function exportSetup() {
+  [...state.ss1Banks, ...state.ss2Banks].forEach(bank => {
+    const live = readBankFromUI(bank);
+    bank.bg    = live.bg;
+    bank.boxes = live.boxes;
+  });
+  const data = {
+    version:     1,
+    exported:    new Date().toISOString(),
+    ss1Duration: document.getElementById('ss1-duration')?.value,
+    ss2Duration: document.getElementById('ss2-duration')?.value,
+    ss1Banks:    state.ss1Banks,
+    ss2Banks:    state.ss2Banks,
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `ssanim-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  log('Setup exported to JSON file', 'ok');
+  toast('Setup exported', 'success');
+}
+
+function importSetup() {
+  const input = document.createElement('input');
+  input.type  = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (!data.ss1Banks || !data.ss2Banks) throw new Error('Invalid format');
+
+        // Remap bankIds to avoid collisions
+        let maxId = state.nextBankId;
+        const remap = (banks, ssIndex) => banks.map(b => {
+          const newId = maxId++;
+          return { ...b, id: newId, ssIndex };
+        });
+
+        state.ss1Banks = remap(data.ss1Banks, 1);
+        state.ss2Banks = remap(data.ss2Banks, 2);
+        state.nextBankId = maxId;
+
+        if (data.ss1Duration) document.getElementById('ss1-duration').value = data.ss1Duration;
+        if (data.ss2Duration) document.getElementById('ss2-duration').value = data.ss2Duration;
+
+        renderBanks(1);
+        renderBanks(2);
+        saveState();
+        log(`Imported "${file.name}" — ${state.ss1Banks.length} SS1 banks, ${state.ss2Banks.length} SS2 banks`, 'ok');
+        toast('Setup imported', 'success');
+      } catch(err) {
+        log(`Import failed: ${err.message}`, 'err');
+        toast('Import failed — invalid file', 'error');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ──────────────────────────────────────────
+//  INIT
+// ──────────────────────────────────────────
+function init() {
+  const restored = loadState();
+
+  if (!restored || (state.ss1Banks.length === 0 && state.ss2Banks.length === 0)) {
+    // Fresh start — add defaults
+    state.ss1Banks.push(defaultBank(1, 1));
+    state.ss1Banks.push(defaultBank(1, 2));
+    state.ss2Banks.push(defaultBank(2, 1));
+    state.ss2Banks.push(defaultBank(2, 2));
+    log('SuperSource Animator ready — default banks loaded', 'ok');
+  } else {
+    log(`Restored ${state.ss1Banks.length} SS1 banks + ${state.ss2Banks.length} SS2 banks from memory`, 'ok');
+  }
+
+  renderBanks(1);
+  renderBanks(2);
+
+  // Auto-connect to bridge on load
+  connect();
+}
+
+init();
+</script>
+</body>
+</html>

@@ -148,6 +148,7 @@ app.use(require('./routes/devapi'));
 app.use(require('./routes/tally'));
 app.use(require('./routes/externalTally'));
 app.use(require('./routes/tallyApi'));
+app.use(require('./routes/ssAnimator'));
 
 // Debug: log unmatched routes
 app.use(function (req, res, next) {
@@ -158,7 +159,7 @@ app.use(function (req, res, next) {
 // Start pollers (kicks off setInterval loops + initial polls)
 require('./lib/pollers');
 
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log("================================================");
   console.log(`  MineskiBR running on :${PORT}`);
   console.log(`  Dashboard  → http://localhost:${PORT}/`);
@@ -202,5 +203,12 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`             → GET  http://localhost:${PORT}/tally/external`);
   console.log(`             → GET  http://localhost:${PORT}/api/tally-roster`);
   console.log(`             → GET  http://localhost:${PORT}/api/groupstage-qualifiers`);
+  console.log(`  SS Animator→ WS   ws://localhost:${PORT}/ss-animator/ws`);
+  console.log(`             → GET  http://localhost:${PORT}/ss-animator/ss1/1`);
+  console.log(`             → GET  http://localhost:${PORT}/api/atem-ip`);
   console.log("================================================");
 });
+
+// SS Animator (ATEM SuperSource bridge) — attaches its WebSocket upgrade
+// handler to this same http.Server and connects to the last-saved ATEM IP.
+require('./lib/ssAnimatorBridge').attach(server);

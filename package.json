@@ -20,7 +20,9 @@
   },
   "homepage": "https://github.com/mineski-aj/MineskiBR#readme",
   "dependencies": {
+    "atem-connection": "^3.10.2",
     "express": "^5.2.1",
-    "multer": "^2.2.0"
+    "multer": "^2.2.0",
+    "ws": "^8.21.3"
   }
 }
