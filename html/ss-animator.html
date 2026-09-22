@@ -989,10 +989,10 @@ function defaultBank(ssIndex, bankNum) {
     artFill:   0,       // art fill source (0=black)
     artOption: 0,       // 0=background, 1=foreground
     boxes: [
-      { enabled: true,  source: 1, x: -480, y: 270,  size: 0.5, crop: false },
-      { enabled: true,  source: 2, x: 480,  y: 270,  size: 0.5, crop: false },
-      { enabled: false, source: 3, x: -480, y: -270, size: 0.5, crop: false },
-      { enabled: false, source: 4, x: 480,  y: -270, size: 0.5, crop: false },
+      { enabled: true,  source: 1, x: -480, y: 270,  size: 0.5, cropped: false, cropTop: 0, cropBottom: 0, cropLeft: 0, cropRight: 0 },
+      { enabled: true,  source: 2, x: 480,  y: 270,  size: 0.5, cropped: false, cropTop: 0, cropBottom: 0, cropLeft: 0, cropRight: 0 },
+      { enabled: false, source: 3, x: -480, y: -270, size: 0.5, cropped: false, cropTop: 0, cropBottom: 0, cropLeft: 0, cropRight: 0 },
+      { enabled: false, source: 4, x: 480,  y: -270, size: 0.5, cropped: false, cropTop: 0, cropBottom: 0, cropLeft: 0, cropRight: 0 },
     ]
   };
 }
@@ -1333,6 +1333,31 @@ function buildBankCard(bank) {
             oninput="refreshThumb(${bank.id})">
         </div>
       </div>
+      <div class="box-enabled" style="margin-top:6px;">
+        <button class="toggle ${box.cropped ? 'on' : ''}" id="crop-${bank.id}-${i}"
+          onclick="toggleCrop(${bank.id}, ${i}, this)"></button>
+        <span class="toggle-label">CROP ${box.cropped ? 'ON' : 'OFF'}</span>
+      </div>
+      <div class="coord-row">
+        <div class="coord-field">
+          <span class="coord-label">TOP</span>
+          <input class="coord-input" id="cropt-${bank.id}-${i}" type="number" value="${box.cropTop ?? 0}" step="100" min="0">
+        </div>
+        <div class="coord-field">
+          <span class="coord-label">BOTTOM</span>
+          <input class="coord-input" id="cropb-${bank.id}-${i}" type="number" value="${box.cropBottom ?? 0}" step="100" min="0">
+        </div>
+      </div>
+      <div class="coord-row">
+        <div class="coord-field">
+          <span class="coord-label">LEFT</span>
+          <input class="coord-input" id="cropl-${bank.id}-${i}" type="number" value="${box.cropLeft ?? 0}" step="100" min="0">
+        </div>
+        <div class="coord-field">
+          <span class="coord-label">RIGHT</span>
+          <input class="coord-input" id="cropr-${bank.id}-${i}" type="number" value="${box.cropRight ?? 0}" step="100" min="0">
+        </div>
+      </div>
     </div>
   `).join('');
 
@@ -1408,6 +1433,15 @@ function toggleBox(bankId, boxIndex, btn) {
   btn.nextElementSibling.textContent = bank.boxes[boxIndex].enabled ? 'ON' : 'OFF';
 }
 
+function toggleCrop(bankId, boxIndex, btn) {
+  const bank = findBank(bankId);
+  if (!bank) return;
+  bank.boxes[boxIndex].cropped = !bank.boxes[boxIndex].cropped;
+  btn.classList.toggle('on');
+  btn.nextElementSibling.textContent = `CROP ${bank.boxes[boxIndex].cropped ? 'ON' : 'OFF'}`;
+  scheduleSave();
+}
+
 function findBank(bankId) {
   return [...state.ss1Banks, ...state.ss2Banks].find(b => b.id === bankId);
 }
@@ -1425,6 +1459,12 @@ function readBankFromUI(bank) {
     box.size    = parseFloat(document.getElementById(`size-${bank.id}-${i}`)?.value || box.size);
     const toggle = document.getElementById(`toggle-${bank.id}-${i}`);
     box.enabled = toggle ? toggle.classList.contains('on') : box.enabled;
+    const cropToggle = document.getElementById(`crop-${bank.id}-${i}`);
+    box.cropped    = cropToggle ? cropToggle.classList.contains('on') : (box.cropped ?? false);
+    box.cropTop    = parseInt(document.getElementById(`cropt-${bank.id}-${i}`)?.value ?? box.cropTop ?? 0);
+    box.cropBottom = parseInt(document.getElementById(`cropb-${bank.id}-${i}`)?.value ?? box.cropBottom ?? 0);
+    box.cropLeft   = parseInt(document.getElementById(`cropl-${bank.id}-${i}`)?.value ?? box.cropLeft ?? 0);
+    box.cropRight  = parseInt(document.getElementById(`cropr-${bank.id}-${i}`)?.value ?? box.cropRight ?? 0);
   });
   return b;
 }
@@ -1469,6 +1509,11 @@ function writeStateToBank(bank, s) {
       bank.boxes[i].y       = sb.y       ?? bank.boxes[i].y;
       bank.boxes[i].size    = sb.size    ?? bank.boxes[i].size;
       bank.boxes[i].enabled = sb.enabled ?? bank.boxes[i].enabled;
+      bank.boxes[i].cropped    = sb.cropped    ?? bank.boxes[i].cropped    ?? false;
+      bank.boxes[i].cropTop    = sb.cropTop    ?? bank.boxes[i].cropTop    ?? 0;
+      bank.boxes[i].cropBottom = sb.cropBottom ?? bank.boxes[i].cropBottom ?? 0;
+      bank.boxes[i].cropLeft   = sb.cropLeft   ?? bank.boxes[i].cropLeft   ?? 0;
+      bank.boxes[i].cropRight  = sb.cropRight  ?? bank.boxes[i].cropRight ?? 0;
     }
   });
   // Re-render UI
@@ -1553,15 +1598,28 @@ function startAnimation(bank, from, to, duration) {
   if ((to.artFill ?? 0) !== (from.artFill ?? 0) || (to.artOption ?? 0) !== (from.artOption ?? 0)) {
     sendWS({ cmd: 'set_ssrc_art', ssrc: bank.ssIndex - 1, artFill: to.artFill ?? 0, artOption: to.artOption ?? 0 });
   }
+  // Source/enabled/crop are all treated as non-animatable — switched
+  // immediately rather than eased over the 60-step loop below (which only
+  // covers x/y/size).
   to.boxes.forEach((tb, i) => {
-    const fb = from.boxes[i];
-    if (tb.source !== fb?.source || tb.enabled !== fb?.enabled) {
+    const fb = from.boxes[i] || {};
+    const cropChanged = (tb.cropped ?? false)    !== (fb.cropped ?? false)
+      || (tb.cropTop ?? 0)    !== (fb.cropTop ?? 0)
+      || (tb.cropBottom ?? 0) !== (fb.cropBottom ?? 0)
+      || (tb.cropLeft ?? 0)   !== (fb.cropLeft ?? 0)
+      || (tb.cropRight ?? 0)  !== (fb.cropRight ?? 0);
+    if (tb.source !== fb.source || tb.enabled !== fb.enabled || cropChanged) {
       sendWS({
         cmd: 'set_ssrc_box_source',
         ssrc: bank.ssIndex - 1,
         box: i,
         source: tb.source,
-        enabled: tb.enabled
+        enabled: tb.enabled,
+        cropped: tb.cropped ?? false,
+        cropTop: tb.cropTop ?? 0,
+        cropBottom: tb.cropBottom ?? 0,
+        cropLeft: tb.cropLeft ?? 0,
+        cropRight: tb.cropRight ?? 0,
       });
     }
   });
@@ -1638,12 +1696,17 @@ function buildSSrcPayload(ssIndex, data, frame) {
     artFill:   data.artFill   ?? 0,
     artOption: data.artOption ?? 0,
     boxes: data.boxes.map((box, i) => ({
-      box:     i,
-      enabled: box.enabled,
-      source:  box.source,
-      x:       frame ? frame.boxes[i]?.x    : box.x,
-      y:       frame ? frame.boxes[i]?.y    : box.y,
-      size:    frame ? frame.boxes[i]?.size : box.size,
+      box:        i,
+      enabled:    box.enabled,
+      source:     box.source,
+      x:          frame ? frame.boxes[i]?.x    : box.x,
+      y:          frame ? frame.boxes[i]?.y    : box.y,
+      size:       frame ? frame.boxes[i]?.size : box.size,
+      cropped:    box.cropped    ?? false,
+      cropTop:    box.cropTop    ?? 0,
+      cropBottom: box.cropBottom ?? 0,
+      cropLeft:   box.cropLeft   ?? 0,
+      cropRight:  box.cropRight  ?? 0,
     }))
   };
 }
