@@ -1173,6 +1173,14 @@
     }
     #wt-timer-value .wt-timer-digit { width: 0.51em; }
     #wt-timer-value .wt-timer-colon { width: 0.26em; }
+    /* Global sponsor box/loop kill switch (Settings page's "Sponsor
+       Boxes" toggle, /api/sponsor-boxes-enabled) — every sponsor box
+       element across every overlay, present and future, is tagged
+       `data-sponsorbox` specifically so this one rule hides all of them
+       at once. See CLAUDE.md's "Sponsor boxes — a tagged, globally
+       killable family". */
+    body.sponsorboxes-off [data-sponsorbox] { display: none !important; }
+
     /* ── shared sponsor-box classes — still used elsewhere, do not remove ── */
     .wl-sponsor-bg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
     .wl-sponsor-loop { position: absolute; left: 140px; right: 8px; top: 8px; bottom: 8px; overflow: hidden; }
@@ -1564,6 +1572,19 @@
     #mv-item-4 { left: 564px; top: 768px; width: 92px; }
     #mv-item-5 { left: 667px; top: 768px; }
 
+    /* Shared background video for the whole rank family — one <video>
+       outside every scene's own page, so switching between two rank
+       scenes never restarts/reloads the clip (see rnkShowBgVideo/
+       rnkHideBgVideo). */
+    #rnk-bg-video {
+      position: absolute; top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      object-fit: cover;
+      z-index: 0;
+      display: none;
+    }
+    #rnk-bg-video.rnk-bgvideo-on { display: block; }
+
     /* ── RANK HEADER — shared, persistent header for the "ranking
        family" of scenes (Overall Ranking / Map Ranking / Group Ranking).
        Lives OUTSIDE any single scene's own fading page container and is
@@ -1657,6 +1678,38 @@
     #rnk-header-stageday .rnk-stage { font-weight: 700; margin-right: 0.25em; }
     #rnk-header-stageday .rnk-day   { font-weight: 500; }
 
+    /* Rank Header's sponsor box — tagged `data-sponsorbox` (see the
+       global kill switch above), same category-label + logo-loop shape
+       as the other sponsor boxes (makeSponsorLoop), just this box's own
+       position/size/font per the design spec. */
+    #rnk-sponsorbox {
+      position: absolute;
+      left: 1647px; top: 29px;
+      width: 273px; height: 130px;
+      z-index: 32;
+    }
+    #rnk-sponsorbox-label {
+      position: absolute;
+      left: 40px; top: 14px;
+      width: 228px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      font-family: 'Teko', sans-serif;
+      font-weight: 500;
+      font-size: 21.25px; /* 5.1pt @ 300dpi */
+      line-height: 1.1;
+      color: #0a0a0a;
+      text-transform: uppercase;
+      word-break: break-word;
+    }
+    #rnk-sponsorbox-loop {
+      position: absolute;
+      left: 40px; top: 42px;
+      width: 228px; height: 80px;
+      overflow: hidden;
+    }
+
     /* Row reveal cascade — shared by Overall/Map/Group Ranking's
        scoreboard rows (.rnk-anim-item on each .ovr-row/.mrk-row/.grk-row,
        driven by rnkAnimateRows), same idea as Waiting TVC's
@@ -1709,12 +1762,6 @@
     }
     #overall-ranking-page.ovr-on { display: block; }
     #overall-ranking-page.ovr-visible { opacity: 1; }
-    #ovr-bg-video {
-      position: absolute; top: 0; left: 0;
-      width: 1920px; height: 1080px;
-      object-fit: cover;
-      z-index: 0;
-    }
     .ovr-col { position: absolute; top: 282px; width: 905px; height: 672px; z-index: 190; }
     #ovr-col-left  { left: 40px; }
     #ovr-col-right { left: 973px; }
@@ -1783,12 +1830,6 @@
     }
     #map-ranking-page.mrk-on { display: block; }
     #map-ranking-page.mrk-visible { opacity: 1; }
-    #mrk-bg-video {
-      position: absolute; top: 0; left: 0;
-      width: 1920px; height: 1080px;
-      object-fit: cover;
-      z-index: 0;
-    }
     .mrk-col { position: absolute; top: 282px; width: 905px; height: 672px; z-index: 190; }
     #mrk-col-left  { left: 40px; }
     #mrk-col-right { left: 973px; }
@@ -1847,12 +1888,6 @@
     }
     #group-ranking-page.grk-on { display: block; }
     #group-ranking-page.grk-visible { opacity: 1; }
-    #grk-bg-video {
-      position: absolute; top: 0; left: 0;
-      width: 1920px; height: 1080px;
-      object-fit: cover;
-      z-index: 0;
-    }
     .grk-col { position: absolute; top: 282px; width: 905px; height: 672px; z-index: 190; }
     #grk-col-left  { left: 40px; }
     #grk-col-right { left: 973px; }
@@ -1903,6 +1938,77 @@
     .grk-rc-kp    { left: 601px; width: 92px; }
     .grk-rc-rp    { left: 701px; width: 92px; }
     .grk-rc-tp    { left: 799px; width: 92px; }
+
+    /* ── MAP ROTATION PAGE — today's map lineup (matchState's todayMaps,
+       up to todayMapsCount), one card per map. Header is the shared
+       #rnk-header above (part of the RANK_FEATURES family), not owned by
+       this page. Cards are built entirely in JS (mrrRenderCards) since
+       their count and x-position depend on todayMapsCount — see there for
+       the "same pitch as 5 maps, group re-centered for fewer" layout math
+       and the Post-4-Key-style deal-in animation (mrrPlayAnimation). ── */
+    #map-rotation-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #map-rotation-page.mrr-on { display: block; }
+    #map-rotation-page.mrr-visible { opacity: 1; }
+    #mrr-cards { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; }
+    .mrr-card {
+      position: absolute; top: 274px; width: 297px; height: 707px;
+      opacity: 0;
+      transform: translate(var(--deal-dx, 0), 80px) rotate(var(--deal-rot, 0deg));
+    }
+    .mrr-card.mrr-dealt {
+      transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease;
+      transform: translate(0, 0) rotate(0deg);
+      opacity: 1;
+    }
+    .mrr-card-bg, .mrr-card-label {
+      position: absolute; top: 0; left: 0; width: 297px; height: 707px;
+    }
+    .mrr-card-number {
+      position: absolute;
+      left: 11px; top: 587px;
+      width: 133px; height: 52px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      font-family: 'Teko', sans-serif;
+      font-weight: 500;
+      font-size: 50px; /* 12pt @ 300dpi */
+      line-height: 1;
+      color: #0a0a0a;
+      text-transform: uppercase;
+    }
+    /* Teko's own font metrics put its glyphs' visual ink noticeably above
+       the CSS line-box center (no descenders on this all-caps text, but
+       the font still reserves descender space below the baseline per its
+       internal ascent/descent ratio) — most visible here because the box
+       height is so close to the font-size, unlike the roomier boxes
+       elsewhere in this file. Nudged down to visually center the ink
+       instead of the line box. */
+    .mrr-card-number span,
+    .mrr-card-name span { display: block; transform: translateY(0.15em); }
+    .mrr-card-name {
+      position: absolute;
+      left: 16px; top: 644px;
+      width: 232px; height: 55px;
+      display: flex; align-items: center; justify-content: flex-start;
+      text-align: left;
+      overflow: hidden;
+      white-space: nowrap;
+      font-family: 'Teko', sans-serif;
+      font-weight: 700;
+      font-size: 58.79px; /* 14.11pt @ 300dpi */
+      line-height: 1;
+      color: #ffffff;
+      text-transform: uppercase;
+    }
 
     /* ── FINAL TEAM PAGE ── */
     #final-team-page {
@@ -3143,6 +3249,16 @@
       </div>
     </div>
 
+    <!-- MAP ROTATION -->
+    <div class="feature-card">
+      <div class="feature-card-label">Map Rotation</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showMapRotationScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideMapRotationScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-maprotation" onclick="toggleLocalPreview('maprotation', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
     <!-- TEAM HEXAGON -->
     <div class="feature-card">
       <div class="feature-card-label">Team Hexagon</div>
@@ -3481,6 +3597,7 @@
       <div class="hlu-name-box" id="hlu-t2-name-5"></div>
       <div id="hlu-title"></div>
     </div>
+    <video id="rnk-bg-video" src="/assets/gbrc_loopbg_header.webm" loop muted playsinline></video>
     <div id="rnk-header">
       <img id="rnk-header-bg" src="/assets/Overall%20Ranking/fsheader.png" alt="">
       <div id="rnk-header-logo"><img src="/gbrc_logo.png" alt=""></div>
@@ -3488,9 +3605,13 @@
       <div id="rnk-header-ranking">Overall Ranking</div>
       <div id="rnk-header-mapname">Map 1/5</div>
       <div id="rnk-header-stageday"><span class="rnk-stage">Qualifiers</span><span class="rnk-day">Day 1</span></div>
+      <div id="rnk-sponsorbox" data-sponsorbox>
+        <img class="wl-sponsor-bg" src="/assets/sponsorbox/sponsorbox.png" alt="">
+        <div id="rnk-sponsorbox-label"></div>
+        <div id="rnk-sponsorbox-loop" class="wl-sponsor-loop"><img id="rnk-sponsorbox-img" src="" alt=""></div>
+      </div>
     </div>
     <div id="overall-ranking-page">
-      <video id="ovr-bg-video" src="/assets/gbrc_loopbg_hud.webm" loop muted playsinline></video>
       <div class="ovr-col" id="ovr-col-left">
         <div class="ovr-col-header">
           <img class="ovr-col-header-bg" src="/assets/Overall%20Ranking/scoreheader.png" alt="">
@@ -3519,7 +3640,6 @@
       </div>
     </div>
     <div id="map-ranking-page">
-      <video id="mrk-bg-video" src="/assets/gbrc_loopbg_hud.webm" loop muted playsinline></video>
       <div class="mrk-col" id="mrk-col-left">
         <div class="mrk-col-header"><img class="mrk-col-header-bg" src="/assets/Overall%20Ranking/scoreheader.png" alt=""></div>
         <div class="mrk-col-rows"></div>
@@ -3530,7 +3650,6 @@
       </div>
     </div>
     <div id="group-ranking-page">
-      <video id="grk-bg-video" src="/assets/gbrc_loopbg_hud.webm" loop muted playsinline></video>
       <div class="grk-col" id="grk-col-left">
         <div class="grk-col-header">
           <img class="grk-col-header-bg" src="/assets/Overall%20Ranking/scoreheader.png" alt="">
@@ -3557,6 +3676,9 @@
         </div>
         <div class="grk-col-rows"></div>
       </div>
+    </div>
+    <div id="map-rotation-page">
+      <div id="mrr-cards"></div>
     </div>
     <div id="final-team-page">
       <div class="ft-teambox ft-teambox-blue">
@@ -3710,7 +3832,7 @@
         </div>
       </div>
       <div id="ts-matches"></div>
-      <div id="ts-sponsor"></div>
+      <div id="ts-sponsor" data-sponsorbox></div>
     </div>
     <div id="tomorrow-schedule-page">
       <div id="tw-header">
@@ -3721,7 +3843,7 @@
         </div>
       </div>
       <div id="tw-matches"></div>
-      <div id="tw-sponsor"></div>
+      <div id="tw-sponsor" data-sponsorbox></div>
     </div>
     <div id="highlights-page">
       <div id="hl-title">MVP HIGHLIGHTS</div>
@@ -3842,12 +3964,12 @@
       <div id="ckm2-bounds"></div>
     </div>
 
-    <div id="cp2-sponsor"></div>
+    <div id="cp2-sponsor" data-sponsorbox></div>
 
     <!-- Middle Board's own sponsor loop — independent from #cp2-sponsor
          above now (used to share its position with it, see the CSS
          block above Middle Board's markup for the full history). -->
-    <div id="mdb-sponsor"></div>
+    <div id="mdb-sponsor" data-sponsorbox></div>
 
     <div id="cpg-board">
       <svg id="cpg-chart" viewBox="0 0 1800 270" preserveAspectRatio="none"></svg>
@@ -4114,6 +4236,7 @@
          here — not from dashboard.html's own loadIframe() — never gets a
          matching 'load' listener to re-run it. */
       sseSource.addEventListener('reload', () => { if (isPreviewFrame) return; window.location.reload(); });
+      sseSource.addEventListener('sponsorboxes', (e) => { applySponsorBoxesEnabled(!!JSON.parse(e.data).enabled); });
 
       sseSource.addEventListener('stylepatch', (e) => {
         let msg = null;
@@ -4207,6 +4330,14 @@
         if (msg.action === 'show') {
           document.getElementById('config-bar').classList.remove('debug-open');
           setTimeout(showGroupRankingScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('map_rotation', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showMapRotationScene, 100);
         } else if (msg.action === 'hide') hideActiveFeature();
       });
 
@@ -6198,6 +6329,7 @@
        should visibly change on that kind of switch.
     ════════════════════════════════════════════════ */
     const rnkHeaderEl = document.getElementById('rnk-header');
+    const rnkSponsorLoop = makeSponsorLoop('rnk-sponsorbox-img', 'rnk-sponsorbox-label', 21.25, 10);
 
     const RNK_LABEL_SWAP_MS = 220;
     function rnkShowHeader(label) {
@@ -6229,16 +6361,40 @@
         rnkHeaderEl.classList.add('rnk-on');
         void rnkHeaderEl.offsetWidth; /* force reflow so the opacity transition runs */
         rnkHeaderEl.classList.add('rnk-visible');
+        rnkSponsorLoop.start();
       }
     }
     function rnkHideHeader() {
       rnkHeaderEl.classList.remove('rnk-visible');
+      rnkSponsorLoop.stop();
       return new Promise(resolve => {
         setTimeout(() => {
           rnkHeaderEl.classList.remove('rnk-on');
           resolve();
         }, 420);
       });
+    }
+
+    /* Shared background video for the whole rank family (Overall/Map/
+       Group Ranking, Map Rotation) — same persistence idea as the header
+       above: one <video> outside any single scene's page, so switching
+       between two rank scenes never restarts/reloads the clip, only
+       keeps playing underneath. rnkShowBgVideo() only resets+plays if it
+       isn't ALREADY playing (i.e. genuinely entering the family from
+       somewhere else); rnkHideBgVideo() only pauses when actually
+       leaving the family (duringRankTransition gates it, same as the
+       header). */
+    const rnkBgVideoEl = document.getElementById('rnk-bg-video');
+    function rnkShowBgVideo() {
+      rnkBgVideoEl.classList.add('rnk-bgvideo-on');
+      if (!rnkBgVideoEl.paused) return;
+      rnkBgVideoEl.currentTime = 0;
+      rnkBgVideoEl.play().catch(() => {});
+    }
+    function rnkHideBgVideo() {
+      if (duringRankTransition) return;
+      rnkBgVideoEl.classList.remove('rnk-bgvideo-on');
+      rnkBgVideoEl.pause();
     }
 
     /* One row at a time, not the whole column at once — same idea as
@@ -6260,13 +6416,12 @@
        OVERALL RANKING — the current LIVE tally sheet's own running
        totals (every map played within that one sheet), fed by
        /api/live-sheet-overall-standings. Its own dedicated background
-       loop (assets/gbrc_loopbg_hud.webm), not the shared #bg-video,
+       loop (assets/gbrc_loopbg_header.webm), not the shared #bg-video,
        since it's a distinct branded HUD background rather than the
        generic idle loop. Paused whenever hidden per the "video-heavy
        overlays" rule — no reason to keep it decoding while off-screen.
     ════════════════════════════════════════════════ */
     const ovrPage = document.getElementById('overall-ranking-page');
-    const ovrBgVideoEl = document.getElementById('ovr-bg-video');
 
     function ovrFitTextMeasure(el, maxSize, minSize) {
       let size = maxSize;
@@ -6339,8 +6494,7 @@
       await transitionTo('overallranking');
       if (activeFeature !== 'overallranking') return; /* superseded mid-await */
       rnkShowHeader('Overall Ranking');
-      ovrBgVideoEl.currentTime = 0;
-      ovrBgVideoEl.play().catch(() => {});
+      rnkShowBgVideo();
       ovrPage.classList.add('ovr-on');
       void ovrPage.offsetWidth; /* force reflow so the opacity transition runs */
       ovrPage.classList.add('ovr-visible');
@@ -6365,7 +6519,7 @@
         new Promise(resolve => {
           setTimeout(() => {
             ovrPage.classList.remove('ovr-on');
-            ovrBgVideoEl.pause();
+            rnkHideBgVideo();
             resolve();
           }, 420);
         }),
@@ -6380,7 +6534,6 @@
        spread evenly across the freed space instead.
     ════════════════════════════════════════════════ */
     const mrkPage = document.getElementById('map-ranking-page');
-    const mrkBgVideoEl = document.getElementById('mrk-bg-video');
 
     function mrkIsCompactStage() {
       const stageEl = document.querySelector('#rnk-header-stageday .rnk-stage');
@@ -6479,8 +6632,7 @@
       await transitionTo('mapranking');
       if (activeFeature !== 'mapranking') return; /* superseded mid-await */
       rnkShowHeader('Map Ranking');
-      mrkBgVideoEl.currentTime = 0;
-      mrkBgVideoEl.play().catch(() => {});
+      rnkShowBgVideo();
       mrkPage.classList.add('mrk-on');
       void mrkPage.offsetWidth; /* force reflow so the opacity transition runs */
       mrkPage.classList.add('mrk-visible');
@@ -6502,7 +6654,7 @@
         new Promise(resolve => {
           setTimeout(() => {
             mrkPage.classList.remove('mrk-on');
-            mrkBgVideoEl.pause();
+            rnkHideBgVideo();
             resolve();
           }, 420);
         }),
@@ -6517,7 +6669,6 @@
        displaying the group breakdown is this scene's whole purpose.
     ════════════════════════════════════════════════ */
     const grkPage = document.getElementById('group-ranking-page');
-    const grkBgVideoEl = document.getElementById('grk-bg-video');
 
     function grkBuildRow(q) {
       const row = document.createElement('div');
@@ -6574,8 +6725,7 @@
       await transitionTo('groupranking');
       if (activeFeature !== 'groupranking') return; /* superseded mid-await */
       rnkShowHeader('Group Ranking');
-      grkBgVideoEl.currentTime = 0;
-      grkBgVideoEl.play().catch(() => {});
+      rnkShowBgVideo();
       grkPage.classList.add('grk-on');
       void grkPage.offsetWidth; /* force reflow so the opacity transition runs */
       grkPage.classList.add('grk-visible');
@@ -6594,7 +6744,107 @@
         new Promise(resolve => {
           setTimeout(() => {
             grkPage.classList.remove('grk-on');
-            grkBgVideoEl.pause();
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       MAP ROTATION — today's map lineup (matchState's todayMaps, up to
+       todayMapsCount), fed by /match/state (same source Waiting TVC's
+       own map page already reads). Part of the RANK_FEATURES family —
+       shares #rnk-header, labeled "Map Rotation".
+    ════════════════════════════════════════════════ */
+    const mrrPage = document.getElementById('map-rotation-page');
+    const MRR_MAP_ASSET = {
+      'Isolated': 'isolated', 'Blackout': 'blackout', 'Alcatraz': 'alcatraz',
+      'Krai': 'krai', 'Rebirth Island': 'rebirth',
+    };
+    // Pitch (left-edge to left-edge) and reference count from the design
+    // spec's own two anchor cards (left card at 202px, the 5th/last at
+    // 1436px) — fewer maps keep this exact same spacing, just re-center
+    // the whole group on the canvas instead of stretching the gaps.
+    const MRR_CARD_WIDTH = 297;
+    const MRR_PITCH = (1436 - 202) / 4;
+    const MRR_DEAL_STAGGER_MS = 130;
+
+    function mrrCardLeft(i, count) {
+      const groupWidth = (count - 1) * MRR_PITCH + MRR_CARD_WIDTH;
+      const groupLeft = 960 - groupWidth / 2;
+      return groupLeft + i * MRR_PITCH;
+    }
+
+    function mrrRenderCards(maps) {
+      const root = document.getElementById('mrr-cards');
+      root.innerHTML = '';
+      maps.forEach((m, i) => {
+        const asset = MRR_MAP_ASSET[m.mapName] || 'isolated';
+        const card = document.createElement('div');
+        card.className = 'mrr-card';
+        card.style.left = mrrCardLeft(i, maps.length) + 'px';
+        // Cards fan in from below, tilted away from center (left cards
+        // lean left, right cards lean right) — same "dealt from a stack"
+        // idiom as Post 4 Key's p4k-card/p4k-dealt, just converging
+        // outward from the middle instead of toward one shared point.
+        const mid = (maps.length - 1) / 2;
+        card.style.setProperty('--deal-dx', ((i - mid) * -30) + 'px');
+        card.style.setProperty('--deal-rot', ((i - mid) * 6) + 'deg');
+        card.innerHTML =
+          '<img class="mrr-card-bg" src="/maps/Map%20Rotation/' + asset + '_rotation.png" alt="">' +
+          '<img class="mrr-card-label" src="/maps/Map%20Rotation/maplabel_rotation.png" alt="">' +
+          '<div class="mrr-card-number"><span>MAP ' + (i + 1) + '</span></div>' +
+          '<div class="mrr-card-name"><span>' + (m.mapName || '') + '</span></div>';
+        root.appendChild(card);
+        ovrFitText(card.querySelector('.mrr-card-name'), 58.79, 29);
+      });
+    }
+
+    function mrrPlayAnimation(count) {
+      const cards = document.querySelectorAll('#mrr-cards .mrr-card');
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          if (activeFeature !== 'maprotation') return;
+          cards[i]?.classList.add('mrr-dealt');
+        }, i * MRR_DEAL_STAGGER_MS);
+      }
+    }
+
+    async function mrrFetchMaps() {
+      try {
+        const res = await fetch(buildUrl('/match/state'), { cache: 'no-store' });
+        const ms = res.ok ? await res.json() : null;
+        const count = (ms && ms.todayMapsCount) || 0;
+        return ((ms && ms.todayMaps) || []).slice(0, count);
+      } catch (e) { return []; }
+    }
+
+    async function showMapRotationScene() {
+      const dataPromise = mrrFetchMaps();
+      await transitionTo('maprotation');
+      if (activeFeature !== 'maprotation') return; /* superseded mid-await */
+      rnkShowHeader('Map Rotation');
+      rnkShowBgVideo();
+      mrrPage.classList.add('mrr-on');
+      void mrrPage.offsetWidth; /* force reflow so the opacity transition runs */
+      mrrPage.classList.add('mrr-visible');
+      const maps = await dataPromise;
+      if (activeFeature !== 'maprotation') return; /* superseded while awaiting data */
+      mrrRenderCards(maps);
+      mrrPlayAnimation(maps.length);
+    }
+
+    function hideMapRotationScene() {
+      activeFeature = null;
+      mrrPage.classList.remove('mrr-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            mrrPage.classList.remove('mrr-on');
+            rnkHideBgVideo();
             resolve();
           }, 420);
         }),
@@ -7015,6 +7265,7 @@
     }
 
     async function crFetchSponsorCategories() {
+      if (!sponsorBoxesEnabled) return []; /* global sponsor boxes/loops kill switch */
       try {
         const r = await fetch('/api/sponsors-config', { cache: 'no-store' });
         const d = await r.json();
@@ -7729,26 +7980,40 @@
        etc.) is currently playing. Shrinks its font if a long category name
        still overflows the 105x86 box after wrapping (see CLAUDE.md's
        shrink-to-fit convention), never grows past the 15.5pt spec size. */
-    function fitSponsorCatLabel(el) {
+    function fitSponsorCatLabel(el, maxSize, minSize) {
       if (!el) return;
-      const maxSize = 15.5, minSize = 8;
+      maxSize = maxSize || 15.5; minSize = minSize || 8;
       let size = maxSize;
       el.style.fontSize = size + 'px';
       while (el.scrollHeight > el.clientHeight && size > minSize) {
         el.style.fontSize = (size -= 0.5) + 'px';
       }
     }
-    function updateSponsorCatLabel(labelId, category) {
+    function updateSponsorCatLabel(labelId, category, maxSize, minSize) {
       const el = document.getElementById(labelId);
       if (!el) return;
       el.textContent = category || '';
-      fitSponsorCatLabel(el);
+      fitSponsorCatLabel(el, maxSize, minSize);
     }
+
+    /* Global sponsor box/loop kill switch — see the `body.sponsorboxes-
+       off` CSS rule above (which hides every `data-sponsorbox` element
+       instantly) and CLAUDE.md's "Sponsor boxes — a tagged, globally
+       killable family". This flag additionally stops NEW loop cycles
+       from starting at all while off, so a hidden box isn't still
+       fetching/cycling logos behind the scenes. */
+    let sponsorBoxesEnabled = true;
+    function applySponsorBoxesEnabled(enabled) {
+      sponsorBoxesEnabled = enabled;
+      document.body.classList.toggle('sponsorboxes-off', !enabled);
+    }
+    fetch('/api/sponsor-boxes-enabled', { cache: 'no-store' }).then(r => r.json())
+      .then(d => applySponsorBoxesEnabled(!!(d && d.enabled))).catch(() => {});
 
     /* Generic Draft/Waiting-Lobby-style sponsor loop (same /api/sponsors
        source + slide timing as startWlSponsorLoop above), reused by both
        Today's and Tomorrow's Schedule sponsor boxes. */
-    function makeSponsorLoop(imgId, labelId) {
+    function makeSponsorLoop(imgId, labelId, labelMaxSize, labelMinSize) {
       let sponsors = [], idx = 0, active = false;
       let inHandler = null, outHandler = null, holdTimer = null;
       function run() {
@@ -7758,7 +8023,7 @@
         const s = sponsors[idx];
         img.className = '';
         img.src = s.src;
-        updateSponsorCatLabel(labelId, s.category);
+        updateSponsorCatLabel(labelId, s.category, labelMaxSize, labelMinSize);
         void img.offsetWidth;
         img.classList.add('spon-in');
         inHandler = (ev) => {
@@ -7782,6 +8047,7 @@
       }
       return {
         start() {
+          if (!sponsorBoxesEnabled) return;
           active = true;
           fetch('/api/sponsors').then(r => r.json()).then(list => {
             if (!active || !list || !list.length) return;
@@ -7845,6 +8111,7 @@
       }
       return {
         start() {
+          if (!sponsorBoxesEnabled) return;
           active = true;
           fetch('/api/sponsors').then(r => r.json()).then(list => {
             if (!active || !list || !list.length) return;
@@ -8102,7 +8369,7 @@
        header, only its own scoreboard content. Same precedent as
        cpDuringPostTransition above. */
     let duringRankTransition = false;
-    const RANK_FEATURES = new Set(['overallranking', 'mapranking', 'groupranking']);
+    const RANK_FEATURES = new Set(['overallranking', 'mapranking', 'groupranking', 'maprotation']);
 
     /* Keeps server-side state.fullscreenScene.<key> (and thus the dashboard's
        Control-tab board toggles/live indicator) in sync with board
@@ -8207,6 +8474,7 @@
       if (prev === 'overallranking') return hideOverallRankingScene();
       if (prev === 'mapranking') return hideMapRankingScene();
       if (prev === 'groupranking') return hideGroupRankingScene();
+      if (prev === 'maprotation') return hideMapRotationScene();
       if (prev === 'highlights') return hideHighlights();
       if (prev === 'mvp')       return hideMvpScene();
       if (prev === 'credits')   return hideCreditsScene();
@@ -10291,6 +10559,7 @@
           else if (scene.activeFeature === 'overallranking') showOverallRankingScene();
           else if (scene.activeFeature === 'mapranking') showMapRankingScene();
           else if (scene.activeFeature === 'groupranking') showGroupRankingScene();
+          else if (scene.activeFeature === 'maprotation') showMapRotationScene();
           else if (scene.activeFeature === 'highlights') showHighlights();
           else if (scene.activeFeature === 'mvp')        showMvpScene();
           else if (scene.activeFeature === 'credits')    showCreditsScene();
@@ -10329,6 +10598,7 @@
         if (feature === 'overallranking') showOverallRankingScene();
         if (feature === 'mapranking') showMapRankingScene();
         if (feature === 'groupranking') showGroupRankingScene();
+        if (feature === 'maprotation') showMapRotationScene();
         if (feature === 'highlights') showHighlights();
         if (feature === 'mvp')        showMvpScene();
         if (feature === 'credits')    showCreditsScene();
@@ -10349,7 +10619,7 @@
     window.previewTrigger = function(event, action) {
       document.querySelectorAll('.dbg-btn.preview').forEach(b => b.classList.remove('active'));
       if (action === 'show') {
-        const btnMap = { post_hearts: 'preview-hearts', post_itemline: 'preview-timeline', post_richguy: 'preview-richguy', post_emblems: 'preview-emblems', post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post4key: 'preview-post4key', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', map_ranking: 'preview-mapranking', group_ranking: 'preview-groupranking' };
+        const btnMap = { post_hearts: 'preview-hearts', post_itemline: 'preview-timeline', post_richguy: 'preview-richguy', post_emblems: 'preview-emblems', post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post4key: 'preview-post4key', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', map_ranking: 'preview-mapranking', group_ranking: 'preview-groupranking', map_rotation: 'preview-maprotation' };
         const btn = document.getElementById(btnMap[event]);
         if (btn) btn.classList.add('active');
       }
@@ -10363,6 +10633,7 @@
         if (event === 'overall_ranking') showOverallRankingScene();
         if (event === 'map_ranking') showMapRankingScene();
         if (event === 'group_ranking') showGroupRankingScene();
+        if (event === 'map_rotation') showMapRotationScene();
         if (event === 'highlights') showHighlights();
         if (event === 'mvp')        showMvpScene();
         if (event === 'final_team') showFinalTeam();

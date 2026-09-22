@@ -193,6 +193,32 @@ router.post('/api/wtvc-page-speed', (req, res) => {
   res.json({ ok: true, seconds });
 });
 
+// Global sponsor box / sponsor loop kill switch — GET to read, POST
+// { enabled } to update. Covers every sponsor box across every overlay
+// (Waiting Lobby's, Today's/Tomorrow's Schedule's, Middle Board's,
+// Consolidated Post 2's, Credit Reel's sponsor items, ingame.html's own
+// loop, and the shared Rank Header sponsor box) — every one of them is
+// tagged `data-sponsorbox` in its markup specifically so this one switch
+// can find and hide/stop all of them, present and future, without
+// needing to know about each one individually. See CLAUDE.md's "Sponsor
+// boxes — a tagged, globally killable family" section.
+const SPONSOR_BOXES_ENABLED_FILE = path.join(__dirname, '..', 'sponsor_boxes_enabled.json');
+
+router.get('/api/sponsor-boxes-enabled', (req, res) => {
+  try {
+    res.set('Cache-Control', 'no-store').json(JSON.parse(fs.readFileSync(SPONSOR_BOXES_ENABLED_FILE, 'utf8')));
+  } catch (e) {
+    res.set('Cache-Control', 'no-store').json({ enabled: true });
+  }
+});
+
+router.post('/api/sponsor-boxes-enabled', (req, res) => {
+  const enabled = (req.body || {}).enabled !== false;
+  fs.writeFileSync(SPONSOR_BOXES_ENABLED_FILE, JSON.stringify({ enabled }));
+  state.overlayClients.forEach(c => { try { c.write(`event: sponsorboxes\ndata: ${JSON.stringify({ enabled })}\n\n`); } catch {} });
+  res.json({ ok: true, enabled });
+});
+
 // MVP Scene player pick — GET to read, POST { roleid } to update. The
 // caster picks who's MVP from the dashboard's MVP player-select dropdown
 // (built from /api/gamedata-proxy's current seat list), storing a roleid

@@ -906,6 +906,43 @@ multiply (e.g. Draft.html's player-photo erase, which takes
 `Math.min(ownAlpha, matteAlpha)`) doesn't map onto Porter-Duff
 compositing operators and was deliberately left on the JS path.
 
+## Sponsor boxes — a tagged, globally killable family
+
+Every sponsor box/loop across every overlay — present ones (Today's/
+Tomorrow's Schedule's `#ts-sponsor`/`#tw-sponsor`, Middle Board's
+`#mdb-sponsor`, Consolidated Post 2's `#cp2-sponsor`, Credit Reel's
+sponsor items, the Rank Header's `#rnk-sponsorbox`) and any future one —
+must carry the `data-sponsorbox` attribute on its outer container
+element. This is a deliberate, standing tag: it's what lets the
+Settings page's single "Sponsor Boxes" toggle
+(`/api/sponsor-boxes-enabled`, GET to read/POST `{enabled}` to write,
+persisted to `sponsor_boxes_enabled.json`, broadcast over the shared
+`/overlay/events` stream as the `sponsorboxes` event) hide/stop **every**
+sponsor box at once — this overlay and any future one — without the
+toggle needing to know each box's id individually. Concretely:
+
+- **CSS**: `body.sponsorboxes-off [data-sponsorbox] { display: none !important; }`
+  in `Fullscreen.html` instantly hides any tagged element the moment the
+  flag flips, mid-broadcast, no matter which scene is showing it.
+- **JS**: a page-level `sponsorBoxesEnabled` flag (fetched once on load,
+  kept live via the `sponsorboxes` SSE event) additionally gates
+  `makeSponsorLoop()`/`makeVerticalSponsorLoop()`'s own `start()` (so a
+  hidden box isn't still fetching/cycling logos behind the scenes) and
+  Credit Reel's `crFetchSponsorCategories()` (so sponsor items are simply
+  never added to the scrolling reel while off).
+- **When adding a brand-new sponsor box to any overlay** (this file or a
+  new one): give its outer container `data-sponsorbox`, and if it plays
+  a rotating logo loop, build it with `makeSponsorLoop()`/
+  `makeVerticalSponsorLoop()` (already wired into the flag above) rather
+  than a bespoke cycling implementation — skip either step and that one
+  box silently keeps running/showing when every other one turns off.
+- `makeSponsorLoop(imgId, labelId, labelMaxSize, labelMinSize)`'s last
+  two args are optional (default to the original 15.5pt/8pt General Sans
+  sizing) — pass your own box's font-size/floor if its category label
+  uses a different font or box size than the original Waiting-Lobby-
+  style boxes (e.g. the Rank Header's sponsor box uses Teko at 21.25px/
+  10px, not General Sans).
+
 ## Data & assets
 
 - Player/match data: `hlFetchMvp()` / `hlExtractPlayer()` hit the
@@ -977,6 +1014,21 @@ compositing operators and was deliberately left on the JS path.
   added — same "now has real layout to measure against" ordering
   `showMvpScene`/Hero Lineup's `hluFitAllText`/Waiting Lobby's
   `wlApplyPlayer` all use.
+- **Teko sits visually high in its own line box — with `line-height: 1`
+  and `align-items:center`, Teko text (even all-caps with no descenders)
+  renders noticeably above true vertical-center, because the font's own
+  internal ascent/descent metrics reserve real descender space below the
+  baseline regardless of what the text actually uses.** This is present
+  on every Teko element in this codebase, but only becomes visible when
+  the box height is close to the font-size (a roomy box — most cells
+  elsewhere — hides the few px of asymmetry; a tight box, like Map
+  Rotation's `MAP N`/map-name labels at 50px/58.79px in 52px/55px boxes,
+  makes it obvious). Fix: wrap the text in an inner `<span>` and nudge it
+  down with `transform: translateY(0.15em)` — in `em`, not a fixed `px`
+  value, so it stays correct if the element's font-size later shrinks via
+  a shrink-to-fit pass or an Edit-tab resize. Apply this to any *new*
+  tight-box Teko element that reads as top-heavy; don't retrofit it onto
+  existing roomier Teko boxes that look fine as-is.
 
 ## Master checklist — adding any new feature (this is a moving target — use this every time, don't rely on memory)
 

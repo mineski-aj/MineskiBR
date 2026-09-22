@@ -1017,6 +1017,17 @@
     </div>
   </div>
 
+  <div class="settings-section">
+    <div class="settings-section-hdr">Sponsor Boxes</div>
+    <div class="settings-section-body">
+      <div class="settings-row">
+        <label>All Boxes &amp; Loops</label>
+        <button id="sponsorboxes-toggle" class="settings-btn">● Enabled</button>
+        <span class="settings-status">Every sponsor box/loop, this overlay and future ones</span>
+      </div>
+    </div>
+  </div>
+
 </div>
 <div id="settings-col-right">
 
@@ -1382,6 +1393,29 @@
     fetch('/overlay/debugoff').catch(function(){});
   });
 
+  /* Sponsor Boxes global kill switch — every sponsor box/loop across
+     every overlay is tagged `data-sponsorbox` specifically so this one
+     switch can hide/stop all of them (present and future) without this
+     dashboard needing to know about each one individually. See
+     CLAUDE.md's "Sponsor boxes — a tagged, globally killable family". */
+  function applySponsorBoxesBtn(enabled) {
+    var b = document.getElementById('sponsorboxes-toggle');
+    if (!b) return;
+    b.textContent = enabled ? '● Enabled' : '○ Disabled';
+    b.className   = 'settings-btn ' + (enabled ? 'btn-toggle-on' : 'btn-toggle-off');
+  }
+  fetch('/api/sponsor-boxes-enabled', { cache: 'no-store' }).then(function(r){ return r.json(); })
+    .then(function(d) { applySponsorBoxesBtn(!!(d && d.enabled)); }).catch(function(){});
+  document.getElementById('sponsorboxes-toggle').addEventListener('click', function() {
+    var currentlyEnabled = this.textContent.indexOf('Enabled') !== -1;
+    fetch('/api/sponsor-boxes-enabled', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: !currentlyEnabled }),
+    }).then(function(r){ return r.json(); })
+      .then(function(d) { if (d && d.ok) applySponsorBoxesBtn(d.enabled); })
+      .catch(function(){});
+  });
+
   /* Hard-reloads every open overlay page at once (Fullscreen.html, ENTVC.html,
      ingame.html) via the same 'reload' SSE event a dashboard Edit-tab save already triggers —
      see GET /overlay/force-reload in routes/overlay.js. Saves going to
@@ -1496,6 +1530,7 @@
     overall_ranking:   'overallranking',
     map_ranking:       'mapranking',
     group_ranking:     'groupranking',
+    map_rotation:      'maprotation',
   };
   /* Display names for the "is anything live" indicator below — same
      activeFeature values as FULLSCREEN_ACTIVE_FEATURE_MAP, keyed the other
@@ -1511,7 +1546,7 @@
     herolineup: 'Hero Lineup',
     consolidated_post: 'Consolidated Post', consolidated_post_2: 'Consolidated Post 2',
     post4key: 'Post 4 Key', overallranking: 'Overall Ranking', mapranking: 'Map Ranking',
-    groupranking: 'Group Ranking',
+    groupranking: 'Group Ranking', maprotation: 'Map Rotation',
   };
 
   var fullscreenLiveBadge = null;
@@ -1837,6 +1872,7 @@
         { name: 'Overall Ranking', show: '/overlay/overall_ranking/show', hide: '/overlay/overall_ranking/hide' },
         { name: 'Map Ranking', show: '/overlay/map_ranking/show', hide: '/overlay/map_ranking/hide' },
         { name: 'Group Ranking', show: '/overlay/group_ranking/show', hide: '/overlay/group_ranking/hide' },
+        { name: 'Map Rotation', show: '/overlay/map_rotation/show', hide: '/overlay/map_rotation/hide' },
       ],
       /* Superseded by "Postgame Items" above (Sept 2026 rework), which
          already shows Matchboard/Middleboard alongside itself via
@@ -3308,6 +3344,18 @@
     { group: 'Group Ranking Column 11-20', id: '#grk-col-right', name: 'Scoreboard Column (Teams 11-20)' },
   ];
 
+  /* ── Map Rotation (Fullscreen.html) element defaults ──────────────────
+     Card count/position is computed in JS from todayMapsCount (see
+     mrrCardLeft), not individually editable — only the one wrapping box
+     (where every card is generated into) is drag/resize-able here, same
+     "wrapping box" precedent as Credit Reel's viewport below. */
+  var MRR_DEFAULTS = {
+    '#mrr-cards': { left: 0, top: 0, width: 1920, height: 1080 },
+  };
+  var MRR_ELEMENTS = [
+    { group: 'Map Rotation Cards', id: '#mrr-cards', name: 'Map Cards Area' },
+  ];
+
   /* ── Final Team (Fullscreen.html) element defaults ────────────────────
      Only the MPL logo between the two team boxes is individually
      editable for now — the rest of the scene (team boxes, cards) isn't
@@ -3732,6 +3780,15 @@
       elements:    GRK_ELEMENTS,
       defaults:    GRK_DEFAULTS,
       showFn:      'showGroupRankingScene',
+    },
+    fullscreen_maprotation: {
+      label:       'Map Rotation · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_maprotation',
+      elements:    MRR_ELEMENTS,
+      defaults:    MRR_DEFAULTS,
+      showFn:      'showMapRotationScene',
     },
     fullscreen_finalteam: {
       label:       'Final Team · Fullscreen',

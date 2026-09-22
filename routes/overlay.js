@@ -252,6 +252,20 @@ router.get('/overlay/group_ranking/hide', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
+// GET /overlay/map_rotation/show
+router.get('/overlay/map_rotation/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'maprotation';
+  state.overlayClients.forEach(c => { try { c.write('event: map_rotation\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/map_rotation/hide
+router.get('/overlay/map_rotation/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: map_rotation\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
 // GET /overlay/highlights/show
 router.get('/overlay/highlights/show', (req, res) => {
   state.fullscreenScene.activeFeature = 'highlights';
