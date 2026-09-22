@@ -952,15 +952,10 @@ const state = {
 
 // ATEM source list (common)
 const SOURCES = [
-  { id: 0,    label: 'Black' },
-  { id: 1,    label: 'Input 1' },
-  { id: 2,    label: 'Input 2' },
-  { id: 3,    label: 'Input 3' },
-  { id: 4,    label: 'Input 4' },
-  { id: 5,    label: 'Input 5' },
-  { id: 6,    label: 'Input 6' },
-  { id: 7,    label: 'Input 7' },
-  { id: 8,    label: 'Input 8' },
+  { id: 0, label: 'Black' },
+  // ATEM Constellation has 40 physical inputs (1000HD/8K models are
+  // narrower, but this project's switcher is the 40-input Constellation).
+  ...Array.from({ length: 40 }, (_, i) => ({ id: i + 1, label: `Input ${i + 1}` })),
   { id: 1000, label: 'Color Bars' },
   { id: 2001, label: 'Color 1' },
   { id: 2002, label: 'Color 2' },
@@ -971,9 +966,16 @@ const SOURCES = [
 ];
 
 function sourceOptions(selectedId) {
-  return SOURCES.map(s =>
+  var opts = SOURCES.map(s =>
     `<option value="${s.id}" ${s.id == selectedId ? 'selected' : ''}>${s.label}</option>`
-  ).join('');
+  );
+  // A source id GET back from the ATEM that isn't in the list above (e.g.
+  // an aux/ME source not enumerated here) would otherwise silently fall
+  // back to the <select>'s first option — show it explicitly instead.
+  if (selectedId != null && !SOURCES.some(s => s.id == selectedId)) {
+    opts.push(`<option value="${selectedId}" selected>Source ${selectedId}</option>`);
+  }
+  return opts.join('');
 }
 
 // Default box layout
