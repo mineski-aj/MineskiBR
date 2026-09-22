@@ -11,7 +11,7 @@
 // logic change, etc.) — see the comment at its `new SharedWorker(...)` call
 // below for why this exists. Current bump: replaced 'waiting_lobby' with
 // 'waiting_timer' (Waiting Lobby scene removed, Waiting Timer added).
-const OVERLAY_WORKER_VERSION = 22;
+const OVERLAY_WORKER_VERSION = 23;
 
 function createOverlaySSE() {
   if (typeof SharedWorker === 'undefined') {

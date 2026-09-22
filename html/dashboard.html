@@ -1531,6 +1531,8 @@
     map_ranking:       'mapranking',
     group_ranking:     'groupranking',
     map_rotation:      'maprotation',
+    tournament_schedule: 'tournamentschedule',
+    prize_pool:        'prizepool',
   };
   /* Display names for the "is anything live" indicator below — same
      activeFeature values as FULLSCREEN_ACTIVE_FEATURE_MAP, keyed the other
@@ -1547,6 +1549,7 @@
     consolidated_post: 'Consolidated Post', consolidated_post_2: 'Consolidated Post 2',
     post4key: 'Post 4 Key', overallranking: 'Overall Ranking', mapranking: 'Map Ranking',
     groupranking: 'Group Ranking', maprotation: 'Map Rotation',
+    tournamentschedule: 'Tournament Schedule', prizepool: 'Prize Pool',
   };
 
   var fullscreenLiveBadge = null;
@@ -1873,6 +1876,8 @@
         { name: 'Map Ranking', show: '/overlay/map_ranking/show', hide: '/overlay/map_ranking/hide' },
         { name: 'Group Ranking', show: '/overlay/group_ranking/show', hide: '/overlay/group_ranking/hide' },
         { name: 'Map Rotation', show: '/overlay/map_rotation/show', hide: '/overlay/map_rotation/hide' },
+        { name: 'Tournament Schedule', show: '/overlay/tournament_schedule/show', hide: '/overlay/tournament_schedule/hide' },
+        { name: 'Prize Pool', show: '/overlay/prize_pool/show', hide: '/overlay/prize_pool/hide' },
       ],
       /* Superseded by "Postgame Items" above (Sept 2026 rework), which
          already shows Matchboard/Middleboard alongside itself via
@@ -3302,7 +3307,7 @@
   var RNK_HEADER_DEFAULTS = {
     '#rnk-header-logo':     { left: 36,   top: 4,   width: 181, height: 181 },
     '#rnk-header-title':    { left: 329,  top: 24,  width: 881, height: 47,  fontSize: 52.6 },
-    '#rnk-header-ranking':  { left: 329,  top: 71,  width: 881, height: 100, fontSize: 122.58 },
+    '#rnk-header-ranking':  { left: 329,  top: 71,  width: 850, height: 100, fontSize: 122.58 },
     '#rnk-header-mapname':  { left: 1211, top: 94,  width: 405, height: 28,  fontSize: 28.79 },
     '#rnk-header-stageday': { left: 1211, top: 123, width: 405, height: 42,  fontSize: 45.79 },
   };
@@ -3354,6 +3359,24 @@
   };
   var MRR_ELEMENTS = [
     { group: 'Map Rotation Cards', id: '#mrr-cards', name: 'Map Cards Area' },
+  ];
+
+  /* ── Tournament Schedule (Fullscreen.html) element defaults —
+     a single full-bleed PNG, nothing else. ── */
+  var TSC_DEFAULTS = {
+    '#tsc-art': { left: 0, top: 0, width: 1920, height: 1080 },
+  };
+  var TSC_ELEMENTS = [
+    { group: 'Tournament Schedule Art', id: '#tsc-art', name: 'Schedule Image' },
+  ];
+
+  /* ── Prize Pool (Fullscreen.html) element defaults —
+     a single full-bleed PNG, nothing else. ── */
+  var PPL_DEFAULTS = {
+    '#ppl-art': { left: 0, top: 0, width: 1920, height: 1080 },
+  };
+  var PPL_ELEMENTS = [
+    { group: 'Prize Pool Art', id: '#ppl-art', name: 'Prize Pool Image' },
   ];
 
   /* ── Final Team (Fullscreen.html) element defaults ────────────────────
@@ -3789,6 +3812,24 @@
       elements:    MRR_ELEMENTS,
       defaults:    MRR_DEFAULTS,
       showFn:      'showMapRotationScene',
+    },
+    fullscreen_tournamentschedule: {
+      label:       'Tournament Schedule · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_tournamentschedule',
+      elements:    TSC_ELEMENTS,
+      defaults:    TSC_DEFAULTS,
+      showFn:      'showTournamentScheduleScene',
+    },
+    fullscreen_prizepool: {
+      label:       'Prize Pool · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_prizepool',
+      elements:    PPL_ELEMENTS,
+      defaults:    PPL_DEFAULTS,
+      showFn:      'showPrizePoolScene',
     },
     fullscreen_finalteam: {
       label:       'Final Team · Fullscreen',

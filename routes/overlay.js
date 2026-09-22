@@ -266,6 +266,34 @@ router.get('/overlay/map_rotation/hide', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
+// GET /overlay/tournament_schedule/show
+router.get('/overlay/tournament_schedule/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'tournamentschedule';
+  state.overlayClients.forEach(c => { try { c.write('event: tournament_schedule\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/tournament_schedule/hide
+router.get('/overlay/tournament_schedule/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: tournament_schedule\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/prize_pool/show
+router.get('/overlay/prize_pool/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'prizepool';
+  state.overlayClients.forEach(c => { try { c.write('event: prize_pool\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/prize_pool/hide
+router.get('/overlay/prize_pool/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: prize_pool\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
 // GET /overlay/highlights/show
 router.get('/overlay/highlights/show', (req, res) => {
   state.fullscreenScene.activeFeature = 'highlights';

@@ -1634,11 +1634,12 @@
     #rnk-header-ranking {
       position: absolute;
       left: 329px; top: 71px;
-      width: 881px; height: 100px;
+      width: 850px; height: 100px;
       z-index: 23;
       display: flex; align-items: center; justify-content: flex-start;
       text-align: left;
       overflow: visible;
+      white-space: nowrap;
       font-family: 'Teko', sans-serif;
       font-weight: 700;
       font-size: 122.58px;
@@ -2009,6 +2010,40 @@
       color: #ffffff;
       text-transform: uppercase;
     }
+
+    /* ── TOURNAMENT SCHEDULE PAGE — a single full-bleed PNG, nothing else.
+       Header is the shared #rnk-header (part of the RANK_FEATURES
+       family), not owned by this page. ── */
+    #tournament-schedule-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #tournament-schedule-page.tsc-on { display: block; }
+    #tournament-schedule-page.tsc-visible { opacity: 1; }
+    #tsc-art { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; }
+
+    /* ── PRIZE POOL PAGE — a single full-bleed PNG, nothing else. Header
+       is the shared #rnk-header (part of the RANK_FEATURES family), not
+       owned by this page. ── */
+    #prize-pool-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #prize-pool-page.ppl-on { display: block; }
+    #prize-pool-page.ppl-visible { opacity: 1; }
+    #ppl-art { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; }
 
     /* ── FINAL TEAM PAGE ── */
     #final-team-page {
@@ -3259,6 +3294,26 @@
       </div>
     </div>
 
+    <!-- TOURNAMENT SCHEDULE -->
+    <div class="feature-card">
+      <div class="feature-card-label">Tournament Schedule</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showTournamentScheduleScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideTournamentScheduleScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-tournamentschedule" onclick="toggleLocalPreview('tournamentschedule', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- PRIZE POOL -->
+    <div class="feature-card">
+      <div class="feature-card-label">Prize Pool</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showPrizePoolScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hidePrizePoolScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-prizepool" onclick="toggleLocalPreview('prizepool', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
     <!-- TEAM HEXAGON -->
     <div class="feature-card">
       <div class="feature-card-label">Team Hexagon</div>
@@ -3679,6 +3734,12 @@
     </div>
     <div id="map-rotation-page">
       <div id="mrr-cards"></div>
+    </div>
+    <div id="tournament-schedule-page">
+      <img id="tsc-art" src="/assets/fullscreeners/tournament%20schedule.png" alt="">
+    </div>
+    <div id="prize-pool-page">
+      <img id="ppl-art" src="/assets/fullscreeners/prizepool.png" alt="">
     </div>
     <div id="final-team-page">
       <div class="ft-teambox ft-teambox-blue">
@@ -4338,6 +4399,22 @@
         if (msg.action === 'show') {
           document.getElementById('config-bar').classList.remove('debug-open');
           setTimeout(showMapRotationScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('tournament_schedule', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showTournamentScheduleScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('prize_pool', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showPrizePoolScene, 100);
         } else if (msg.action === 'hide') hideActiveFeature();
       });
 
@@ -6337,10 +6414,23 @@
       const wasOn = rnkHeaderEl.classList.contains('rnk-on');
       const labelChanged = wasOn && rankingEl.textContent !== label;
 
+      /* Real layout (`.rnk-on`) must exist BEFORE any fit-to-box call
+         below — a fresh show's applyLabel() otherwise measures against a
+         still-display:none header (clientWidth 0), silently leaving long
+         labels like "Tournament Schedule" stuck at max size and
+         overflowing instead of shrinking. Same ordering gotcha
+         CLAUDE.md's shrink-to-fit section calls out generally. */
+      if (!wasOn) {
+        rnkHeaderEl.classList.add('rnk-on');
+        void rnkHeaderEl.offsetWidth; /* force reflow so the opacity transition runs */
+        rnkHeaderEl.classList.add('rnk-visible');
+        rnkSponsorLoop.start();
+      }
+
       function applyLabel() {
         rankingEl.textContent = label;
         ovrFitText(document.getElementById('rnk-header-title'), 52.6, 26);
-        ovrFitText(rankingEl, 122.58, 61);
+        ovrFitText(rankingEl, 122.58, 40);
         ovrFitText(document.getElementById('rnk-header-mapname'), 28.79, 14);
         ovrFitText(document.getElementById('rnk-header-stageday'), 45.79, 22);
       }
@@ -6355,13 +6445,6 @@
         }, RNK_LABEL_SWAP_MS);
       } else {
         applyLabel();
-      }
-
-      if (!wasOn) {
-        rnkHeaderEl.classList.add('rnk-on');
-        void rnkHeaderEl.offsetWidth; /* force reflow so the opacity transition runs */
-        rnkHeaderEl.classList.add('rnk-visible');
-        rnkSponsorLoop.start();
       }
     }
     function rnkHideHeader() {
@@ -6844,6 +6927,71 @@
         new Promise(resolve => {
           setTimeout(() => {
             mrrPage.classList.remove('mrr-on');
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       TOURNAMENT SCHEDULE — a single full-bleed PNG, nothing else. Part
+       of the RANK_FEATURES family — shares #rnk-header, labeled
+       "Tournament Schedule".
+    ════════════════════════════════════════════════ */
+    const tscPage = document.getElementById('tournament-schedule-page');
+
+    async function showTournamentScheduleScene() {
+      await transitionTo('tournamentschedule');
+      if (activeFeature !== 'tournamentschedule') return; /* superseded mid-await */
+      rnkShowHeader('Tournament Schedule');
+      rnkShowBgVideo();
+      tscPage.classList.add('tsc-on');
+      void tscPage.offsetWidth; /* force reflow so the opacity transition runs */
+      tscPage.classList.add('tsc-visible');
+    }
+
+    function hideTournamentScheduleScene() {
+      activeFeature = null;
+      tscPage.classList.remove('tsc-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            tscPage.classList.remove('tsc-on');
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       PRIZE POOL — a single full-bleed PNG, nothing else. Part of the
+       RANK_FEATURES family — shares #rnk-header, labeled "Prize Pool".
+    ════════════════════════════════════════════════ */
+    const pplPage = document.getElementById('prize-pool-page');
+
+    async function showPrizePoolScene() {
+      await transitionTo('prizepool');
+      if (activeFeature !== 'prizepool') return; /* superseded mid-await */
+      rnkShowHeader('Prize Pool');
+      rnkShowBgVideo();
+      pplPage.classList.add('ppl-on');
+      void pplPage.offsetWidth; /* force reflow so the opacity transition runs */
+      pplPage.classList.add('ppl-visible');
+    }
+
+    function hidePrizePoolScene() {
+      activeFeature = null;
+      pplPage.classList.remove('ppl-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            pplPage.classList.remove('ppl-on');
             rnkHideBgVideo();
             resolve();
           }, 420);
@@ -8369,7 +8517,7 @@
        header, only its own scoreboard content. Same precedent as
        cpDuringPostTransition above. */
     let duringRankTransition = false;
-    const RANK_FEATURES = new Set(['overallranking', 'mapranking', 'groupranking', 'maprotation']);
+    const RANK_FEATURES = new Set(['overallranking', 'mapranking', 'groupranking', 'maprotation', 'tournamentschedule', 'prizepool']);
 
     /* Keeps server-side state.fullscreenScene.<key> (and thus the dashboard's
        Control-tab board toggles/live indicator) in sync with board
@@ -8475,6 +8623,8 @@
       if (prev === 'mapranking') return hideMapRankingScene();
       if (prev === 'groupranking') return hideGroupRankingScene();
       if (prev === 'maprotation') return hideMapRotationScene();
+      if (prev === 'tournamentschedule') return hideTournamentScheduleScene();
+      if (prev === 'prizepool') return hidePrizePoolScene();
       if (prev === 'highlights') return hideHighlights();
       if (prev === 'mvp')       return hideMvpScene();
       if (prev === 'credits')   return hideCreditsScene();
@@ -10560,6 +10710,8 @@
           else if (scene.activeFeature === 'mapranking') showMapRankingScene();
           else if (scene.activeFeature === 'groupranking') showGroupRankingScene();
           else if (scene.activeFeature === 'maprotation') showMapRotationScene();
+          else if (scene.activeFeature === 'tournamentschedule') showTournamentScheduleScene();
+          else if (scene.activeFeature === 'prizepool') showPrizePoolScene();
           else if (scene.activeFeature === 'highlights') showHighlights();
           else if (scene.activeFeature === 'mvp')        showMvpScene();
           else if (scene.activeFeature === 'credits')    showCreditsScene();
@@ -10599,6 +10751,8 @@
         if (feature === 'mapranking') showMapRankingScene();
         if (feature === 'groupranking') showGroupRankingScene();
         if (feature === 'maprotation') showMapRotationScene();
+        if (feature === 'tournamentschedule') showTournamentScheduleScene();
+        if (feature === 'prizepool') showPrizePoolScene();
         if (feature === 'highlights') showHighlights();
         if (feature === 'mvp')        showMvpScene();
         if (feature === 'credits')    showCreditsScene();
@@ -10619,7 +10773,7 @@
     window.previewTrigger = function(event, action) {
       document.querySelectorAll('.dbg-btn.preview').forEach(b => b.classList.remove('active'));
       if (action === 'show') {
-        const btnMap = { post_hearts: 'preview-hearts', post_itemline: 'preview-timeline', post_richguy: 'preview-richguy', post_emblems: 'preview-emblems', post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post4key: 'preview-post4key', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', map_ranking: 'preview-mapranking', group_ranking: 'preview-groupranking', map_rotation: 'preview-maprotation' };
+        const btnMap = { post_hearts: 'preview-hearts', post_itemline: 'preview-timeline', post_richguy: 'preview-richguy', post_emblems: 'preview-emblems', post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post4key: 'preview-post4key', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', map_ranking: 'preview-mapranking', group_ranking: 'preview-groupranking', map_rotation: 'preview-maprotation', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool' };
         const btn = document.getElementById(btnMap[event]);
         if (btn) btn.classList.add('active');
       }
@@ -10634,6 +10788,8 @@
         if (event === 'map_ranking') showMapRankingScene();
         if (event === 'group_ranking') showGroupRankingScene();
         if (event === 'map_rotation') showMapRotationScene();
+        if (event === 'tournament_schedule') showTournamentScheduleScene();
+        if (event === 'prize_pool') showPrizePoolScene();
         if (event === 'highlights') showHighlights();
         if (event === 'mvp')        showMvpScene();
         if (event === 'final_team') showFinalTeam();
