@@ -578,6 +578,16 @@
       z-index: 1;
       pointer-events: none;
     }
+    /* CoD:M / GBRC logo lockup — left/top/width/height from the design
+       export, background-image dropped for a real <img> tag instead (see
+       CLAUDE.md's "Working from pasted design-tool CSS" rule). */
+    #wt-codm-logo {
+      position: absolute;
+      left: 1414px; top: 85px;
+      width: 498px; height: 108px;
+      object-fit: contain;
+      z-index: 2;
+    }
     /* .Rectangle_4 from the design export — left/top/width/height kept,
        its placeholder background-color dropped (see CLAUDE.md's "Working
        from pasted design-tool CSS" rule). */
@@ -2734,6 +2744,7 @@
     <div id="waiting-timer-page">
       <video id="wt-bg-video" src="/assets/gbrc_loopbg_waiting.webm" loop muted playsinline></video>
       <img id="wt-bg-art" src="/assets/Waiting Timer/waiting_background.png" alt="">
+      <img id="wt-codm-logo" src="/assets/Waiting Timer/codm_yellow.png" alt="">
       <div id="wt-timer-value"></div>
     </div>
     <div id="team-hexagon-page">
