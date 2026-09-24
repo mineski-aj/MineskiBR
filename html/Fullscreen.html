@@ -408,6 +408,19 @@
       background-size: 521px 53px;
       background-repeat: no-repeat;
     }
+    /* Qualifiers-only: the tab's own name under its page's 8th/last row —
+       a plain flex sibling after the rows (see wtvcBuildPage), so it just
+       lands below whatever row count that page actually has. */
+    .wtvc-qualifier-label {
+      width: 521px;
+      margin-top: 10px;
+      text-align: center;
+      font-family: 'Teko', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      letter-spacing: 0.02em;
+      color: #000;
+    }
     .wtvc-row-rank {
       position: absolute;
       left: 33px; top: 1px;
@@ -3785,7 +3798,7 @@
       'Rebirth Island': 'rebirth',
     };
     const wtvcBgVideo = document.getElementById('wtvc-bg-video');
-    let wtvcTeams = [];
+    let wtvcStandings = null; /* raw /api/waiting-tvc-standings payload — either { mode:'qualifiers', pages:[{sheet,teams}x5] } or { mode:'live', teams } */
     let wtvcTeamsKey = null;
     let wtvcMapsKey = null;
     /* wtvcSlides is the full sequence — score page(s) then map page(s) —
@@ -3803,9 +3816,18 @@
     /* Flag and team logo occupy the same slot — a team with a real crest
        shows the logo instead of the flag (see the onload/onerror swap
        below), not both at once. */
-    function wtvcBuildRow(team, rank, useTopBacker) {
+    function wtvcBuildRow(team, rank) {
       const row = document.createElement('div');
       row.className = 'wtvc-row wtvc-anim-item';
+      /* Same rule as Map Ranking's rnkRowBgSrc: rank 1 AND 2 (Qualifiers
+         has 2 winners) get the special backer, but only once that rank
+         actually has a score — an all-zero board still ranks someone
+         #1/#2 by tiebreak alone, and that shouldn't look like a real
+         result. Outside Qualifiers there's only ever one winner, so
+         this stays off entirely (matches rnkRowBgSrc's plain rank===1). */
+      const useTopBacker = rnkIsQualifiers()
+        ? ((rank === 1 || rank === 2) && Number(team && team.totalScore) > 0)
+        : (rank === 1 && Number(team && team.totalScore) > 0);
       row.style.backgroundImage = `url('${WTVC_ASSET}${useTopBacker ? 'teamscore_backertop.png' : 'teamscore_backer.png'}')`;
 
       const rankEl = document.createElement('div');
@@ -3864,10 +3886,20 @@
       return row;
     }
 
-    function wtvcBuildPage(teams, startRank, useTopBacker) {
+    function wtvcBuildPage(teams, startRank, qualifierLabel) {
       const page = document.createElement('div');
       page.className = 'wtvc-page';
-      teams.forEach((team, i) => page.appendChild(wtvcBuildRow(team, startRank + i, useTopBacker && (startRank + i) === 1)));
+      teams.forEach((team, i) => page.appendChild(wtvcBuildRow(team, startRank + i)));
+      if (qualifierLabel) {
+        const label = document.createElement('div');
+        // wtvc-anim-item joins it into the same cascade as the team rows
+        // (wtvcAnimateRows) — being the last DOM child, it naturally gets
+        // the largest stagger delay, so it animates in right after the
+        // final team's row instead of popping in instantly.
+        label.className = 'wtvc-qualifier-label wtvc-anim-item';
+        label.textContent = qualifierLabel;
+        page.appendChild(label);
+      }
       return page;
     }
 
@@ -3956,17 +3988,26 @@
       });
     }
 
-    /* Up to 20 teams (2 pages of 10). */
+    /* Qualifiers: one page per qualifier tab (5, day-scoped server-side —
+       see getWaitingTvcStandings), each independently ranked from rank 1,
+       NOT one combined/paginated list — a team's page-2 standing has
+       nothing to do with its page-1 standing, they're different maps'
+       results. Any other stage: the old single-list behavior, up to 20
+       teams over up to 2 pages of 10. */
     function wtvcRenderScorePages() {
       const root = document.getElementById('wtvc-rows');
       root.innerHTML = '';
-      const anyScored = wtvcTeams.some(t => (t && t.totalScore) > 0);
-      const teams = wtvcTeams.slice(0, WTVC_ROWS_PER_PAGE * 2);
+      if (wtvcStandings && wtvcStandings.mode === 'qualifiers') {
+        const pages = wtvcStandings.pages && wtvcStandings.pages.length ? wtvcStandings.pages : [{ teams: [] }];
+        pages.forEach(p => root.appendChild(wtvcBuildPage(p.teams || [], 1, (p.sheet || '').toUpperCase())));
+        return;
+      }
+      const teams = ((wtvcStandings && wtvcStandings.teams) || []).slice(0, WTVC_ROWS_PER_PAGE * 2);
       const pages = [];
       for (let i = 0; i < teams.length; i += WTVC_ROWS_PER_PAGE) pages.push(teams.slice(i, i + WTVC_ROWS_PER_PAGE));
       if (!pages.length) pages.push([]);
       pages.forEach((pageTeams, i) => {
-        const page = wtvcBuildPage(pageTeams, i * WTVC_ROWS_PER_PAGE + 1, anyScored);
+        const page = wtvcBuildPage(pageTeams, i * WTVC_ROWS_PER_PAGE + 1);
         root.appendChild(page);
       });
     }
@@ -4080,7 +4121,7 @@
 
     async function wtvcFetchData() {
       const [standings, ms, pageSpeed] = await Promise.all([
-        fetch('/api/live-tally-standings', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch('/api/waiting-tvc-standings', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
         fetch(buildUrl('/match/state'), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
         fetch('/api/wtvc-page-speed', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
       ]);
@@ -4096,8 +4137,16 @@
        animation, right in the middle of — or right after — a real
        page-flip transition. */
     function wtvcApply(data) {
-      const teams = (data.standings && data.standings.teams) || [];
-      const teamsKey = JSON.stringify(teams);
+      const standings = data.standings || null;
+      // Key off just the content that actually affects rendering — NOT the
+      // whole payload, which carries a `fetchedAt` timestamp that changes
+      // on every single 3.5s poll. Hashing that in made every poll look
+      // like a structure change, resetting to slide 0 and restarting the
+      // cycle before the real 5s page interval ever got to fire — page
+      // cycling looked completely dead, stuck on page 1.
+      const teamsKey = JSON.stringify(
+        standings && standings.mode === 'qualifiers' ? standings.pages : (standings && standings.teams)
+      );
       const ms = data.ms;
       const maps = ((ms && ms.todayMaps) || []).slice(0, (ms && ms.todayMapsCount) || 0);
       const mapsKey = JSON.stringify(maps);
@@ -4110,7 +4159,7 @@
       }
       if (teamsKey !== wtvcTeamsKey) {
         wtvcTeamsKey = teamsKey;
-        wtvcTeams = teams;
+        wtvcStandings = standings;
         wtvcRenderScorePages();
         structureChanged = true;
       }
@@ -4833,8 +4882,48 @@
     }
 
     function ovrFmtNum(n) { return String(n || 0); }
-    function rnkRowBgSrc(rank) {
-      return rank === 1
+
+    /* Live-updates a ranking/post scene's scoreboard while it's actually
+       on screen. Every rank/post scene below (Overall/Map/Group Ranking,
+       Post Qualified) used to fetch its data ONCE on show only — unlike
+       ingame.html's own scoreboard (and Waiting TVC's wtvcPollInt), a
+       scoresheet edit made mid-broadcast never reached an already-shown
+       scene until it was hidden and re-shown. This polls on the same
+       3.5s cadence Waiting TVC already uses, and only actually re-renders
+       when the fetched data changed (comparing a JSON key) — a bare
+       "nothing changed" tick must NOT replay the row-reveal cascade
+       animation, or a scene sitting on screen doing nothing would visibly
+       flicker/re-animate every few seconds for no reason. */
+    function rnkMakeLivePoll(fetchFn, renderFn, featureKey) {
+      let intervalId = null;
+      let lastKey = null;
+      return {
+        start(initialData) {
+          lastKey = JSON.stringify(initialData);
+          clearInterval(intervalId);
+          intervalId = setInterval(() => {
+            if (activeFeature !== featureKey) return;
+            fetchFn().then(data => {
+              if (activeFeature !== featureKey) return;
+              const key = JSON.stringify(data);
+              if (key === lastKey) return;
+              lastKey = key;
+              renderFn(data);
+            });
+          }, 3500);
+        },
+        stop() {
+          clearInterval(intervalId);
+          intervalId = null;
+        },
+      };
+    }
+
+    function rnkRowBgSrc(rank, score) {
+      // Rank 1's special backer only applies once rank 1 actually has a
+      // score — an all-zero board (no results yet) still ranks a team
+      // #1 by tiebreak alone, and that shouldn't look like a real win.
+      return (rank === 1 && Number(score) > 0)
         ? '/assets/Overall%20Ranking/teamscoreboard_rank1.png'
         : '/assets/Overall%20Ranking/teamscoreboard.png';
     }
@@ -4850,7 +4939,7 @@
       const row = document.createElement('div');
       row.className = 'ovr-row rnk-anim-item';
       row.innerHTML =
-        '<img class="ovr-row-bg" src="' + rnkRowBgSrc(q.rank) + '" alt="">' +
+        '<img class="ovr-row-bg" src="' + rnkRowBgSrc(q.rank, q.totalScore) + '" alt="">' +
         '<div class="ovr-row-divider" style="left:182px"></div>' +
         '<div class="ovr-row-divider" style="left:487px"></div>' +
         '<div class="ovr-row-divider" style="left:591px"></div>' +
@@ -4884,6 +4973,15 @@
       } catch (e) { return []; }
     }
 
+    function ovrRenderTeams(teams) {
+      const ovrSolo = teams.length <= 10;
+      document.getElementById('ovr-col-left').classList.toggle('rnk-col-solo', ovrSolo);
+      document.getElementById('ovr-col-right').classList.toggle('rnk-col-right-hidden', ovrSolo);
+      ovrFillColumn(document.querySelector('#ovr-col-left .ovr-col-rows'), teams.slice(0, 10));
+      ovrFillColumn(document.querySelector('#ovr-col-right .ovr-col-rows'), teams.slice(10, 20));
+    }
+    const ovrLivePoll = rnkMakeLivePoll(ovrFetchScoreboard, ovrRenderTeams, 'overallranking');
+
     async function showOverallRankingScene() {
       const dataPromise = ovrFetchScoreboard();
       await transitionTo('overallranking');
@@ -4901,15 +4999,13 @@
          page nobody was looking at (or leaving THIS page's rows empty
          forever, since nothing else was left to fill them). */
       if (activeFeature !== 'overallranking') return;
-      const ovrSolo = teams.length <= 10;
-      document.getElementById('ovr-col-left').classList.toggle('rnk-col-solo', ovrSolo);
-      document.getElementById('ovr-col-right').classList.toggle('rnk-col-right-hidden', ovrSolo);
-      ovrFillColumn(document.querySelector('#ovr-col-left .ovr-col-rows'), teams.slice(0, 10));
-      ovrFillColumn(document.querySelector('#ovr-col-right .ovr-col-rows'), teams.slice(10, 20));
+      ovrRenderTeams(teams);
+      ovrLivePoll.start(teams);
     }
 
     function hideOverallRankingScene() {
       activeFeature = null;
+      ovrLivePoll.stop();
       ovrPage.classList.remove('ovr-visible');
       const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
       return Promise.all([
@@ -4994,7 +5090,16 @@
       );
       const row = document.createElement('div');
       row.className = 'mrk-row rnk-anim-item';
-      let html = '<img class="mrk-row-bg" src="' + rnkRowBgSrc(q.rank) + '" alt="">';
+      /* Qualifiers has 2 winners (rank 1 AND 2), so both get the special
+         "rank1" backer during Qualifiers — same score-gating as
+         rnkRowBgSrc's own rank-1 case (Overall/Group Ranking): only once
+         that rank actually has a score, so an all-zero board doesn't look
+         like a result. Map Ranking-only: rank 2 is never special outside
+         Qualifiers, where rnkRowBgSrc's plain rank===1 check applies. */
+      const mrkBgSrc = (rnkIsQualifiers() && q.rank === 2 && Number(q.totalScore) > 0)
+        ? '/assets/Overall%20Ranking/teamscoreboard_rank1.png'
+        : rnkRowBgSrc(q.rank, q.totalScore);
+      let html = '<img class="mrk-row-bg" src="' + mrkBgSrc + '" alt="">';
       dividers.forEach(left => { html += '<div class="mrk-row-divider" style="left:' + left + 'px"></div>'; });
       html += '<div class="mrk-row-cell mrk-rc-rank">' + (q.rank || '') + '</div>';
       html += rnkFlagCellHtml('mrk-row-cell mrk-rc-flag', q.region);
@@ -5025,6 +5130,18 @@
       } catch (e) { return []; }
     }
 
+    function mrkRenderTeams(teams) {
+      const compact = mrkIsCompactStage();
+      const mrkSolo = teams.length <= 10;
+      document.getElementById('mrk-col-left').classList.toggle('rnk-col-solo', mrkSolo);
+      document.getElementById('mrk-col-right').classList.toggle('rnk-col-right-hidden', mrkSolo);
+      mrkFillHeader(document.querySelector('#mrk-col-left .mrk-col-header'), compact);
+      mrkFillHeader(document.querySelector('#mrk-col-right .mrk-col-header'), compact);
+      mrkFillColumn(document.querySelector('#mrk-col-left .mrk-col-rows'), teams.slice(0, 10), compact);
+      mrkFillColumn(document.querySelector('#mrk-col-right .mrk-col-rows'), teams.slice(10, 20), compact);
+    }
+    const mrkLivePoll = rnkMakeLivePoll(mrkFetchScoreboard, mrkRenderTeams, 'mapranking');
+
     async function showMapRankingScene() {
       const dataPromise = mrkFetchScoreboard();
       await transitionTo('mapranking');
@@ -5036,18 +5153,13 @@
       mrkPage.classList.add('mrk-visible');
       const teams = await dataPromise;
       if (activeFeature !== 'mapranking') return; /* superseded while awaiting data */
-      const compact = mrkIsCompactStage();
-      const mrkSolo = teams.length <= 10;
-      document.getElementById('mrk-col-left').classList.toggle('rnk-col-solo', mrkSolo);
-      document.getElementById('mrk-col-right').classList.toggle('rnk-col-right-hidden', mrkSolo);
-      mrkFillHeader(document.querySelector('#mrk-col-left .mrk-col-header'), compact);
-      mrkFillHeader(document.querySelector('#mrk-col-right .mrk-col-header'), compact);
-      mrkFillColumn(document.querySelector('#mrk-col-left .mrk-col-rows'), teams.slice(0, 10), compact);
-      mrkFillColumn(document.querySelector('#mrk-col-right .mrk-col-rows'), teams.slice(10, 20), compact);
+      mrkRenderTeams(teams);
+      mrkLivePoll.start(teams);
     }
 
     function hideMapRankingScene() {
       activeFeature = null;
+      mrkLivePoll.stop();
       mrkPage.classList.remove('mrk-visible');
       const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
       return Promise.all([
@@ -5075,7 +5187,7 @@
       const row = document.createElement('div');
       row.className = 'grk-row rnk-anim-item';
       row.innerHTML =
-        '<img class="grk-row-bg" src="' + rnkRowBgSrc(q.rank) + '" alt="">' +
+        '<img class="grk-row-bg" src="' + rnkRowBgSrc(q.rank, q.totalScore) + '" alt="">' +
         '<div class="grk-row-divider" style="left:182px"></div>' +
         '<div class="grk-row-divider" style="left:487px"></div>' +
         '<div class="grk-row-divider" style="left:591px"></div>' +
@@ -5121,6 +5233,15 @@
       } catch (e) { return []; }
     }
 
+    function grkRenderTeams(qualifiers) {
+      const grkSolo = qualifiers.length <= 10;
+      document.getElementById('grk-col-left').classList.toggle('rnk-col-solo', grkSolo);
+      document.getElementById('grk-col-right').classList.toggle('rnk-col-right-hidden', grkSolo);
+      grkFillColumn(document.querySelector('#grk-col-left .grk-col-rows'), qualifiers.slice(0, 10));
+      grkFillColumn(document.querySelector('#grk-col-right .grk-col-rows'), qualifiers.slice(10, 20));
+    }
+    const grkLivePoll = rnkMakeLivePoll(grkFetchScoreboard, grkRenderTeams, 'groupranking');
+
     async function showGroupRankingScene() {
       const dataPromise = grkFetchScoreboard();
       await transitionTo('groupranking');
@@ -5132,15 +5253,13 @@
       grkPage.classList.add('grk-visible');
       const qualifiers = await dataPromise;
       if (activeFeature !== 'groupranking') return; /* superseded while awaiting data */
-      const grkSolo = qualifiers.length <= 10;
-      document.getElementById('grk-col-left').classList.toggle('rnk-col-solo', grkSolo);
-      document.getElementById('grk-col-right').classList.toggle('rnk-col-right-hidden', grkSolo);
-      grkFillColumn(document.querySelector('#grk-col-left .grk-col-rows'), qualifiers.slice(0, 10));
-      grkFillColumn(document.querySelector('#grk-col-right .grk-col-rows'), qualifiers.slice(10, 20));
+      grkRenderTeams(qualifiers);
+      grkLivePoll.start(qualifiers);
     }
 
     function hideGroupRankingScene() {
       activeFeature = null;
+      grkLivePoll.stop();
       grkPage.classList.remove('grk-visible');
       const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
       return Promise.all([
@@ -7125,12 +7244,26 @@
     const pqPage = document.getElementById('post-qualified-page');
     let pqVisible = false;
 
-    async function pqFetchTeams() {
+    async function pqFetchData() {
       try {
         const res = await fetch(buildUrl('/api/current-map-standings'), { cache: 'no-store' });
         const data = res.ok ? await res.json() : null;
-        return (data && data.teams) || [];
-      } catch (e) { return []; }
+        return { sheet: (data && data.sheet) || '', teams: (data && data.teams) || [] };
+      } catch (e) { return { sheet: '', teams: [] }; }
+    }
+
+    // "Qualified Slot <2N-1>/<2N>" during Qualifiers — each qualifier tab
+    // fills 2 of the tournament's overall qualified slots (Qualifier 1 ->
+    // slots 1/2, Qualifier 2 -> slots 3/4, ...), N being the live tally
+    // tab's own qualifier number (its sheet name is always "Qualifier N").
+    // Any other stage has no such per-qualifier slot concept, so it's just
+    // the plain label.
+    function pqHeaderLabel(sheet) {
+      if (!rnkIsQualifiers()) return 'Qualified Slot';
+      const m = /(\d+)\s*$/.exec(sheet || '');
+      if (!m) return 'Qualified Slot';
+      const n = parseInt(m[1], 10);
+      return 'Qualified Slot ' + (n * 2 - 1) + '/' + (n * 2);
     }
 
     function pqApplyCard(n, team) {
@@ -7148,18 +7281,24 @@
       ovrFitText(totalEl, 313.71, 157);
     }
 
+    function pqRender(data) {
+      rnkShowHeader(pqHeaderLabel(data.sheet));
+      pqApplyCard(1, data.teams[0]);
+      pqApplyCard(2, data.teams[1]);
+    }
+    const pqLivePoll = rnkMakeLivePoll(pqFetchData, pqRender, 'postqualified');
+
     async function showPostQualifiedScene() {
       if (pqVisible) return;
-      const dataPromise = pqFetchTeams();
+      const dataPromise = pqFetchData();
       await transitionTo('postqualified');
       if (activeFeature !== 'postqualified') return; /* superseded while awaiting transition */
-      const teams = await dataPromise;
+      const data = await dataPromise;
       if (activeFeature !== 'postqualified') return; /* superseded while awaiting data */
       pqVisible = true;
-      rnkShowHeader('Post Qualified');
+      pqRender(data);
       rnkShowBgVideo();
-      pqApplyCard(1, teams[0]);
-      pqApplyCard(2, teams[1]);
+      pqLivePoll.start(data);
       pqPage.classList.add('pq-on');
       void pqPage.offsetWidth; /* force reflow so the opacity transition runs */
       pqPage.classList.add('pq-visible');
@@ -7176,6 +7315,7 @@
     function hidePostQualifiedScene() {
       if (!pqVisible) return Promise.resolve();
       pqVisible = false;
+      pqLivePoll.stop();
       pqPage.classList.remove('pq-visible');
       [1, 2].forEach(n => document.getElementById('pq-card-' + n).classList.remove('pq-card-in'));
       const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();

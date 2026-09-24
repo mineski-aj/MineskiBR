@@ -71,9 +71,9 @@
   "game": 1,
   "swapped": false,
   "official": true,
-  "week": 2,
-  "day": 2,
-  "patch": "Scarlet Embers 0826",
+  "week": 1,
+  "day": 1,
+  "patch": " ",
   "hosts": [
     "Denisse",
     "Thea",
@@ -172,10 +172,10 @@
   "countdownLabelAuto": true,
   "timer": {
     "running": true,
-    "endAt": 1790005292162,
-    "remaining": 3540
+    "endAt": 1790243051631,
+    "remaining": 300
   },
-  "map": "Rebirth Island",
+  "map": "Blackout",
   "enCasters": [
     "Leo",
     "Naisou",
@@ -185,28 +185,28 @@
   "todayMapsCount": 5,
   "todayMaps": [
     {
-      "time": "",
-      "mapName": "Rebirth Island",
-      "winner": ""
-    },
-    {
-      "time": "",
-      "mapName": "Isolated",
-      "winner": ""
-    },
-    {
-      "time": "",
+      "time": "6:00PM",
       "mapName": "Blackout",
       "winner": ""
     },
     {
       "time": "",
-      "mapName": "Isolated",
+      "mapName": "Alcatraz",
       "winner": ""
     },
     {
       "time": "",
       "mapName": "Isolated",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Krai",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Rebirth Island",
       "winner": ""
     }
   ],

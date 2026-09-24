@@ -46,6 +46,15 @@ router.get('/api/live-tally-standings', function (req, res) {
   res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getLiveSheetStandings());
 });
 
+// GET /api/waiting-tvc-standings — same live-sheet standings Match Board
+// uses, EXCEPT during Qualifiers, where it aggregates the whole day's
+// tabs (Day 1: Qualifier 1-5, Day 2: Qualifier 6-10) instead of just
+// whichever single tab is marked live — see getWaitingTvcStandings().
+// Powers Waiting Screen TVC (Fullscreen.html) only.
+router.get('/api/waiting-tvc-standings', function (req, res) {
+  res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getWaitingTvcStandings());
+});
+
 router.get('/api/current-map-standings', function (req, res) {
   res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getCurrentMapStandings());
 });

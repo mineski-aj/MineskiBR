@@ -1,0 +1,548 @@
+{
+  "version": 1,
+  "exported": "2026-09-24T10:17:17.233Z",
+  "ss1Duration": "250",
+  "ss2Duration": "1000",
+  "ss1Banks": [
+    {
+      "id": 6,
+      "name": "3 CAM SPLIT IN",
+      "ssIndex": 1,
+      "bg": 3010,
+      "artFill": 3010,
+      "artOption": 0,
+      "boxes": [
+        {
+          "enabled": false,
+          "source": 11,
+          "x": 372,
+          "y": -125,
+          "size": 720,
+          "crop": false,
+          "cropped": true,
+          "cropTop": 4500,
+          "cropBottom": 4500,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": true,
+          "source": 13,
+          "x": -800,
+          "y": -450,
+          "size": 500,
+          "crop": false,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": true,
+          "source": 14,
+          "x": 800,
+          "y": -450,
+          "size": 500,
+          "crop": false,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": true,
+          "source": 11,
+          "x": 0,
+          "y": 450,
+          "size": 1000,
+          "crop": false,
+          "cropped": false,
+          "cropTop": 4500,
+          "cropBottom": 4500,
+          "cropLeft": 0,
+          "cropRight": 0
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "3 CAM SPLIT OUT",
+      "ssIndex": 1,
+      "bg": 3010,
+      "artFill": 3010,
+      "artOption": 0,
+      "boxes": [
+        {
+          "enabled": false,
+          "source": 11,
+          "x": 0,
+          "y": 450,
+          "size": 1000,
+          "crop": false,
+          "cropped": true,
+          "cropTop": 4500,
+          "cropBottom": 4500,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": true,
+          "source": 13,
+          "x": -2500,
+          "y": -450,
+          "size": 500,
+          "crop": false,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": true,
+          "source": 14,
+          "x": 2500,
+          "y": -450,
+          "size": 500,
+          "crop": false,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": true,
+          "source": 11,
+          "x": 0,
+          "y": 0,
+          "size": 1000,
+          "crop": false,
+          "cropped": true,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "POV 1 & 2 SPLIT IN",
+      "ssIndex": 1,
+      "bg": 2,
+      "artFill": 2,
+      "artOption": 0,
+      "boxes": [
+        {
+          "enabled": true,
+          "source": 2,
+          "x": 0,
+          "y": 0,
+          "size": 1000,
+          "cropped": true,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 15350,
+          "cropRight": 15300
+        },
+        {
+          "enabled": true,
+          "source": 14,
+          "x": -800,
+          "y": 0,
+          "size": 1000,
+          "cropped": true,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 8000,
+          "cropRight": 8000
+        },
+        {
+          "enabled": true,
+          "source": 12,
+          "x": 800,
+          "y": 0,
+          "size": 1000,
+          "cropped": true,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 8000,
+          "cropRight": 8000
+        },
+        {
+          "enabled": true,
+          "source": 10040,
+          "x": 0,
+          "y": 0,
+          "size": 1000,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "POV 1 & 2 SPLIT OUT",
+      "ssIndex": 1,
+      "bg": 3010,
+      "artFill": 3010,
+      "artOption": 0,
+      "boxes": [
+        {
+          "enabled": true,
+          "source": 2,
+          "x": 0,
+          "y": 25000,
+          "size": 1000,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 15350,
+          "cropRight": 15300
+        },
+        {
+          "enabled": true,
+          "source": 14,
+          "x": -2500,
+          "y": 0,
+          "size": 1000,
+          "cropped": true,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 8000,
+          "cropRight": 8000
+        },
+        {
+          "enabled": true,
+          "source": 12,
+          "x": 2500,
+          "y": 0,
+          "size": 1000,
+          "cropped": true,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 8000,
+          "cropRight": 8000
+        },
+        {
+          "enabled": true,
+          "source": 10040,
+          "x": 0,
+          "y": 0,
+          "size": 1000,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "name": "BANK 5",
+      "ssIndex": 1,
+      "bg": 2,
+      "artFill": 2,
+      "artOption": 0,
+      "boxes": [
+        {
+          "enabled": true,
+          "source": 10040,
+          "x": 0,
+          "y": 0,
+          "size": 1000,
+          "cropped": true,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": true,
+          "source": 13,
+          "x": 248,
+          "y": -4,
+          "size": 900,
+          "cropped": true,
+          "cropTop": 640,
+          "cropBottom": 560,
+          "cropLeft": 13300,
+          "cropRight": 1880
+        },
+        {
+          "enabled": false,
+          "source": 3,
+          "x": 2500,
+          "y": 0,
+          "size": 1000,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": true,
+          "source": 3030,
+          "x": 0,
+          "y": 0,
+          "size": 1000,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "name": "BANK 6",
+      "ssIndex": 1,
+      "bg": 2,
+      "artFill": 2,
+      "artOption": 0,
+      "boxes": [
+        {
+          "enabled": true,
+          "source": 10040,
+          "x": -809,
+          "y": -183,
+          "size": 390,
+          "cropped": true,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": true,
+          "source": 13,
+          "x": 248,
+          "y": -4,
+          "size": 900,
+          "cropped": true,
+          "cropTop": 640,
+          "cropBottom": 560,
+          "cropLeft": 13300,
+          "cropRight": 1880
+        },
+        {
+          "enabled": false,
+          "source": 3,
+          "x": 2500,
+          "y": 0,
+          "size": 1000,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": true,
+          "source": 3030,
+          "x": 0,
+          "y": 0,
+          "size": 1000,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        }
+      ]
+    }
+  ],
+  "ss2Banks": [
+    {
+      "id": 3,
+      "name": "BANK 1",
+      "ssIndex": 2,
+      "bg": 2,
+      "artFill": 2,
+      "artOption": 0,
+      "boxes": [
+        {
+          "enabled": true,
+          "source": 7,
+          "x": -808,
+          "y": -77,
+          "size": 690,
+          "crop": false,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": false,
+          "source": 0,
+          "x": 800,
+          "y": 450,
+          "size": 500,
+          "crop": false,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": false,
+          "source": 0,
+          "x": -800,
+          "y": -450,
+          "size": 500,
+          "crop": false,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": false,
+          "source": 0,
+          "x": 800,
+          "y": -450,
+          "size": 500,
+          "crop": false,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "BANK 2",
+      "ssIndex": 2,
+      "bg": 1,
+      "artFill": 0,
+      "artOption": 0,
+      "boxes": [
+        {
+          "enabled": true,
+          "source": 1,
+          "x": -480,
+          "y": 270,
+          "size": 0.5,
+          "crop": false,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": true,
+          "source": 2,
+          "x": 480,
+          "y": 270,
+          "size": 0.5,
+          "crop": false,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": false,
+          "source": 3,
+          "x": -480,
+          "y": -270,
+          "size": 0.5,
+          "crop": false,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": false,
+          "source": 4,
+          "x": 480,
+          "y": -270,
+          "size": 0.5,
+          "crop": false,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "IN GAME 2 SPLIT IN",
+      "ssIndex": 2,
+      "bg": 0,
+      "artFill": 0,
+      "artOption": 0,
+      "boxes": [
+        {
+          "enabled": true,
+          "source": 11,
+          "x": -480,
+          "y": 270,
+          "size": 0.5,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": true,
+          "source": 12,
+          "x": 480,
+          "y": 270,
+          "size": 0.5,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": false,
+          "source": 3,
+          "x": -480,
+          "y": -270,
+          "size": 0.5,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        },
+        {
+          "enabled": false,
+          "source": 4,
+          "x": 480,
+          "y": -270,
+          "size": 0.5,
+          "cropped": false,
+          "cropTop": 0,
+          "cropBottom": 0,
+          "cropLeft": 0,
+          "cropRight": 0
+        }
+      ]
+    }
+  ]
+}
