@@ -1028,6 +1028,27 @@
   </div>
 
   <div class="settings-section">
+    <div class="settings-section-hdr">Data Links (JSON)</div>
+    <div class="settings-section-body">
+      <div class="settings-row">
+        <label>Match Board</label>
+        <input type="text" class="settings-input" id="link-matchboard" readonly spellcheck="false" />
+        <button class="settings-btn" id="copy-matchboard">⧉ Copy</button>
+        <a class="settings-btn" id="open-matchboard" href="#" target="_blank" rel="noopener">Open ↗</a>
+      </div>
+      <div class="settings-row">
+        <label>Match Board<br>(vMix)</label>
+        <input type="text" class="settings-input" id="link-matchboard-vmix" readonly spellcheck="false" />
+        <button class="settings-btn" id="copy-matchboard-vmix">⧉ Copy</button>
+        <a class="settings-btn" id="open-matchboard-vmix" href="#" target="_blank" rel="noopener">Open ↗</a>
+      </div>
+      <div class="settings-row">
+        <span class="settings-status">"Match Board" is a plain JSON object for a browser/debugging. "Match Board (vMix)" is the same data wrapped as a vMix Data Sources-compatible array — point a vMix Title's Data Source at that link and bind fields like ${team1_name}/${team1_kills}.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-section">
     <div class="settings-section-hdr">ATEM SuperSource (SS Animator)<span id="atem-ip-conn-status" class="settings-status"></span></div>
     <div class="settings-section-body">
       <div class="settings-row">
@@ -1487,6 +1508,23 @@
         statusEl.textContent = 'Error';
         statusEl.style.color = '#ff4455';
       });
+  });
+
+  /* ── Data Links (JSON) — Match Board, plain + vMix Data Source shape ──
+     Just displays/copies an absolute URL built off window.location.origin
+     (see copyRoute()) — no fetch involved, so these work even if the
+     dashboard itself is opened from a different machine's IP. */
+  [
+    { link: 'link-matchboard',      open: 'open-matchboard',      copy: 'copy-matchboard',      path: '/api/matchboard',      label: 'Match Board JSON link' },
+    { link: 'link-matchboard-vmix', open: 'open-matchboard-vmix', copy: 'copy-matchboard-vmix', path: '/api/matchboard/vmix', label: 'Match Board vMix JSON link' },
+  ].forEach(function (row) {
+    var url = window.location.origin + row.path;
+    var inputEl = document.getElementById(row.link);
+    var openEl  = document.getElementById(row.open);
+    var copyEl  = document.getElementById(row.copy);
+    if (inputEl) inputEl.value = url;
+    if (openEl)  openEl.href   = url;
+    if (copyEl)  copyEl.addEventListener('click', function () { copyRoute(row.path, row.label, copyEl); });
   });
 
   var KILL_PRIORITIES = {

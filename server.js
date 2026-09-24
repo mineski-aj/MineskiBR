@@ -142,6 +142,7 @@ app.use(require('./routes/dashboard'));
 app.use(require('./routes/overlayStyles'));
 app.use(require('./routes/projects'));
 app.use(require('./routes/devapi'));
+app.use(require('./routes/matchboard'));
 // Fused in from the standalone CODMTally app — the BR tournament live-
 // scoring console (Tally dashboard tab, html/tally-console.html /
 // html/tally-score.html). See routes/tally.js's own header comment.
