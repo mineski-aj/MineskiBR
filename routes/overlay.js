@@ -132,42 +132,6 @@ router.get('/overlay/fights/pending', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json(p || { action: null });
 });
 
-// GET /overlay/post_hearts/show
-router.get('/overlay/post_hearts/show', (req, res) => {
-  state.fullscreenScene.matchboard = true;
-  state.fullscreenScene.middleboard = true;
-  state.fullscreenScene.activeFeature = 'hearts';
-  state.overlayClients.forEach(c => {
-    try {
-      c.write('event: matchboard\ndata: {"action":"show"}\n\n');
-      c.write('event: middleboard\ndata: {"action":"show"}\n\n');
-      c.write('event: post_hearts\ndata: {"action":"show"}\n\n');
-    } catch {}
-  });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/post_hearts/hide
-router.get('/overlay/post_hearts/hide', (req, res) => {
-  state.fullscreenScene.activeFeature = null;
-  state.overlayClients.forEach(c => { try { c.write('event: post_hearts\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
-// GET /overlay/post_richguy/show
-router.get('/overlay/post_richguy/show', (req, res) => {
-  state.fullscreenScene.activeFeature = 'richguy';
-  state.overlayClients.forEach(c => { try { c.write('event: post_richguy\ndata: {"action":"show","data":{}}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/post_richguy/hide
-router.get('/overlay/post_richguy/hide', (req, res) => {
-  state.fullscreenScene.activeFeature = null;
-  state.overlayClients.forEach(c => { try { c.write('event: post_richguy\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
 // GET /overlay/waiting_tvc/show
 router.get('/overlay/waiting_tvc/show', (req, res) => {
   state.fullscreenScene.activeFeature = 'waiting';
@@ -476,34 +440,6 @@ router.get('/overlay/fs/debugoff', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true });
 });
 
-// GET /overlay/matchboard/show
-router.get('/overlay/matchboard/show', (req, res) => {
-  state.fullscreenScene.matchboard = true;
-  state.overlayClients.forEach(c => { try { c.write('event: matchboard\ndata: {"action":"show"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/matchboard/hide
-router.get('/overlay/matchboard/hide', (req, res) => {
-  state.fullscreenScene.matchboard = false;
-  state.overlayClients.forEach(c => { try { c.write('event: matchboard\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
-// GET /overlay/middleboard/show
-router.get('/overlay/middleboard/show', (req, res) => {
-  state.fullscreenScene.middleboard = true;
-  state.overlayClients.forEach(c => { try { c.write('event: middleboard\ndata: {"action":"show"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/middleboard/hide
-router.get('/overlay/middleboard/hide', (req, res) => {
-  state.fullscreenScene.middleboard = false;
-  state.overlayClients.forEach(c => { try { c.write('event: middleboard\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
 // GET /overlay/fs/hide
 router.get('/overlay/fs/hide', (req, res) => {
   state.fullscreenScene = { matchboard: false, middleboard: false, activeFeature: null, scheduleHighlight: 0 };
@@ -520,60 +456,6 @@ router.get('/overlay/fs/hide', (req, res) => {
 // GET /overlay/fullscreen-scene — current fullscreen display state for restore-on-load
 router.get('/overlay/fullscreen-scene', (req, res) => {
   res.set({ 'Cache-Control': 'no-store' }).json(state.fullscreenScene);
-});
-
-// GET /overlay/post_itemline/itemin
-router.get('/overlay/post_itemline/itemin', (req, res) => {
-  state.overlayClients.forEach(c => { try { c.write('event: post_itemline_itemin\ndata: {}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true });
-});
-
-// GET /overlay/post_itemline/itemout
-router.get('/overlay/post_itemline/itemout', (req, res) => {
-  state.overlayClients.forEach(c => { try { c.write('event: post_itemline_itemout\ndata: {}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true });
-});
-
-// GET /overlay/post_itemline/show
-router.get('/overlay/post_itemline/show', (req, res) => {
-  state.fullscreenScene.matchboard = true;
-  state.fullscreenScene.activeFeature = 'itemline';
-  state.overlayClients.forEach(c => {
-    try {
-      c.write('event: matchboard\ndata: {"action":"show"}\n\n');
-      c.write('event: post_itemline\ndata: {"action":"show"}\n\n');
-    } catch {}
-  });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/post_itemline/hide
-router.get('/overlay/post_itemline/hide', (req, res) => {
-  state.fullscreenScene.activeFeature = null;
-  state.overlayClients.forEach(c => { try { c.write('event: post_itemline\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
-// GET /overlay/post_emblems/show
-router.get('/overlay/post_emblems/show', (req, res) => {
-  state.fullscreenScene.matchboard = true;
-  state.fullscreenScene.middleboard = true;
-  state.fullscreenScene.activeFeature = 'emblems';
-  state.overlayClients.forEach(c => {
-    try {
-      c.write('event: matchboard\ndata: {"action":"show"}\n\n');
-      c.write('event: middleboard\ndata: {"action":"show"}\n\n');
-      c.write('event: post_emblems\ndata: {"action":"show"}\n\n');
-    } catch {}
-  });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/post_emblems/hide
-router.get('/overlay/post_emblems/hide', (req, res) => {
-  state.fullscreenScene.activeFeature = null;
-  state.overlayClients.forEach(c => { try { c.write('event: post_emblems\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/post_items/show
@@ -595,100 +477,6 @@ router.get('/overlay/post_items/show', (req, res) => {
 router.get('/overlay/post_items/hide', (req, res) => {
   state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: post_items\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
-// GET /overlay/post_stats/show
-router.get('/overlay/post_stats/show', (req, res) => {
-  state.fullscreenScene.matchboard = true;
-  state.fullscreenScene.middleboard = true;
-  state.fullscreenScene.activeFeature = 'stats';
-  state.overlayClients.forEach(c => {
-    try {
-      c.write('event: matchboard\ndata: {"action":"show"}\n\n');
-      c.write('event: middleboard\ndata: {"action":"show"}\n\n');
-      c.write('event: post_stats\ndata: {"action":"show"}\n\n');
-    } catch {}
-  });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/post_stats/hide
-router.get('/overlay/post_stats/hide', (req, res) => {
-  state.fullscreenScene.activeFeature = null;
-  state.overlayClients.forEach(c => { try { c.write('event: post_stats\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
-// GET /overlay/consolidated_post/show
-router.get('/overlay/consolidated_post/show', (req, res) => {
-  state.fullscreenScene.matchboard = true;
-  state.fullscreenScene.activeFeature = 'consolidated_post';
-  // Deliberately do NOT also broadcast a standalone 'matchboard' event here.
-  // Fullscreen.html has its own independent 'matchboard' SSE listener (for the
-  // Control tab's standalone Matchboard toggle) that calls showMatchBoard()
-  // directly with no idea cp-compact is about to be applied — broadcasting
-  // it here raced against showConsolidatedPost()'s own properly-sequenced
-  // internal showMatchBoard() call, so the board would animate in at its
-  // normal (non-compact) position first, then jump 36px once
-  // showConsolidatedPost() finally added cp-compact. The dashboard's own
-  // Matchboard toggle indicator still stays in sync without this broadcast:
-  // it refetches the full /overlay/fullscreen-scene snapshot (which includes
-  // this matchboard flag) off the 'consolidated_post' event alone.
-  state.overlayClients.forEach(c => {
-    try {
-      c.write('event: consolidated_post\ndata: {"action":"show"}\n\n');
-    } catch {}
-  });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/consolidated_post/hide
-router.get('/overlay/consolidated_post/hide', (req, res) => {
-  state.fullscreenScene.activeFeature = null;
-  state.overlayClients.forEach(c => { try { c.write('event: consolidated_post\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
-// GET /overlay/consolidated_post_2/show
-router.get('/overlay/consolidated_post_2/show', (req, res) => {
-  state.fullscreenScene.matchboard = true;
-  state.fullscreenScene.activeFeature = 'consolidated_post_2';
-  // Same reasoning as consolidated_post/show above: no standalone
-  // 'matchboard' broadcast — showConsolidatedPost2() sequences the
-  // cp-compact class itself before its own showMatchBoard() call.
-  state.overlayClients.forEach(c => {
-    try { c.write('event: consolidated_post_2\ndata: {"action":"show"}\n\n'); } catch {}
-  });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/consolidated_post_2/hide
-router.get('/overlay/consolidated_post_2/hide', (req, res) => {
-  state.fullscreenScene.activeFeature = null;
-  state.overlayClients.forEach(c => { try { c.write('event: consolidated_post_2\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
-// GET /overlay/post4key/show
-router.get('/overlay/post4key/show', (req, res) => {
-  state.fullscreenScene.matchboard = true;
-  state.fullscreenScene.activeFeature = 'post4key';
-  // Same reasoning as consolidated_post/show above: no standalone
-  // 'matchboard' broadcast — Fullscreen.html's own transitionTo() already
-  // calls showMatchBoard() internally, and the dashboard's Matchboard
-  // toggle stays in sync via the /overlay/fullscreen-scene refetch triggered
-  // off the 'post4key' event alone.
-  state.overlayClients.forEach(c => {
-    try { c.write('event: post4key\ndata: {"action":"show"}\n\n'); } catch {}
-  });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/post4key/hide
-router.get('/overlay/post4key/hide', (req, res) => {
-  state.fullscreenScene.activeFeature = null;
-  state.overlayClients.forEach(c => { try { c.write('event: post4key\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 

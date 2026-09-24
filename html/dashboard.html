@@ -1560,12 +1560,7 @@
   var fullscreenFeatureBtns = {};
   var FULLSCREEN_BOOL_KEYS = ['matchboard', 'middleboard'];
   var FULLSCREEN_ACTIVE_FEATURE_MAP = {
-    post_hearts:    'hearts',
-    post_itemline:  'itemline',
-    post_emblems:   'emblems',
     post_items:     'items',
-    post_stats:     'stats',
-    post_richguy:   'richguy',
     waiting_tvc:    'waiting',
     waiting_timer:  'timer',
     today_schedule: 'schedule',
@@ -1578,9 +1573,6 @@
     team_lineup_blue: 'lineupblue',
     team_lineup_red:  'lineupred',
     herolineup:       'herolineup',
-    consolidated_post: 'consolidated_post',
-    consolidated_post_2: 'consolidated_post_2',
-    post4key:       'post4key',
     overall_ranking:   'overallranking',
     map_ranking:       'mapranking',
     group_ranking:     'groupranking',
@@ -1594,16 +1586,14 @@
      activeFeature values as FULLSCREEN_ACTIVE_FEATURE_MAP, keyed the other
      way round, mirroring the fullscreen OVERLAYS entry's feature names. */
   var FULLSCREEN_ACTIVE_FEATURE_NAMES = {
-    hearts: 'Post Hearts', itemline: 'Post Timeline', emblems: 'Post Emblem',
-    items: 'Postgame Items', stats: 'Post Stats', richguy: 'Rich Guy',
+    items: 'Postgame Items',
     waiting: 'Waiting Screen TVC', timer: 'Waiting Timer',
     schedule: "Today's Schedule", tomorrow: "Tomorrow's Schedule",
     hexagon: 'Team Hexagon', highlights: 'MVP Highlights',
     mvp: 'MVP Scene', credits: 'Credit Reel', finalteam: 'Final Team',
     lineupblue: 'Team Line-Up — Blue', lineupred: 'Team Line-Up — Red',
     herolineup: 'Hero Lineup',
-    consolidated_post: 'Consolidated Post', consolidated_post_2: 'Consolidated Post 2',
-    post4key: 'Post 4 Key', overallranking: 'Overall Ranking', mapranking: 'Map Ranking',
+    overallranking: 'Overall Ranking', mapranking: 'Map Ranking',
     groupranking: 'Group Ranking', maprotation: 'Map Rotation',
     tournamentschedule: 'Tournament Schedule', prizepool: 'Prize Pool',
     postqualified: 'Post Qualified', maphighlights: 'Map Highlights',
@@ -1796,7 +1786,7 @@
 
   /* Fullscreen.html's scene state is one shared object (a single active
      feature plus 3 board booleans), not a flat per-key map — a single
-     route like post_hearts/show flips 4 fields in one broadcast. Rather
+     route like post_items/show flips several fields in one broadcast. Rather
      than hand-decode every event's effect here, just refetch the
      authoritative /overlay/fullscreen-scene snapshot whenever any
      scene-changing event fires. */
@@ -1937,34 +1927,6 @@
         { name: 'Prize Pool', show: '/overlay/prize_pool/show', hide: '/overlay/prize_pool/hide' },
         { name: 'Post Qualified', show: '/overlay/post_qualified/show', hide: '/overlay/post_qualified/hide' },
         { name: 'Map Highlights', show: '/overlay/map_highlights/show', hide: '/overlay/map_highlights/hide' },
-      ],
-      /* Superseded by "Postgame Items" above (Sept 2026 rework), which
-         already shows Matchboard/Middleboard alongside itself via
-         transitionToImpl's POST_FEATURES machinery — see Fullscreen.html.
-         Kept here, fully working, purely for reference/manual fallback
-         (the board rows in particular are the only way to force-clear a
-         board left on screen after hiding one of these scenes, since none
-         of their own hide functions clear boards on their own — same gap
-         "Postgame Items" itself needed a fix for). Playerboard has been
-         removed entirely (superseded by Postgame Items' own Item Board),
-         so it no longer has a row here. Rendered in the Control tab's
-         collapsible "Archived" section, opened via the 🗄 Archive button
-         next to Fullscreen's Open link. */
-      archivedFeatures: [
-        { name: 'Matchboard',    show: '/overlay/matchboard/show',    hide: '/overlay/matchboard/hide'    },
-        { name: 'Middleboard',   show: '/overlay/middleboard/show',   hide: '/overlay/middleboard/hide'   },
-        { name: 'Post Hearts',   show: '/overlay/post_hearts/show',   hide: '/overlay/post_hearts/hide'   },
-        { name: 'Post Timeline', show: '/overlay/post_itemline/show', hide: '/overlay/post_itemline/hide',
-          extraButtons: [
-            { label: 'Item In',  action: '/overlay/post_itemline/itemin'  },
-            { label: 'Item Out', action: '/overlay/post_itemline/itemout' },
-          ] },
-        { name: 'Post Emblem',   show: '/overlay/post_emblems/show',  hide: '/overlay/post_emblems/hide'  },
-        { name: 'Post Stats',    show: '/overlay/post_stats/show',    hide: '/overlay/post_stats/hide'    },
-        { name: 'Consolidated Post', show: '/overlay/consolidated_post/show', hide: '/overlay/consolidated_post/hide' },
-        { name: 'Consolidated Post 2', show: '/overlay/consolidated_post_2/show', hide: '/overlay/consolidated_post_2/hide' },
-        { name: 'Post 4 Key',    show: '/overlay/post4key/show',        hide: '/overlay/post4key/hide'        },
-        { name: 'Rich Guy',      show: '/overlay/post_richguy/show',  hide: '/overlay/post_richguy/hide'  },
       ],
       debugPhotosToggle: true,
     },
@@ -3504,214 +3466,7 @@
     { group: 'Schedule', id: '#stv-content', name: 'Schedule Block' },
   ];
 
-  /* ── Consolidated Post (Fullscreen.html) element defaults ──────────────
-     10 per-player rows (5 blue, 5 red-mirrored) share one CSS template
-     per field, so editing is per-field-type-per-team: dragging e.g.
-     "Hero Image (Blue)" nudges all 5 blue rows' hero art together via
-     the shared `.cp-row:not(.cp-mirrored) .cp-hero` selector, same for
-     the red side via `.cp-mirrored .cp-hero`. Row containers are each
-     their own entry (not a shared selector) so a "Row Position" group
-     drag preserves each row's own vertical offset instead of collapsing
-     all 5 onto one position — see CP_ROW_ELEMENTS below. */
-  var CP_FIELD_DEFAULTS_BLUE = {
-    hero:      { left: 0,   top: 0,  width: 69,  height: 85 },
-    photo:     { left: 69,  top: 0,  width: 128, height: 85 },
-    spell:     { left: 3,   top: 60, width: 22,  height: 22 },
-    level:     { left: 3,   top: 88, width: 63,  height: 17, fontSize: 15 },
-    role:      { left: 73,  top: 89, width: 15,  height: 15 },
-    name:      { left: 100, top: 88, width: 95,  height: 17, fontSize: 15 },
-    'rune-main': { left: 211, top: 6,  width: 20, height: 20 },
-    'rune-1':    { left: 211, top: 31, width: 20, height: 20 },
-    'rune-2':    { left: 211, top: 56, width: 20, height: 20 },
-    'rune-3':    { left: 211, top: 81, width: 20, height: 20 },
-    stats:     { left: 249, top: 0,  width: 113, height: 107 },
-    'dmg-taken-label': { left: 372, top: 10, width: 187, height: 14, fontSize: 9 },
-    'dmg-taken': { left: 372, top: 26, width: 187, height: 22 },
-    'dmg-dealt-label': { left: 372, top: 57, width: 187, height: 14, fontSize: 9 },
-    'dmg-dealt': { left: 372, top: 73, width: 187, height: 22 },
-    items:     { left: 580, top: 8,  width: 144, height: 92 },
-  };
-  var CP_FIELD_DEFAULTS_RED = {
-    hero:      { left: 661, top: 0,  width: 69,  height: 85 },
-    photo:     { left: 533, top: 0,  width: 128, height: 85 },
-    spell:     { left: 705, top: 60, width: 22,  height: 22 },
-    level:     { left: 664, top: 88, width: 63,  height: 17, fontSize: 15 },
-    role:      { left: 642, top: 89, width: 15,  height: 15 },
-    name:      { left: 535, top: 88, width: 95,  height: 17, fontSize: 15 },
-    'rune-main': { left: 499, top: 6,  width: 20, height: 20 },
-    'rune-1':    { left: 499, top: 31, width: 20, height: 20 },
-    'rune-2':    { left: 499, top: 56, width: 20, height: 20 },
-    'rune-3':    { left: 499, top: 81, width: 20, height: 20 },
-    stats:     { left: 368, top: 0,  width: 113, height: 107 },
-    'dmg-taken-label': { left: 171, top: 10, width: 187, height: 14, fontSize: 9 },
-    'dmg-taken': { left: 171, top: 26, width: 187, height: 22 },
-    'dmg-dealt-label': { left: 171, top: 57, width: 187, height: 14, fontSize: 9 },
-    'dmg-dealt': { left: 171, top: 73, width: 187, height: 22 },
-    items:     { left: 6,   top: 8,  width: 144, height: 92 },
-  };
-  var CP_FIELD_NAMES = {
-    hero: 'Hero Image', photo: 'Player Photo', spell: 'Battle Spell', level: 'Level',
-    role: 'Role Icon', name: 'Player Name', 'rune-main': 'Main Rune',
-    'rune-1': 'Sub Rune 1', 'rune-2': 'Sub Rune 2', 'rune-3': 'Sub Rune 3',
-    stats: 'KDA / Gold',
-    'dmg-taken-label': 'Damage Taken Label', 'dmg-taken': 'Damage Taken Bar',
-    'dmg-dealt-label': 'Damage Dealt Label', 'dmg-dealt': 'Damage Dealt Bar',
-    items: 'Item Grid',
-  };
 
-  var CP_DEFAULTS = {};
-  var CP_ELEMENTS = [];
-  Object.keys(CP_FIELD_DEFAULTS_BLUE).forEach(function (field) {
-    var blueSel = '.cp-row:not(.cp-mirrored) .cp-' + field;
-    var redSel  = '.cp-mirrored .cp-' + field;
-    CP_DEFAULTS[blueSel] = CP_FIELD_DEFAULTS_BLUE[field];
-    CP_DEFAULTS[redSel]  = CP_FIELD_DEFAULTS_RED[field];
-    CP_ELEMENTS.push({ group: CP_FIELD_NAMES[field] + ' (Blue)', id: blueSel, name: CP_FIELD_NAMES[field] + ' · Blue' });
-    CP_ELEMENTS.push({ group: CP_FIELD_NAMES[field] + ' (Red)',  id: redSel,  name: CP_FIELD_NAMES[field] + ' · Red'  });
-  });
-
-  var CP_ROW_POSITIONS = [
-    [59, 193], [59, 300], [59, 407], [59, 514], [59, 621],
-    [1131, 193], [1131, 300], [1131, 407], [1131, 514], [1131, 621],
-  ];
-  CP_ROW_POSITIONS.forEach(function (pos, i) {
-    var n   = i + 1;
-    var sel = '.cp-row-' + n;
-    CP_DEFAULTS[sel] = { left: pos[0], top: pos[1], width: 730, height: 107 };
-    CP_ELEMENTS.push({
-      group: n <= 5 ? 'Row Position · Blue' : 'Row Position · Red',
-      id: sel,
-      name: 'Row ' + n,
-    });
-  });
-
-  /* Consolidated Middle Board — relocated Middleboard objectives, one
-     fixed canvas-absolute box (not per-row), same "whole box only"
-     philosophy as Credit Reel's viewport. */
-  CP_DEFAULTS['#cmb-board'] = { left: 805, top: 169, width: 311, height: 338 };
-  CP_ELEMENTS.push({ group: 'Middle Board', id: '#cmb-board', name: 'Middle Board' });
-
-  /* Consolidated Kill Map — sits directly under the Middle Board. */
-  CP_DEFAULTS['#ckm-board'] = { left: 805, top: 517, width: 310, height: 211 };
-  CP_ELEMENTS.push({ group: 'Kill Map', id: '#ckm-board', name: 'Kill Map' });
-
-  /* Kill Map Bounds — invisible box that defines the sub-region of
-     consomap.png kill dots actually plot into (see ckmGameToLocal() in
-     Fullscreen.html). Separate group from Kill Map itself on purpose: it's a
-     child of #ckm-board, so moving #ckm-board already carries it along
-     for free; a shared group would double-move it on arrow-key nudges. */
-  CP_DEFAULTS['#ckm-bounds'] = { left: 105, top: 0, width: 205, height: 211 };
-  CP_ELEMENTS.push({ group: 'Kill Map Bounds', id: '#ckm-bounds', name: 'Kill Map Bounds' });
-
-  /* Consolidated Post Graph — gold-diff chart + Lord/Turtle/Kill rows. */
-  CP_DEFAULTS['#cpg-board'] = { left: 59, top: 745, width: 1800, height: 270 };
-  CP_ELEMENTS.push({ group: 'Post Graph', id: '#cpg-board', name: 'Post Graph' });
-
-  /* ── Consolidated Post 2 (Fullscreen.html) element defaults ────────────
-     Resized/repositioned duplicate of Consolidated Post above (backup-
-     safe variant) — taller 730×154 rows, no Player Photo field (baked
-     into consoblue2.png/consored2.png), KDA/Gold Earned/damage
-     label+bar split into their own editable fields instead of one
-     shared "stats" block, and NO Post Graph (intentionally dropped).
-     Shares the same #cmb-board (Middle Board) as Consolidated Post —
-     that's the same physical DOM node, just also listed here since it's
-     part of what's on screen when this scene shows. Kill Map is NOT
-     shared though — Post 2 has its own #ckm2-board/#ckm2-bounds (taller
-     311×426 layout, its own consomapback2.png), independent of Post 1's
-     #ckm-board. */
-  var CP2_FIELD_DEFAULTS_BLUE = {
-    hero:      { left: 0,   top: 0,   width: 69,  height: 132 },
-    photo:     { left: 69,  top: 0,   width: 138, height: 132 },
-    spell:     { left: 4,   top: 97,  width: 30,  height: 30 },
-    level:     { left: 0,   top: 132, width: 69,  height: 22, fontSize: 15 },
-    role:      { left: 71,  top: 134, width: 19,  height: 19 },
-    name:      { left: 98,  top: 132, width: 99,  height: 22, fontSize: 12.4 },
-    'rune-main': { left: 207, top: 11, width: 39, height: 39 },
-    'rune-1':    { left: 252, top: 17, width: 28, height: 28 },
-    'rune-2':    { left: 286, top: 17, width: 28, height: 28 },
-    'rune-3':    { left: 320, top: 17, width: 28, height: 28 },
-    'kda-label':  { left: 207, top: 52,  width: 141, height: 14, fontSize: 12 },
-    'kda-value':  { left: 207, top: 68,  width: 141, height: 28, fontSize: 24.8 },
-    'gold-label': { left: 207, top: 96,  width: 141, height: 14, fontSize: 12 },
-    'gold-value': { left: 207, top: 112, width: 141, height: 28, fontSize: 24.8 },
-    'dmg-taken-label': { left: 372, top: 10, width: 170, height: 14, fontSize: 12 },
-    'dmg-taken': { left: 372, top: 26, width: 170, height: 34 },
-    'dmg-dealt-label': { left: 549, top: 10, width: 170, height: 14, fontSize: 12 },
-    'dmg-dealt': { left: 549, top: 26, width: 170, height: 34 },
-    items:     { left: 372, top: 81, width: 348, height: 53 },
-  };
-  var CP2_FIELD_DEFAULTS_RED = {
-    hero:      { left: 661, top: 0,   width: 69,  height: 132 },
-    photo:     { left: 523, top: 0,   width: 138, height: 132 },
-    spell:     { left: 696, top: 97,  width: 30,  height: 30 },
-    level:     { left: 661, top: 132, width: 69,  height: 22, fontSize: 15 },
-    role:      { left: 640, top: 134, width: 19,  height: 19 },
-    name:      { left: 533, top: 132, width: 99,  height: 22, fontSize: 12.4 },
-    'rune-main': { left: 484, top: 11, width: 39, height: 39 },
-    'rune-1':    { left: 450, top: 17, width: 28, height: 28 },
-    'rune-2':    { left: 416, top: 17, width: 28, height: 28 },
-    'rune-3':    { left: 382, top: 17, width: 28, height: 28 },
-    'kda-label':  { left: 382, top: 52,  width: 141, height: 14, fontSize: 12 },
-    'kda-value':  { left: 382, top: 68,  width: 141, height: 28, fontSize: 24.8 },
-    'gold-label': { left: 382, top: 96,  width: 141, height: 14, fontSize: 12 },
-    'gold-value': { left: 382, top: 112, width: 141, height: 28, fontSize: 24.8 },
-    'dmg-taken-label': { left: 188, top: 10, width: 170, height: 14, fontSize: 12 },
-    'dmg-taken': { left: 188, top: 26, width: 170, height: 34 },
-    'dmg-dealt-label': { left: 11,  top: 10, width: 170, height: 14, fontSize: 12 },
-    'dmg-dealt': { left: 11,  top: 26, width: 170, height: 34 },
-    items:     { left: 10,  top: 81, width: 348, height: 53 },
-  };
-  var CP2_FIELD_NAMES = {
-    hero: 'Hero Image', photo: 'Player Photo', spell: 'Battle Spell', level: 'Level',
-    role: 'Role Icon', name: 'Player Name', 'rune-main': 'Main Rune',
-    'rune-1': 'Sub Rune 1', 'rune-2': 'Sub Rune 2', 'rune-3': 'Sub Rune 3',
-    'kda-label': 'KDA Label', 'kda-value': 'KDA Value',
-    'gold-label': 'Gold Earned Label', 'gold-value': 'Gold Earned Value',
-    'dmg-taken-label': 'Damage Taken Label', 'dmg-taken': 'Damage Taken Bar',
-    'dmg-dealt-label': 'Damage Dealt Label', 'dmg-dealt': 'Damage Dealt Bar',
-    items: 'Item Grid',
-  };
-
-  var CP2_DEFAULTS = {};
-  var CP2_ELEMENTS = [];
-  Object.keys(CP2_FIELD_DEFAULTS_BLUE).forEach(function (field) {
-    var blueSel = '.cp2-row:not(.cp2-mirrored) .cp2-' + field;
-    var redSel  = '.cp2-mirrored .cp2-' + field;
-    CP2_DEFAULTS[blueSel] = CP2_FIELD_DEFAULTS_BLUE[field];
-    CP2_DEFAULTS[redSel]  = CP2_FIELD_DEFAULTS_RED[field];
-    CP2_ELEMENTS.push({ group: CP2_FIELD_NAMES[field] + ' (Blue)', id: blueSel, name: CP2_FIELD_NAMES[field] + ' · Blue' });
-    CP2_ELEMENTS.push({ group: CP2_FIELD_NAMES[field] + ' (Red)',  id: redSel,  name: CP2_FIELD_NAMES[field] + ' · Red'  });
-  });
-
-  var CP2_ROW_POSITIONS = [
-    [59, 193], [59, 358], [59, 523], [59, 688], [59, 853],
-    [1131, 193], [1131, 358], [1131, 523], [1131, 688], [1131, 853],
-  ];
-  CP2_ROW_POSITIONS.forEach(function (pos, i) {
-    var n   = i + 1;
-    var sel = '.cp2-row-' + n;
-    CP2_DEFAULTS[sel] = { left: pos[0], top: pos[1], width: 730, height: 154 };
-    CP2_ELEMENTS.push({
-      group: n <= 5 ? 'Row Position · Blue' : 'Row Position · Red',
-      id: sel,
-      name: 'Row ' + n,
-    });
-  });
-
-  CP2_DEFAULTS['#cmb-board'] = { left: 805, top: 169, width: 311, height: 338 };
-  CP2_ELEMENTS.push({ group: 'Middle Board', id: '#cmb-board', name: 'Middle Board' });
-  CP2_DEFAULTS['#ckm2-board'] = { left: 805, top: 521, width: 311, height: 426 };
-  CP2_ELEMENTS.push({ group: 'Kill Map', id: '#ckm2-board', name: 'Kill Map' });
-  CP2_DEFAULTS['#ckm2-bounds'] = { left: 0, top: 110, width: 311, height: 316 };
-  CP2_ELEMENTS.push({ group: 'Kill Map Bounds', id: '#ckm2-bounds', name: 'Kill Map Bounds' });
-
-  /* Sponsor loop below the Kill Map — same Tomorrow's-Schedule-style
-     frame (bg + category label + sliding logo), whole box only. Used to
-     share its selector with Middle Board's own copy (#mdb-sponsor), but
-     that one's since been reworked into its own independent
-     ingame.html-style loop — see MDB_DEFAULTS below. */
-  CP2_DEFAULTS['#cp2-sponsor'] = { left: 805, top: 957, width: 340, height: 94 };
-  CP2_ELEMENTS.push({ group: 'Sponsor Loop', id: '#cp2-sponsor', name: 'Sponsor Loop' });
 
   /* Middle Board's own sponsor loop — ingame.html-style (bare image, no
      frame/category-label), positioned under the final (Purple Buff)
@@ -3750,47 +3505,6 @@
   MDB_ELEMENTS.push({ group: 'Game Time', id: '#mdb-game-time-value', name: 'Game Time Value' });
   MDB_ELEMENTS.push({ group: 'Game Label', id: '#mdb-game-label-text', name: 'Game # Label' });
 
-  /* Post 4 Key — four cards, each spotlighting the game's leader in one
-     stat (GPM / damage dealt / damage taken / assists). Sub-element
-     positions (photo, crop, name bar, stat box) are identical across
-     all 4 cards, so they're registered once as class selectors —
-     editing one moves it for every card, same as Consolidated Post's
-     .cp-hero/.cp-name/etc. Each card's own container position is
-     registered separately (like .cp-row-N) so the 4 cards can still be
-     arranged independently. Titles are the one exception — each is its
-     own id selector (card 2's was removed entirely, replaced by the
-     Visa tag) so every remaining header can be repositioned on its own
-     instead of moving as one shared group. */
-  var P4K_DEFAULTS = {
-    '#p4k-card-1': { left: 100,  top: 373, width: 416, height: 509 },
-    '#p4k-card-2': { left: 527,  top: 373, width: 416, height: 509 },
-    '#p4k-card-3': { left: 954,  top: 373, width: 416, height: 509 },
-    '#p4k-card-4': { left: 1381, top: 373, width: 416, height: 509 },
-    '#p4k-1-title':   { left: 0,  top: -68, width: 416, height: 48,  fontSize: 39.8 },
-    '#p4k-3-title':   { left: 0,  top: -68, width: 416, height: 48,  fontSize: 39.8 },
-    '#p4k-4-title':   { left: 0,  top: -68, width: 416, height: 48,  fontSize: 39.8 },
-    '#p4k-2-visatag': { left: 527, top: 251, width: 416, height: 122 },
-    '.p4k-photo-box': { left: 0,  top: 0,   width: 416, height: 416 },
-    '.p4k-crop':      { left: 0,  top: 357, width: 416, height: 152 },
-    '.p4k-name-box':  { left: 0,   top: 357, width: 416, height: 48  },
-    '.p4k-stat-box':  { left: 25,  top: 405, width: 123, height: 104 },
-    '.p4k-value-box': { left: 165, top: 404, width: 251, height: 105 },
-  };
-  var P4K_ELEMENTS = [
-    { group: 'Post 4 Key · Card 1', id: '#p4k-card-1', name: 'Card 1 Position' },
-    { group: 'Post 4 Key · Card 2', id: '#p4k-card-2', name: 'Card 2 Position' },
-    { group: 'Post 4 Key · Card 3', id: '#p4k-card-3', name: 'Card 3 Position' },
-    { group: 'Post 4 Key · Card 4', id: '#p4k-card-4', name: 'Card 4 Position' },
-    { group: 'Post 4 Key · Card 1 Title', id: '#p4k-1-title', name: 'Title Label (Rich Guy)' },
-    { group: 'Post 4 Key · Card 3 Title', id: '#p4k-3-title', name: 'Title Label (Sand Bag)' },
-    { group: 'Post 4 Key · Card 4 Title', id: '#p4k-4-title', name: 'Title Label (Wingman)' },
-    { group: 'Post 4 Key · Card 2 Visa Tag', id: '#p4k-2-visatag', name: 'Visa Tag' },
-    { group: 'Post 4 Key · Photo',      id: '.p4k-photo-box', name: 'Player Photo' },
-    { group: 'Post 4 Key · Photo Crop', id: '.p4k-crop',      name: 'Photo Crop Mask' },
-    { group: 'Post 4 Key · Name Bar',   id: '.p4k-name-box',  name: 'Player Name Bar' },
-    { group: 'Post 4 Key · Stat Label', id: '.p4k-stat-box',  name: 'Stat Label' },
-    { group: 'Post 4 Key · Stat Value', id: '.p4k-value-box', name: 'Stat Value' },
-  ];
 
   /* ── Registry of editable overlays ───────────────────────────── */
   var EDIT_CONFIGS = {
@@ -3946,15 +3660,6 @@
       defaults:    FT_DEFAULTS,
       showFn:      'showFinalTeam',
     },
-    fullscreen_consolidated_post: {
-      label:       'Consolidated Post · Fullscreen',
-      file:        'Fullscreen.html',
-      styleFile:   'fullscreen',
-      defaultsKey: 'sb_edit_defaults_fullscreen_consolidated_post',
-      elements:    CP_ELEMENTS,
-      defaults:    CP_DEFAULTS,
-      showFn:      'showConsolidatedPost',
-    },
     fullscreen_middleboard: {
       label:       'Middle Board · Fullscreen',
       file:        'Fullscreen.html',
@@ -3963,24 +3668,6 @@
       elements:    MDB_ELEMENTS,
       defaults:    MDB_DEFAULTS,
       showFn:      'showMiddleBoard',
-    },
-    fullscreen_consolidated_post_2: {
-      label:       'Consolidated Post 2 · Fullscreen',
-      file:        'Fullscreen.html',
-      styleFile:   'fullscreen',
-      defaultsKey: 'sb_edit_defaults_fullscreen_consolidated_post_2',
-      elements:    CP2_ELEMENTS,
-      defaults:    CP2_DEFAULTS,
-      showFn:      'showConsolidatedPost2',
-    },
-    fullscreen_post4key: {
-      label:       'Post 4 Key · Fullscreen',
-      file:        'Fullscreen.html',
-      styleFile:   'fullscreen',
-      defaultsKey: 'sb_edit_defaults_fullscreen_post4key',
-      elements:    P4K_ELEMENTS,
-      defaults:    P4K_DEFAULTS,
-      showFn:      'showPost4Key',
     },
     fullscreen_credits: {
       label:       'Credit Reel · Fullscreen',

@@ -32,13 +32,12 @@
 // instance (SharedWorkers persist per exact script URL across reloads)
 // and will silently never learn the new event otherwise.
 const KNOWN_EVENTS = [
-  'apitoggle', 'consolidated_post', 'consolidated_post_2', 'credits', 'debugoff',
+  'apitoggle', 'credits', 'debugoff',
   'featuretoggle', 'fights', 'final_team', 'fs_debugoff', 'fs_hide',
   'herolineup', 'highlights', 'hrm', 'led_draftpred',
   'led_fight', 'led_health', 'led_side', 'led_win',
   'group_ranking', 'map_highlights', 'map_ranking', 'map_rotation', 'overall_ranking', 'match', 'matchboard', 'middleboard', 'mvp',
-  'post_emblems', 'post_hearts', 'post_itemline', 'post_itemline_itemin',
-  'post4key', 'post_itemline_itemout', 'post_items', 'post_qualified', 'post_richguy', 'post_stats', 'prize_pool', 'reload',
+  'post_items', 'post_qualified', 'prize_pool', 'reload',
   'scoreboard', 'seat_arrangement', 'sponsorboxes', 'stylepatch', 'tally', 'team_hexagon', 'team_lineup_blue',
   'team_lineup_red', 'today_schedule', 'tomorrow_schedule', 'tournament_schedule', 'waiting_timer',
   'waiting_tvc',
