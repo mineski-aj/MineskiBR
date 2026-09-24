@@ -146,7 +146,10 @@ function sbUpdateMh1Tally() {
   if (!tallyEl) return;
   var parts = [];
   if (_sbLiveTallyTab) parts.push(_sbLiveTallyTab);
-  parts.push('Map ' + _sbMatchNum);
+  /* Qualifiers: the live tally tab (e.g. "Qualifier 1") already IS the
+     map identity for that stage, so "Map N" is redundant — drop it and
+     show just the tally tab (see sbIsQualifiers below). */
+  if (!sbIsQualifiers()) parts.push('Map ' + _sbMatchNum);
   tallyEl.textContent = parts.join(' | ');
   sbFitText(tallyEl, SB_MH1_TEXT_WIDTH, 28.46);
 }
@@ -174,9 +177,11 @@ function sbPollMatchState() {
         sbFitText(nameEl, SB_MH1_TEXT_WIDTH, 36.88);
       }
       _sbMatchNum = s.match || 1;
-      sbUpdateMh1Tally();
-
+      /* _sbStage must land BEFORE sbUpdateMh1Tally() — it now reads
+         sbIsQualifiers() (which reads _sbStage) to decide whether to
+         drop the "Map N" part of the tally line. */
       _sbStage = s.stage || '';
+      sbUpdateMh1Tally();
       sbRenderScoreboard();
     })
     .catch(function() {});

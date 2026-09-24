@@ -819,6 +819,23 @@ sharing them."
 
 ## Video-heavy overlays — permanently-decoding media is a real, sustained cost
 
+**⚠ The per-scene `SCENE_VIDEO_SRC`/`showSceneVideo`/`hideSceneVideo`
+crossfade system this section describes below (points 2+) has since been
+SUPERSEDED and no longer exists in `Fullscreen.html`** — grep for it
+before trusting this section's mechanism, only its lessons. The current
+system is simpler: one shared `#bg-video` whose PLAY STATE (not its
+`src`) toggles via `showBgVideo()`/`hideBgVideo()` (see that function's
+own comment, "no more per-scene src swap/crossfade"), plus a second,
+separate shared loop and header for the ranking family specifically —
+`#rnk-bg-video`/`#rnk-header` via `rnkShowBgVideo()`/`rnkHideBgVideo()`/
+`rnkShowHeader()`/`rnkHideHeader()`, gated by membership in the
+`RANK_FEATURES` set (see the Master checklist's "New Fullscreen.html
+scene" step 6). Point 1 below (`#bg-video`'s removed `autoplay`) is
+still accurate; point 2 and the "missing map entry"/`SCENE_VIDEO_SRC`
+material after it describes history that motivated the current design,
+not code that still runs — don't go looking for `SCENE_VIDEO_SRC` to add
+a new scene to it.
+
 Full-resolution (1920×1080) 60fps VP9 loops that `autoplay`+`loop` and
 are never explicitly paused are a genuine, sustained GPU/CPU cost for
 as long as the page is open — not a one-time thing. This bit
@@ -942,6 +959,23 @@ toggle needing to know each box's id individually. Concretely:
   uses a different font or box size than the original Waiting-Lobby-
   style boxes (e.g. the Rank Header's sponsor box uses Teko at 21.25px/
   10px, not General Sans).
+- **When the user just says a new scene "has a sponsor loop" with no
+  further spec (no position/size/asset given), default to the Rank
+  Header's own combo** — background `/assets/sponsorbox/sponsorbox.png`
+  at 273×130, `makeSponsorLoop(imgId, labelId, 21.25, 10)` (Teko) — not
+  the older "Waiting Lobby"-style one (`WL_ASSET + Sponsor_Box.png`,
+  General Sans default sizing) that `#ts-sponsor`/`#tw-sponsor`/
+  `#cp2-sponsor` use. Two reasons: it's the more broadly-applicable
+  generic box (not tied to a specific scene's font theme the way those
+  three were originally built for), and **`WL_ASSET` is currently a
+  broken path** — `const WL_ASSET = '/assets/Waiting Lobby/'` points at
+  a folder that no longer exists on disk (likely renamed at some point,
+  e.g. to `Waiting Screen TVC`), so `Sponsor_Box.png` 404s and those
+  three existing boxes are silently rendering with no background plate
+  right now. This is a real, pre-existing bug in production — worth
+  fixing (find where that asset actually lives, or re-export it, and
+  repoint all three `${WL_ASSET}Sponsor_Box.png` call sites) — but don't
+  copy the broken pattern into a new scene while it's unfixed.
 
 ## Data & assets
 
@@ -1054,29 +1088,77 @@ goes unnoticed longest.
    src/textContent, calls fit-to-box helpers) → `showFooScene`/
    `hideFooScene` following the two-class transition pattern (see "Scene
    architecture" above).
-5. **Background loop** — decide if this scene needs the shared crossfading
-   ambient background (`showSceneVideo`/`SCENE_VIDEO_SRC`, see
-   "Video-heavy overlays" above). If yes, add `foo: '/assets/bgloopXXX.webm'`
-   to `SCENE_VIDEO_SRC` — check what a sibling scene of the same "family"
-   uses (e.g. every Post scene currently uses `bgloopwaves2.webm`) rather
-   than guessing. If no (the scene has its own full-bleed art, like
-   `richguy`), do nothing — `transitionToImpl`'s
-   `if (SCENE_VIDEO_SRC[newFeature])` guard already skips it correctly,
-   just don't force an entry in "to be safe."
-6. **Post-family boards** — if this is a Post-style scene meant to sit
-   alongside Matchboard/Middleboard/Playerboard, add its key to
-   `POST_FEATURES` in `transitionToImpl` and decide what it does to
-   middle/player board (most Post scenes show both — the `else` branch;
-   a few like `post4key`/`consolidated_post` special-case this — check
-   whether yours needs a special case too, don't assume the default fits).
-   If it's a normal full-screen scene (not Post-family), skip this — it
-   goes through the `else` branch that hides all three boards, which is
-   correct for a scene that covers the whole frame.
-7. Dashboard Edit tab: add `FOO_DEFAULTS`, `FOO_ELEMENTS`, register in
+5. **Background loop** — decide which shared background, if any, this
+   scene plays underneath itself. There is no more per-scene
+   background-*file* swap (`SCENE_VIDEO_SRC`/`showSceneVideo` — despite
+   still being described that way in "Video-heavy overlays" below, which
+   documents the *history*, not the current mechanism, see the note at
+   the top of that section) — today it's one of:
+   - The plain shared idle loop — `showBgVideo()`/`hideBgVideo()`, which
+     just toggle play-state on the one `#bg-video` element. Use this
+     unless one of the next two applies.
+   - The shared **rank-header family**'s own separate loop —
+     `rnkShowBgVideo()`/`rnkHideBgVideo()` (`#rnk-bg-video`) — use this
+     if (and only if) the scene also joins `RANK_FEATURES`, next step.
+   - Neither, if the scene has its own full-bleed art (like `richguy`).
+6. **Shared rank header — check this BEFORE step 7.** If the user asks for
+   a new scene "with a header" (or it's conceptually a sibling of Overall
+   Ranking / Map Ranking / Group Ranking / Map Rotation / Tournament
+   Schedule / Prize Pool — a standings/scoreboard-style full page, not a
+   one-off postgame highlight), they almost always mean **reuse the
+   existing shared header**, not build a new page-local title element.
+   Symptom of getting this wrong: a from-scratch `#foo-title` div that
+   has to be ripped out and rewired later (this happened building "Post
+   Qualified" — cost a full extra round trip). Concretely, reusing it
+   means:
+   - Add the feature's internal name to `RANK_FEATURES` in
+     `transitionToImpl` (do **NOT** also add it to `POST_FEATURES` —
+     these are two different, mutually-exclusive branches; a feature
+     picks exactly one family). Joining `RANK_FEATURES` alone makes
+     Matchboard/Middleboard hide automatically (the non-Post `else`
+     branch already does this — don't special-case boards yourself) and
+     makes `duringRankTransition` true when switching between any two
+     `RANK_FEATURES` scenes, which is what skips re-fading the header.
+   - In the show function, call `rnkShowHeader('Your Label Here')`
+     (the string that appears in the header's big ranking-label slot) —
+     and `rnkShowBgVideo()` if step 5 said to.
+   - In the hide function, copy Prize Pool's
+     (`showPrizePoolScene`/`hidePrizePoolScene`) exactly — it's the
+     smallest complete reference: guard the header hide behind
+     `duringRankTransition` (`const headerP = duringRankTransition ?
+     Promise.resolve() : rnkHideHeader();`) and await it alongside the
+     page's own fade via `Promise.all([...])`, and call
+     `rnkHideBgVideo()` if you used the rank background loop.
+   - Server route (`routes/overlay.js`): don't touch
+     `state.fullscreenScene.matchboard`/`middleboard` at all — unlike a
+     `POST_FEATURES` route, `transitionToImpl`'s `RANK_FEATURES`/`else`
+     branch already hides both client-side and reports it via
+     `syncBoard(..., false)`. Map Rotation's or Prize Pool's route is the
+     reference shape (just `activeFeature` + the feature's own SSE
+     event).
+   - The shared header itself (`#rnk-header`, logo, title, sponsor box)
+     is never touched by your new scene's own CSS/HTML/Edit-tab entries
+     — it already has its own (`RNK_HEADER_DEFAULTS`/`RNK_HEADER_ELEMENTS`
+     in `dashboard.html`). Your scene's page starts its own content
+     around `top: 267px` to sit below the header's 191px height.
+   - Only skip all of this and build a bespoke page-local title (like
+     MVP Highlights' `#hl-title`) when the scene genuinely is a one-off
+     that doesn't belong with the ranking family — check which one the
+     user means before assuming.
+7. **Post-family boards** — if this is instead a Post-style scene (not
+   the rank-header family above) meant to sit alongside Matchboard/
+   Middleboard/Playerboard, add its key to `POST_FEATURES` in
+   `transitionToImpl` and decide what it does to middle/player board
+   (most Post scenes show both — the `else` branch; a few like
+   `post4key`/`consolidated_post` special-case this — check whether
+   yours needs a special case too, don't assume the default fits). A
+   scene that joined `RANK_FEATURES` in the previous step skips this
+   entirely — it already goes through the boards-hiding `else` branch.
+8. Dashboard Edit tab: add `FOO_DEFAULTS`, `FOO_ELEMENTS`, register in
    `EDIT_CONFIGS`.
-8. Local debug card in `Fullscreen.html` (optional, for testing while you
+9. Local debug card in `Fullscreen.html` (optional, for testing while you
    build — see "Adding a local debug SHOW/HIDE/PREVIEW card" above).
-9. Live control wiring (needed for the real dashboard to trigger it
+10. Live control wiring (needed for the real dashboard to trigger it
    remotely — see "Live control (SSE)" above): server show/hide routes in
    `routes/overlay.js` → SSE listener in `connectSSE()` → line in
    `hideActiveFeature()` → line in `restoreScene()` → button entry in
@@ -1085,32 +1167,32 @@ goes unnoticed longest.
    string. **The last one is the one that gets forgotten** — everything
    still shows/hides fine without it, only the Control-tab "Showing"
    indicator is silently wrong.
-10. **Preview** — add a branch to `Fullscreen.html`'s `window.previewTrigger`
-    for the SAME event name used in step 9's `connectSSE()` listener
+11. **Preview** — add a branch to `Fullscreen.html`'s `window.previewTrigger`
+    for the SAME event name used in step 10's `connectSSE()` listener
     (verify it's the same string — see "Control-tab Preview" above for
     why the external route name and the internal `activeFeature` name
     often differ, e.g. `post_stats` vs `stats`). This is the single most
     commonly forgotten step of this whole checklist — Credit Reel, Post
     Stats, Consolidated Post, and Consolidated Post 2 all shipped with
     working real Show/Hide but a completely silent Preview button.
-    **Everything else Preview-related is automatic** once step 9's
+    **Everything else Preview-related is automatic** once step 10's
     `dashboard.html` feature entry exists with `show`/`hide` — the
     "◈ Preview" button, the show/hide copy-route buttons, and the
     Showing/Hidden toggle all come from the SAME `ov.features`/`feat`
     entry via `dashboard.html`'s generic renderer. Do not hand-write any
     of those; if one is missing, the feature entry is malformed, not
     missing a manual step.
-11. New named SSE event → add it to `KNOWN_EVENTS` in
+12. New named SSE event → add it to `KNOWN_EVENTS` in
     `html/js/overlay-shared-worker.js` AND bump `OVERLAY_WORKER_VERSION`
     in `html/js/overlay-sse-shim.js` in the same change (see "Dashboard
     architecture" above). Skip the version bump and any tab/OBS
     browser-source already open keeps talking to the old worker forever,
     no matter how many times it's refreshed.
-12. Sanity-check before calling it done: grep every id/class used in the new
+13. Sanity-check before calling it done: grep every id/class used in the new
     `FOO_ELEMENTS`/`FOO_DEFAULTS` against the actual `Fullscreen.html` markup —
     a mismatch is silent (no error, the Edit row just does nothing). Same
-    goes for the feature-key string across all wiring spots in steps 9–10.
-13. Validate JS syntax on every file you touched (a fresh `<script>` block
+    goes for the feature-key string across all wiring spots in steps 10–11.
+14. Validate JS syntax on every file you touched (a fresh `<script>` block
     that fails to parse breaks the whole page):
     ```
     node -e "
@@ -1122,14 +1204,14 @@ goes unnoticed longest.
           catch(e){ console.log(f, i, e.message); } });
     }"
     ```
-14. Verify live (see "Verifying changes with a real browser" above) —
+15. Verify live (see "Verifying changes with a real browser" above) —
     not just via `curl`, which only proves a route exists:
     - Click the real Control-tab toggle/Show button and confirm a
       *separate* tab/instance picks up the change over SSE.
     - Click "◈ Preview" and confirm the SAME scene shows **only** in the
       preview iframe, and confirm the real broadcast state (`curl
       /overlay/fullscreen-scene`) did NOT change as a result.
-    - If the scene touches boards (step 6), confirm the board copy of
+    - If the scene touches boards (step 7), confirm the board copy of
       "shown" actually reflects reality afterward
       (`curl /overlay/fullscreen-scene`) even after switching to a *different*
       scene — this is exactly the class of bug `syncBoard()` exists to
@@ -1168,7 +1250,7 @@ the 6-layer SSE wiring:
    `syncBoard()`), it WILL leak into real broadcast state when previewed
    unless you add that same guard yourself. Purely-local tags don't need
    it.
-7. Syntax-check + live-verify exactly as in section A, steps 13–14.
+7. Syntax-check + live-verify exactly as in section A, steps 14–15.
 
 ### C. New `Draft.html`-style single whole-scene toggle
 
@@ -1199,7 +1281,7 @@ For a standalone on/off panel that isn't part of a "family" (like
    both, a `deferredPreview` iframe will either do nothing when
    previewed, or silently mirror real broadcast state the moment it
    loads.
-5. Syntax-check + live-verify exactly as in section A, steps 13–14,
+5. Syntax-check + live-verify exactly as in section A, steps 14–15,
    including confirming the iframe genuinely goes back to `about:blank`
    (not just visually hidden) when Preview is toggled off, if you used
    `deferredPreview`.
@@ -1221,7 +1303,7 @@ checklists, and guessing wrong wastes the whole implementation):
   `playNextQueued` → debug bar → `iframeTest` dispatch branch → verify
   from a real poll tick, not just the debug button).
 
-In both cases: syntax-check + live-verify as in section A, steps 13–14.
+In both cases: syntax-check + live-verify as in section A, steps 14–15.
 
 ## Verifying changes with a real browser, without a Playwright/puppeteer dependency
 

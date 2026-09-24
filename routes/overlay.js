@@ -294,6 +294,39 @@ router.get('/overlay/prize_pool/hide', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
+// GET /overlay/post_qualified/show — same rank-header family as Overall/
+// Map/Group Ranking, Map Rotation, Tournament Schedule, Prize Pool above:
+// no matchboard/middleboard touching here, Fullscreen.html's own
+// transitionToImpl already hides both for any non-Post feature.
+router.get('/overlay/post_qualified/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'postqualified';
+  state.overlayClients.forEach(c => { try { c.write('event: post_qualified\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/post_qualified/hide
+router.get('/overlay/post_qualified/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: post_qualified\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/map_highlights/show — plain scene, no Matchboard/
+// Middleboard/header: no board state touched here, same reasoning as
+// post_qualified above.
+router.get('/overlay/map_highlights/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'maphighlights';
+  state.overlayClients.forEach(c => { try { c.write('event: map_highlights\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/map_highlights/hide
+router.get('/overlay/map_highlights/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: map_highlights\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
 // GET /overlay/highlights/show
 router.get('/overlay/highlights/show', (req, res) => {
   state.fullscreenScene.activeFeature = 'highlights';

@@ -1610,8 +1610,8 @@
     }
     #rnk-header-logo {
       position: absolute;
-      left: 36px; top: 4px;
-      width: 181px; height: 181px;
+      left: 20px; top: 60px;
+      width: 215px; height: 71px;
       z-index: 3;
       display: flex; align-items: center; justify-content: center;
     }
@@ -1628,7 +1628,7 @@
       font-weight: 700;
       font-size: 52.6px;
       line-height: 1;
-      color: #ffffff;
+      color: #0a0a0a;
       text-transform: uppercase;
     }
     #rnk-header-ranking {
@@ -1644,7 +1644,7 @@
       font-weight: 700;
       font-size: 122.58px;
       line-height: 1;
-      color: #ffe93b;
+      color: #0a0a0a;
       text-transform: uppercase;
     }
     #rnk-header-mapname {
@@ -1659,7 +1659,7 @@
       font-weight: 500;
       font-size: 28.79px;
       line-height: 1;
-      color: #ffffff;
+      color: #0a0a0a;
       text-transform: uppercase;
     }
     #rnk-header-stageday {
@@ -1673,7 +1673,7 @@
       font-family: 'Teko', sans-serif;
       font-size: 45.79px;
       line-height: 1;
-      color: #ffffff;
+      color: #0a0a0a;
       text-transform: uppercase;
     }
     #rnk-header-stageday .rnk-stage { font-weight: 700; margin-right: 0.25em; }
@@ -1689,6 +1689,9 @@
       width: 273px; height: 130px;
       z-index: 32;
     }
+    /* sponsorbox.png is a light-gray plate — force it solid black here so
+       the white category label reads against it. */
+    #rnk-sponsorbox .wl-sponsor-bg { filter: brightness(0); }
     #rnk-sponsorbox-label {
       position: absolute;
       left: 40px; top: 14px;
@@ -1700,7 +1703,7 @@
       font-weight: 500;
       font-size: 21.25px; /* 5.1pt @ 300dpi */
       line-height: 1.1;
-      color: #0a0a0a;
+      color: #ffffff;
       text-transform: uppercase;
       word-break: break-word;
     }
@@ -1766,6 +1769,16 @@
     .ovr-col { position: absolute; top: 282px; width: 905px; height: 672px; z-index: 190; }
     #ovr-col-left  { left: 40px; }
     #ovr-col-right { left: 973px; }
+
+    /* Solo layout — when a ranking scene has 10 or fewer teams, only the
+       left column has anything to show; hide the right column and
+       re-center the left one on the 1920px canvas instead of leaving it
+       flush against the left margin. Shared across Overall/Map/Group
+       Ranking since all three use identical 905px-wide column geometry
+       (see showOverallRankingScene/showMapRankingScene/
+       showGroupRankingScene, which toggle these on each show). */
+    .rnk-col-right-hidden { display: none !important; }
+    .rnk-col-solo { left: 507.5px !important; } /* (1920 - 905) / 2 */
     .ovr-col-header { position: absolute; top: 0; left: 0; width: 905px; height: 42px; }
     .ovr-col-header-bg { position: absolute; top: 0; left: 0; width: 905px; height: 42px; }
     .ovr-col-header-cell {
@@ -2712,6 +2725,157 @@
       to   { opacity: 1; transform: translateX(0); }
     }
 
+    /* ── POST QUALIFIED PAGE ──
+       Top 2 teams on the current map's live tally (/api/current-map-
+       standings, same source Map Ranking uses), each in its own card:
+       rank badge, team name, Rank Points (this map's placement points) /
+       Kill Points (this map's kills), and a big Total Points spotlight
+       number. Part of the RANK_FEATURES family (Overall/Map/Group
+       Ranking, Map Rotation, Tournament Schedule, Prize Pool) — same
+       shared header (#rnk-header) AND same shared background loop
+       (#rnk-bg-video, rnkShowBgVideo/rnkHideBgVideo) as those, so
+       switching between any two of them never tears down/refades the
+       header or restarts the background, only this page's own cards
+       fade. No Matchboard/Middleboard here (unlike the Post-family
+       scenes) — transitionToImpl's RANK_FEATURES branch already hides
+       both for any non-Post feature. This page starts its two cards at
+       top:267px specifically to sit below the shared header. */
+    #post-qualified-page {
+      position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+      display: none; overflow: visible;
+      background: transparent; /* #rnk-bg-video shows through */
+      opacity: 0; transition: opacity 400ms ease;
+    }
+    #post-qualified-page.pq-on { display: block; }
+    #post-qualified-page.pq-visible { opacity: 1; }
+    /* Each card is its own positioned unit (Edit-tab draggable as a
+       whole, like #ovr-col-left/-right) — the elements inside it share
+       fixed, class-based positions relative to the card itself, since
+       both cards use an identical internal layout (only the card's own
+       left/top differ), same precedent as Overall/Map/Group Ranking's
+       row cells not being individually Edit-tab entries. */
+    .pq-card {
+      position: absolute; width: 1841px; height: 340px;
+      background-repeat: no-repeat; background-size: 100% 100%;
+      opacity: 0; transform: translateY(50px);
+      transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1), opacity 400ms ease;
+    }
+    .pq-card.pq-card-in { opacity: 1; transform: translateY(0); }
+    #pq-card-1 { left: 38px; top: 267px; background-image: url('/assets/postgame%20score/qualified_background.png'); z-index: 95; }
+    #pq-card-2 { left: 38px; top: 631px; background-image: url('/assets/postgame%20score/qualified_background.png'); z-index: 96; }
+
+    .pq-badge {
+      position: absolute; left: 0px; top: 0px; width: 125px; height: 108px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 85.96px; line-height: 1;
+      color: #ffe93b; text-align: center;
+    }
+    .pq-name {
+      position: absolute; left: 6px; top: 5px; width: 1218px; height: 329px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 133.88px; line-height: 1;
+      color: #ffffff; text-align: center; text-transform: uppercase; overflow: hidden;
+    }
+    .pq-divider {
+      position: absolute; left: 1423px; top: 31px; width: 2px; height: 276px;
+      background: #4b4b4b;
+    }
+    .pq-label {
+      position: absolute; left: 1217px; width: 160px; height: 25px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Teko', sans-serif; font-weight: 500; font-size: 22.83px; line-height: 1;
+      color: #ffffff; text-align: center; text-transform: uppercase;
+    }
+    .pq-label-rank { top: 29px; }
+    .pq-label-kill { top: 180px; }
+    .pq-value {
+      position: absolute; left: 1217px; width: 160px; height: 96px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 133.88px; line-height: 1;
+      color: #ffffff; text-align: center;
+    }
+    .pq-value-rank { top: 70px; }
+    .pq-value-kill { top: 220px; }
+    .pq-total-label {
+      position: absolute; left: 1465px; top: 34px; width: 339px; height: 37px;
+      display: flex; align-items: center; justify-content: center;
+      background: #ffe93b;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 35.67px; line-height: 1;
+      color: #0a0a0a; text-align: center; text-transform: uppercase;
+    }
+    .pq-total-value {
+      position: absolute; left: 1466px; top: 108px; width: 337px; height: 224px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 313.71px; line-height: 1;
+      color: #ffe93b; text-align: center;
+    }
+
+    /* ── MAP HIGHLIGHTS PAGE ──
+       Plain full-bleed background (its own dedicated loop,
+       gbrc_loopbg_hud.webm — not the shared #bg-video or the rank
+       family's #rnk-bg-video) plus a full-bleed art overlay
+       (highlights_bg.png, sits on top of the looping video) plus a
+       sponsor loop — nothing else on this scene, by design. Not part
+       of RANK_FEATURES (no shared header) or POST_FEATURES (no
+       Matchboard/Middleboard) — falls through transitionToImpl's
+       default `else` branch, which already hides both boards, exactly
+       right for a scene that covers the whole frame. Sponsor box is an
+       exact copy of the Rank Header's own #rnk-sponsorbox — same
+       position (top-right, left:1647/top:29), same size (273×130),
+       same sponsorbox.png + brightness(0) treatment, same label-on-top/
+       loop-below layout and Teko 21.25/10 sizing — not the OTHER
+       sponsor-box style used elsewhere on this page (WL_ASSET +
+       Sponsor_Box.png, e.g. Tomorrow's Schedule/Consolidated Post 2)
+       — that one currently points at a missing file (the "Waiting
+       Lobby" asset folder no longer exists on disk), a separate,
+       pre-existing bug, not something to copy here. */
+    #map-highlights-page {
+      position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+      display: none; overflow: hidden;
+      background: transparent; /* #mhl-bg-video shows through */
+      opacity: 0; transition: opacity 400ms ease;
+    }
+    #map-highlights-page.mhl-on { display: block; }
+    #map-highlights-page.mhl-visible { opacity: 1; }
+    #mhl-bg-video {
+      position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+      object-fit: cover; z-index: 1;
+    }
+    #mhl-overlay-bg {
+      position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+      z-index: 2;
+    }
+    /* Exact copy of #rnk-sponsorbox (see that rule's own comment) —
+       same position/size/asset/font, just this scene's own ids. */
+    #mhl-sponsor {
+      position: absolute;
+      left: 1647px; top: 29px;
+      width: 273px; height: 130px;
+      z-index: 3;
+    }
+    #mhl-sponsor .wl-sponsor-bg { filter: brightness(0); }
+    #mhl-sponsor-cat {
+      position: absolute;
+      left: 40px; top: 14px;
+      width: 228px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      font-family: 'Teko', sans-serif;
+      font-weight: 500;
+      font-size: 21.25px; /* 5.1pt @ 300dpi */
+      line-height: 1.1;
+      color: #ffffff;
+      text-transform: uppercase;
+      word-break: break-word;
+    }
+    #mhl-sponsor-loop {
+      position: absolute;
+      left: 40px; top: 42px;
+      width: 228px; height: 80px;
+      overflow: hidden;
+    }
+
 
     /* ── POST 4 KEY PAGE ──
        Four independently-positioned player-highlight cards (Rich Guy /
@@ -3314,6 +3478,26 @@
       </div>
     </div>
 
+    <!-- POST QUALIFIED -->
+    <div class="feature-card">
+      <div class="feature-card-label">Post Qualified</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showPostQualifiedScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hidePostQualifiedScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-postqualified" onclick="toggleLocalPreview('postqualified', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- MAP HIGHLIGHTS -->
+    <div class="feature-card">
+      <div class="feature-card-label">Map Highlights</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showMapHighlightsScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideMapHighlightsScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-maphighlights" onclick="toggleLocalPreview('maphighlights', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
     <!-- TEAM HEXAGON -->
     <div class="feature-card">
       <div class="feature-card-label">Team Hexagon</div>
@@ -3655,7 +3839,7 @@
     <video id="rnk-bg-video" src="/assets/gbrc_loopbg_header.webm" loop muted playsinline></video>
     <div id="rnk-header">
       <img id="rnk-header-bg" src="/assets/Overall%20Ranking/fsheader.png" alt="">
-      <div id="rnk-header-logo"><img src="/gbrc_logo.png" alt=""></div>
+      <div id="rnk-header-logo"><img src="/codmlogo_yellow.png" alt=""></div>
       <div id="rnk-header-title">COD:M GBRC 2026</div>
       <div id="rnk-header-ranking">Overall Ranking</div>
       <div id="rnk-header-mapname">Map 1/5</div>
@@ -3956,6 +4140,35 @@
     </div>
     <div id="item-timeline-page"></div>
     <div id="post-emblems-page"></div>
+    <div id="post-qualified-page">
+      <div class="pq-card" id="pq-card-1">
+        <div class="pq-badge">#1</div>
+        <div class="pq-name" id="pq-name-1"></div>
+        <div class="pq-divider"></div>
+        <div class="pq-label pq-label-rank">Rank Points</div>
+        <div class="pq-value pq-value-rank" id="pq-rank-1"></div>
+        <div class="pq-label pq-label-kill">Kill Points</div>
+        <div class="pq-value pq-value-kill" id="pq-kill-1"></div>
+        <div class="pq-total-label">Total Points</div>
+        <div class="pq-total-value" id="pq-total-1"></div>
+      </div>
+      <div class="pq-card" id="pq-card-2">
+        <div class="pq-badge">#2</div>
+        <div class="pq-name" id="pq-name-2"></div>
+        <div class="pq-divider"></div>
+        <div class="pq-label pq-label-rank">Rank Points</div>
+        <div class="pq-value pq-value-rank" id="pq-rank-2"></div>
+        <div class="pq-label pq-label-kill">Kill Points</div>
+        <div class="pq-value pq-value-kill" id="pq-kill-2"></div>
+        <div class="pq-total-label">Total Points</div>
+        <div class="pq-total-value" id="pq-total-2"></div>
+      </div>
+    </div>
+    <div id="map-highlights-page">
+      <video id="mhl-bg-video" src="/assets/gbrc_loopbg_hud.webm" loop muted playsinline></video>
+      <img id="mhl-overlay-bg" src="/assets/highlights/highlights_bg.png" alt="">
+      <div id="mhl-sponsor" data-sponsorbox></div>
+    </div>
     <div id="match-board">
       <div id="mb-banner">
         <div id="mb-banner-inner">
@@ -4519,6 +4732,22 @@
         if (msg.action === 'show') {
           document.getElementById('config-bar').classList.remove('debug-open');
           setTimeout(showPost4Key, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('post_qualified', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showPostQualifiedScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('map_highlights', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showMapHighlightsScene, 100);
         } else if (msg.action === 'hide') hideActiveFeature();
       });
 
@@ -6408,6 +6637,70 @@
     const rnkHeaderEl = document.getElementById('rnk-header');
     const rnkSponsorLoop = makeSponsorLoop('rnk-sponsorbox-img', 'rnk-sponsorbox-label', 21.25, 10);
 
+    /* Map Name / Stage-Day text — driven by /match/state (stage, match,
+       todayMapsCount) and /tally/state (liveTallyTab), polled
+       independently of which rank scene (if any) is currently showing —
+       same idea as overlay-scoreboard.js's sbPollMatchState/
+       sbPollTallyState — so the header is already correct the instant a
+       rank scene reveals it, rather than starting blank/stale. Qualifiers
+       has no fixed match/total-maps counter that means anything (one
+       physical map IS one live tally tab), so the map-name line shows the
+       live tally tab itself ("Qualifier 1") instead of "Map N/Total"
+       whenever the current stage reads Qualifiers. This also feeds
+       mrkIsCompactStage() below (Map Ranking's Group/GW column swap),
+       which reads this same #rnk-header-stageday .rnk-stage text. */
+    let _rnkStage = '';
+    let _rnkDay = 1;
+    let _rnkMatch = 1;
+    let _rnkTodayMapsCount = 0;
+    let _rnkLiveTallyTab = '';
+
+    function rnkIsQualifiers() {
+      return /qualifier/i.test(_rnkStage);
+    }
+
+    function rnkApplyMapStage() {
+      const mapEl = document.getElementById('rnk-header-mapname');
+      const stageEl = document.querySelector('#rnk-header-stageday .rnk-stage');
+      const dayEl = document.querySelector('#rnk-header-stageday .rnk-day');
+      if (stageEl) stageEl.textContent = _rnkStage;
+      if (dayEl) dayEl.textContent = 'Day ' + _rnkDay;
+      if (mapEl) {
+        mapEl.textContent = rnkIsQualifiers()
+          ? (_rnkLiveTallyTab || _rnkStage)
+          : ('Map ' + _rnkMatch + '/' + _rnkTodayMapsCount);
+      }
+      if (mapEl)   ovrFitText(mapEl, 28.79, 14);
+      if (stageEl) ovrFitText(document.getElementById('rnk-header-stageday'), 45.79, 22);
+    }
+
+    function rnkPollMatchState() {
+      fetch(buildUrl('/match/state'), { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(s => {
+          if (!s) return;
+          _rnkStage = s.stage || '';
+          _rnkDay = s.day || 1;
+          _rnkMatch = s.match || 1;
+          _rnkTodayMapsCount = s.todayMapsCount || 0;
+          rnkApplyMapStage();
+        })
+        .catch(() => {});
+    }
+    function rnkPollTallyState() {
+      fetch('/tally/state', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(t => {
+          _rnkLiveTallyTab = (t && t.liveTallyTab) || '';
+          rnkApplyMapStage();
+        })
+        .catch(() => {});
+    }
+    rnkPollMatchState();
+    rnkPollTallyState();
+    setInterval(rnkPollMatchState, 3000);
+    setInterval(rnkPollTallyState, 3500);
+
     const RNK_LABEL_SWAP_MS = 220;
     function rnkShowHeader(label) {
       const rankingEl = document.getElementById('rnk-header-ranking');
@@ -6431,8 +6724,7 @@
         rankingEl.textContent = label;
         ovrFitText(document.getElementById('rnk-header-title'), 52.6, 26);
         ovrFitText(rankingEl, 122.58, 40);
-        ovrFitText(document.getElementById('rnk-header-mapname'), 28.79, 14);
-        ovrFitText(document.getElementById('rnk-header-stageday'), 45.79, 22);
+        rnkApplyMapStage();
       }
 
       if (labelChanged) {
@@ -6589,6 +6881,9 @@
          page nobody was looking at (or leaving THIS page's rows empty
          forever, since nothing else was left to fill them). */
       if (activeFeature !== 'overallranking') return;
+      const ovrSolo = teams.length <= 10;
+      document.getElementById('ovr-col-left').classList.toggle('rnk-col-solo', ovrSolo);
+      document.getElementById('ovr-col-right').classList.toggle('rnk-col-right-hidden', ovrSolo);
       ovrFillColumn(document.querySelector('#ovr-col-left .ovr-col-rows'), teams.slice(0, 10));
       ovrFillColumn(document.querySelector('#ovr-col-right .ovr-col-rows'), teams.slice(10, 20));
     }
@@ -6722,6 +7017,9 @@
       const teams = await dataPromise;
       if (activeFeature !== 'mapranking') return; /* superseded while awaiting data */
       const compact = mrkIsCompactStage();
+      const mrkSolo = teams.length <= 10;
+      document.getElementById('mrk-col-left').classList.toggle('rnk-col-solo', mrkSolo);
+      document.getElementById('mrk-col-right').classList.toggle('rnk-col-right-hidden', mrkSolo);
       mrkFillHeader(document.querySelector('#mrk-col-left .mrk-col-header'), compact);
       mrkFillHeader(document.querySelector('#mrk-col-right .mrk-col-header'), compact);
       mrkFillColumn(document.querySelector('#mrk-col-left .mrk-col-rows'), teams.slice(0, 10), compact);
@@ -6814,6 +7112,9 @@
       grkPage.classList.add('grk-visible');
       const qualifiers = await dataPromise;
       if (activeFeature !== 'groupranking') return; /* superseded while awaiting data */
+      const grkSolo = qualifiers.length <= 10;
+      document.getElementById('grk-col-left').classList.toggle('rnk-col-solo', grkSolo);
+      document.getElementById('grk-col-right').classList.toggle('rnk-col-right-hidden', grkSolo);
       grkFillColumn(document.querySelector('#grk-col-left .grk-col-rows'), qualifiers.slice(0, 10));
       grkFillColumn(document.querySelector('#grk-col-right .grk-col-rows'), qualifiers.slice(10, 20));
     }
@@ -8517,7 +8818,7 @@
        header, only its own scoreboard content. Same precedent as
        cpDuringPostTransition above. */
     let duringRankTransition = false;
-    const RANK_FEATURES = new Set(['overallranking', 'mapranking', 'groupranking', 'maprotation', 'tournamentschedule', 'prizepool']);
+    const RANK_FEATURES = new Set(['overallranking', 'mapranking', 'groupranking', 'maprotation', 'tournamentschedule', 'prizepool', 'postqualified']);
 
     /* Keeps server-side state.fullscreenScene.<key> (and thus the dashboard's
        Control-tab board toggles/live indicator) in sync with board
@@ -8641,6 +8942,8 @@
       if (prev === 'consolidated_post') return hideConsolidatedPost();
       if (prev === 'consolidated_post_2') return hideConsolidatedPost2();
       if (prev === 'post4key') return hidePost4Key();
+      if (prev === 'postqualified') return hidePostQualifiedScene();
+      if (prev === 'maphighlights') return hideMapHighlightsScene();
       return Promise.resolve();
     }
 
@@ -10124,6 +10427,116 @@
     }
 
     /* ════════════════════════════════════════════════
+       POST QUALIFIED — top 2 teams on the CURRENT map's live tally, fed by
+       /api/current-map-standings (the exact same endpoint Map Ranking's
+       own scoreboard uses — "this map's own P/K/TKP/PS columns only").
+    ════════════════════════════════════════════════ */
+    const pqPage = document.getElementById('post-qualified-page');
+    let pqVisible = false;
+
+    async function pqFetchTeams() {
+      try {
+        const res = await fetch(buildUrl('/api/current-map-standings'), { cache: 'no-store' });
+        const data = res.ok ? await res.json() : null;
+        return (data && data.teams) || [];
+      } catch (e) { return []; }
+    }
+
+    function pqApplyCard(n, team) {
+      const nameEl  = document.getElementById('pq-name-' + n);
+      const rankEl  = document.getElementById('pq-rank-' + n);
+      const killEl  = document.getElementById('pq-kill-' + n);
+      const totalEl = document.getElementById('pq-total-' + n);
+      nameEl.textContent  = (team && team.name) || '';
+      rankEl.textContent  = ovrFmtNum(team && team.placementPoints);
+      killEl.textContent  = ovrFmtNum(team && team.totalKills);
+      totalEl.textContent = ovrFmtNum(team && team.totalScore);
+      ovrFitText(nameEl,  133.88, 67);
+      ovrFitText(rankEl,  133.88, 67);
+      ovrFitText(killEl,  133.88, 67);
+      ovrFitText(totalEl, 313.71, 157);
+    }
+
+    async function showPostQualifiedScene() {
+      if (pqVisible) return;
+      const dataPromise = pqFetchTeams();
+      await transitionTo('postqualified');
+      if (activeFeature !== 'postqualified') return; /* superseded while awaiting transition */
+      const teams = await dataPromise;
+      if (activeFeature !== 'postqualified') return; /* superseded while awaiting data */
+      pqVisible = true;
+      rnkShowHeader('Post Qualified');
+      rnkShowBgVideo();
+      pqApplyCard(1, teams[0]);
+      pqApplyCard(2, teams[1]);
+      pqPage.classList.add('pq-on');
+      void pqPage.offsetWidth; /* force reflow so the opacity transition runs */
+      pqPage.classList.add('pq-visible');
+      // Deal the two cards in with a slight stagger — reset first in case a
+      // card was left mid-animation by a very fast hide+reshow.
+      [1, 2].forEach(n => {
+        const card = document.getElementById('pq-card-' + n);
+        card.classList.remove('pq-card-in');
+        void card.offsetWidth;
+        setTimeout(() => { if (pqVisible) card.classList.add('pq-card-in'); }, (n - 1) * 150);
+      });
+    }
+
+    function hidePostQualifiedScene() {
+      if (!pqVisible) return Promise.resolve();
+      pqVisible = false;
+      pqPage.classList.remove('pq-visible');
+      [1, 2].forEach(n => document.getElementById('pq-card-' + n).classList.remove('pq-card-in'));
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => setTimeout(() => {
+          pqPage.classList.remove('pq-on');
+          rnkHideBgVideo();
+          resolve();
+        }, 420)),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       MAP HIGHLIGHTS — plain full-bleed background (its own dedicated
+       loop) plus a sponsor box, nothing else on this scene.
+    ════════════════════════════════════════════════ */
+    const mhlPage = document.getElementById('map-highlights-page');
+    const mhlBgVideo = document.getElementById('mhl-bg-video');
+
+    function buildMhlSponsor() {
+      document.getElementById('mhl-sponsor').innerHTML =
+        `<img class="wl-sponsor-bg" src="/assets/sponsorbox/sponsorbox.png" alt="">` +
+        `<div id="mhl-sponsor-cat"></div>` +
+        `<div id="mhl-sponsor-loop" class="wl-sponsor-loop"><img id="mhl-sponsor-img" src="" alt=""></div>`;
+    }
+    buildMhlSponsor();
+    const mhlSponsorLoop = makeSponsorLoop('mhl-sponsor-img', 'mhl-sponsor-cat', 21.25, 10);
+
+    async function showMapHighlightsScene() {
+      await transitionTo('maphighlights');
+      if (activeFeature !== 'maphighlights') return; /* superseded while awaiting transition */
+      mhlBgVideo.currentTime = 0;
+      mhlBgVideo.play().catch(() => {});
+      mhlSponsorLoop.start();
+      mhlPage.classList.add('mhl-on');
+      void mhlPage.offsetWidth; /* force reflow so the opacity transition runs */
+      mhlPage.classList.add('mhl-visible');
+    }
+
+    function hideMapHighlightsScene() {
+      activeFeature = null;
+      mhlPage.classList.remove('mhl-visible');
+      mhlSponsorLoop.stop();
+      return new Promise(resolve => setTimeout(() => {
+        mhlPage.classList.remove('mhl-on');
+        mhlBgVideo.pause();
+        resolve();
+      }, 420));
+    }
+
+    /* ════════════════════════════════════════════════
        POST_STATS
     ════════════════════════════════════════════════ */
 
@@ -10702,6 +11115,8 @@
           else if (scene.activeFeature === 'consolidated_post') showConsolidatedPost();
           else if (scene.activeFeature === 'consolidated_post_2') showConsolidatedPost2();
           else if (scene.activeFeature === 'post4key') showPost4Key();
+          else if (scene.activeFeature === 'postqualified') showPostQualifiedScene();
+          else if (scene.activeFeature === 'maphighlights') showMapHighlightsScene();
           else if (scene.activeFeature === 'richguy')  fetchAndShowRichguy();
           else if (scene.activeFeature === 'waiting')  showWaitingScreen();
           else if (scene.activeFeature === 'timer')    showWaitingTimer();
@@ -10767,13 +11182,15 @@
         if (feature === 'consolidated_post') showConsolidatedPost();
         if (feature === 'consolidated_post_2') showConsolidatedPost2();
         if (feature === 'post4key') showPost4Key();
+        if (feature === 'postqualified') showPostQualifiedScene();
+        if (feature === 'maphighlights') showMapHighlightsScene();
       }
     }
 
     window.previewTrigger = function(event, action) {
       document.querySelectorAll('.dbg-btn.preview').forEach(b => b.classList.remove('active'));
       if (action === 'show') {
-        const btnMap = { post_hearts: 'preview-hearts', post_itemline: 'preview-timeline', post_richguy: 'preview-richguy', post_emblems: 'preview-emblems', post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post4key: 'preview-post4key', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', map_ranking: 'preview-mapranking', group_ranking: 'preview-groupranking', map_rotation: 'preview-maprotation', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool' };
+        const btnMap = { post_hearts: 'preview-hearts', post_itemline: 'preview-timeline', post_richguy: 'preview-richguy', post_emblems: 'preview-emblems', post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post4key: 'preview-post4key', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', map_ranking: 'preview-mapranking', group_ranking: 'preview-groupranking', map_rotation: 'preview-maprotation', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool' };
         const btn = document.getElementById(btnMap[event]);
         if (btn) btn.classList.add('active');
       }
@@ -10801,6 +11218,8 @@
         if (event === 'post_emblems')  showPostEmblems();
         if (event === 'post_items')    showPostgameItems();
         if (event === 'post4key')      showPost4Key();
+        if (event === 'post_qualified') showPostQualifiedScene();
+        if (event === 'map_highlights') showMapHighlightsScene();
         if (event === 'post_stats')    showPostStats();
         if (event === 'credits')       showCreditsScene();
         if (event === 'consolidated_post')   showConsolidatedPost();

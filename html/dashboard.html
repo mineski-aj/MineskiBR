@@ -1587,6 +1587,8 @@
     map_rotation:      'maprotation',
     tournament_schedule: 'tournamentschedule',
     prize_pool:        'prizepool',
+    post_qualified:    'postqualified',
+    map_highlights:    'maphighlights',
   };
   /* Display names for the "is anything live" indicator below — same
      activeFeature values as FULLSCREEN_ACTIVE_FEATURE_MAP, keyed the other
@@ -1604,6 +1606,7 @@
     post4key: 'Post 4 Key', overallranking: 'Overall Ranking', mapranking: 'Map Ranking',
     groupranking: 'Group Ranking', maprotation: 'Map Rotation',
     tournamentschedule: 'Tournament Schedule', prizepool: 'Prize Pool',
+    postqualified: 'Post Qualified', maphighlights: 'Map Highlights',
   };
 
   var fullscreenLiveBadge = null;
@@ -1932,6 +1935,8 @@
         { name: 'Map Rotation', show: '/overlay/map_rotation/show', hide: '/overlay/map_rotation/hide' },
         { name: 'Tournament Schedule', show: '/overlay/tournament_schedule/show', hide: '/overlay/tournament_schedule/hide' },
         { name: 'Prize Pool', show: '/overlay/prize_pool/show', hide: '/overlay/prize_pool/hide' },
+        { name: 'Post Qualified', show: '/overlay/post_qualified/show', hide: '/overlay/post_qualified/hide' },
+        { name: 'Map Highlights', show: '/overlay/map_highlights/show', hide: '/overlay/map_highlights/hide' },
       ],
       /* Superseded by "Postgame Items" above (Sept 2026 rework), which
          already shows Matchboard/Middleboard alongside itself via
@@ -3359,7 +3364,7 @@
      scene's page (see rnkShowHeader/rnkHideHeader), so it gets its own
      Edit config instead of being duplicated into each scene's. ── */
   var RNK_HEADER_DEFAULTS = {
-    '#rnk-header-logo':     { left: 36,   top: 4,   width: 181, height: 181 },
+    '#rnk-header-logo':     { left: 20,   top: 60,  width: 215, height: 71 },
     '#rnk-header-title':    { left: 329,  top: 24,  width: 881, height: 47,  fontSize: 52.6 },
     '#rnk-header-ranking':  { left: 329,  top: 71,  width: 850, height: 100, fontSize: 122.58 },
     '#rnk-header-mapname':  { left: 1211, top: 94,  width: 405, height: 28,  fontSize: 28.79 },
@@ -3371,6 +3376,35 @@
     { group: 'Rank Header Ranking',  id: '#rnk-header-ranking',  name: 'Ranking Label' },
     { group: 'Rank Header Map Name', id: '#rnk-header-mapname',  name: 'Map Name (Map 1/5)' },
     { group: 'Rank Header Stage/Day',id: '#rnk-header-stageday', name: 'Stage / Day' },
+  ];
+
+  /* ── Post Qualified (Fullscreen.html) element defaults — each card is
+     one Edit-tab-draggable unit; the elements inside a card share a
+     fixed internal layout (both cards identical), same precedent as
+     Overall/Map/Group Ranking's row cells not being individually
+     registered here. Header is the shared #rnk-header (Rank Header
+     Edit-tab entry above), not owned by this page. ── */
+  var PQ_DEFAULTS = {
+    '#pq-card-1': { left: 38, top: 267, width: 1841, height: 340 },
+    '#pq-card-2': { left: 38, top: 631, width: 1841, height: 340 },
+  };
+  var PQ_ELEMENTS = [
+    { group: 'Post Qualified Card 1',id: '#pq-card-1', name: 'Card — Rank #1' },
+    { group: 'Post Qualified Card 2',id: '#pq-card-2', name: 'Card — Rank #2' },
+  ];
+
+  /* ── Map Highlights (Fullscreen.html) element defaults — background
+     video, a full-bleed art overlay on top of it, and a sponsor loop
+     (exact copy of the Rank Header's #rnk-sponsorbox position/size). ── */
+  var MHL_DEFAULTS = {
+    '#mhl-bg-video':   { left: 0,    top: 0,  width: 1920, height: 1080 },
+    '#mhl-overlay-bg': { left: 0,    top: 0,  width: 1920, height: 1080 },
+    '#mhl-sponsor':    { left: 1647, top: 29, width: 273,  height: 130 },
+  };
+  var MHL_ELEMENTS = [
+    { group: 'Map Highlights Background', id: '#mhl-bg-video',   name: 'Background Video' },
+    { group: 'Map Highlights Overlay',     id: '#mhl-overlay-bg', name: 'Overlay Art' },
+    { group: 'Map Highlights Sponsor',     id: '#mhl-sponsor',    name: 'Sponsor Loop' },
   ];
 
   /* ── Overall Ranking (Fullscreen.html) element defaults ──────────────── */
@@ -3884,6 +3918,24 @@
       elements:    PPL_ELEMENTS,
       defaults:    PPL_DEFAULTS,
       showFn:      'showPrizePoolScene',
+    },
+    fullscreen_postqualified: {
+      label:       'Post Qualified · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_postqualified',
+      elements:    PQ_ELEMENTS,
+      defaults:    PQ_DEFAULTS,
+      showFn:      'showPostQualifiedScene',
+    },
+    fullscreen_maphighlights: {
+      label:       'Map Highlights · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_maphighlights',
+      elements:    MHL_ELEMENTS,
+      defaults:    MHL_DEFAULTS,
+      showFn:      'showMapHighlightsScene',
     },
     fullscreen_finalteam: {
       label:       'Final Team · Fullscreen',
