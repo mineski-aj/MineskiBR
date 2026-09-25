@@ -81,10 +81,17 @@ function sbAnimateHeaders() {
   var mh1    = document.getElementById('sb-mainheader1');
   var h1     = document.getElementById('sb-header1');
   var sbBack = document.getElementById('sb-scoreboard-back');
-  if (mh1)    mh1.classList.remove('sb-slide-in');
-  if (h1)     h1.classList.remove('sb-slide-in');
-  if (sbBack) sbBack.classList.remove('sb-slide-in');
+  /* .sb-instant suppresses the transition (now living on the base rule so
+     sbHandleToggle's hide path can glide out — see ingame.css) just for
+     this reset-before-replay snap, so it doesn't itself visibly animate
+     back off-screen before the real slide-in below plays. */
+  if (mh1)    { mh1.classList.add('sb-instant');    mh1.classList.remove('sb-slide-in'); }
+  if (h1)     { h1.classList.add('sb-instant');     h1.classList.remove('sb-slide-in'); }
+  if (sbBack) { sbBack.classList.add('sb-instant'); sbBack.classList.remove('sb-slide-in'); }
   void document.body.offsetWidth; /* force reflow so the removal above actually takes effect before re-adding */
+  if (mh1)    mh1.classList.remove('sb-instant');
+  if (h1)     h1.classList.remove('sb-instant');
+  if (sbBack) sbBack.classList.remove('sb-instant');
   if (mh1)    mh1.classList.add('sb-slide-in');
   if (sbBack) sbBack.classList.add('sb-slide-in');
   setTimeout(function() { if (h1) h1.classList.add('sb-slide-in'); }, 120);

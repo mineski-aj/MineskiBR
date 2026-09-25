@@ -1418,6 +1418,11 @@ function setArtOption(bankId, option) {
   document.getElementById(`artbg-${bankId}`)?.classList.toggle('active', option === 0);
   document.getElementById(`artfg-${bankId}`)?.classList.toggle('active', option === 1);
   refreshThumb(bankId);
+  // Button onclick, not a real <input>/<select> — the document-level
+  // input/change listeners that drive scheduleSave() never fire for this,
+  // so it must be called explicitly or HTTP triggers keep animating to
+  // the pre-toggle art option.
+  scheduleSave();
 }
 
 function updateBankName(bankId, name) {
@@ -1431,6 +1436,8 @@ function toggleBox(bankId, boxIndex, btn) {
   bank.boxes[boxIndex].enabled = !bank.boxes[boxIndex].enabled;
   btn.classList.toggle('on');
   btn.nextElementSibling.textContent = bank.boxes[boxIndex].enabled ? 'ON' : 'OFF';
+  // Button onclick, not a real <input> — see setArtOption's comment above.
+  scheduleSave();
 }
 
 function toggleCrop(bankId, boxIndex, btn) {
@@ -1859,6 +1866,15 @@ function loadState() {
 // stale duration/positions were registered at that last point, ignoring
 // any edit made since (e.g. changing the DURATION field never reached
 // the server at all until you added or removed a bank).
+//
+// The document-level listeners below only cover real <input>/<select>
+// elements' native 'input'/'change' events. Any bank-state mutation driven
+// by a plain `<button onclick="...">` (toggleBox, setArtOption, etc.) does
+// NOT fire either event, so it silently never reaches the server unless
+// that handler calls scheduleSave() (or renderBanks(), which itself calls
+// registerBanks()) itself. When adding a new bank-editing control, call
+// scheduleSave() explicitly unless it's a real form input or already goes
+// through renderBanks().
 let saveTimer = null;
 function scheduleSave() {
   clearTimeout(saveTimer);

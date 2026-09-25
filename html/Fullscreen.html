@@ -7642,7 +7642,7 @@
       const m = /(\d+)\s*$/.exec(sheet || '');
       if (!m) return 'Qualified Slot';
       const n = parseInt(m[1], 10);
-      return 'Qualified Slot ' + (n * 2 - 1) + '/' + (n * 2);
+      return 'Qualified Slot ' + (n * 2 - 1) + ' & ' + (n * 2);
     }
 
     function pqApplyCard(n, team) {

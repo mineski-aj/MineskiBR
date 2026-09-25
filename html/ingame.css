@@ -31,11 +31,23 @@
     left: 0px;
     background-repeat: no-repeat;
     transform: translateX(-100%);
+    /* Lives on the base rule (not just .sb-slide-in) so removing the class
+       glides back off-screen instead of snapping there instantly — see
+       sbHandleToggle in overlay-scoreboard.js. */
+    transition: transform 0.6s cubic-bezier(0, 0, 0.2, 1);
   }
   #sb-mainheader1.sb-slide-in,
   #sb-header1.sb-slide-in {
-    transition: transform 0.6s cubic-bezier(0, 0, 0.2, 1);
     transform: translateX(0);
+  }
+  /* Used only for sbAnimateHeaders' reset-before-replay step (a real hide
+     goes straight through the base rule's transition above, no instant
+     class involved) — suppresses the transition just long enough to snap
+     back off-screen instantly, so a re-show always starts its slide-in
+     from the same spot instead of animating a visible flick-out first. */
+  #sb-mainheader1.sb-instant,
+  #sb-header1.sb-instant {
+    transition: none;
   }
   #sb-mainheader1 {
     top: 923px;
@@ -45,11 +57,11 @@
     background-image: url('/assets/ingame/ingame_mainheader1.png');
   }
   #sb-header1 {
-    top: 866px;
-    width: 330px;
-    height: 57px;
+    top: 870px;
+    width: 364px;
+    height: 54px;
     z-index: 31;
-    background-image: url('/assets/ingame/ingame_header1.png');
+    background-image: url('/assets/ingame/ingame_header2.png');
   }
   #sb-mh1-logo {
     position: absolute;
@@ -132,10 +144,16 @@
     background-image: url('/assets/ingame/ingame_scoreboardback.png');
     background-repeat: no-repeat;
     transform: translateX(100%);
+    /* Same "live on the base rule" reasoning as #sb-mainheader1/#sb-header1
+       above — lets removing .sb-slide-in glide back out instead of
+       snapping instantly. */
+    transition: transform 0.6s cubic-bezier(0, 0, 0.2, 1);
   }
   #sb-scoreboard-back.sb-slide-in {
-    transition: transform 0.6s cubic-bezier(0, 0, 0.2, 1);
     transform: translateX(0);
+  }
+  #sb-scoreboard-back.sb-instant {
+    transition: none;
   }
   .sb-score-row {
     position: absolute;
