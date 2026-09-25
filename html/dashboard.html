@@ -1614,6 +1614,8 @@
     overall_ranking:   'overallranking',
     map_ranking:       'mapranking',
     group_ranking:     'groupranking',
+    qualified_teams_1: 'qualifiedteams1',
+    qualified_teams_2: 'qualifiedteams2',
     map_rotation:      'maprotation',
     tournament_schedule: 'tournamentschedule',
     prize_pool:        'prizepool',
@@ -1632,7 +1634,9 @@
     lineupblue: 'Team Line-Up — Blue', lineupred: 'Team Line-Up — Red',
     herolineup: 'Hero Lineup',
     overallranking: 'Overall Ranking', mapranking: 'Map Ranking',
-    groupranking: 'Group Ranking', maprotation: 'Map Rotation',
+    groupranking: 'Group Ranking',
+    qualifiedteams1: 'Qualified Teams 1', qualifiedteams2: 'Qualified Teams 2',
+    maprotation: 'Map Rotation',
     tournamentschedule: 'Tournament Schedule', prizepool: 'Prize Pool',
     postqualified: 'Post Qualified', maphighlights: 'Map Highlights',
   };
@@ -1960,6 +1964,8 @@
         { name: 'Overall Ranking', show: '/overlay/overall_ranking/show', hide: '/overlay/overall_ranking/hide' },
         { name: 'Map Ranking', show: '/overlay/map_ranking/show', hide: '/overlay/map_ranking/hide' },
         { name: 'Group Ranking', show: '/overlay/group_ranking/show', hide: '/overlay/group_ranking/hide' },
+        { name: 'Qualified Teams 1', show: '/overlay/qualified_teams_1/show', hide: '/overlay/qualified_teams_1/hide' },
+        { name: 'Qualified Teams 2', show: '/overlay/qualified_teams_2/show', hide: '/overlay/qualified_teams_2/hide' },
         { name: 'Map Rotation', show: '/overlay/map_rotation/show', hide: '/overlay/map_rotation/hide' },
         { name: 'Tournament Schedule', show: '/overlay/tournament_schedule/show', hide: '/overlay/tournament_schedule/hide' },
         { name: 'Prize Pool', show: '/overlay/prize_pool/show', hide: '/overlay/prize_pool/hide' },
@@ -3439,6 +3445,28 @@
     { group: 'Group Ranking Column 11-20', id: '#grk-col-right', name: 'Scoreboard Column (Teams 11-20)' },
   ];
 
+  /* ── Qualified Teams 1 (Fullscreen.html) element defaults — rank 1 & 2
+     of Qualifier 1-10 ── */
+  var QT1_DEFAULTS = {
+    '#qt1-col-left':  { left: 40,  top: 282, width: 905, height: 672 },
+    '#qt1-col-right': { left: 973, top: 282, width: 905, height: 672 },
+  };
+  var QT1_ELEMENTS = [
+    { group: 'Qualified Teams 1 Column 1-10',  id: '#qt1-col-left',  name: 'Scoreboard Column (Teams 1-10)' },
+    { group: 'Qualified Teams 1 Column 11-20', id: '#qt1-col-right', name: 'Scoreboard Column (Teams 11-20)' },
+  ];
+
+  /* ── Qualified Teams 2 (Fullscreen.html) element defaults — rank 1 & 2
+     of Qualifier 11-20 ── */
+  var QT2_DEFAULTS = {
+    '#qt2-col-left':  { left: 40,  top: 282, width: 905, height: 672 },
+    '#qt2-col-right': { left: 973, top: 282, width: 905, height: 672 },
+  };
+  var QT2_ELEMENTS = [
+    { group: 'Qualified Teams 2 Column 1-10',  id: '#qt2-col-left',  name: 'Scoreboard Column (Teams 1-10)' },
+    { group: 'Qualified Teams 2 Column 11-20', id: '#qt2-col-right', name: 'Scoreboard Column (Teams 11-20)' },
+  ];
+
   /* ── Map Rotation (Fullscreen.html) element defaults ──────────────────
      Card count/position is computed in JS from todayMapsCount (see
      mrrCardLeft), not individually editable — only the one wrapping box
@@ -3645,6 +3673,24 @@
       elements:    GRK_ELEMENTS,
       defaults:    GRK_DEFAULTS,
       showFn:      'showGroupRankingScene',
+    },
+    fullscreen_qualifiedteams1: {
+      label:       'Qualified Teams 1 · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_qualifiedteams1',
+      elements:    QT1_ELEMENTS,
+      defaults:    QT1_DEFAULTS,
+      showFn:      'showQualifiedTeams1Scene',
+    },
+    fullscreen_qualifiedteams2: {
+      label:       'Qualified Teams 2 · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_qualifiedteams2',
+      elements:    QT2_ELEMENTS,
+      defaults:    QT2_DEFAULTS,
+      showFn:      'showQualifiedTeams2Scene',
     },
     fullscreen_maprotation: {
       label:       'Map Rotation · Fullscreen',

@@ -216,6 +216,34 @@ router.get('/overlay/group_ranking/hide', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
+// GET /overlay/qualified_teams_1/show
+router.get('/overlay/qualified_teams_1/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'qualifiedteams1';
+  state.overlayClients.forEach(c => { try { c.write('event: qualified_teams_1\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/qualified_teams_1/hide
+router.get('/overlay/qualified_teams_1/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: qualified_teams_1\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/qualified_teams_2/show
+router.get('/overlay/qualified_teams_2/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'qualifiedteams2';
+  state.overlayClients.forEach(c => { try { c.write('event: qualified_teams_2\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/qualified_teams_2/hide
+router.get('/overlay/qualified_teams_2/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: qualified_teams_2\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
 // GET /overlay/map_rotation/show
 router.get('/overlay/map_rotation/show', (req, res) => {
   state.fullscreenScene.activeFeature = 'maprotation';

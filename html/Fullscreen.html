@@ -1413,6 +1413,125 @@
     .grk-rc-rp    { left: 701px; width: 92px; }
     .grk-rc-tp    { left: 799px; width: 92px; }
 
+    /* ── QUALIFIED TEAMS 1 PAGE — rank 1 & 2 of each Qualifier 1-10 tab,
+       fed by /api/qualified-teams-standings?from=1&to=10. Same
+       column/row layout as Overall/Map/Group Ranking above (Header is
+       the shared #rnk-header, part of the RANK_FEATURES family) — the
+       "Group" column is repurposed here as "QF" (which Qualifier tab
+       this entry's rank came from, e.g. "Q3"), since these teams don't
+       have a group-stage letter of their own. ── */
+    #qualified-teams-1-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #qualified-teams-1-page.qt1-on { display: block; }
+    #qualified-teams-1-page.qt1-visible { opacity: 1; }
+    .qt1-col { position: absolute; top: 282px; width: 905px; height: 672px; z-index: 190; }
+    #qt1-col-left  { left: 40px; }
+    #qt1-col-right { left: 973px; }
+    .qt1-col-header { position: absolute; top: 0; left: 0; width: 905px; height: 42px; }
+    .qt1-col-header-bg { position: absolute; top: 0; left: 0; width: 905px; height: 42px; }
+    .qt1-col-header-cell {
+      position: absolute; top: 0; width: 92px; height: 42px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      font-family: 'Teko', sans-serif;
+      font-weight: 500;
+      font-size: 34.54px;
+      line-height: 1;
+      color: #ffffff;
+      text-transform: uppercase;
+    }
+    .qt1-col-header-cell.qt1-hc-black { color: #0a0a0a; }
+    .qt1-hc-slot  { left: 31px; }
+    .qt1-hc-team  { left: 150px; }
+    .qt1-hc-tp    { left: 799px; }
+
+    .qt1-row {
+      position: absolute; left: 0; width: 906px; height: 63px;
+    }
+    .qt1-row-bg { position: absolute; top: 0; left: 0; width: 906px; height: 63px; }
+    .qt1-row-divider { position: absolute; top: 13px; width: 1px; height: 38px; background: #0a0a0a; z-index: 1; }
+    .qt1-row-cell {
+      position: absolute; top: 0; height: 63px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      font-family: 'Teko', sans-serif;
+      font-weight: 700;
+      font-size: 34.79px;
+      line-height: 1;
+      color: #0a0a0a;
+      text-transform: uppercase;
+      overflow: hidden;
+    }
+    .qt1-rc-slot  { left: 33px;  width: 60px; }
+    .qt1-rc-flag  { left: 117px; width: 56px; font-size: 20.87px; }
+    .qt1-rc-name  { left: 192px; width: 208px; justify-content: flex-start; text-align: left; padding-left: 4px; white-space: nowrap; }
+    .qt1-rc-tp    { left: 799px; width: 92px; }
+
+    /* ── QUALIFIED TEAMS 2 PAGE — same as Qualified Teams 1 above, just
+       Qualifier 11-20 instead of 1-10 (see showQualifiedTeams2Scene). ── */
+    #qualified-teams-2-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #qualified-teams-2-page.qt2-on { display: block; }
+    #qualified-teams-2-page.qt2-visible { opacity: 1; }
+    .qt2-col { position: absolute; top: 282px; width: 905px; height: 672px; z-index: 190; }
+    #qt2-col-left  { left: 40px; }
+    #qt2-col-right { left: 973px; }
+    .qt2-col-header { position: absolute; top: 0; left: 0; width: 905px; height: 42px; }
+    .qt2-col-header-bg { position: absolute; top: 0; left: 0; width: 905px; height: 42px; }
+    .qt2-col-header-cell {
+      position: absolute; top: 0; width: 92px; height: 42px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      font-family: 'Teko', sans-serif;
+      font-weight: 500;
+      font-size: 34.54px;
+      line-height: 1;
+      color: #ffffff;
+      text-transform: uppercase;
+    }
+    .qt2-col-header-cell.qt2-hc-black { color: #0a0a0a; }
+    .qt2-hc-slot  { left: 31px; }
+    .qt2-hc-team  { left: 150px; }
+    .qt2-hc-tp    { left: 799px; }
+
+    .qt2-row {
+      position: absolute; left: 0; width: 906px; height: 63px;
+    }
+    .qt2-row-bg { position: absolute; top: 0; left: 0; width: 906px; height: 63px; }
+    .qt2-row-divider { position: absolute; top: 13px; width: 1px; height: 38px; background: #0a0a0a; z-index: 1; }
+    .qt2-row-cell {
+      position: absolute; top: 0; height: 63px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      font-family: 'Teko', sans-serif;
+      font-weight: 700;
+      font-size: 34.79px;
+      line-height: 1;
+      color: #0a0a0a;
+      text-transform: uppercase;
+      overflow: hidden;
+    }
+    .qt2-rc-slot  { left: 33px;  width: 60px; }
+    .qt2-rc-flag  { left: 117px; width: 56px; font-size: 20.87px; }
+    .qt2-rc-name  { left: 192px; width: 208px; justify-content: flex-start; text-align: left; padding-left: 4px; white-space: nowrap; }
+    .qt2-rc-tp    { left: 799px; width: 92px; }
+
     /* ── MAP ROTATION PAGE — today's map lineup (matchState's todayMaps,
        up to todayMapsCount), one card per map. Header is the shared
        #rnk-header above (part of the RANK_FEATURES family), not owned by
@@ -2568,6 +2687,26 @@
       </div>
     </div>
 
+    <!-- QUALIFIED TEAMS 1 -->
+    <div class="feature-card">
+      <div class="feature-card-label">Qualified Teams 1</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showQualifiedTeams1Scene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideQualifiedTeams1Scene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-qualifiedteams1" onclick="toggleLocalPreview('qualifiedteams1', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- QUALIFIED TEAMS 2 -->
+    <div class="feature-card">
+      <div class="feature-card-label">Qualified Teams 2</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showQualifiedTeams2Scene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideQualifiedTeams2Scene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-qualifiedteams2" onclick="toggleLocalPreview('qualifiedteams2', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
     <!-- MAP ROTATION -->
     <div class="feature-card">
       <div class="feature-card-label">Map Rotation</div>
@@ -2917,6 +3056,49 @@
         <div class="grk-col-rows"></div>
       </div>
     </div>
+
+    <div id="qualified-teams-1-page">
+      <div class="qt1-col" id="qt1-col-left">
+        <div class="qt1-col-header">
+          <img class="qt1-col-header-bg" src="/assets/Overall%20Ranking/scoreheader.png" alt="">
+          <div class="qt1-col-header-cell qt1-hc-slot">Slot</div>
+          <div class="qt1-col-header-cell qt1-hc-team">Team</div>
+          <div class="qt1-col-header-cell qt1-hc-tp qt1-hc-black">TP</div>
+        </div>
+        <div class="qt1-col-rows"></div>
+      </div>
+      <div class="qt1-col" id="qt1-col-right">
+        <div class="qt1-col-header">
+          <img class="qt1-col-header-bg" src="/assets/Overall%20Ranking/scoreheader.png" alt="">
+          <div class="qt1-col-header-cell qt1-hc-slot">Slot</div>
+          <div class="qt1-col-header-cell qt1-hc-team">Team</div>
+          <div class="qt1-col-header-cell qt1-hc-tp qt1-hc-black">TP</div>
+        </div>
+        <div class="qt1-col-rows"></div>
+      </div>
+    </div>
+
+    <div id="qualified-teams-2-page">
+      <div class="qt2-col" id="qt2-col-left">
+        <div class="qt2-col-header">
+          <img class="qt2-col-header-bg" src="/assets/Overall%20Ranking/scoreheader.png" alt="">
+          <div class="qt2-col-header-cell qt2-hc-slot">Slot</div>
+          <div class="qt2-col-header-cell qt2-hc-team">Team</div>
+          <div class="qt2-col-header-cell qt2-hc-tp qt2-hc-black">TP</div>
+        </div>
+        <div class="qt2-col-rows"></div>
+      </div>
+      <div class="qt2-col" id="qt2-col-right">
+        <div class="qt2-col-header">
+          <img class="qt2-col-header-bg" src="/assets/Overall%20Ranking/scoreheader.png" alt="">
+          <div class="qt2-col-header-cell qt2-hc-slot">Slot</div>
+          <div class="qt2-col-header-cell qt2-hc-team">Team</div>
+          <div class="qt2-col-header-cell qt2-hc-tp qt2-hc-black">TP</div>
+        </div>
+        <div class="qt2-col-rows"></div>
+      </div>
+    </div>
+
     <div id="map-rotation-page">
       <div id="mrr-cards"></div>
     </div>
@@ -3347,6 +3529,22 @@
         if (msg.action === 'show') {
           document.getElementById('config-bar').classList.remove('debug-open');
           setTimeout(showGroupRankingScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('qualified_teams_1', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showQualifiedTeams1Scene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('qualified_teams_2', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showQualifiedTeams2Scene, 100);
         } else if (msg.action === 'hide') hideActiveFeature();
       });
 
@@ -5275,6 +5473,185 @@
     }
 
     /* ════════════════════════════════════════════════
+       QUALIFIED TEAMS 1 — rank 1 & 2 of EACH Qualifier 1-10 tab, fed by
+       /api/qualified-teams-standings?from=1&to=10 (a Qualifier tab with
+       no P/K data entered yet contributes no rows at all — see
+       lib/tallyRoster.js's getQualifiedTeamsStandings/sheetHasData).
+       Same static 7-column row layout as Group Ranking, with "Group"
+       repurposed as "QF" (which Qualifier tab this row's rank came
+       from) since these teams don't have their own group-stage letter.
+    ════════════════════════════════════════════════ */
+    const qt1Page = document.getElementById('qualified-teams-1-page');
+
+    function qt1BuildRow(q, slot) {
+      const row = document.createElement('div');
+      row.className = 'qt1-row rnk-anim-item';
+      row.innerHTML =
+        '<img class="qt1-row-bg" src="/assets/Overall%20Ranking/teamscoreboard.png" alt="">' +
+        '<div class="qt1-row-divider" style="left:182px"></div>' +
+        '<div class="qt1-row-divider" style="left:789px"></div>' +
+        '<div class="qt1-row-cell qt1-rc-slot">' + (slot || '') + '</div>' +
+        rnkFlagCellHtml('qt1-row-cell qt1-rc-flag', q.region) +
+        '<div class="qt1-row-cell qt1-rc-name">' + (q.name || '') + '</div>' +
+        '<div class="qt1-row-cell qt1-rc-tp">' + ovrFmtNum(q.totalScore) + '</div>';
+      return row;
+    }
+    // startIndex is the 0-based position of `items[0]` in the WHOLE list
+    // (not just this column) — the "Slot" cell is startIndex + i + 1, a
+    // plain running count down the whole list (1, 2, 3, ...), NOT q.rank
+    // (which is only 1st/2nd *within its own Qualifier* and so repeats
+    // 1,2,1,2,... across entries). Deliberately never written onto `q`
+    // itself (no `q.slot = ...`) — mutating the fetched objects would make
+    // rnkMakeLivePoll's next poll-tick comparison see a DIFFERENT shape
+    // than this freshly-fetched, not-yet-mutated data and wrongly think
+    // something changed, replaying the whole reveal animation every ~3.5s
+    // even when nothing on the sheet actually changed. This bit real
+    // Qualified Teams 1/2 broadcasts once already.
+    function qt1FillColumn(container, items, startIndex) {
+      container.innerHTML = '';
+      items.forEach((q, i) => {
+        const row = qt1BuildRow(q, startIndex + i + 1);
+        row.style.top = (42 + i * 63) + 'px';
+        container.appendChild(row);
+        ovrFitText(row.querySelector('.qt1-rc-name'), 34.79, 17);
+      });
+      rnkAnimateRows(container);
+    }
+    async function qt1FetchScoreboard() {
+      try {
+        const res = await fetch(buildUrl('/api/qualified-teams-standings?from=1&to=10'), { cache: 'no-store' });
+        const data = res.ok ? await res.json() : null;
+        return (data && data.entries) || [];
+      } catch (e) { return []; }
+    }
+
+    function qt1RenderTeams(entries) {
+      const qt1Solo = entries.length <= 10;
+      document.getElementById('qt1-col-left').classList.toggle('rnk-col-solo', qt1Solo);
+      document.getElementById('qt1-col-right').classList.toggle('rnk-col-right-hidden', qt1Solo);
+      qt1FillColumn(document.querySelector('#qt1-col-left .qt1-col-rows'), entries.slice(0, 10), 0);
+      qt1FillColumn(document.querySelector('#qt1-col-right .qt1-col-rows'), entries.slice(10, 20), 10);
+    }
+    const qt1LivePoll = rnkMakeLivePoll(qt1FetchScoreboard, qt1RenderTeams, 'qualifiedteams1');
+
+    async function showQualifiedTeams1Scene() {
+      const dataPromise = qt1FetchScoreboard();
+      await transitionTo('qualifiedteams1');
+      if (activeFeature !== 'qualifiedteams1') return; /* superseded mid-await */
+      rnkShowHeader('Qualified Teams 1');
+      rnkShowBgVideo();
+      qt1Page.classList.add('qt1-on');
+      void qt1Page.offsetWidth; /* force reflow so the opacity transition runs */
+      qt1Page.classList.add('qt1-visible');
+      const entries = await dataPromise;
+      if (activeFeature !== 'qualifiedteams1') return; /* superseded while awaiting data */
+      qt1RenderTeams(entries);
+      qt1LivePoll.start(entries);
+    }
+
+    function hideQualifiedTeams1Scene() {
+      activeFeature = null;
+      qt1LivePoll.stop();
+      qt1Page.classList.remove('qt1-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            qt1Page.classList.remove('qt1-on');
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       QUALIFIED TEAMS 2 — same as Qualified Teams 1 above, just Qualifier
+       11-20 instead of 1-10.
+    ════════════════════════════════════════════════ */
+    const qt2Page = document.getElementById('qualified-teams-2-page');
+
+    function qt2BuildRow(q, slot) {
+      const row = document.createElement('div');
+      row.className = 'qt2-row rnk-anim-item';
+      row.innerHTML =
+        '<img class="qt2-row-bg" src="/assets/Overall%20Ranking/teamscoreboard.png" alt="">' +
+        '<div class="qt2-row-divider" style="left:182px"></div>' +
+        '<div class="qt2-row-divider" style="left:789px"></div>' +
+        '<div class="qt2-row-cell qt2-rc-slot">' + (slot || '') + '</div>' +
+        rnkFlagCellHtml('qt2-row-cell qt2-rc-flag', q.region) +
+        '<div class="qt2-row-cell qt2-rc-name">' + (q.name || '') + '</div>' +
+        '<div class="qt2-row-cell qt2-rc-tp">' + ovrFmtNum(q.totalScore) + '</div>';
+      return row;
+    }
+    // Slot numbering continues from Qualified Teams 1's 1-20 rather than
+    // resetting to 1 — this page is Qualifier 11-20, so its slots are the
+    // tournament's 21st-40th qualified slots. startIndex works the same
+    // way as qt1FillColumn's (see its comment for why slot is passed in
+    // rather than written onto `q` — mutating the fetched entries would
+    // break rnkMakeLivePoll's change-detection and cause the reveal
+    // animation to silently replay on every poll tick), just offset by 20.
+    function qt2FillColumn(container, items, startIndex) {
+      container.innerHTML = '';
+      items.forEach((q, i) => {
+        const row = qt2BuildRow(q, startIndex + i + 21);
+        row.style.top = (42 + i * 63) + 'px';
+        container.appendChild(row);
+        ovrFitText(row.querySelector('.qt2-rc-name'), 34.79, 17);
+      });
+      rnkAnimateRows(container);
+    }
+    async function qt2FetchScoreboard() {
+      try {
+        const res = await fetch(buildUrl('/api/qualified-teams-standings?from=11&to=20'), { cache: 'no-store' });
+        const data = res.ok ? await res.json() : null;
+        return (data && data.entries) || [];
+      } catch (e) { return []; }
+    }
+
+    function qt2RenderTeams(entries) {
+      const qt2Solo = entries.length <= 10;
+      document.getElementById('qt2-col-left').classList.toggle('rnk-col-solo', qt2Solo);
+      document.getElementById('qt2-col-right').classList.toggle('rnk-col-right-hidden', qt2Solo);
+      qt2FillColumn(document.querySelector('#qt2-col-left .qt2-col-rows'), entries.slice(0, 10), 0);
+      qt2FillColumn(document.querySelector('#qt2-col-right .qt2-col-rows'), entries.slice(10, 20), 10);
+    }
+    const qt2LivePoll = rnkMakeLivePoll(qt2FetchScoreboard, qt2RenderTeams, 'qualifiedteams2');
+
+    async function showQualifiedTeams2Scene() {
+      const dataPromise = qt2FetchScoreboard();
+      await transitionTo('qualifiedteams2');
+      if (activeFeature !== 'qualifiedteams2') return; /* superseded mid-await */
+      rnkShowHeader('Qualified Teams 2');
+      rnkShowBgVideo();
+      qt2Page.classList.add('qt2-on');
+      void qt2Page.offsetWidth; /* force reflow so the opacity transition runs */
+      qt2Page.classList.add('qt2-visible');
+      const entries = await dataPromise;
+      if (activeFeature !== 'qualifiedteams2') return; /* superseded while awaiting data */
+      qt2RenderTeams(entries);
+      qt2LivePoll.start(entries);
+    }
+
+    function hideQualifiedTeams2Scene() {
+      activeFeature = null;
+      qt2LivePoll.stop();
+      qt2Page.classList.remove('qt2-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            qt2Page.classList.remove('qt2-on');
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
        MAP ROTATION — today's map lineup (matchState's todayMaps, up to
        todayMapsCount), fed by /match/state (same source Waiting TVC's
        own map page already reads). Part of the RANK_FEATURES family —
@@ -6945,7 +7322,7 @@
        header, only its own scoreboard content. Same precedent as
        cpDuringPostTransition above. */
     let duringRankTransition = false;
-    const RANK_FEATURES = new Set(['overallranking', 'mapranking', 'groupranking', 'maprotation', 'tournamentschedule', 'prizepool', 'postqualified']);
+    const RANK_FEATURES = new Set(['overallranking', 'mapranking', 'groupranking', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'tournamentschedule', 'prizepool', 'postqualified']);
 
     /* Keeps server-side state.fullscreenScene.<key> (and thus the dashboard's
        Control-tab board toggles/live indicator) in sync with board
@@ -7029,6 +7406,8 @@
       if (prev === 'overallranking') return hideOverallRankingScene();
       if (prev === 'mapranking') return hideMapRankingScene();
       if (prev === 'groupranking') return hideGroupRankingScene();
+      if (prev === 'qualifiedteams1') return hideQualifiedTeams1Scene();
+      if (prev === 'qualifiedteams2') return hideQualifiedTeams2Scene();
       if (prev === 'maprotation') return hideMapRotationScene();
       if (prev === 'tournamentschedule') return hideTournamentScheduleScene();
       if (prev === 'prizepool') return hidePrizePoolScene();
@@ -7781,6 +8160,8 @@
           else if (scene.activeFeature === 'overallranking') showOverallRankingScene();
           else if (scene.activeFeature === 'mapranking') showMapRankingScene();
           else if (scene.activeFeature === 'groupranking') showGroupRankingScene();
+          else if (scene.activeFeature === 'qualifiedteams1') showQualifiedTeams1Scene();
+          else if (scene.activeFeature === 'qualifiedteams2') showQualifiedTeams2Scene();
           else if (scene.activeFeature === 'maprotation') showMapRotationScene();
           else if (scene.activeFeature === 'tournamentschedule') showTournamentScheduleScene();
           else if (scene.activeFeature === 'prizepool') showPrizePoolScene();
@@ -7820,6 +8201,8 @@
         if (feature === 'overallranking') showOverallRankingScene();
         if (feature === 'mapranking') showMapRankingScene();
         if (feature === 'groupranking') showGroupRankingScene();
+        if (feature === 'qualifiedteams1') showQualifiedTeams1Scene();
+        if (feature === 'qualifiedteams2') showQualifiedTeams2Scene();
         if (feature === 'maprotation') showMapRotationScene();
         if (feature === 'tournamentschedule') showTournamentScheduleScene();
         if (feature === 'prizepool') showPrizePoolScene();
@@ -7840,7 +8223,7 @@
     window.previewTrigger = function(event, action) {
       document.querySelectorAll('.dbg-btn.preview').forEach(b => b.classList.remove('active'));
       if (action === 'show') {
-        const btnMap = { post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', map_ranking: 'preview-mapranking', group_ranking: 'preview-groupranking', map_rotation: 'preview-maprotation', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool' };
+        const btnMap = { post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', map_ranking: 'preview-mapranking', group_ranking: 'preview-groupranking', qualified_teams_1: 'preview-qualifiedteams1', qualified_teams_2: 'preview-qualifiedteams2', map_rotation: 'preview-maprotation', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool' };
         const btn = document.getElementById(btnMap[event]);
         if (btn) btn.classList.add('active');
       }
@@ -7851,6 +8234,8 @@
         if (event === 'overall_ranking') showOverallRankingScene();
         if (event === 'map_ranking') showMapRankingScene();
         if (event === 'group_ranking') showGroupRankingScene();
+        if (event === 'qualified_teams_1') showQualifiedTeams1Scene();
+        if (event === 'qualified_teams_2') showQualifiedTeams2Scene();
         if (event === 'map_rotation') showMapRotationScene();
         if (event === 'tournament_schedule') showTournamentScheduleScene();
         if (event === 'prize_pool') showPrizePoolScene();

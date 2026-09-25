@@ -798,7 +798,7 @@
 
   /* ── BATTLE ROYALE MAPS (Today's Matches / Tomorrow's Matches tabs) ──
      Both tabs are the same structure: an operator-set "# of Maps" count
-     (1-8) and that many rows of {time, map name, winner}. Backed by
+     (1-8) and that many rows of {time, map name, done}. Backed by
      localState.todayMaps/todayMapsCount and .tomorrowMaps/tomorrowMapsCount
      respectively — same shape, kept as two independent lists/counts since
      tomorrow's maps are usually still being planned while today's are live.
@@ -823,7 +823,7 @@
     var cfg  = MAPS_CONFIG[key];
     var maps = (localState[cfg.listField] || []).slice();
     var n    = getMapsCount(key);
-    while (maps.length < n) maps.push({ time: '', mapName: BR_MAP_NAMES[0], winner: '' });
+    while (maps.length < n) maps.push({ time: '', mapName: BR_MAP_NAMES[0], done: false });
     return maps.slice(0, n);
   }
 
@@ -878,16 +878,17 @@
     nameField.appendChild(sel);
     row.appendChild(nameField);
 
-    var winField = document.createElement('div');
-    winField.className = 'meta-field grow';
-    winField.innerHTML = '<div class="meta-label">Winner</div>';
-    var winInput = document.createElement('input');
-    winInput.type = 'text'; winInput.className = 'br-map-winner'; winInput.placeholder = 'Team name';
-    winInput.value = m.winner || '';
-    winInput.addEventListener('blur', function () { commitMapField(key, idx, 'winner', winInput.value); });
-    winInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') winInput.blur(); });
-    winField.appendChild(winInput);
-    row.appendChild(winField);
+    var doneField = document.createElement('div');
+    doneField.className = 'meta-field';
+    doneField.style.flex = '0 0 70px';
+    doneField.innerHTML = '<div class="meta-label">Done</div>';
+    var doneInput = document.createElement('input');
+    doneInput.type = 'checkbox'; doneInput.className = 'br-map-done';
+    doneInput.style.width = '20px'; doneInput.style.height = '20px'; doneInput.style.marginTop = '5px';
+    doneInput.checked = !!m.done;
+    doneInput.addEventListener('change', function () { commitMapField(key, idx, 'done', doneInput.checked); });
+    doneField.appendChild(doneInput);
+    row.appendChild(doneField);
 
     return row;
   }
@@ -912,10 +913,10 @@
         var row = container.children[idx];
         var timeEl = row.querySelector('.br-map-time');
         var selEl  = row.querySelector('.br-map-select');
-        var winEl  = row.querySelector('.br-map-winner');
+        var doneEl = row.querySelector('.br-map-done');
         if (timeEl && document.activeElement !== timeEl) timeEl.value = m.time || '';
         if (selEl  && document.activeElement !== selEl)  selEl.value  = m.mapName || BR_MAP_NAMES[0];
-        if (winEl  && document.activeElement !== winEl)  winEl.value  = m.winner || '';
+        if (doneEl && document.activeElement !== doneEl) doneEl.checked = !!m.done;
       });
     }
   }

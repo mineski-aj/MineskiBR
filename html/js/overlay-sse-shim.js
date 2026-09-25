@@ -9,9 +9,9 @@
 // change — only the one line that used to say `new EventSource(...)`.
 // Bump on every change to overlay-shared-worker.js (new KNOWN_EVENTS entry,
 // logic change, etc.) — see the comment at its `new SharedWorker(...)` call
-// below for why this exists. Current bump: replaced 'waiting_lobby' with
-// 'waiting_timer' (Waiting Lobby scene removed, Waiting Timer added).
-const OVERLAY_WORKER_VERSION = 26;
+// below for why this exists. Current bump: added 'qualified_teams_1' /
+// 'qualified_teams_2' (Qualified Teams 1/2 scenes added).
+const OVERLAY_WORKER_VERSION = 27;
 
 function createOverlaySSE() {
   if (typeof SharedWorker === 'undefined') {

@@ -63,6 +63,17 @@ router.get('/api/live-sheet-overall-standings', function (req, res) {
   res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getLiveSheetOverallStandings());
 });
 
+// GET /api/qualified-teams-standings?from=1&to=10 — rank 1 & 2 team from
+// each Qualifier tab in that range, skipping any tab with no data yet —
+// see lib/tallyRoster.js's getQualifiedTeamsStandings(). Powers the
+// Qualified Teams 1 (Qualifier 1-10) / Qualified Teams 2 (Qualifier 11-20)
+// scenes (Fullscreen.html).
+router.get('/api/qualified-teams-standings', function (req, res) {
+  const from = parseInt(req.query.from, 10) || 1;
+  const to = parseInt(req.query.to, 10) || 10;
+  res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getQualifiedTeamsStandings(from, to));
+});
+
 router.get(/^\/api\/tab(\d+)$/, function (req, res) {
   const n = parseInt(req.params[0], 10);
   const data = externalTally.get();

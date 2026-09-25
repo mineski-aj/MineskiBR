@@ -187,7 +187,8 @@
     {
       "time": "6:00PM",
       "mapName": "Blackout",
-      "winner": ""
+      "winner": "",
+      "done": false
     },
     {
       "time": "",
