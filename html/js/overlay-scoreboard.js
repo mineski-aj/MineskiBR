@@ -22,15 +22,22 @@
   mh1Logo.appendChild(mh1LogoImg);
   mh1.appendChild(mh1Logo);
 
-  var mh1Text = document.createElement('div');
-  mh1Text.id = 'sb-mh1-text';
+  /* Box (position/size, fixed) + inner text span (auto-width, the actual
+     sbFitText target) — see ingame.css's .sb-mh1-name/-tally comment for
+     why sbFitText can't run on the fixed-width box itself. */
   var mh1Name = document.createElement('div');
   mh1Name.className = 'sb-mh1-name';
+  var mh1NameText = document.createElement('span');
+  mh1NameText.className = 'sb-mh1-name-text';
+  mh1Name.appendChild(mh1NameText);
+  mh1.appendChild(mh1Name);
+
   var mh1Tally = document.createElement('div');
   mh1Tally.className = 'sb-mh1-tally';
-  mh1Text.appendChild(mh1Name);
-  mh1Text.appendChild(mh1Tally);
-  mh1.appendChild(mh1Text);
+  var mh1TallyText = document.createElement('span');
+  mh1TallyText.className = 'sb-mh1-tally-text';
+  mh1Tally.appendChild(mh1TallyText);
+  mh1.appendChild(mh1Tally);
   scene.appendChild(mh1);
 
   var h1 = document.createElement('div');
@@ -146,10 +153,17 @@ function sbFitText(el, maxWidth, maxPx) {
    (see .sb-mh1-tally's text-transform in ingame.css). ── */
 var _sbLiveTallyTab = '';
 var _sbMatchNum = 1;
-var SB_MH1_TEXT_WIDTH = 195; /* #sb-mh1-text's 203px width, minus a little breathing room */
+var SB_MH1_TEXT_WIDTH = 309; /* .sb-mh1-name/.sb-mh1-tally's own 317px width, minus a little breathing room */
+/* maxSize starts near each box's own height (57px/60px) now that stage and
+   tally are standalone boxes, not the old shared 38px-tall wrapper the
+   design guide's 36.88px/28.46px sizes were tuned for — keeping those
+   old sizes here left the text looking tiny inside the new, much taller
+   boxes. */
+var SB_MH1_NAME_MAXSIZE  = 52;
+var SB_MH1_TALLY_MAXSIZE = 48;
 
 function sbUpdateMh1Tally() {
-  var tallyEl = document.querySelector('.sb-mh1-tally');
+  var tallyEl = document.querySelector('.sb-mh1-tally-text');
   if (!tallyEl) return;
   var parts = [];
   if (_sbLiveTallyTab) parts.push(_sbLiveTallyTab);
@@ -158,7 +172,7 @@ function sbUpdateMh1Tally() {
      show just the tally tab (see sbIsQualifiers below). */
   if (!sbIsQualifiers()) parts.push('Map ' + _sbMatchNum);
   tallyEl.textContent = parts.join(' | ');
-  sbFitText(tallyEl, SB_MH1_TEXT_WIDTH, 28.46);
+  sbFitText(tallyEl, SB_MH1_TEXT_WIDTH, SB_MH1_TALLY_MAXSIZE);
 }
 
 function sbPollTallyState() {
@@ -178,10 +192,10 @@ function sbPollMatchState() {
   fetch('/match/state', { cache: 'no-store' })
     .then(function(r) { return r.json(); })
     .then(function(s) {
-      var nameEl = document.querySelector('.sb-mh1-name');
+      var nameEl = document.querySelector('.sb-mh1-name-text');
       if (nameEl) {
         nameEl.textContent = s.stage || '';
-        sbFitText(nameEl, SB_MH1_TEXT_WIDTH, 36.88);
+        sbFitText(nameEl, SB_MH1_TEXT_WIDTH, SB_MH1_NAME_MAXSIZE);
       }
       _sbMatchNum = s.match || 1;
       /* _sbStage must land BEFORE sbUpdateMh1Tally() — it now reads

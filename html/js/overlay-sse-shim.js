@@ -11,7 +11,7 @@
 // logic change, etc.) — see the comment at its `new SharedWorker(...)` call
 // below for why this exists. Current bump: added 'qualified_teams_1' /
 // 'qualified_teams_2' (Qualified Teams 1/2 scenes added).
-const OVERLAY_WORKER_VERSION = 27;
+const OVERLAY_WORKER_VERSION = 28;
 
 function createOverlaySSE() {
   if (typeof SharedWorker === 'undefined') {

@@ -172,8 +172,8 @@
   "countdownLabelAuto": true,
   "timer": {
     "running": true,
-    "endAt": 1790320784617,
-    "remaining": 1800
+    "endAt": 1790325867790,
+    "remaining": 300
   },
   "map": "Isolated",
   "enCasters": [

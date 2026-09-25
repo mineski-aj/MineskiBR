@@ -1613,6 +1613,7 @@
     herolineup:       'herolineup',
     overall_ranking:   'overallranking',
     map_ranking:       'mapranking',
+    slot_teams:        'slotteams',
     group_ranking:     'groupranking',
     qualified_teams_1: 'qualifiedteams1',
     qualified_teams_2: 'qualifiedteams2',
@@ -1634,6 +1635,7 @@
     lineupblue: 'Team Line-Up — Blue', lineupred: 'Team Line-Up — Red',
     herolineup: 'Hero Lineup',
     overallranking: 'Overall Ranking', mapranking: 'Map Ranking',
+    slotteams: 'Slot Teams',
     groupranking: 'Group Ranking',
     qualifiedteams1: 'Qualified Teams 1', qualifiedteams2: 'Qualified Teams 2',
     maprotation: 'Map Rotation',
@@ -1963,6 +1965,7 @@
         { name: 'Hero Lineup', show: '/overlay/herolineup/show', hide: '/overlay/herolineup/hide' },
         { name: 'Overall Ranking', show: '/overlay/overall_ranking/show', hide: '/overlay/overall_ranking/hide' },
         { name: 'Map Ranking', show: '/overlay/map_ranking/show', hide: '/overlay/map_ranking/hide' },
+        { name: 'Slot Teams', show: '/overlay/slot_teams/show', hide: '/overlay/slot_teams/hide' },
         { name: 'Group Ranking', show: '/overlay/group_ranking/show', hide: '/overlay/group_ranking/hide' },
         { name: 'Qualified Teams 1', show: '/overlay/qualified_teams_1/show', hide: '/overlay/qualified_teams_1/hide' },
         { name: 'Qualified Teams 2', show: '/overlay/qualified_teams_2/show', hide: '/overlay/qualified_teams_2/hide' },
@@ -3435,6 +3438,17 @@
     { group: 'Map Ranking Column 11-20', id: '#mrk-col-right', name: 'Scoreboard Column (Teams 11-20)' },
   ];
 
+  /* ── Slot Teams (Fullscreen.html) element defaults — exact copy of
+     Map Ranking above ── */
+  var SLT_DEFAULTS = {
+    '#slt-col-left':  { left: 40,  top: 282, width: 905, height: 672 },
+    '#slt-col-right': { left: 973, top: 282, width: 905, height: 672 },
+  };
+  var SLT_ELEMENTS = [
+    { group: 'Slot Teams Column 1-10',  id: '#slt-col-left',  name: 'Scoreboard Column (Teams 1-10)' },
+    { group: 'Slot Teams Column 11-20', id: '#slt-col-right', name: 'Scoreboard Column (Teams 11-20)' },
+  ];
+
   /* ── Group Ranking (Fullscreen.html) element defaults ── */
   var GRK_DEFAULTS = {
     '#grk-col-left':  { left: 40,  top: 282, width: 905, height: 672 },
@@ -3664,6 +3678,15 @@
       elements:    MRK_ELEMENTS,
       defaults:    MRK_DEFAULTS,
       showFn:      'showMapRankingScene',
+    },
+    fullscreen_slotteams: {
+      label:       'Slot Teams · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_slotteams',
+      elements:    SLT_ELEMENTS,
+      defaults:    SLT_DEFAULTS,
+      showFn:      'showSlotTeamsScene',
     },
     fullscreen_groupranking: {
       label:       'Group Ranking · Fullscreen',

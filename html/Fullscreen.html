@@ -1347,6 +1347,65 @@
     .mrk-rc-group { left: 393px; width: 92px; }
     .mrk-rc-gw    { left: 497px; width: 92px; }
 
+    /* ── SLOT TEAMS PAGE — exact copy of Map Ranking above (same
+       /api/current-map-standings data, same layout/compact-stage
+       behavior), just with a dynamic "Slot <N> Teams" header instead of
+       "Map Ranking" (see sltHeaderLabel). ── */
+    #slot-teams-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #slot-teams-page.slt-on { display: block; }
+    #slot-teams-page.slt-visible { opacity: 1; }
+    .slt-col { position: absolute; top: 282px; width: 905px; height: 672px; z-index: 190; }
+    #slt-col-left  { left: 40px; }
+    #slt-col-right { left: 973px; }
+    .slt-col-header { position: absolute; top: 0; left: 0; width: 905px; height: 42px; }
+    .slt-col-header-bg { position: absolute; top: 0; left: 0; width: 905px; height: 42px; }
+    .slt-col-header-cell {
+      position: absolute; top: 0; width: 92px; height: 42px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      font-family: 'Teko', sans-serif;
+      font-weight: 500;
+      font-size: 34.54px;
+      line-height: 1;
+      color: #ffffff;
+      text-transform: uppercase;
+    }
+    .slt-col-header-cell.slt-hc-black { color: #0a0a0a; }
+    .slt-hc-rank  { left: 31px; }
+    .slt-hc-team  { left: 150px; }
+    .slt-hc-group { left: 393px; }
+    .slt-hc-gw    { left: 497px; }
+
+    .slt-row { position: absolute; left: 0; width: 906px; height: 63px; }
+    .slt-row-bg { position: absolute; top: 0; left: 0; width: 906px; height: 63px; }
+    .slt-row-divider { position: absolute; top: 13px; width: 1px; height: 38px; background: #0a0a0a; z-index: 1; }
+    .slt-row-cell {
+      position: absolute; top: 0; height: 63px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      font-family: 'Teko', sans-serif;
+      font-weight: 700;
+      font-size: 34.79px;
+      line-height: 1;
+      color: #0a0a0a;
+      text-transform: uppercase;
+      overflow: hidden;
+    }
+    .slt-rc-rank  { left: 33px;  width: 60px; }
+    .slt-rc-flag  { left: 117px; width: 56px; font-size: 20.87px; }
+    .slt-rc-name  { left: 192px; width: 208px; justify-content: flex-start; text-align: left; padding-left: 4px; white-space: nowrap; }
+    .slt-rc-group { left: 393px; width: 92px; }
+    .slt-rc-gw    { left: 497px; width: 92px; }
+
     /* ── GROUP RANKING PAGE — the full season, every group-stage sheet,
        fed by /api/groupstage-qualifiers (all four groups, A–D). Header
        is the shared #rnk-header above, not owned by this page. ── */
@@ -2677,6 +2736,16 @@
       </div>
     </div>
 
+    <!-- SLOT TEAMS -->
+    <div class="feature-card">
+      <div class="feature-card-label">Slot Teams</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showSlotTeamsScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideSlotTeamsScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-slotteams" onclick="toggleLocalPreview('slotteams', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
     <!-- GROUP RANKING -->
     <div class="feature-card">
       <div class="feature-card-label">Group Ranking</div>
@@ -3026,6 +3095,16 @@
       <div class="mrk-col" id="mrk-col-right">
         <div class="mrk-col-header"><img class="mrk-col-header-bg" src="/assets/Overall%20Ranking/scoreheader.png" alt=""></div>
         <div class="mrk-col-rows"></div>
+      </div>
+    </div>
+    <div id="slot-teams-page">
+      <div class="slt-col" id="slt-col-left">
+        <div class="slt-col-header"><img class="slt-col-header-bg" src="/assets/Overall%20Ranking/scoreheader.png" alt=""></div>
+        <div class="slt-col-rows"></div>
+      </div>
+      <div class="slt-col" id="slt-col-right">
+        <div class="slt-col-header"><img class="slt-col-header-bg" src="/assets/Overall%20Ranking/scoreheader.png" alt=""></div>
+        <div class="slt-col-rows"></div>
       </div>
     </div>
     <div id="group-ranking-page">
@@ -3521,6 +3600,14 @@
         if (msg.action === 'show') {
           document.getElementById('config-bar').classList.remove('debug-open');
           setTimeout(showMapRankingScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('slot_teams', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showSlotTeamsScene, 100);
         } else if (msg.action === 'hide') hideActiveFeature();
       });
 
@@ -5365,6 +5452,137 @@
         new Promise(resolve => {
           setTimeout(() => {
             mrkPage.classList.remove('mrk-on');
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       SLOT TEAMS — exact copy of Map Ranking above (same
+       /api/current-map-standings data, same layout/compact-stage
+       behavior), just with a dynamic "Slot <2N-1> & <2N> Teams" header
+       (N = the live tally's own Qualifier number, its sheet name always
+       "Qualifier N") instead of the static "Map Ranking" label. Same
+       slot-pair math as pqHeaderLabel's "Qualified Slot" elsewhere in
+       this file: each qualifier tab fills 2 of the tournament's overall
+       slots (Qualifier 1 -> slots 1 & 2, Qualifier 2 -> slots 3 & 4, ...).
+    ════════════════════════════════════════════════ */
+    const sltPage = document.getElementById('slot-teams-page');
+
+    function sltHeaderLabel(sheet) {
+      const m = /(\d+)\s*$/.exec(sheet || '');
+      if (!m) return 'Slot Teams';
+      const n = parseInt(m[1], 10);
+      return 'Slot ' + (n * 2 - 1) + ' & ' + (n * 2) + ' Teams';
+    }
+
+    function sltFillHeader(headerEl, compact) {
+      headerEl.querySelectorAll('.slt-col-header-cell').forEach(el => el.remove());
+      mrkLayout(compact).forEach(c => {
+        const cell = document.createElement('div');
+        cell.className = 'slt-col-header-cell' + (c.black ? ' slt-hc-black' : '');
+        cell.style.left = c.left + 'px';
+        cell.style.width = c.width + 'px';
+        cell.textContent = c.label;
+        headerEl.appendChild(cell);
+      });
+    }
+    function sltBuildRow(q, compact) {
+      const layout = mrkLayout(compact);
+      const byKey = {};
+      layout.forEach(c => { byKey[c.key] = c; });
+      const skipKeys = compact ? ['rank', 'team', 'kp'] : ['rank', 'team', 'group'];
+      const dividers = [182].concat(
+        layout.filter(c => skipKeys.indexOf(c.key) === -1)
+          .map(c => compact ? c.left : c.left - 10)
+      );
+      const row = document.createElement('div');
+      row.className = 'slt-row rnk-anim-item';
+      const sltBgSrc = (rnkIsQualifiers() && q.rank === 2 && Number(q.totalScore) > 0)
+        ? '/assets/Overall%20Ranking/teamscoreboard_rank1.png'
+        : rnkRowBgSrc(q.rank, q.totalScore);
+      let html = '<img class="slt-row-bg" src="' + sltBgSrc + '" alt="">';
+      dividers.forEach(left => { html += '<div class="slt-row-divider" style="left:' + left + 'px"></div>'; });
+      html += '<div class="slt-row-cell slt-rc-rank">' + (q.rank || '') + '</div>';
+      html += rnkFlagCellHtml('slt-row-cell slt-rc-flag', q.region);
+      html += '<div class="slt-row-cell slt-rc-name">' + (q.name || '') + '</div>';
+      if (byKey.group) html += '<div class="slt-row-cell" style="left:' + byKey.group.left + 'px;width:' + byKey.group.width + 'px">' + (q.group || '') + '</div>';
+      if (byKey.gw)    html += '<div class="slt-row-cell" style="left:' + byKey.gw.left    + 'px;width:' + byKey.gw.width    + 'px">' + (q.wins || 0) + 'x</div>';
+      html += '<div class="slt-row-cell" style="left:' + byKey.kp.left + 'px;width:' + byKey.kp.width + 'px">' + ovrFmtNum(q.totalKills) + '</div>';
+      html += '<div class="slt-row-cell" style="left:' + byKey.rp.left + 'px;width:' + byKey.rp.width + 'px">' + ovrFmtNum(q.placementPoints) + '</div>';
+      html += '<div class="slt-row-cell" style="left:' + byKey.tp.left + 'px;width:' + byKey.tp.width + 'px">' + ovrFmtNum(q.totalScore) + '</div>';
+      row.innerHTML = html;
+      return row;
+    }
+    function sltFillColumn(container, items, compact) {
+      container.innerHTML = '';
+      items.forEach((q, i) => {
+        const row = sltBuildRow(q, compact);
+        row.style.top = (42 + i * 63) + 'px';
+        container.appendChild(row);
+        ovrFitText(row.querySelector('.slt-rc-name'), 34.79, 17);
+      });
+      rnkAnimateRows(container);
+    }
+    async function sltFetchScoreboard() {
+      try {
+        const res = await fetch(buildUrl('/api/current-map-standings'), { cache: 'no-store' });
+        const data = res.ok ? await res.json() : null;
+        return { sheet: (data && data.sheet) || '', teams: (data && data.teams) || [] };
+      } catch (e) { return { sheet: '', teams: [] }; }
+    }
+
+    function sltRenderTeams(data) {
+      const teams = (data && data.teams) || [];
+      // Refreshed every render (initial fill AND every live-poll tick) so
+      // a qualifier-tab change on the live tally while this scene is
+      // already showing still updates the header label — rnkShowHeader
+      // is a no-op animation-wise unless the text actually changed.
+      rnkShowHeader(sltHeaderLabel(data && data.sheet));
+      const compact = mrkIsCompactStage();
+      const sltSolo = teams.length <= 10;
+      document.getElementById('slt-col-left').classList.toggle('rnk-col-solo', sltSolo);
+      document.getElementById('slt-col-right').classList.toggle('rnk-col-right-hidden', sltSolo);
+      sltFillHeader(document.querySelector('#slt-col-left .slt-col-header'), compact);
+      sltFillHeader(document.querySelector('#slt-col-right .slt-col-header'), compact);
+      sltFillColumn(document.querySelector('#slt-col-left .slt-col-rows'), teams.slice(0, 10), compact);
+      sltFillColumn(document.querySelector('#slt-col-right .slt-col-rows'), teams.slice(10, 20), compact);
+    }
+    const sltLivePoll = rnkMakeLivePoll(sltFetchScoreboard, sltRenderTeams, 'slotteams');
+
+    async function showSlotTeamsScene() {
+      const dataPromise = sltFetchScoreboard();
+      await transitionTo('slotteams');
+      if (activeFeature !== 'slotteams') return; /* superseded mid-await */
+      // Header label needs the fetched sheet name (unlike Map Ranking's
+      // static label) — shown with a generic fallback first, then
+      // sltRenderTeams below swaps in the real "Slot N Teams" text via
+      // rnkShowHeader's own fade+slide label-change animation once the
+      // fetch resolves, rather than delaying the whole scene's appearance
+      // on the fetch.
+      rnkShowHeader(sltHeaderLabel(''));
+      rnkShowBgVideo();
+      sltPage.classList.add('slt-on');
+      void sltPage.offsetWidth; /* force reflow so the opacity transition runs */
+      sltPage.classList.add('slt-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'slotteams') return; /* superseded while awaiting data */
+      sltRenderTeams(data);
+      sltLivePoll.start(data);
+    }
+
+    function hideSlotTeamsScene() {
+      activeFeature = null;
+      sltLivePoll.stop();
+      sltPage.classList.remove('slt-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            sltPage.classList.remove('slt-on');
             rnkHideBgVideo();
             resolve();
           }, 420);
@@ -7322,7 +7540,7 @@
        header, only its own scoreboard content. Same precedent as
        cpDuringPostTransition above. */
     let duringRankTransition = false;
-    const RANK_FEATURES = new Set(['overallranking', 'mapranking', 'groupranking', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'tournamentschedule', 'prizepool', 'postqualified']);
+    const RANK_FEATURES = new Set(['overallranking', 'mapranking', 'slotteams', 'groupranking', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'tournamentschedule', 'prizepool', 'postqualified']);
 
     /* Keeps server-side state.fullscreenScene.<key> (and thus the dashboard's
        Control-tab board toggles/live indicator) in sync with board
@@ -7405,6 +7623,7 @@
       if (prev === 'hexagon')  return hideTeamHexagon();
       if (prev === 'overallranking') return hideOverallRankingScene();
       if (prev === 'mapranking') return hideMapRankingScene();
+      if (prev === 'slotteams') return hideSlotTeamsScene();
       if (prev === 'groupranking') return hideGroupRankingScene();
       if (prev === 'qualifiedteams1') return hideQualifiedTeams1Scene();
       if (prev === 'qualifiedteams2') return hideQualifiedTeams2Scene();
@@ -8159,6 +8378,7 @@
           else if (scene.activeFeature === 'hexagon')  showTeamHexagon();
           else if (scene.activeFeature === 'overallranking') showOverallRankingScene();
           else if (scene.activeFeature === 'mapranking') showMapRankingScene();
+          else if (scene.activeFeature === 'slotteams') showSlotTeamsScene();
           else if (scene.activeFeature === 'groupranking') showGroupRankingScene();
           else if (scene.activeFeature === 'qualifiedteams1') showQualifiedTeams1Scene();
           else if (scene.activeFeature === 'qualifiedteams2') showQualifiedTeams2Scene();
@@ -8200,6 +8420,7 @@
         if (feature === 'hexagon')  showTeamHexagon();
         if (feature === 'overallranking') showOverallRankingScene();
         if (feature === 'mapranking') showMapRankingScene();
+        if (feature === 'slotteams') showSlotTeamsScene();
         if (feature === 'groupranking') showGroupRankingScene();
         if (feature === 'qualifiedteams1') showQualifiedTeams1Scene();
         if (feature === 'qualifiedteams2') showQualifiedTeams2Scene();
@@ -8223,7 +8444,7 @@
     window.previewTrigger = function(event, action) {
       document.querySelectorAll('.dbg-btn.preview').forEach(b => b.classList.remove('active'));
       if (action === 'show') {
-        const btnMap = { post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', map_ranking: 'preview-mapranking', group_ranking: 'preview-groupranking', qualified_teams_1: 'preview-qualifiedteams1', qualified_teams_2: 'preview-qualifiedteams2', map_rotation: 'preview-maprotation', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool' };
+        const btnMap = { post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', map_ranking: 'preview-mapranking', slot_teams: 'preview-slotteams', group_ranking: 'preview-groupranking', qualified_teams_1: 'preview-qualifiedteams1', qualified_teams_2: 'preview-qualifiedteams2', map_rotation: 'preview-maprotation', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool' };
         const btn = document.getElementById(btnMap[event]);
         if (btn) btn.classList.add('active');
       }
@@ -8233,6 +8454,7 @@
         if (event === 'team_hexagon') showTeamHexagon();
         if (event === 'overall_ranking') showOverallRankingScene();
         if (event === 'map_ranking') showMapRankingScene();
+        if (event === 'slot_teams') showSlotTeamsScene();
         if (event === 'group_ranking') showGroupRankingScene();
         if (event === 'qualified_teams_1') showQualifiedTeams1Scene();
         if (event === 'qualified_teams_2') showQualifiedTeams2Scene();

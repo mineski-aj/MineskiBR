@@ -50,14 +50,14 @@
     transition: none;
   }
   #sb-mainheader1 {
-    top: 923px;
-    width: 417px;
-    height: 157px;
+    top: 921px;
+    width: 529px;
+    height: 159px;
     z-index: 29;
-    background-image: url('/assets/ingame/ingame_mainheader1.png');
+    background-image: url('/assets/ingame/ingame_mainheader2.png');
   }
   #sb-header1 {
-    top: 870px;
+    top: 868px;
     width: 364px;
     height: 54px;
     z-index: 31;
@@ -65,10 +65,10 @@
   }
   #sb-mh1-logo {
     position: absolute;
-    left: 10px;
-    top: 28px;
-    width: 103px;
-    height: 103px;
+    left: 6px;
+    top: 25px;
+    width: 110px;
+    height: 110px;
     z-index: 3;
     display: flex;
     align-items: center;
@@ -80,34 +80,41 @@
     height: 100%;
     object-fit: contain;
   }
-  #sb-mh1-text {
+  /* Stage/name and tally now each get their own positioned box straight
+     off the design guide (previously a single shared flex-column wrapper
+     around both lines) — no shared wrapper, per this project's "every
+     element independently editable" rule. Font sizes start near each
+     box's own height (57px/60px) rather than the old 36.88px/6.83pt-style
+     sizes tuned for the previous shared 38px-tall wrapper. Actual rendered
+     size is whatever sbFitText (sbPollTallyState/sbUpdateMh1Tally, maxSize
+     SB_MH1_NAME_MAXSIZE/SB_MH1_TALLY_MAXSIZE) shrinks it to so it still
+     fits each box's own width.
+
+     The fit TARGET must be an inner auto-width span (.sb-mh1-name-text/
+     .sb-mh1-tally-text), never the outer positioned box itself — same
+     bug already fixed once for .ssr-team-name above: a fixed-width
+     element's own scrollWidth reports its OWN width, not its text's
+     natural width, so sbFitText's "does it fit?" check is always false
+     and the binary search bottoms out at its 6px floor no matter what
+     maxSize is passed. */
+  .sb-mh1-name {
     position: absolute;
-    left: 174px;
-    top: 61px;
-    width: 203px;
-    height: 38px;
+    left: 170px;
+    top: 33px;
+    width: 317px;
+    height: 57px;
     z-index: 4;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    /* Both lines shrink-to-fit the 203px width (sbFitText), but their
-       *declared* sizes below still add up taller than this box's 38px —
-       not clipping them lets the tight two-line lockup breathe past its
-       nominal hit-box instead of getting cut off, same tradeoff as
-       .sb-gf-line's negative-margin compression elsewhere in this app
-       (see Fullscreen.html). */
-    overflow: visible;
+    overflow: hidden;
   }
-  /* 8.85pt / 6.83pt @ 300dpi (pt * 300/72), same convention used
-     elsewhere in this app for design-guide-exported text sizes. Actual
-     rendered size is whatever sbFitText (called from
-     sbPollTallyState/sbUpdateMh1Tally) shrinks it to so it still fits
-     #sb-mh1-text's width. */
-  .sb-mh1-name {
+  .sb-mh1-name-text {
+    flex: 0 0 auto;
+    max-width: 100%;
     font-family: 'Teko', sans-serif;
     font-weight: 700;
-    font-size: 36.88px;
+    font-size: 52px;
     color: #fff;
     text-align: center;
     text-transform: uppercase;
@@ -115,15 +122,28 @@
     line-height: 1;
   }
   .sb-mh1-tally {
+    position: absolute;
+    left: 170px;
+    top: 76px;
+    width: 317px;
+    height: 60px;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .sb-mh1-tally-text {
+    flex: 0 0 auto;
+    max-width: 100%;
     font-family: 'Teko', sans-serif;
     font-weight: 500;
-    font-size: 28.46px;
+    font-size: 48px;
     color: #fff;
     text-align: center;
     text-transform: uppercase;
     white-space: nowrap;
     line-height: 1;
-    margin-top: 2px;
   }
 
   /* ── Team scoreboard (right side) — background plate stays at its
