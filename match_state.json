@@ -166,14 +166,14 @@
       "matchType": "regular"
     }
   ],
-  "countdownLabel": "SHOW STARTS IN",
+  "countdownLabel": "SHOW RESUMES IN",
   "goodbyeLabel": "SEE YOU TOMORROW",
-  "match": 1,
+  "match": 5,
   "countdownLabelAuto": true,
   "timer": {
     "running": true,
-    "endAt": 1790325867790,
-    "remaining": 300
+    "endAt": 1790428799236,
+    "remaining": 1560
   },
   "map": "Isolated",
   "enCasters": [
