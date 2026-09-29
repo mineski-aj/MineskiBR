@@ -781,7 +781,7 @@
     push({ day: localState.day, goodbyeLabel: localState.goodbyeLabel });
   });
   document.getElementById('day-plus').addEventListener('click', function () {
-    localState.day = Math.min(3, (localState.day || 1) + 1);
+    localState.day = Math.min(4, (localState.day || 1) + 1);
     document.getElementById('day-val').textContent = localState.day;
     updatePreview();
     localState.goodbyeLabel = computeGoodbye(localState.day);
@@ -962,7 +962,7 @@
   })();
 
   function computeGoodbye(day) {
-    return (day === 3) ? 'SEE YOU NEXT WEEK' : 'SEE YOU TOMORROW';
+    return (day === 4) ? 'SEE YOU NEXT WEEK' : 'SEE YOU TOMORROW';
   }
 
   /* Countdown label is fully automatic: Match 1 is the day's first show,

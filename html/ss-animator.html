@@ -143,6 +143,25 @@
   }
   .btn-io:hover { border-color: var(--amber); color: var(--amber); }
 
+  .btn-io.save-all {
+    border-color: var(--accent-dim);
+    color: var(--accent);
+  }
+  .btn-io.save-all:hover { background: var(--accent-dim); color: #000; border-color: var(--accent); }
+  .btn-io.save-all.dirty {
+    border-color: var(--amber);
+    color: var(--amber);
+    animation: pulse-amber 1.4s infinite;
+  }
+
+  .save-indicator {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+  .save-indicator.saved { color: var(--green); }
+  .save-indicator.dirty { color: var(--amber); }
+
   .status-dot {
     width: 10px;
     height: 10px;
@@ -439,6 +458,15 @@
   }
   .btn-go:hover:not(:disabled) { background: var(--green); box-shadow: 0 0 12px rgba(0,230,118,0.3); }
   .btn-go:disabled { background: transparent; color: var(--text-dim); border-color: var(--border); }
+
+  /* Per-card explicit Save — only this (or Save All / GET-from-ATEM)
+     ever writes this bank back to the server's canonical banks file. */
+  .btn-save {
+    background: transparent;
+    border-color: var(--accent-dim);
+    color: var(--accent);
+  }
+  .btn-save:hover:not(:disabled) { background: var(--accent-dim); color: #000; border-color: var(--accent); }
 
   /* ── BOX SOURCES ── */
   .box-sources {
@@ -851,6 +879,9 @@
     <span class="logo-badge">ANIM</span>
   </div>
   <div class="connection-bar">
+    <span class="save-indicator saved" id="save-indicator">✓ Saved</span>
+    <button class="btn-io save-all" id="save-all-btn" onclick="saveAllBanks()" title="Save all banks to the server (ss_animator_banks.json) — the only thing that writes there">💾 SAVE ALL</button>
+    <div style="width:1px;height:24px;background:var(--border);margin:0 4px"></div>
     <button class="btn-io" onclick="importSetup()" title="Import setup from JSON">⬆ IMPORT</button>
     <button class="btn-io" onclick="exportSetup()" title="Export setup to JSON">⬇ EXPORT</button>
     <div style="width:1px;height:24px;background:var(--border);margin:0 4px"></div>
@@ -865,7 +896,7 @@
 <main id="main-grid">
 
   <div class="demo-note" id="demo-note">
-    ⚠ &nbsp;<strong>Setup:</strong> Set the ATEM's IP address in the dashboard's <strong>Settings</strong> tab (ATEM SuperSource section) — this bridge runs inside MineskiBR's own server and reconnects automatically whenever that IP changes. Your banks are saved automatically in browser memory on this machine.
+    ⚠ &nbsp;<strong>Setup:</strong> Set the ATEM's IP address in the dashboard's <strong>Settings</strong> tab (ATEM SuperSource section) — this bridge runs inside MineskiBR's own server and reconnects automatically whenever that IP changes. Banks always load from <strong>this server's</strong> saved copy on open — press <strong>💾 SAVE</strong> (per-bank) or <strong>💾 SAVE ALL</strong> to write your edits back; nothing is pushed automatically, so opening this page on another machine never overwrites another server's banks.
   </div>
 
   <!-- SS1 PANEL -->
@@ -933,6 +964,7 @@ const state = {
   connected:    false,
   bridgeOpen:   false,
   ws:           null,
+  dirty:        false, // true = local edits not yet Saved to the server
   ss1Banks:     [],
   ss2Banks:     [],
   nextBankId:   1,
@@ -1018,8 +1050,9 @@ function connect() {
     state.ws.onopen = () => {
       state.bridgeOpen = true;
       log('Bridge connected — awaiting ATEM status...', 'info');
-      // Register current banks immediately so HTTP triggers work right away
-      setTimeout(registerBanks, 200);
+      // Pull the canonical bank set from the server (never push on
+      // connect — see loadBanksFromServer()'s own comment for why).
+      setTimeout(loadBanksFromServer, 200);
     };
 
     state.ws.onmessage = (ev) => {
@@ -1120,6 +1153,16 @@ function handleMessage(msg) {
       renderRoutes(msg.routes || []);
       break;
 
+    case 'banks_data':
+      applyBanksFromServer(msg.ss1 || [], msg.ss2 || []);
+      break;
+
+    case 'banks_saved':
+      markSaved();
+      toast('Saved to server', 'success');
+      log('✓ Banks saved to server (ss_animator_banks.json)', 'ok');
+      break;
+
     case 'http_go':
       // HTTP trigger fired — show progress on the matching bank card
       highlightHttpGo(msg.ssrc, msg.bankIndex, msg.name);
@@ -1196,6 +1239,8 @@ function addBank(ssIndex) {
   const bank = defaultBank(ssIndex, banks.length + 1);
   banks.push(bank);
   renderBanks(ssIndex);
+  saveState();
+  markDirty();
   log(`Added bank "${bank.name}" to SS${ssIndex}`, 'info');
 }
 
@@ -1206,17 +1251,23 @@ function removeBank(ssIndex, bankId) {
     state.ss2Banks = state.ss2Banks.filter(b => b.id !== bankId);
   }
   renderBanks(ssIndex);
+  saveState();
+  markDirty();
 }
 
 function renderBanks(ssIndex) {
+  // Pure re-render — does NOT touch the server. It used to also fire an
+  // automatic registerBanks() here, which meant loading server data INTO
+  // the UI (applyBanksFromServer → renderBanks) immediately pushed it
+  // right back out again, and any local-only edit reached the server the
+  // moment its card re-rendered. Saving is now only ever explicit — see
+  // saveBank()/saveAllBanks() and markDirty()/markSaved().
   const container = document.getElementById(`ss${ssIndex}-banks`);
   const banks = ssIndex === 1 ? state.ss1Banks : state.ss2Banks;
   container.innerHTML = '';
   banks.forEach(bank => {
     container.appendChild(buildBankCard(bank));
   });
-  // Keep server bank registry in sync
-  setTimeout(registerBanks, 100);
 }
 
 // ── Box colors for thumbnail ─────────────────────────────────────────────────
@@ -1371,9 +1422,10 @@ function buildBankCard(bank) {
       <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
         <canvas class="bank-thumb" id="thumb-${bank.id}" width="96" height="54"></canvas>
         <div class="bank-actions">
-          <button class="btn btn-get" onclick="getBank(${bank.id})" title="GET current ATEM settings into this bank">GET</button>
+          <button class="btn btn-get" onclick="getBank(${bank.id})" title="GET current ATEM settings into this bank (also saves to server immediately)">GET</button>
           <button class="btn btn-apply" onclick="applyBank(${bank.id})" title="Apply this bank to ATEM immediately">APPLY TO ATEM</button>
           <button class="btn btn-go" onclick="goBank(${bank.id})" title="Animate to this bank">▶ GO</button>
+          <button class="btn btn-save" onclick="saveBank(${bank.id})" title="Save all banks to the server now">💾 SAVE</button>
           <button class="btn" style="border-color:var(--border);color:var(--text-dim);font-size:10px;" onclick="removeBank(${bank.ssIndex}, ${bank.id})" title="Delete bank">✕</button>
         </div>
       </div>
@@ -1525,6 +1577,12 @@ function writeStateToBank(bank, s) {
   });
   // Re-render UI
   renderBanks(bank.ssIndex);
+  saveState();
+  // GET is a deliberate capture of live ATEM state into this bank — treat
+  // it the same as pressing Save, so the captured values don't sit as an
+  // unsaved local-only edit that a later reconnect's canonical reload
+  // (loadBanksFromServer()) would silently discard.
+  registerBanks();
 }
 
 // ──────────────────────────────────────────
@@ -1753,30 +1811,121 @@ function toast(msg, type = '') {
 // ──────────────────────────────────────────
 
 // Push current bank state to server so HTTP triggers know what to animate
+// The one function that actually writes to the server — every call site
+// is a deliberate user action (Save button, GET-from-ATEM). Never call
+// this from a load/render/connect path; see loadBanksFromServer() below
+// for the read side of this same file.
 function registerBanks() {
-  if (!state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+  if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
+    toast('Not connected to server — cannot save', 'error');
+    return;
+  }
 
   // Sync UI values into bank state first
   [...state.ss1Banks, ...state.ss2Banks].forEach(bank => {
     const live = readBankFromUI(bank);
-    bank.bg    = live.bg;
-    bank.boxes = live.boxes;
+    bank.bg        = live.bg;
+    bank.artFill   = live.artFill;
+    bank.artOption = live.artOption;
+    bank.boxes     = live.boxes;
   });
 
   const ss1 = state.ss1Banks.map(b => ({
-    name:     b.name,
-    duration: parseInt(document.getElementById('ss1-duration')?.value || 1000),
-    bg:       b.bg,
-    boxes:    b.boxes,
+    name:      b.name,
+    duration:  parseInt(document.getElementById('ss1-duration')?.value || 1000),
+    bg:        b.bg,
+    artFill:   b.artFill,
+    artOption: b.artOption,
+    boxes:     b.boxes,
   }));
   const ss2 = state.ss2Banks.map(b => ({
-    name:     b.name,
-    duration: parseInt(document.getElementById('ss2-duration')?.value || 1000),
-    bg:       b.bg,
-    boxes:    b.boxes,
+    name:      b.name,
+    duration:  parseInt(document.getElementById('ss2-duration')?.value || 1000),
+    bg:        b.bg,
+    artFill:   b.artFill,
+    artOption: b.artOption,
+    boxes:     b.boxes,
   }));
 
   state.ws.send(JSON.stringify({ cmd: 'register_banks', ss1, ss2 }));
+}
+
+// ── Explicit Save (writes to ss_animator_banks.json) ──
+function saveAllBanks() {
+  registerBanks();
+  log('→ Saving all banks to server...', 'info');
+}
+
+// The wire protocol only supports saving the whole SS1+SS2 list at once
+// (see registerBanks()), so this saves everything too — it's scoped to
+// "this bank" only visually, so pressing Save right after editing one
+// card feels local without having to go find the toolbar button.
+function saveBank(bankId) {
+  saveAllBanks();
+}
+
+// ── Explicit Load (reads from ss_animator_banks.json) — the counterpart
+// to saveAllBanks() above. Called on every bridge connect (including
+// reconnects); see connect()'s onopen. ──
+function loadBanksFromServer() {
+  sendWS({ cmd: 'get_banks' });
+}
+
+// Rebuilds local bank state from the server's canonical (trimmed) wire
+// format — {name, duration, bg, artFill, artOption, boxes} per bank, no
+// id/ssIndex (those are local-only bookkeeping) — same reconstruction
+// importSetup() does for an imported file, just from the bridge instead
+// of a picked file. OVERWRITES whatever was here (local edits, stale
+// localStorage, defaults) — that's the point: the server file is the
+// single source of truth, this page never wins a conflict against it.
+function applyBanksFromServer(ss1, ss2) {
+  function build(list, ssIndex) {
+    return (list || []).map((b, i) => ({
+      id:        state.nextBankId++,
+      ssIndex,
+      name:      b.name || `BANK ${i + 1}`,
+      bg:        b.bg ?? 1,
+      artFill:   b.artFill ?? 0,
+      artOption: b.artOption ?? 0,
+      boxes: (Array.isArray(b.boxes) && b.boxes.length === 4)
+        ? b.boxes
+        : defaultBank(ssIndex, i + 1).boxes,
+    }));
+  }
+
+  state.ss1Banks = build(ss1, 1);
+  state.ss2Banks = build(ss2, 2);
+
+  // Duration is one shared field per SS side, redundantly repeated on
+  // every bank on the wire (see registerBanks()) — pull it off the first
+  // bank that has one.
+  const d1 = ss1?.find(b => b.duration)?.duration;
+  const d2 = ss2?.find(b => b.duration)?.duration;
+  if (d1) { const el = document.getElementById('ss1-duration'); if (el) el.value = d1; }
+  if (d2) { const el = document.getElementById('ss2-duration'); if (el) el.value = d2; }
+
+  renderBanks(1);
+  renderBanks(2);
+  saveState(); // mirror canonical data into localStorage as a local cache
+  markSaved();
+  log(`✓ Loaded ${state.ss1Banks.length} SS1 + ${state.ss2Banks.length} SS2 banks from server (canonical)`, 'ok');
+}
+
+// ── Unsaved-changes indicator ──
+function markDirty() {
+  state.dirty = true;
+  const ind = document.getElementById('save-indicator');
+  const btn = document.getElementById('save-all-btn');
+  if (ind) { ind.textContent = '● Unsaved changes'; ind.className = 'save-indicator dirty'; }
+  if (btn) btn.classList.add('dirty');
+}
+
+function markSaved() {
+  state.dirty = false;
+  const ind = document.getElementById('save-indicator');
+  const btn = document.getElementById('save-all-btn');
+  if (ind) { ind.textContent = '✓ Saved'; ind.className = 'save-indicator saved'; }
+  if (btn) btn.classList.remove('dirty');
 }
 
 function renderRoutes(routes) {
@@ -1859,28 +2008,25 @@ function loadState() {
   }
 }
 
-// Auto-save on any input change (debounced). Also re-registers banks with
-// the server bridge — duration, box coords/sources, fill/art, etc. were
-// previously only pushed to the server on addBank/removeBank/connect, so
-// an HTTP trigger (GET /ss-animator/ss1/1) kept animating with whatever
-// stale duration/positions were registered at that last point, ignoring
-// any edit made since (e.g. changing the DURATION field never reached
-// the server at all until you added or removed a bank).
+// Auto-save to localStorage on any input change (debounced) and flags the
+// "unsaved changes" indicator — it does NOT push to the server. That only
+// ever happens from an explicit Save action (saveBank()/saveAllBanks(), or
+// GET-from-ATEM — see getBank()), so opening this page never overwrites
+// the canonical ss_animator_banks.json with a stale/local copy just by
+// loading; see loadBanksFromServer()'s own comment for the whole model.
 //
 // The document-level listeners below only cover real <input>/<select>
 // elements' native 'input'/'change' events. Any bank-state mutation driven
 // by a plain `<button onclick="...">` (toggleBox, setArtOption, etc.) does
-// NOT fire either event, so it silently never reaches the server unless
-// that handler calls scheduleSave() (or renderBanks(), which itself calls
-// registerBanks()) itself. When adding a new bank-editing control, call
-// scheduleSave() explicitly unless it's a real form input or already goes
-// through renderBanks().
+// NOT fire either event, so it silently never marks the page dirty unless
+// that handler calls scheduleSave() itself. When adding a new bank-editing
+// control, call scheduleSave() explicitly unless it's a real form input.
 let saveTimer = null;
 function scheduleSave() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(function () {
     saveState();
-    registerBanks();
+    markDirty();
   }, 600);
 }
 document.addEventListener('input',  scheduleSave);
@@ -1944,8 +2090,9 @@ function importSetup() {
         renderBanks(1);
         renderBanks(2);
         saveState();
+        markDirty(); // imported locally only — press Save to write it to the server
         log(`Imported "${file.name}" — ${state.ss1Banks.length} SS1 banks, ${state.ss2Banks.length} SS2 banks`, 'ok');
-        toast('Setup imported', 'success');
+        toast('Setup imported — press Save to write it to the server', 'success');
       } catch(err) {
         log(`Import failed: ${err.message}`, 'err');
         toast('Import failed — invalid file', 'error');

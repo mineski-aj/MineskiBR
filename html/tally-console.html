@@ -789,10 +789,17 @@ function colorForTeam(name){
 // per-viewer preference), applied client-side to a copy of this data.
 let rosterData = null;
 let rosterSortMode = 'kills'; // 'kills' | 'alpha' — also governs player order within each card
-// 'all' | 'group:<letter>' | 'playoffs' | 'grandfinals' — which subset of
-// teams to show. Group letters come from the sheet's own "Roster" tab
-// (lib/tallyRoster.js), Playoffs/Grand Finals from whether a team appears
-// in a sheet by that exact name — both local-only, per-viewer preferences.
+// 'all' | 'grouptotal' | 'group:<letter>' | 'playoffs' | 'grandfinals' —
+// which subset/dataset of teams to show (local-only, per-viewer
+// preference). 'group:<letter>' is a genuine client-side FILTER over
+// rosterData.teams (the full-tournament roster), by group letter (from
+// the sheet's own "Roster" tab, lib/tallyRoster.js). 'grouptotal' /
+// 'playoffs' / 'grandfinals' are each their own SEPARATE dataset instead
+// (rosterData.groupTotalTeams/playoffsTeams/grandFinalsTeams, each summed
+// server-side from only the sheet(s) that mode is scoped to) — see
+// renderRoster()'s own branch for why a client-side filter over the full
+// roster can't do the same job (it'd show the right teams with the wrong,
+// cumulative-across-every-sheet stats).
 let rosterFilterMode = 'all';
 async function fetchRosterData(){
   try{
@@ -812,7 +819,7 @@ function setRosterFilter(mode){
 function renderRosterFilterBar(){
   const bar = document.getElementById('rosterFilterBar');
   const groups = (rosterData && rosterData.groups) || [];
-  const options = [{ value: 'all', label: 'All Teams' }]
+  const options = [{ value: 'all', label: 'All Teams' }, { value: 'grouptotal', label: 'Group Total' }]
     .concat(groups.map(g => ({ value: 'group:' + g, label: 'Group ' + g })))
     .concat([{ value: 'playoffs', label: 'Playoffs Teams' }, { value: 'grandfinals', label: 'Grand Finals Teams' }]);
   bar.innerHTML = options.map(o => `
@@ -840,14 +847,24 @@ function renderRoster(){
     return;
   }
 
-  let teams = rosterData.teams.map(t => ({ ...t, players: t.players.slice() }));
-  if(rosterFilterMode.startsWith('group:')){
-    const letter = rosterFilterMode.slice('group:'.length);
-    teams = teams.filter(t => t.group === letter);
+  // grouptotal/playoffs/grandfinals are each their own dataset (server-
+  // summed from only the sheet(s) that mode is scoped to), not a filter
+  // over rosterData.teams — a team's stats there are that sheet's own
+  // total, not their cumulative total across every sheet they've ever
+  // appeared in. See rosterFilterMode's own comment.
+  let teams;
+  if(rosterFilterMode === 'grouptotal'){
+    teams = (rosterData.groupTotalTeams || []).map(t => ({ ...t, players: t.players.slice() }));
   } else if(rosterFilterMode === 'playoffs'){
-    teams = teams.filter(t => t.appearances.includes('Playoffs'));
+    teams = (rosterData.playoffsTeams || []).map(t => ({ ...t, players: t.players.slice() }));
   } else if(rosterFilterMode === 'grandfinals'){
-    teams = teams.filter(t => t.appearances.includes('Grand Finals'));
+    teams = (rosterData.grandFinalsTeams || []).map(t => ({ ...t, players: t.players.slice() }));
+  } else {
+    teams = rosterData.teams.map(t => ({ ...t, players: t.players.slice() }));
+    if(rosterFilterMode.startsWith('group:')){
+      const letter = rosterFilterMode.slice('group:'.length);
+      teams = teams.filter(t => t.group === letter);
+    }
   }
 
   if(rosterSortMode === 'alpha'){

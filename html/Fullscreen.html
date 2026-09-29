@@ -1324,7 +1324,6 @@
     .mrk-hc-rank  { left: 31px; }
     .mrk-hc-team  { left: 150px; }
     .mrk-hc-group { left: 393px; }
-    .mrk-hc-gw    { left: 497px; }
 
     .mrk-row { position: absolute; left: 0; width: 906px; height: 63px; }
     .mrk-row-bg { position: absolute; top: 0; left: 0; width: 906px; height: 63px; }
@@ -1345,7 +1344,6 @@
     .mrk-rc-flag  { left: 117px; width: 56px; font-size: 20.87px; }
     .mrk-rc-name  { left: 192px; width: 208px; justify-content: flex-start; text-align: left; padding-left: 4px; white-space: nowrap; }
     .mrk-rc-group { left: 393px; width: 92px; }
-    .mrk-rc-gw    { left: 497px; width: 92px; }
 
     /* ── SLOT TEAMS PAGE — exact copy of Map Ranking above (same
        /api/current-map-standings data, same layout/compact-stage
@@ -1383,7 +1381,6 @@
     .slt-hc-rank  { left: 31px; }
     .slt-hc-team  { left: 150px; }
     .slt-hc-group { left: 393px; }
-    .slt-hc-gw    { left: 497px; }
 
     .slt-row { position: absolute; left: 0; width: 906px; height: 63px; }
     .slt-row-bg { position: absolute; top: 0; left: 0; width: 906px; height: 63px; }
@@ -1404,7 +1401,6 @@
     .slt-rc-flag  { left: 117px; width: 56px; font-size: 20.87px; }
     .slt-rc-name  { left: 192px; width: 208px; justify-content: flex-start; text-align: left; padding-left: 4px; white-space: nowrap; }
     .slt-rc-group { left: 393px; width: 92px; }
-    .slt-rc-gw    { left: 497px; width: 92px; }
 
     /* ── GROUP RANKING PAGE — the full season, every group-stage sheet,
        fed by /api/groupstage-qualifiers (all four groups, A–D). Header
@@ -3968,11 +3964,11 @@
       rows.forEach((row, i) => row.classList.toggle('tsm-highlight', matchIndex > 0 && (i + 1) === matchIndex));
     }
 
-    /* Tomorrow's Schedule — Day 1/2 preview same week's next day; Day 3
+    /* Tomorrow's Schedule — Day 1/2/3 preview same week's next day; Day 4
        previews next week's Day 1 (no play the following calendar day). */
     function computeTomorrowWeekDay(state) {
       const week = state.week || 1, day = state.day || 1;
-      return day === 3 ? { week: week + 1, day: 1 } : { week, day: day + 1 };
+      return day === 4 ? { week: week + 1, day: 1 } : { week, day: day + 1 };
     }
 
     /* Tomorrow's matches never carry live scores — always the plain VS
@@ -4025,11 +4021,11 @@
     fitTitleText(document.getElementById('ts-title'), 80, 40);
 
     /* Tomorrow's Schedule title is a sign-off line, not "Tomorrow's
-       Matches" — it reads the CURRENT day from the Match Board: Day 3
+       Matches" — it reads the CURRENT day from the Match Board: Day 4
        means there's no play the next calendar day (next games are next
        week), any other day means play resumes tomorrow. */
     function twTitleText(state) {
-      return (state && state.day === 3) ? 'See You Next Week' : 'See You Tomorrow';
+      return (state && state.day === 4) ? 'See You Next Week' : 'See You Tomorrow';
     }
     function applyTwTitle(state) {
       const el = document.getElementById('tw-title');
@@ -4375,7 +4371,18 @@
 
     function wtvcApplyMatchState(ms) {
       document.getElementById('wtvc-stage').textContent = wtvcStageLabel(ms && ms.stage);
-      document.getElementById('wtvc-daymap').textContent = 'DAY ' + ((ms && ms.day) || 1) + ' | MAP ' + ((ms && ms.match) || 1);
+      const daymapEl = document.getElementById('wtvc-daymap');
+      let daymapText = 'DAY ' + ((ms && ms.day) || 1) + ' | MAP ' + ((ms && ms.match) || 1);
+      // Groupstage only: append the live tally tab's own name (e.g. "A + B")
+      // as the group label — reuses wtvcStandings.sheet, the SAME
+      // liveTallyTab name already driving this scene's standings rows in
+      // 'live' mode (see getWaitingTvcStandings()), rather than a second,
+      // redundant /tally/state fetch.
+      if (/groupstage/i.test((ms && ms.stage) || '') && wtvcStandings && wtvcStandings.sheet) {
+        daymapText += ' | GROUP ' + wtvcStandings.sheet;
+      }
+      daymapEl.textContent = daymapText;
+      ovrFitText(daymapEl, 29.17, 15);
       wtvcTimerState = (ms && ms.timer) || WS_TIMER_DEFAULT;
     }
 
@@ -5308,8 +5315,9 @@
     /* ════════════════════════════════════════════════
        MAP RANKING — same header/scoreboard shape as Overall Ranking, but
        fed by /api/current-map-standings (this map's own P/K/TKP/PS
-       columns only, not the season-long qualifiers list). When the
-       Stage reads "Qualifiers", Group/GW are dropped and KP/RP/TP are
+       columns only, not the season-long qualifiers list). GW never shows
+       here at all (removed — see mrkLayout's own comment). When the
+       Stage reads "Qualifiers", Group is ALSO dropped and KP/RP/TP are
        spread evenly across the freed space instead.
     ════════════════════════════════════════════════ */
     const mrkPage = document.getElementById('map-ranking-page');
@@ -5319,19 +5327,22 @@
       const stage = ((stageEl && stageEl.textContent) || '').trim().toUpperCase();
       return stage === 'QUALIFIERS';
     }
-    // Non-compact keeps the Overall Ranking column's original cell
-    // positions; compact (Qualifiers) drops Group/GW and re-centers
-    // KP/RP/TP across that freed span (393px–891px) in three even thirds.
+    // Non-compact keeps Group but drops GW entirely (removed by request —
+    // this map's own game-win count wasn't wanted here), re-centering
+    // Group/KP/RP/TP across that freed span (393px–891px) in four even
+    // quarters, same idea as compact's own even-thirds split below.
+    // Compact (Qualifiers) drops Group too, re-centering just KP/RP/TP
+    // across that same span in three even thirds instead.
     function mrkLayout(compact) {
       if (!compact) {
+        const zoneStart = 393, zoneSpan = 891 - 393, zoneWidth = zoneSpan / 4;
         return [
           { key: 'rank',  label: 'Rank',  left: 31,  width: 92 },
           { key: 'team',  label: 'Team',  left: 150, width: 92 },
-          { key: 'group', label: 'Group', left: 393, width: 92, black: true },
-          { key: 'gw',    label: 'GW',    left: 497, width: 92, black: true },
-          { key: 'kp',    label: 'KP',    left: 601, width: 92, black: true },
-          { key: 'rp',    label: 'RP',    left: 701, width: 92, black: true },
-          { key: 'tp',    label: 'TP',    left: 799, width: 92, black: true },
+          { key: 'group', label: 'Group', left: zoneStart,                  width: zoneWidth, black: true },
+          { key: 'kp',    label: 'KP',    left: zoneStart + zoneWidth,      width: zoneWidth, black: true },
+          { key: 'rp',    label: 'RP',    left: zoneStart + zoneWidth * 2,  width: zoneWidth, black: true },
+          { key: 'tp',    label: 'TP',    left: zoneStart + zoneWidth * 3,  width: zoneWidth, black: true },
         ];
       }
       // Group/GW dropped — KP/RP/TP each get a full, evenly-split third
@@ -5390,7 +5401,6 @@
       html += rnkFlagCellHtml('mrk-row-cell mrk-rc-flag', q.region);
       html += '<div class="mrk-row-cell mrk-rc-name">' + (q.name || '') + '</div>';
       if (byKey.group) html += '<div class="mrk-row-cell" style="left:' + byKey.group.left + 'px;width:' + byKey.group.width + 'px">' + (q.group || '') + '</div>';
-      if (byKey.gw)    html += '<div class="mrk-row-cell" style="left:' + byKey.gw.left    + 'px;width:' + byKey.gw.width    + 'px">' + (q.wins || 0) + 'x</div>';
       html += '<div class="mrk-row-cell" style="left:' + byKey.kp.left + 'px;width:' + byKey.kp.width + 'px">' + ovrFmtNum(q.totalKills) + '</div>';
       html += '<div class="mrk-row-cell" style="left:' + byKey.rp.left + 'px;width:' + byKey.rp.width + 'px">' + ovrFmtNum(q.placementPoints) + '</div>';
       html += '<div class="mrk-row-cell" style="left:' + byKey.tp.left + 'px;width:' + byKey.tp.width + 'px">' + ovrFmtNum(q.totalScore) + '</div>';
@@ -5509,7 +5519,6 @@
       html += rnkFlagCellHtml('slt-row-cell slt-rc-flag', q.region);
       html += '<div class="slt-row-cell slt-rc-name">' + (q.name || '') + '</div>';
       if (byKey.group) html += '<div class="slt-row-cell" style="left:' + byKey.group.left + 'px;width:' + byKey.group.width + 'px">' + (q.group || '') + '</div>';
-      if (byKey.gw)    html += '<div class="slt-row-cell" style="left:' + byKey.gw.left    + 'px;width:' + byKey.gw.width    + 'px">' + (q.wins || 0) + 'x</div>';
       html += '<div class="slt-row-cell" style="left:' + byKey.kp.left + 'px;width:' + byKey.kp.width + 'px">' + ovrFmtNum(q.totalKills) + '</div>';
       html += '<div class="slt-row-cell" style="left:' + byKey.rp.left + 'px;width:' + byKey.rp.width + 'px">' + ovrFmtNum(q.placementPoints) + '</div>';
       html += '<div class="slt-row-cell" style="left:' + byKey.tp.left + 'px;width:' + byKey.tp.width + 'px">' + ovrFmtNum(q.totalScore) + '</div>';

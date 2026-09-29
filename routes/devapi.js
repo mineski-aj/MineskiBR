@@ -315,9 +315,11 @@ router.get('/api/photo-manifest', (req, res) => {
   }
 });
 
-// Dynamic content — GET to read, POST { ph_ticker, en_ticker, ph_headline, en_headline, match_headline } to update
+// Dynamic content — GET to read, POST { ph_ticker, ph_headline } to update.
+// EN and Universal (match_headline) fields were removed by request — PH
+// only now.
 const DYNAMIC_FILE = path.join(__dirname, '..', 'dynamic_content.json');
-const DYNAMIC_DEFAULTS = { ph_ticker: '', en_ticker: '', ph_headline: '', en_headline: '', match_headline: '' };
+const DYNAMIC_DEFAULTS = { ph_ticker: '', ph_headline: '' };
 
 router.get('/api/dynamic-content', (req, res) => {
   try {
@@ -330,11 +332,8 @@ router.get('/api/dynamic-content', (req, res) => {
 router.post('/api/dynamic-content', (req, res) => {
   const b = req.body || {};
   const data = {
-    ph_ticker:      String(b.ph_ticker      || ''),
-    en_ticker:      String(b.en_ticker      || ''),
-    ph_headline:    String(b.ph_headline    || ''),
-    en_headline:    String(b.en_headline    || ''),
-    match_headline: String(b.match_headline || ''),
+    ph_ticker:   String(b.ph_ticker   || ''),
+    ph_headline: String(b.ph_headline || ''),
   };
   fs.writeFileSync(DYNAMIC_FILE, JSON.stringify(data, null, 2));
   res.set('Cache-Control', 'no-store').json({ ok: true, data });

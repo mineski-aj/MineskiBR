@@ -64,10 +64,10 @@
   .panel-save-btn:hover { background: #34344a; }
   .panel-save-btn:disabled { opacity: 0.4; cursor: default; }
 
-  /* ── Two-column split ── */
+  /* ── Panel row (PH only — EN/Universal removed) ── */
   .split-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 12px;
     flex-shrink: 0;
   }
@@ -98,8 +98,6 @@
     border-radius: 4px;
   }
   .badge-ph { background: #1a2a4a; color: #4a8fff; border: 1px solid #2a3a6a; }
-  .badge-en { background: #1a3a2a; color: #44cc88; border: 1px solid #2a5a3a; }
-  .badge-universal { background: #2a1a3a; color: #cc88ff; border: 1px solid #4a2a5a; }
   .panel-label-sub {
     font-size: 11px;
     color: #444;
@@ -139,42 +137,6 @@
     background: rgba(255,255,255,0.07);
   }
   textarea::placeholder { color: #333; }
-
-  /* ── Universal section ── */
-  .universal-row {
-    flex-shrink: 0;
-  }
-  .universal-placeholder {
-    font-size: 11px;
-    color: #2a2a3a;
-    text-align: center;
-    padding: 20px;
-    border: 1px dashed #1e1e2e;
-    border-radius: 8px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    margin-top: 2px;
-  }
-
-  /* ── Divider label ── */
-  .section-divider {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 10px;
-    font-weight: 700;
-    color: #333;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    flex-shrink: 0;
-  }
-  .section-divider::before,
-  .section-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #1a1a28;
-  }
 </style>
 </head>
 <body>
@@ -183,7 +145,7 @@
   <span class="page-title">Dynamic Content</span>
 </div>
 
-<!-- Top: PH | EN -->
+<!-- PH only — EN and Universal panels removed by request -->
 <div class="split-row">
 
   <!-- PH Panel -->
@@ -204,63 +166,21 @@
     </div>
   </div>
 
-  <!-- EN Panel -->
-  <div class="panel">
-    <div class="panel-header">
-      <span class="panel-badge badge-en">EN</span>
-      <button id="en-save-btn" class="panel-save-btn" onclick="savePanel('en')">Save</button>
-      <span id="en-status" class="panel-save-status">—</span>
-      <span class="panel-label-sub">English Content</span>
-    </div>
-    <div class="field">
-      <label class="field-label" for="en-ticker">Ticker</label>
-      <textarea id="en-ticker" name="en_ticker" rows="2" placeholder="Enter EN ticker text…"></textarea>
-    </div>
-    <div class="field">
-      <label class="field-label" for="en-headline">Headline</label>
-      <textarea id="en-headline" name="en_headline" rows="2" placeholder="Enter EN headline…"></textarea>
-    </div>
-  </div>
-
-</div>
-
-<!-- Divider -->
-<div class="section-divider">Universal</div>
-
-<!-- Bottom: Universal -->
-<div class="universal-row">
-  <div class="panel">
-    <div class="panel-header">
-      <span class="panel-badge badge-universal">Universal</span>
-      <button id="uni-save-btn" class="panel-save-btn" onclick="savePanel('uni')">Save</button>
-      <span id="uni-status" class="panel-save-status">—</span>
-      <span class="panel-label-sub">Applies to all languages</span>
-    </div>
-    <div class="field">
-      <label class="field-label" for="match-headline">Match Headline</label>
-      <textarea id="match-headline" name="match_headline" rows="2" placeholder="Enter match headline…"></textarea>
-    </div>
-  </div>
 </div>
 
 <script>
-  const FIELDS = ['ph_ticker', 'en_ticker', 'ph_headline', 'en_headline', 'match_headline'];
+  const FIELDS = ['ph_ticker', 'ph_headline'];
   const ID_MAP  = {
-    ph_ticker:      'ph-ticker',
-    en_ticker:      'en-ticker',
-    ph_headline:    'ph-headline',
-    en_headline:    'en-headline',
-    match_headline: 'match-headline',
+    ph_ticker:   'ph-ticker',
+    ph_headline: 'ph-headline',
   };
   const PANELS = {
-    ph:  { fields: ['ph_ticker', 'ph_headline'], statusId: 'ph-status',  btnId: 'ph-save-btn' },
-    en:  { fields: ['en_ticker', 'en_headline'], statusId: 'en-status',  btnId: 'en-save-btn' },
-    uni: { fields: ['match_headline'],           statusId: 'uni-status', btnId: 'uni-save-btn' },
+    ph: { fields: ['ph_ticker', 'ph_headline'], statusId: 'ph-status', btnId: 'ph-save-btn' },
   };
 
   // Last-known-saved value per field. A panel's own save only ever overwrites
   // ITS fields with live DOM values — every other field is re-sent from this
-  // snapshot, so saving PH never flushes EN's still-unsaved edits to disk.
+  // snapshot (matters once there's more than one panel again).
   const committed = {};
 
   function setStatus(panelKey, s) {

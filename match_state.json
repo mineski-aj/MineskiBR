@@ -166,9 +166,9 @@
       "matchType": "regular"
     }
   ],
-  "countdownLabel": "SHOW RESUMES IN",
+  "countdownLabel": "SHOW STARTS IN",
   "goodbyeLabel": "SEE YOU TOMORROW",
-  "match": 5,
+  "match": 1,
   "countdownLabelAuto": true,
   "timer": {
     "running": true,
@@ -181,7 +181,7 @@
     "Naisou",
     "Wolf"
   ],
-  "stage": "Qualifiers",
+  "stage": "Groupstage",
   "todayMapsCount": 5,
   "todayMaps": [
     {
