@@ -72,7 +72,7 @@
   "swapped": false,
   "official": true,
   "week": 1,
-  "day": 1,
+  "day": 2,
   "patch": " ",
   "hosts": [
     "Denisse",
@@ -172,10 +172,10 @@
   "countdownLabelAuto": true,
   "timer": {
     "running": true,
-    "endAt": 1790428799236,
-    "remaining": 1560
+    "endAt": 1790514901030,
+    "remaining": 840
   },
-  "map": "Isolated",
+  "map": "Blackout",
   "enCasters": [
     "Leo",
     "Naisou",
@@ -186,29 +186,29 @@
   "todayMaps": [
     {
       "time": "6:00PM",
-      "mapName": "Isolated",
+      "mapName": "Blackout",
       "winner": "",
       "done": false
     },
     {
       "time": "",
-      "mapName": "Blackout",
-      "winner": ""
-    },
-    {
-      "time": "",
       "mapName": "Isolated",
-      "winner": ""
+      "done": false
     },
     {
       "time": "",
       "mapName": "Blackout",
-      "winner": ""
+      "done": false
     },
     {
       "time": "",
       "mapName": "Isolated",
-      "winner": ""
+      "done": false
+    },
+    {
+      "time": "",
+      "mapName": "Blackout",
+      "done": false
     }
   ],
   "tomorrowMapsCount": 3,
