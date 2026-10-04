@@ -781,7 +781,7 @@
     push({ day: localState.day, goodbyeLabel: localState.goodbyeLabel });
   });
   document.getElementById('day-plus').addEventListener('click', function () {
-    localState.day = Math.min(3, (localState.day || 1) + 1);
+    localState.day = Math.min(10, (localState.day || 1) + 1);
     document.getElementById('day-val').textContent = localState.day;
     updatePreview();
     localState.goodbyeLabel = computeGoodbye(localState.day);
