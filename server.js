@@ -71,25 +71,6 @@ app.post('/match/timer', function (req, res) {
   res.json({ ok: true, state: matchState.get() });
 });
 
-// Team roster — mainroster.json. Reads go through the existing static
-// file serving (GET /mainroster.json, already no-cache'd below); this is
-// just the write side, same dashboard password as match state.
-app.post('/api/roster', function (req, res) {
-  var body  = req.body || {};
-  var token = body.token;
-  if (!token || token !== getMatchPassword()) return res.status(401).json({ error: 'Unauthorized' });
-  var data = body.data;
-  if (!data || typeof data !== 'object' || !data.teams || !data.players) {
-    return res.status(400).json({ error: 'Payload must include teams and players' });
-  }
-  try {
-    fs.writeFileSync(path.join(__dirname, 'mainroster.json'), JSON.stringify(data, null, 2));
-    res.json({ ok: true });
-  } catch (e) {
-    res.status(500).json({ error: 'Could not write mainroster.json' });
-  }
-});
-
 // Last-used per-team role assignment (bench swaps) — restored the next time
 // that team is picked instead of resetting to mainroster.json's role-sorted
 // default. Public read (the dashboard needs it right after picking a team),

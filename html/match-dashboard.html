@@ -798,7 +798,7 @@
 
   /* ── BATTLE ROYALE MAPS (Today's Matches / Tomorrow's Matches tabs) ──
      Both tabs are the same structure: an operator-set "# of Maps" count
-     (1-8) and that many rows of {time, map name, done}. Backed by
+     (1-8) and that many rows of {time, group match, map name, winner}. Backed by
      localState.todayMaps/todayMapsCount and .tomorrowMaps/tomorrowMapsCount
      respectively — same shape, kept as two independent lists/counts since
      tomorrow's maps are usually still being planned while today's are live.
@@ -823,7 +823,7 @@
     var cfg  = MAPS_CONFIG[key];
     var maps = (localState[cfg.listField] || []).slice();
     var n    = getMapsCount(key);
-    while (maps.length < n) maps.push({ time: '', mapName: BR_MAP_NAMES[0], done: false });
+    while (maps.length < n) maps.push({ time: '', mapName: BR_MAP_NAMES[0], groupMatch: '', winner: '' });
     return maps.slice(0, n);
   }
 
@@ -835,9 +835,85 @@
     if (key === 'today') updateMatchPickerMirror();
   }
 
+  /* Group Match / Winner data — the group-stage tabs (A + B, C + D ...) of
+     the Tally sheet and the squads listed on each, read client-side from
+     /tally/external (same snapshot every tally-driven overlay uses), so no
+     server route is needed. Winner list = that tab's own squads. */
+  var GROUP_SHEET_RE = /^[A-D]\s*\+\s*[A-D]$/i;
+  var groupSheets = [];   /* [{ name, teams:[squad names] }] in sheet order */
+  function sheetTeams(sheet) {
+    var squadCol = 0, offset = 0;
+    (sheet.headerGroups || []).some(function (g) {
+      if (g.label === 'Squad') { squadCol = offset; return true; }
+      offset += g.span; return false;
+    });
+    var out = [];
+    (sheet.dataRows || []).forEach(function (row) {
+      var n = String(row[squadCol] == null ? '' : row[squadCol]).trim();
+      if (n && out.indexOf(n) === -1) out.push(n);
+    });
+    return out;
+  }
+  function loadGroupSheets() {
+    return fetch('/tally/external', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        groupSheets = (d.sheets || [])
+          .filter(function (sh) { return GROUP_SHEET_RE.test(String(sh.name).trim()); })
+          .map(function (sh) { return { name: sh.name, teams: sheetTeams(sh) }; });
+        refreshGroupSelects();
+      })
+      .catch(function () { console.warn('Could not load tally group sheets'); });
+  }
+  function fillGroupSelect(sel, current) {
+    sel.innerHTML = '';
+    var none = document.createElement('option'); none.value = ''; none.textContent = '—';
+    sel.appendChild(none);
+    var seen = false;
+    groupSheets.forEach(function (g) {
+      var o = document.createElement('option'); o.value = g.name; o.textContent = g.name;
+      sel.appendChild(o);
+      if (g.name === current) seen = true;
+    });
+    if (current && !seen) { /* keep a saved value even if the sheet hasn't loaded */
+      var k = document.createElement('option'); k.value = current; k.textContent = current;
+      sel.appendChild(k);
+    }
+    sel.value = current || '';
+  }
+  function fillWinnerSelect(sel, group, current) {
+    sel.innerHTML = '';
+    var none = document.createElement('option'); none.value = ''; none.textContent = '— No winner yet —';
+    sel.appendChild(none);
+    var g = groupSheets.filter(function (x) { return x.name === group; })[0];
+    var teams = g ? g.teams.slice() : [];
+    if (current && teams.indexOf(current) === -1) teams.push(current);
+    teams.forEach(function (t) {
+      var o = document.createElement('option'); o.value = t; o.textContent = t;
+      sel.appendChild(o);
+    });
+    sel.disabled = !group;
+    sel.value = current || '';
+  }
+  function refreshGroupSelects() {
+    ['today', 'tomorrow'].forEach(function (key) {
+      var cfg = MAPS_CONFIG[key];
+      var container = document.getElementById(cfg.listId);
+      if (!container) return;
+      var maps = getMapsList(key);
+      Array.prototype.forEach.call(container.children, function (row, idx) {
+        var gEl = row.querySelector('.br-map-group'), wEl = row.querySelector('.br-map-winner');
+        var m = maps[idx] || {};
+        if (gEl && document.activeElement !== gEl) fillGroupSelect(gEl, m.groupMatch || '');
+        if (wEl && document.activeElement !== wEl) fillWinnerSelect(wEl, m.groupMatch || '', m.winner || '');
+      });
+    });
+  }
+
   function commitMapField(key, idx, field, value) {
     var maps  = getMapsList(key);
-    var patch = {}; patch[field] = value;
+    var patch = {};
+    if (field && typeof field === 'object') patch = field; else patch[field] = value;
     maps[idx] = Object.assign({}, maps[idx], patch);
     saveMapsList(key, maps);
   }
@@ -854,18 +930,30 @@
     row.appendChild(numField);
 
     var timeField = document.createElement('div');
-    timeField.className = 'meta-field grow';
+    timeField.className = 'meta-field';
+    timeField.style.flex = '0 0 84px';
     timeField.innerHTML = '<div class="meta-label">Time</div>';
     var timeInput = document.createElement('input');
-    timeInput.type = 'text'; timeInput.className = 'br-map-time'; timeInput.placeholder = '2:30 PM';
+    timeInput.type = 'text'; timeInput.style.width = '100%'; timeInput.className = 'br-map-time'; timeInput.placeholder = '2:30 PM';
     timeInput.value = m.time || '';
     timeInput.addEventListener('blur', function () { commitMapField(key, idx, 'time', timeInput.value); });
     timeInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') timeInput.blur(); });
     timeField.appendChild(timeInput);
     row.appendChild(timeField);
 
+    var groupField = document.createElement('div');
+    groupField.className = 'meta-field';
+    groupField.style.flex = '0 0 96px';
+    groupField.innerHTML = '<div class="meta-label">Group Match</div>';
+    var groupSel = document.createElement('select');
+    groupSel.className = 'br-map-group';
+    fillGroupSelect(groupSel, m.groupMatch || '');
+    groupField.appendChild(groupSel);
+    row.appendChild(groupField);
+
     var nameField = document.createElement('div');
-    nameField.className = 'meta-field grow';
+    nameField.className = 'meta-field';
+    nameField.style.flex = '0 0 120px';
     nameField.innerHTML = '<div class="meta-label">Map Name</div>';
     var sel = document.createElement('select');
     sel.className = 'br-map-select';
@@ -878,17 +966,22 @@
     nameField.appendChild(sel);
     row.appendChild(nameField);
 
-    var doneField = document.createElement('div');
-    doneField.className = 'meta-field';
-    doneField.style.flex = '0 0 70px';
-    doneField.innerHTML = '<div class="meta-label">Done</div>';
-    var doneInput = document.createElement('input');
-    doneInput.type = 'checkbox'; doneInput.className = 'br-map-done';
-    doneInput.style.width = '20px'; doneInput.style.height = '20px'; doneInput.style.marginTop = '5px';
-    doneInput.checked = !!m.done;
-    doneInput.addEventListener('change', function () { commitMapField(key, idx, 'done', doneInput.checked); });
-    doneField.appendChild(doneInput);
-    row.appendChild(doneField);
+    var winField = document.createElement('div');
+    winField.className = 'meta-field grow';
+    winField.style.minWidth = '0';
+    winField.innerHTML = '<div class="meta-label">Winner</div>';
+    var winSel = document.createElement('select');
+    winSel.className = 'br-map-winner';
+    fillWinnerSelect(winSel, m.groupMatch || '', m.winner || '');
+    winSel.addEventListener('change', function () { commitMapField(key, idx, 'winner', winSel.value); });
+    winField.appendChild(winSel);
+    row.appendChild(winField);
+
+    groupSel.addEventListener('change', function () {
+      /* A different group has different squads — the old winner no longer applies. */
+      fillWinnerSelect(winSel, groupSel.value, '');
+      commitMapField(key, idx, { groupMatch: groupSel.value, winner: '' });
+    });
 
     return row;
   }
@@ -913,10 +1006,12 @@
         var row = container.children[idx];
         var timeEl = row.querySelector('.br-map-time');
         var selEl  = row.querySelector('.br-map-select');
-        var doneEl = row.querySelector('.br-map-done');
+        var grpEl  = row.querySelector('.br-map-group');
+        var winEl  = row.querySelector('.br-map-winner');
         if (timeEl && document.activeElement !== timeEl) timeEl.value = m.time || '';
         if (selEl  && document.activeElement !== selEl)  selEl.value  = m.mapName || BR_MAP_NAMES[0];
-        if (doneEl && document.activeElement !== doneEl) doneEl.checked = !!m.done;
+        if (grpEl && document.activeElement !== grpEl) fillGroupSelect(grpEl, m.groupMatch || '');
+        if (winEl && document.activeElement !== winEl) fillWinnerSelect(winEl, m.groupMatch || '', m.winner || '');
       });
     }
   }
@@ -946,6 +1041,8 @@
     });
   })();
 
+  loadGroupSheets();
+
   /* ── PANEL TABS ── */
   (function () {
     var tabs = ['details', 'today', 'tomorrow'];
@@ -955,6 +1052,7 @@
           document.getElementById('panel-tab-' + x).classList.toggle('active', x === t);
           document.getElementById('tab-content-' + x).style.display = (x === t) ? '' : 'none';
         });
+        if (t === 'today' || t === 'tomorrow') loadGroupSheets();
         if (t === 'today')    renderMapsSection('today');
         if (t === 'tomorrow') renderMapsSection('tomorrow');
       });

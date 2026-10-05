@@ -432,9 +432,11 @@
       line-height: 1;
       color: #000;
     }
-    /* Flag (nationality) and team logo occupy the same slot — a team with
-       a real crest shows the logo instead of the flag (see wtvcBuildRow's
-       onload/onerror swap), not both at once. */
+    /* Flag (nationality) sits at left:127px when a team has no logo. A team
+       with a real crest (wtvcBuildRow's onload adds .wtvc-has-logo) shows
+       BOTH, in the order Logo > Flag > Name > Points — logo hugs the rank,
+       flag follows, name gets the remaining width (see .wtvc-has-logo
+       overrides below; ~9px gaps between each). */
     .wtvc-row-flag {
       position: absolute;
       left: 127px; top: 13px;
@@ -455,10 +457,11 @@
     }
     .wtvc-row-logo {
       position: absolute;
-      left: 127px; top: 7px;
-      width: 98px; height: 40px;
+      left: 94px; top: 7px;
+      width: 50px; height: 40px;
       align-items: center; justify-content: center;
     }
+    .wtvc-row.wtvc-has-logo .wtvc-row-flag { left: 153px; }
     .wtvc-row-logo img { width: 100%; height: 100%; object-fit: contain; }
     .wtvc-row-name {
       position: absolute;
@@ -472,7 +475,7 @@
       white-space: nowrap;
       overflow: hidden;
     }
-    .wtvc-row-name.wtvc-name-haslogo { left: 232px; width: 178px; }
+    .wtvc-row-name.wtvc-name-haslogo { left: 205px; width: 198px; }
     .wtvc-row-name.wtvc-name-nologo  { left: 185px; width: 225px; }
     .wtvc-row-points {
       position: absolute;
@@ -530,6 +533,25 @@
       object-fit: cover;
     }
     .wtvc-map-label-bg { pointer-events: none; }
+    /* Group Match tag (e.g. "A + B") — small black plate in the card's top
+       right corner. Only built when that map has a Group Match picked in
+       Match Board (see wtvcBuildMapCard); no pick = no plate at all. */
+    .wtvc-map-group {
+      position: absolute;
+      right: 0; top: 0;
+      min-width: 78px; height: 34px; padding: 0 12px;
+      box-sizing: border-box;
+      display: flex; align-items: center; justify-content: center;
+      background: #0a0a0a;
+      color: #fff;
+      font-family: 'Teko', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      line-height: 1;
+      white-space: nowrap;
+      text-transform: uppercase;
+    }
+    .wtvc-map-group span { display: block; transform: translateY(0.15em); }
     .wtvc-map-num {
       position: absolute;
       left: 3px; top: 46px;
@@ -1208,6 +1230,20 @@
        actually loads, so a region with no matching flag asset just keeps
        showing the plain text like before. */
     .rnk-flag-img { display: none; width: 100%; height: 100%; object-fit: contain; }
+    /* Team logo (Overall/Map/Group Ranking only) — sits just left of the
+       flag, hidden until its image loads. A team with a logo gets
+       .rnk-has-logo on its row, which shrinks the flag and tucks it right
+       against the row's first divider (182px) to make room: rank | logo |
+       flag | name. Logo-less teams are untouched. */
+    .rnk-logo-cell {
+      position: absolute; left: 92px; top: 0;
+      width: 44px; height: 63px;
+      display: none; align-items: center; justify-content: center;
+    }
+    .rnk-logo-img { width: 100%; height: 44px; object-fit: contain; }
+    .rnk-has-logo .ovr-rc-flag,
+    .rnk-has-logo .mrk-rc-flag,
+    .rnk-has-logo .grk-rc-flag { left: 140px; width: 38px; }
 
     /* ── OVERALL RANKING PAGE — the current LIVE tally sheet's own
        running totals across every map played within that one sheet
@@ -1641,7 +1677,26 @@
        elsewhere in this file. Nudged down to visually center the ink
        instead of the line box. */
     .mrr-card-number span,
-    .mrr-card-name span { display: block; transform: translateY(0.15em); }
+    .mrr-card-name span,
+    .mrr-card-group span { display: block; transform: translateY(0.15em); }
+    /* Group Match tag — black plate across the top of the card (just inside
+       the card art's own ~3px border). Only built when that map has a
+       Group Match picked in Match Board (see mrrRenderCards); no pick = no
+       plate at all. Two stacked lines: small "GROUP" over the big "A + B". */
+    .mrr-card-group {
+      position: absolute;
+      left: 3px; top: 3px;
+      width: 291px; height: 92px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+      background: #0a0a0a;
+      color: #ffffff;
+      font-family: 'Teko', sans-serif;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .mrr-card-group .mrr-gm-word { font-weight: 500; font-size: 26px; letter-spacing: 0.18em; }
+    .mrr-card-group .mrr-gm-name { font-weight: 700; font-size: 54px; white-space: nowrap; }
     .mrr-card-name {
       position: absolute;
       left: 16px; top: 644px;
@@ -4094,9 +4149,9 @@
     let wtvcPageInt = null;
     let wtvcPollInt = null;
 
-    /* Flag and team logo occupy the same slot — a team with a real crest
-       shows the logo instead of the flag (see the onload/onerror swap
-       below), not both at once. */
+    /* A team with a real crest shows Logo > Flag > Name > Points (the
+       flag stays, shifted right of the logo — see .wtvc-has-logo CSS);
+       no crest = flag then name, as before. */
     function wtvcBuildRow(team, rank) {
       const row = document.createElement('div');
       row.className = 'wtvc-row wtvc-anim-item';
@@ -4147,13 +4202,13 @@
 
       logoImg.onload = () => {
         logo.style.display = 'flex';
-        flag.style.display = 'none';
+        row.classList.add('wtvc-has-logo');
         name.className = 'wtvc-row-name wtvc-name-haslogo';
         wtvcFitName(name); /* box width just changed — refit (no-op if the page is still hidden) */
       };
       logoImg.onerror = () => {
         logo.style.display = 'none';
-        flag.style.display = '';
+        row.classList.remove('wtvc-has-logo');
         name.className = 'wtvc-row-name wtvc-name-nologo';
         wtvcFitName(name);
       };
@@ -4214,6 +4269,16 @@
       name.className = 'wtvc-map-name';
       name.textContent = mapName;
       card.appendChild(name);
+
+      const gm = String((map && map.groupMatch) || '').trim().replace(/\s*\+\s*/g, ' + ');
+      if (gm) {
+        const tag = document.createElement('div');
+        tag.className = 'wtvc-map-group';
+        const t = document.createElement('span');
+        t.textContent = gm;
+        tag.appendChild(t);
+        card.appendChild(tag);
+      }
 
       return card;
     }
@@ -4293,15 +4358,23 @@
       });
     }
 
-    /* Up to 8 maps (2 pages of 5 — 6-8 maps spill to a 2nd map page). */
+    /* Up to 8 maps (2 pages of 5 — 7-8 maps spill to a 2nd map page).
+       Exactly 6 maps split 4 + 2 instead of 5 + 1, so the 2nd page isn't
+       a lone card. */
+    function wtvcMapPageSizes(n) {
+      if (n === 6) return [4, 2];
+      const sizes = [];
+      for (let left = n; left > 0; left -= WTVC_MAPS_PER_PAGE) sizes.push(Math.min(WTVC_MAPS_PER_PAGE, left));
+      return sizes;
+    }
     function wtvcRenderMapPages(ms) {
       const root = document.getElementById('wtvc-maps');
       root.innerHTML = '';
       const maps = ((ms && ms.todayMaps) || []).slice(0, (ms && ms.todayMapsCount) || 0);
-      const pages = [];
-      for (let i = 0; i < maps.length; i += WTVC_MAPS_PER_PAGE) pages.push(maps.slice(i, i + WTVC_MAPS_PER_PAGE));
-      pages.forEach((pageMaps, i) => {
-        root.appendChild(wtvcBuildMapPage(pageMaps, i * WTVC_MAPS_PER_PAGE + 1));
+      let start = 0;
+      wtvcMapPageSizes(maps.length).forEach(size => {
+        root.appendChild(wtvcBuildMapPage(maps.slice(start, start + size), start + 1));
+        start += size;
       });
     }
 
@@ -5219,13 +5292,23 @@
         ? '/assets/Overall%20Ranking/teamscoreboard_rank1.png'
         : '/assets/Overall%20Ranking/teamscoreboard.png';
     }
-    function rnkFlagCellHtml(cellClass, region) {
+    /* teamName (optional) — when given and /logos/<teamName>.png actually
+       loads, a logo cell is drawn just left of the flag and its row gets
+       .rnk-has-logo (the flag shrinks/shifts right to make room — see that
+       class's CSS). Opt-in per scene: only Overall/Map/Group Ranking pass
+       a name today; the other callers stay flag-only. */
+    function rnkFlagCellHtml(cellClass, region, teamName) {
+      const logo = teamName
+        ? '<div class="rnk-logo-cell"><img class="rnk-logo-img" src="/logos/' + encodeURIComponent(teamName) + '.png" alt=""' +
+          ' onload="this.parentNode.style.display=\'flex\';this.parentNode.parentNode.classList.add(\'rnk-has-logo\')"' +
+          ' onerror="this.parentNode.style.display=\'none\'"></div>'
+        : '';
       const img = region
         ? '<img class="rnk-flag-img" src="/flag/' + encodeURIComponent(region) + '_flag.png" alt=""' +
           ' onload="this.style.display=\'block\';this.nextElementSibling.style.display=\'none\'"' +
           ' onerror="this.style.display=\'none\'">'
         : '';
-      return '<div class="' + cellClass + '">' + img + '<span>' + (region || '') + '</span></div>';
+      return logo + '<div class="' + cellClass + '">' + img + '<span>' + (region || '') + '</span></div>';
     }
     function ovrBuildRow(q) {
       const row = document.createElement('div');
@@ -5238,7 +5321,7 @@
         '<div class="ovr-row-divider" style="left:691px"></div>' +
         '<div class="ovr-row-divider" style="left:789px"></div>' +
         '<div class="ovr-row-cell ovr-rc-rank">' + (q.rank || '') + '</div>' +
-        rnkFlagCellHtml('ovr-row-cell ovr-rc-flag', q.region) +
+        rnkFlagCellHtml('ovr-row-cell ovr-rc-flag', q.region, q.name) +
         '<div class="ovr-row-cell ovr-rc-name">' + (q.name || '') + '</div>' +
         '<div class="ovr-row-cell ovr-rc-group">' + (q.group || '') + '</div>' +
         '<div class="ovr-row-cell ovr-rc-gw">' + (q.wins || 0) + 'x</div>' +
@@ -5398,7 +5481,7 @@
       let html = '<img class="mrk-row-bg" src="' + mrkBgSrc + '" alt="">';
       dividers.forEach(left => { html += '<div class="mrk-row-divider" style="left:' + left + 'px"></div>'; });
       html += '<div class="mrk-row-cell mrk-rc-rank">' + (q.rank || '') + '</div>';
-      html += rnkFlagCellHtml('mrk-row-cell mrk-rc-flag', q.region);
+      html += rnkFlagCellHtml('mrk-row-cell mrk-rc-flag', q.region, q.name);
       html += '<div class="mrk-row-cell mrk-rc-name">' + (q.name || '') + '</div>';
       if (byKey.group) html += '<div class="mrk-row-cell" style="left:' + byKey.group.left + 'px;width:' + byKey.group.width + 'px">' + (q.group || '') + '</div>';
       html += '<div class="mrk-row-cell" style="left:' + byKey.kp.left + 'px;width:' + byKey.kp.width + 'px">' + ovrFmtNum(q.totalKills) + '</div>';
@@ -5619,7 +5702,7 @@
         '<div class="grk-row-divider" style="left:691px"></div>' +
         '<div class="grk-row-divider" style="left:789px"></div>' +
         '<div class="grk-row-cell grk-rc-rank">' + (q.rank || '') + '</div>' +
-        rnkFlagCellHtml('grk-row-cell grk-rc-flag', q.region) +
+        rnkFlagCellHtml('grk-row-cell grk-rc-flag', q.region, q.name) +
         '<div class="grk-row-cell grk-rc-name">' + (q.name || '') + '</div>' +
         '<div class="grk-row-cell grk-rc-group">' + (q.group || '') + '</div>' +
         '<div class="grk-row-cell grk-rc-gw">' + (q.wins || 0) + 'x</div>' +
@@ -5923,6 +6006,14 @@
           '<img class="mrr-card-label" src="/maps/Map%20Rotation/maplabel_rotation.png" alt="">' +
           '<div class="mrr-card-number"><span>MAP ' + (i + 1) + '</span></div>' +
           '<div class="mrr-card-name"><span>' + (m.mapName || '') + '</span></div>';
+        const gm = String(m.groupMatch || '').trim().replace(/\s*\+\s*/g, ' + ');
+        if (gm) {
+          const tag = document.createElement('div');
+          tag.className = 'mrr-card-group';
+          tag.innerHTML = '<span class="mrr-gm-word">GROUP</span><span class="mrr-gm-name"></span>';
+          tag.querySelector('.mrr-gm-name').textContent = gm;
+          card.appendChild(tag);
+        }
         root.appendChild(card);
         ovrFitText(card.querySelector('.mrr-card-name'), 58.79, 29);
       });

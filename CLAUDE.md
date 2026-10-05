@@ -75,7 +75,7 @@ caller expected, until the restart actually happened.
 ## Dashboard architecture — tabs, iframes, and the connection budget
 
 `html/dashboard.html` is one page with several `.page` divs (Match
-Board, Map Selection, Standings, Roster, Sponsors, Dynamic, Control,
+Board, Map Selection, Standings, Sponsors, Dynamic, Control,
 Edit, Settings), switched by CSS class toggling on click — **not** by
 navigating away, so most of them stay mounted (scripts still running)
 for the entire life of the dashboard tab:
