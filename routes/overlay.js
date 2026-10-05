@@ -174,6 +174,19 @@ router.get('/overlay/team_hexagon/hide', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
+// GET /overlay/overall_ranking_2/show|hide — Overall Ranking page 2 (teams
+// 21-40), same header/scene as page 1; own activeFeature + SSE event.
+router.get('/overlay/overall_ranking_2/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'overallranking2';
+  state.overlayClients.forEach(c => { try { c.write('event: overall_ranking_2\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+router.get('/overlay/overall_ranking_2/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: overall_ranking_2\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
 // GET /overlay/overall_ranking/show
 router.get('/overlay/overall_ranking/show', (req, res) => {
   state.fullscreenScene.activeFeature = 'overallranking';
@@ -216,18 +229,20 @@ router.get('/overlay/slot_teams/hide', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
-// GET /overlay/group_ranking/show
-router.get('/overlay/group_ranking/show', (req, res) => {
-  state.fullscreenScene.activeFeature = 'groupranking';
-  state.overlayClients.forEach(c => { try { c.write('event: group_ranking\ndata: {"action":"show"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/group_ranking/hide
-router.get('/overlay/group_ranking/hide', (req, res) => {
-  state.fullscreenScene.activeFeature = null;
-  state.overlayClients.forEach(c => { try { c.write('event: group_ranking\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+// GET /overlay/group_a|b|c|d/show|hide — Group A..D scenes (rank-header
+// family, replaces the old single Group Ranking scene). One route pair and
+// one SSE event per group; activeFeature is 'groupa'..'groupd'.
+['a', 'b', 'c', 'd'].forEach(l => {
+  router.get('/overlay/group_' + l + '/show', (req, res) => {
+    state.fullscreenScene.activeFeature = 'group' + l;
+    state.overlayClients.forEach(c => { try { c.write('event: group_' + l + '\ndata: {"action":"show"}\n\n'); } catch {} });
+    res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+  });
+  router.get('/overlay/group_' + l + '/hide', (req, res) => {
+    state.fullscreenScene.activeFeature = null;
+    state.overlayClients.forEach(c => { try { c.write('event: group_' + l + '\ndata: {"action":"hide"}\n\n'); } catch {} });
+    res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+  });
 });
 
 // GET /overlay/qualified_teams_1/show

@@ -502,7 +502,7 @@
     }
     /* Page indicators — one dot per slide in the whole sequence (score
        page(s) + map page(s), see wtvcBuildDots), built dynamically since
-       the total count varies (1-2 score pages + 1-2 map pages). The live
+       the total count varies (1-4 score pages + 1-2 map pages). The live
        one is black, the rest bdbdbd (see wtvcUpdateDots). left is set
        per-dot inline. */
     .wtvc-dot { position: absolute; top: 966px; width: 18px; height: 17px; }
@@ -552,6 +552,19 @@
       text-transform: uppercase;
     }
     .wtvc-map-group span { display: block; transform: translateY(0.15em); }
+    /* Winner picked for this map → its photo goes greyscale and 30% darker
+       (the plates/labels on top are separate images and stay untouched). */
+    .wtvc-map-card.has-winner .wtvc-map-bg { filter: grayscale(1) brightness(0.7); }
+    /* Map winner's logo — centered vertically, at 67% across the card (right of
+       the MAP N / name plates), only when a Winner is
+       picked for that map in Match Board (and that team has a logo file). */
+    .wtvc-map-winner {
+      position: absolute; left: 67%; top: 50%;
+      width: 92px; height: 92px;
+      transform: translate(-50%, -50%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .wtvc-map-winner img { width: 100%; height: 100%; object-fit: contain; }
     .wtvc-map-num {
       position: absolute;
       left: 3px; top: 46px;
@@ -1272,7 +1285,7 @@
        flush against the left margin. Shared across Overall/Map/Group
        Ranking since all three use identical 905px-wide column geometry
        (see showOverallRankingScene/showMapRankingScene/
-       showGroupRankingScene, which toggle these on each show). */
+       showGroupScene, which toggle these on each show). */
     .rnk-col-right-hidden { display: none !important; }
     .rnk-col-solo { left: 507.5px !important; } /* (1920 - 905) / 2 */
     .ovr-col-header { position: absolute; top: 0; left: 0; width: 905px; height: 42px; }
@@ -1695,6 +1708,16 @@
       text-transform: uppercase;
       line-height: 1;
     }
+    .mrr-card.has-winner .mrr-card-bg { filter: grayscale(1) brightness(0.7); }
+    /* Map winner's logo — dead center of the card (same rule as Waiting
+       TVC's map cards): only with a Winner picked and a logo file. */
+    .mrr-card-winner {
+      position: absolute; left: 50%; top: 50%;
+      width: 180px; height: 180px;
+      transform: translate(-50%, -50%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mrr-card-winner img { width: 100%; height: 100%; object-fit: contain; }
     .mrr-card-group .mrr-gm-word { font-weight: 500; font-size: 26px; letter-spacing: 0.18em; }
     .mrr-card-group .mrr-gm-name { font-weight: 700; font-size: 54px; white-space: nowrap; }
     .mrr-card-name {
@@ -1794,6 +1817,32 @@
       overflow: hidden;
     }
     #mwn-name .mwn-name-text { display: block; max-width: 100%; }
+
+    /* Player photo container (above the team container) — the winning
+       team's players from /photos/FRONT/<name>.png. Photos overlap, are
+       clipped by the container (overflow:hidden), and stack with the
+       middle player in front, 2 & 4 next, 1 & 5 furthest back. */
+    #mwn-photos-back {
+      position: absolute;
+      left: 40px; top: 261px; width: 1378px; height: 458px;
+      background: url('/assets/Map%20Winner/photowinner_back.png') no-repeat 0 0 / 100% 100%;
+      overflow: hidden;
+    }
+    .mwn-photo {
+      position: absolute;
+      top: -25px; width: 340px; height: 493px;
+      object-fit: cover; object-position: center top;
+      display: none;
+    }
+    /* Entrance: photos start hidden + nudged down (-pre), then ease out to
+       their real position (-anim adds the transition) — see mwnRevealPhotos. */
+    .mwn-photo.mwn-photo-pre  { opacity: 0; transform: translateY(90px); transition: none; }
+    .mwn-photo.mwn-photo-anim { transition: transform 450ms cubic-bezier(0.16, 1, 0.3, 1), opacity 250ms ease-out; }
+    #mwn-photo-1 { left: 57px;    z-index: 1; }
+    #mwn-photo-2 { left: 294.5px; z-index: 2; }
+    #mwn-photo-3 { left: 532px;   z-index: 3; }
+    #mwn-photo-4 { left: 769.5px; z-index: 2; }
+    #mwn-photo-5 { left: 1007px;  z-index: 1; }
 
     /* Stat details container (right side) — TOTAL POINTS / RANK POINTS /
        KILL POINTS of the team that placed #1 on the current map. Children
@@ -2607,6 +2656,40 @@
       position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
       z-index: 2;
     }
+    /* MAP WINNER card — the team that placed #1 on the current map (from
+       /api/current-map-standings, wins === 1). Children are positioned
+       relative to the card. */
+    #mhl-winner-back {
+      position: absolute;
+      left: 43px; top: 448px; width: 415px; height: 557px;
+      background: url('/assets/highlights/hlwinner_container.png') no-repeat 0 0 / 100% 100%;
+      z-index: 3;
+    }
+    #mhl-winner-title {
+      position: absolute; left: 0; top: 0; width: 415px; height: 45px;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      font-family: 'Teko', sans-serif; font-weight: 700;
+      font-size: 43.33px; /* 10.4pt @ 300dpi */
+      line-height: 1; color: #000000; white-space: nowrap; overflow: hidden;
+    }
+    #mhl-winner-title .mhl-fit { display: block; transform: translateY(0.1em); }
+    #mhl-winner-logo {
+      position: absolute; left: 68px; top: 62px; width: 281px; height: 281px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #mhl-winner-logo img { display: none; width: 100%; height: 100%; object-fit: contain; }
+    #mhl-winner-flag {
+      position: absolute; left: 182px; top: 371px; width: 58px; height: 29px;
+      object-fit: contain; display: none;
+    }
+    #mhl-winner-name {
+      position: absolute; left: 5px; top: 403px; width: 404px; height: 148px;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      font-family: 'Teko', sans-serif; font-weight: 700;
+      font-size: 50px; /* 12pt @ 300dpi */
+      line-height: 1; color: #ffffff; overflow: hidden;
+    }
+    #mhl-winner-name .mhl-name-text { display: block; max-width: 100%; }
     /* Exact copy of #rnk-sponsorbox (see that rule's own comment) —
        same position/size/asset/font, just this scene's own ids. */
     #mhl-sponsor {
@@ -2850,6 +2933,16 @@
       </div>
     </div>
 
+    <!-- OVERALL RANKING 2 (teams 21-40) -->
+    <div class="feature-card">
+      <div class="feature-card-label">Overall Ranking 2</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showOverallRankingScene2()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideOverallRankingScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-overallranking2" onclick="toggleLocalPreview('overallranking2', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
     <!-- MAP RANKING -->
     <div class="feature-card">
       <div class="feature-card-label">Map Ranking</div>
@@ -2870,13 +2963,43 @@
       </div>
     </div>
 
-    <!-- GROUP RANKING -->
+    <!-- GROUP A -->
     <div class="feature-card">
-      <div class="feature-card-label">Group Ranking</div>
+      <div class="feature-card-label">Group A</div>
       <div class="feature-card-btns">
-        <button class="dbg-btn show" onclick="showGroupRankingScene()">▶ SHOW</button>
-        <button class="dbg-btn hide" onclick="hideGroupRankingScene()">■ HIDE</button>
-        <button class="dbg-btn preview" id="preview-groupranking" onclick="toggleLocalPreview('groupranking', this)">◈ PREVIEW</button>
+        <button class="dbg-btn show" onclick="showGroupScene('A')">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideGroupScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-groupa" onclick="toggleLocalPreview('groupa', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- GROUP B -->
+    <div class="feature-card">
+      <div class="feature-card-label">Group B</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showGroupScene('B')">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideGroupScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-groupb" onclick="toggleLocalPreview('groupb', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- GROUP C -->
+    <div class="feature-card">
+      <div class="feature-card-label">Group C</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showGroupScene('C')">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideGroupScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-groupc" onclick="toggleLocalPreview('groupc', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- GROUP D -->
+    <div class="feature-card">
+      <div class="feature-card-label">Group D</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showGroupScene('D')">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideGroupScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-groupd" onclick="toggleLocalPreview('groupd', this)">◈ PREVIEW</button>
       </div>
     </div>
 
@@ -3322,6 +3445,13 @@
       <img id="ppl-art" src="/assets/fullscreeners/prizepool.png" alt="">
     </div>
     <div id="map-winner-page">
+      <div id="mwn-photos-back">
+        <img class="mwn-photo" id="mwn-photo-1" alt="">
+        <img class="mwn-photo" id="mwn-photo-2" alt="">
+        <img class="mwn-photo" id="mwn-photo-3" alt="">
+        <img class="mwn-photo" id="mwn-photo-4" alt="">
+        <img class="mwn-photo" id="mwn-photo-5" alt="">
+      </div>
       <div id="mwn-team-back">
         <div id="mwn-logo-box">
           <img id="mwn-logo-img" alt="">
@@ -3578,8 +3708,14 @@
     </div>
     <div id="map-highlights-page">
       <video id="mhl-bg-video" src="/assets/gbrc_loopbg_hud.webm" loop muted playsinline></video>
-      <img id="mhl-overlay-bg" src="/assets/highlights/highlights_bg.png" alt="">
+      <img id="mhl-overlay-bg" src="/assets/highlights/highlights_bg2.png" alt="">
       <div id="mhl-sponsor" data-sponsorbox></div>
+      <div id="mhl-winner-back">
+        <div id="mhl-winner-title"><span class="mhl-fit">MAP WINNER</span></div>
+        <div id="mhl-winner-logo"><img id="mhl-winner-logo-img" alt=""><img id="mhl-winner-logo-flag" alt=""></div>
+        <img id="mhl-winner-flag" alt="">
+        <div id="mhl-winner-name"><span class="mhl-name-text"></span></div>
+      </div>
     </div>
     <div id="match-board">
       <div id="mb-banner">
@@ -3739,6 +3875,14 @@
         } else if (msg.action === 'hide') hideActiveFeature();
       });
 
+      sseSource.addEventListener('overall_ranking_2', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showOverallRankingScene2, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
       sseSource.addEventListener('overall_ranking', (e) => {
         const msg = JSON.parse(e.data);
         if (msg.action === 'show') {
@@ -3763,12 +3907,14 @@
         } else if (msg.action === 'hide') hideActiveFeature();
       });
 
-      sseSource.addEventListener('group_ranking', (e) => {
-        const msg = JSON.parse(e.data);
-        if (msg.action === 'show') {
-          document.getElementById('config-bar').classList.remove('debug-open');
-          setTimeout(showGroupRankingScene, 100);
-        } else if (msg.action === 'hide') hideActiveFeature();
+      ['A', 'B', 'C', 'D'].forEach(L => {
+        sseSource.addEventListener('group_' + L.toLowerCase(), (e) => {
+          const msg = JSON.parse(e.data);
+          if (msg.action === 'show') {
+            document.getElementById('config-bar').classList.remove('debug-open');
+            setTimeout(() => showGroupScene(L), 100);
+          } else if (msg.action === 'hide') hideActiveFeature();
+        });
       });
 
       sseSource.addEventListener('qualified_teams_1', (e) => {
@@ -4270,9 +4416,15 @@
          #1/#2 by tiebreak alone, and that shouldn't look like a real
          result. Outside Qualifiers there's only ever one winner, so
          this stays off entirely (matches rnkRowBgSrc's plain rank===1). */
-      const useTopBacker = rnkIsQualifiers()
-        ? ((rank === 1 || rank === 2) && Number(team && team.totalScore) > 0)
-        : (rank === 1 && Number(team && team.totalScore) > 0);
+      const hasScore = Number(team && team.totalScore) > 0;
+      /* Groupstage (the 40-team list): the whole top 20 gets the yellow
+         backer — but only teams that actually have a score, so a team
+         inside the top 20 on tiebreak alone isn't wrongly highlighted. */
+      const useTopBacker = (wtvcStandings && wtvcStandings.mode === 'groupstage')
+        ? (rank <= 20 && hasScore)
+        : rnkIsQualifiers()
+          ? ((rank === 1 || rank === 2) && hasScore)
+          : (rank === 1 && hasScore);
       row.style.backgroundImage = `url('${WTVC_ASSET}${useTopBacker ? 'teamscore_backertop.png' : 'teamscore_backer.png'}')`;
 
       const rankEl = document.createElement('div');
@@ -4350,6 +4502,24 @@
 
     /* maplabel_waiting.png sits on top of the map's own background art —
        same folder, same 521×117 native size as every map background. */
+    /* Winner logo element for a map card, or null when no Winner is picked.
+       Stays out of the DOM flow until the logo image actually loads, so a
+       team with no /logos/ file shows nothing rather than a broken icon. */
+    function mapWinnerLogoEl(map, className) {
+      const w = String((map && map.winner) || '').trim();
+      if (!w) return null;
+      const box = document.createElement('div');
+      box.className = className;
+      box.style.display = 'none';
+      const im = document.createElement('img');
+      im.alt = '';
+      im.onload = () => { box.style.display = 'flex'; };
+      im.onerror = () => { box.style.display = 'none'; };
+      im.src = '/logos/' + encodeURIComponent(w) + '.png';
+      box.appendChild(im);
+      return box;
+    }
+
     function wtvcBuildMapCard(map, mapNumber) {
       const card = document.createElement('div');
       card.className = 'wtvc-map-card wtvc-anim-item';
@@ -4388,6 +4558,9 @@
         tag.appendChild(t);
         card.appendChild(tag);
       }
+
+      const winLogo = mapWinnerLogoEl(map, 'wtvc-map-winner');
+      if (winLogo) { card.classList.add('has-winner'); card.appendChild(winLogo); }
 
       return card;
     }
@@ -4447,8 +4620,9 @@
        see getWaitingTvcStandings), each independently ranked from rank 1,
        NOT one combined/paginated list — a team's page-2 standing has
        nothing to do with its page-1 standing, they're different maps'
-       results. Any other stage: the old single-list behavior, up to 20
-       teams over up to 2 pages of 10. */
+       results. Groupstage: all group-stage teams by overall score, up to 40
+       over up to 4 pages of 10. Any other stage: the old single-list
+       behavior, up to 20 teams over up to 2 pages of 10. */
     function wtvcRenderScorePages() {
       const root = document.getElementById('wtvc-rows');
       root.innerHTML = '';
@@ -4457,7 +4631,8 @@
         pages.forEach(p => root.appendChild(wtvcBuildPage(p.teams || [], 1, (p.sheet || '').toUpperCase())));
         return;
       }
-      const teams = ((wtvcStandings && wtvcStandings.teams) || []).slice(0, WTVC_ROWS_PER_PAGE * 2);
+      const maxTeams = WTVC_ROWS_PER_PAGE * (wtvcStandings && wtvcStandings.mode === 'groupstage' ? 4 : 2);
+      const teams = ((wtvcStandings && wtvcStandings.teams) || []).slice(0, maxTeams);
       const pages = [];
       for (let i = 0; i < teams.length; i += WTVC_ROWS_PER_PAGE) pages.push(teams.slice(i, i + WTVC_ROWS_PER_PAGE));
       if (!pages.length) pages.push([]);
@@ -4612,6 +4787,18 @@
         fetch(buildUrl('/match/state'), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
         fetch('/api/wtvc-page-speed', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
       ]);
+      /* Groupstage: instead of the current tally tab's own standings, the
+         score pages list ALL group-stage teams (up to 40) ordered by
+         overall group-stage score — 10 per page, so up to 4 pages — then
+         the map pages. `sheet` is kept from the live response, since the
+         header's "GROUP A + B" label still reads it (wtvcApplyMatchState). */
+      if (/groupstage/i.test((ms && ms.stage) || '')) {
+        const all = await grkFetchAll();
+        return {
+          standings: Object.assign({}, standings || {}, { mode: 'groupstage', teams: all }),
+          ms, pageSpeed,
+        };
+      }
       return { standings, ms, pageSpeed };
     }
 
@@ -5481,25 +5668,43 @@
     }
     async function ovrFetchScoreboard() {
       try {
+        /* Groupstage: standings come ONLY from the group tabs (A + B, A + C
+           ... summed — same data Group A–D use), not the single live sheet.
+           grkFetchAll is defined below (function-scope hoisting makes this
+           safe — it's only ever called after the page has loaded). */
+        const ms = await fetch(buildUrl('/match/state'), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null);
+        if (/groupstage/i.test((ms && ms.stage) || '')) return await grkFetchAll();
         const res = await fetch(buildUrl('/api/live-sheet-overall-standings'), { cache: 'no-store' });
         const data = res.ok ? await res.json() : null;
         return (data && data.teams) || [];
       } catch (e) { return []; }
     }
 
-    function ovrRenderTeams(teams) {
-      const ovrSolo = teams.length <= 10;
+    /* Page 1 = teams 1-20, page 2 = teams 21-40 (same scene/header; each
+       page is its own activeFeature: 'overallranking' / 'overallranking2'). */
+    function ovrRenderPage(teams, offset) {
+      const pageTeams = teams.slice(offset, offset + 20);
+      const ovrSolo = pageTeams.length <= 10;
       document.getElementById('ovr-col-left').classList.toggle('rnk-col-solo', ovrSolo);
       document.getElementById('ovr-col-right').classList.toggle('rnk-col-right-hidden', ovrSolo);
-      ovrFillColumn(document.querySelector('#ovr-col-left .ovr-col-rows'), teams.slice(0, 10));
-      ovrFillColumn(document.querySelector('#ovr-col-right .ovr-col-rows'), teams.slice(10, 20));
+      ovrFillColumn(document.querySelector('#ovr-col-left .ovr-col-rows'), pageTeams.slice(0, 10));
+      ovrFillColumn(document.querySelector('#ovr-col-right .ovr-col-rows'), pageTeams.slice(10, 20));
     }
+    function ovrRenderTeams(teams) { ovrRenderPage(teams, 0); }
+    function ovrRenderTeams2(teams) { ovrRenderPage(teams, 20); }
     const ovrLivePoll = rnkMakeLivePoll(ovrFetchScoreboard, ovrRenderTeams, 'overallranking');
+    const ovrLivePoll2 = rnkMakeLivePoll(ovrFetchScoreboard, ovrRenderTeams2, 'overallranking2');
 
-    async function showOverallRankingScene() {
+    function showOverallRankingScene() { return showOverallPage(1); }
+    function showOverallRankingScene2() { return showOverallPage(2); }
+
+    async function showOverallPage(pageNo) {
+      const feature = pageNo === 2 ? 'overallranking2' : 'overallranking';
+      const renderFn = pageNo === 2 ? ovrRenderTeams2 : ovrRenderTeams;
+      const poll = pageNo === 2 ? ovrLivePoll2 : ovrLivePoll;
       const dataPromise = ovrFetchScoreboard();
-      await transitionTo('overallranking');
-      if (activeFeature !== 'overallranking') return; /* superseded mid-await */
+      await transitionTo(feature);
+      if (activeFeature !== feature) return; /* superseded mid-await */
       rnkShowHeader('Overall Ranking');
       rnkShowBgVideo();
       ovrPage.classList.add('ovr-on');
@@ -5512,14 +5717,15 @@
          had already moved on, filling a stale/empty scoreboard into a
          page nobody was looking at (or leaving THIS page's rows empty
          forever, since nothing else was left to fill them). */
-      if (activeFeature !== 'overallranking') return;
-      ovrRenderTeams(teams);
-      ovrLivePoll.start(teams);
+      if (activeFeature !== feature) return;
+      renderFn(teams);
+      poll.start(teams);
     }
 
     function hideOverallRankingScene() {
       activeFeature = null;
       ovrLivePoll.stop();
+      ovrLivePoll2.stop();
       ovrPage.classList.remove('ovr-visible');
       const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
       return Promise.all([
@@ -5830,11 +6036,20 @@
     ════════════════════════════════════════════════ */
     const grkPage = document.getElementById('group-ranking-page');
 
+    /* Yellow container (the "rank 1" backer) for every team inside the top
+       20 of ALL group-stage teams (overallRank, set in grkFetchAll) — and
+       only once it has a score, so an all-zero board isn't all yellow. */
+    function grkRowBgSrc(q) {
+      return (q.overallRank <= 20 && Number(q.totalScore) > 0)
+        ? '/assets/Overall%20Ranking/teamscoreboard_rank1.png'
+        : '/assets/Overall%20Ranking/teamscoreboard.png';
+    }
+
     function grkBuildRow(q) {
       const row = document.createElement('div');
       row.className = 'grk-row rnk-anim-item';
       row.innerHTML =
-        '<img class="grk-row-bg" src="' + rnkRowBgSrc(q.rank, q.totalScore) + '" alt="">' +
+        '<img class="grk-row-bg" src="' + grkRowBgSrc(q) + '" alt="">' +
         '<div class="grk-row-divider" style="left:182px"></div>' +
         '<div class="grk-row-divider" style="left:487px"></div>' +
         '<div class="grk-row-divider" style="left:591px"></div>' +
@@ -5861,52 +6076,74 @@
       rnkAnimateRows(container);
     }
     // /api/groupstage-qualifiers ranks every team that played a group-stage
-    // sheet, including test/placeholder squads with no real Group A-D
-    // assignment (blank .group) — fine for the dashboard's own Leaderboard,
-    // but Group Ranking is specifically "the combined roster of Group A,
-    // B, C and D", so those ungrouped entries are filtered out here and
-    // the remaining teams re-ranked (fetching the unlimited list first —
-    // limit=20 would otherwise cap the list BEFORE this filter runs,
-    // potentially crowding out real group teams with ungrouped ones that
-    // scored higher).
-    async function grkFetchScoreboard() {
+    // sheet (A + B, C + D ... — Qualifier tabs, Playoffs and Grand Finals are
+    // excluded server-side), including test/placeholder squads with no real
+    // Group A-D assignment (blank .group). Those are filtered out here and
+    // the rest re-ranked 1..N across ALL groups (`rank`/`overallRank`) —
+    // fetching the unlimited list first, since limit=20 would cap the list
+    // BEFORE this filter runs and could crowd out real group teams.
+    async function grkFetchAll() {
       try {
         const res = await fetch(buildUrl('/api/groupstage-qualifiers?limit=all'), { cache: 'no-store' });
         const data = res.ok ? await res.json() : null;
         const all = (data && data.qualifiers) || [];
         const grouped = all.filter(t => ['A', 'B', 'C', 'D'].indexOf(t.group) !== -1);
-        grouped.forEach((t, i) => { t.rank = i + 1; });
+        grouped.forEach((t, i) => { t.rank = i + 1; t.overallRank = i + 1; });
         return grouped;
       } catch (e) { return []; }
     }
 
-    function grkRenderTeams(qualifiers) {
-      const grkSolo = qualifiers.length <= 10;
+    /* One group's own teams (up to 10), ranked 1..N WITHIN the group but
+       keeping overallRank (position among all group-stage teams) for the
+       top-20 yellow highlight. */
+    async function grkFetchGroup(letter) {
+      const all = await grkFetchAll();
+      const inGroup = all.filter(t => t.group === letter);
+      inGroup.forEach((t, i) => { t.rank = i + 1; });
+      return inGroup;
+    }
+
+    function grkRenderTeams(teams) {
+      const grkSolo = teams.length <= 10;
       document.getElementById('grk-col-left').classList.toggle('rnk-col-solo', grkSolo);
       document.getElementById('grk-col-right').classList.toggle('rnk-col-right-hidden', grkSolo);
-      grkFillColumn(document.querySelector('#grk-col-left .grk-col-rows'), qualifiers.slice(0, 10));
-      grkFillColumn(document.querySelector('#grk-col-right .grk-col-rows'), qualifiers.slice(10, 20));
+      grkFillColumn(document.querySelector('#grk-col-left .grk-col-rows'), teams.slice(0, 10));
+      grkFillColumn(document.querySelector('#grk-col-right .grk-col-rows'), teams.slice(10, 20));
     }
-    const grkLivePoll = rnkMakeLivePoll(grkFetchScoreboard, grkRenderTeams, 'groupranking');
 
-    async function showGroupRankingScene() {
-      const dataPromise = grkFetchScoreboard();
-      await transitionTo('groupranking');
-      if (activeFeature !== 'groupranking') return; /* superseded mid-await */
-      rnkShowHeader('Group Ranking');
+    /* Group A / B / C / D — four scenes on the one shared page/layout,
+       each its own activeFeature ('groupa'..'groupd') and header label. */
+    const GRK_LETTERS = ['A', 'B', 'C', 'D'];
+    const grkLivePolls = {};
+    GRK_LETTERS.forEach(L => {
+      grkLivePolls[L] = rnkMakeLivePoll(() => grkFetchGroup(L), grkRenderTeams, 'group' + L.toLowerCase());
+    });
+    let grkActiveLetter = null;
+
+    async function showGroupScene(letter) {
+      const feature = 'group' + letter.toLowerCase();
+      const dataPromise = grkFetchGroup(letter);
+      await transitionTo(feature);
+      if (activeFeature !== feature) return; /* superseded mid-await */
+      grkActiveLetter = letter;
+      rnkShowHeader('Group ' + letter);
       rnkShowBgVideo();
       grkPage.classList.add('grk-on');
       void grkPage.offsetWidth; /* force reflow so the opacity transition runs */
       grkPage.classList.add('grk-visible');
-      const qualifiers = await dataPromise;
-      if (activeFeature !== 'groupranking') return; /* superseded while awaiting data */
-      grkRenderTeams(qualifiers);
-      grkLivePoll.start(qualifiers);
+      const teams = await dataPromise;
+      if (activeFeature !== feature) return; /* superseded while awaiting data */
+      grkRenderTeams(teams);
+      grkLivePolls[letter].start(teams);
     }
+    function showGroupAScene() { return showGroupScene('A'); }
+    function showGroupBScene() { return showGroupScene('B'); }
+    function showGroupCScene() { return showGroupScene('C'); }
+    function showGroupDScene() { return showGroupScene('D'); }
 
-    function hideGroupRankingScene() {
+    function hideGroupScene() {
       activeFeature = null;
-      grkLivePoll.stop();
+      GRK_LETTERS.forEach(L => grkLivePolls[L].stop());
       grkPage.classList.remove('grk-visible');
       const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
       return Promise.all([
@@ -6153,6 +6390,8 @@
           tag.querySelector('.mrr-gm-name').textContent = gm;
           card.appendChild(tag);
         }
+        const winLogo = mapWinnerLogoEl(m, 'mrr-card-winner');
+        if (winLogo) { card.classList.add('has-winner'); card.appendChild(winLogo); }
         root.appendChild(card);
         ovrFitText(card.querySelector('.mrr-card-name'), 58.79, 29);
       });
@@ -6285,7 +6524,22 @@
     const mwnCard = document.getElementById('mwn-team-back');
     let mwnCapRatio = null; /* Teko cap-height / font-size, measured once */
 
-    /* Returns { winner: {name, region}|null, stats: {total, rp, kp}|null }.
+    /* Winner team's player names, in sheet order (/api/tally-roster) — the
+       roster is large, so it's fetched once per team name, not every poll. */
+    let mwnPlayersFor = null, mwnPlayers = [];
+    async function mwnFetchPlayers(teamName) {
+      if (mwnPlayersFor === teamName) return mwnPlayers;
+      try {
+        const res = await fetch(buildUrl('/api/tally-roster'), { cache: 'no-store' });
+        const data = res.ok ? await res.json() : null;
+        const t = ((data && data.teams) || []).find(x => String(x.name).toLowerCase() === teamName.toLowerCase());
+        mwnPlayers = t ? (t.players || []).map(p => p.name) : [];
+        mwnPlayersFor = teamName;
+      } catch (e) { /* keep last-known */ }
+      return mwnPlayers;
+    }
+
+    /* Returns { winner: {name, region, players}|null, stats: {total, rp, kp}|null }.
        winner = Match Board's Winner pick for this map; stats = the team
        that PLACED #1 on the current map (P column = 1, i.e. wins === 1,
        falling back to highest placement points) from the same
@@ -6319,6 +6573,7 @@
         /* No Winner picked in Match Board → default the team plate to the
            team that placed #1, so the plate and the stats agree. */
         if (!winner && top) winner = { name: top.name, region: top.region || '' };
+        if (winner) winner.players = await mwnFetchPlayers(winner.name);
         return { winner: winner, stats: stats };
       } catch (e) { return { winner: null, stats: null }; }
     }
@@ -6335,16 +6590,73 @@
         el.style.fontSize = size + 'px';
       }
     }
-    function mwnRenderStats(stats) {
+    /* ── Entrance animation timeline (ms, measured from the moment the
+       scene starts fading in): numbers count up from 0 starting as soon as
+       the fade finishes; the photos ease out into place at that same moment
+       — players 1 & 5 first, then 2 & 4, then 3. ── */
+    const MWN_FADE_MS = 400;
+    const MWN_NUM_START = MWN_FADE_MS; /* immediately after the fade-in finishes */
+    const MWN_NUM_DUR = 900;
+    const MWN_PHOTO_START = MWN_NUM_START; /* same moment the numbers start counting */
+    const MWN_PHOTO_STAGGER = 140;
+    const MWN_PHOTO_GROUPS = [[0, 4], [1, 3], [2]];
+    let mwnShownAt = 0, mwnTimers = [], mwnRaf = null;
+
+    function mwnAt(ms, fn) {
+      mwnTimers.push(setTimeout(fn, Math.max(0, mwnShownAt + ms - performance.now())));
+    }
+    function mwnCancelAnim() {
+      mwnTimers.forEach(clearTimeout);
+      mwnTimers = [];
+      if (mwnRaf) cancelAnimationFrame(mwnRaf);
+      mwnRaf = null;
+    }
+    const MWN_VALUE_IDS = ['mwn-stats-total', 'mwn-stats-rp', 'mwn-stats-kp'];
+    const mwnValueSpan = id => document.getElementById(id).querySelector('.mwn-fit');
+
+    /* Called as the scene starts showing, BEFORE data arrives: zero the
+       numbers and hide the photos so a previous show's final state never
+       flashes during the fade-in. */
+    function mwnPrepare() {
+      mwnCancelAnim();
+      MWN_VALUE_IDS.forEach(id => { mwnValueSpan(id).textContent = '0'; });
+      document.querySelectorAll('.mwn-photo').forEach(img => {
+        img.classList.remove('mwn-photo-anim');
+        img.classList.add('mwn-photo-pre');
+      });
+    }
+
+    function mwnCountUp(targets) {
+      const t0 = performance.now();
+      const step = now => {
+        const k = Math.min(1, (now - t0) / MWN_NUM_DUR);
+        const e = 1 - Math.pow(1 - k, 3); /* ease-out */
+        targets.forEach(t => {
+          /* whole-number targets count in whole steps, decimals keep 2 places */
+          const raw = t.v * e, cur = Number.isInteger(t.v) ? Math.round(raw) : Math.round(raw * 100) / 100;
+          mwnValueSpan(t.id).textContent = ovrFmtNum(k >= 1 ? t.v : cur);
+        });
+        mwnRaf = k < 1 ? requestAnimationFrame(step) : null;
+      };
+      mwnRaf = requestAnimationFrame(step);
+    }
+
+    function mwnRenderStats(stats, animate) {
       const box = document.getElementById('mwn-stats-back');
       if (!stats) { box.style.display = 'none'; return; }
-      const set = (id, v) => { const el = document.getElementById(id); el.querySelector('.mwn-fit').textContent = ovrFmtNum(v); };
-      set('mwn-stats-total', stats.total);
-      set('mwn-stats-rp', stats.rp);
-      set('mwn-stats-kp', stats.kp);
+      const vals = { 'mwn-stats-total': stats.total, 'mwn-stats-rp': stats.rp, 'mwn-stats-kp': stats.kp };
+      /* Lay out + fit against the FINAL numbers so the font size doesn't
+         jump while counting up. */
+      MWN_VALUE_IDS.forEach(id => { mwnValueSpan(id).textContent = ovrFmtNum(vals[id]); });
       box.style.display = '';
       ['mwn-stats-title', 'mwn-stats-total', 'mwn-stats-rp-label', 'mwn-stats-kp-label', 'mwn-stats-rp', 'mwn-stats-kp']
         .forEach(id => mwnFitStat(document.getElementById(id)));
+      if (animate) {
+        MWN_VALUE_IDS.forEach(id => { mwnValueSpan(id).textContent = '0'; });
+        mwnAt(MWN_NUM_START, () => mwnCountUp(MWN_VALUE_IDS.map(id => ({ id: id, v: vals[id] }))));
+      } else {
+        if (mwnRaf) { cancelAnimationFrame(mwnRaf); mwnRaf = null; }
+      }
     }
 
     function mwnProbe(url) {
@@ -6375,9 +6687,42 @@
       while ((txt.offsetHeight > el.clientHeight || txt.scrollWidth > el.clientWidth) && size > 30) apply(size -= 2);
     }
 
+    function mwnRevealPhotos() {
+      MWN_PHOTO_GROUPS.forEach((group, gi) => {
+        mwnAt(MWN_PHOTO_START + gi * MWN_PHOTO_STAGGER, () => {
+          group.forEach(i => {
+            const img = document.getElementById('mwn-photo-' + (i + 1));
+            img.classList.add('mwn-photo-anim');
+            void img.offsetWidth; /* commit the start state before moving */
+            img.classList.remove('mwn-photo-pre');
+          });
+        });
+      });
+    }
+
+    function mwnRenderPhotos(players, animate) {
+      const box = document.getElementById('mwn-photos-back');
+      box.style.display = players && players.length ? '' : 'none';
+      for (let i = 0; i < 5; i++) {
+        const img = document.getElementById('mwn-photo-' + (i + 1));
+        const name = players && players[i];
+        img.style.display = 'none';
+        if (!animate) img.classList.remove('mwn-photo-pre');
+        if (!name) continue;
+        img.onload = () => { img.style.display = 'block'; };
+        img.onerror = () => { img.style.display = 'none'; };
+        img.src = '/photos/FRONT/' + encodeURIComponent(name) + '.png';
+      }
+      if (animate) mwnRevealPhotos();
+    }
+
+    let mwnAnimPending = false; /* true only for the first render of each show */
     async function mwnRender(data) {
-      mwnRenderStats(data && data.stats);
+      const animate = mwnAnimPending;
+      mwnAnimPending = false;
+      mwnRenderStats(data && data.stats, animate);
       const d = data && data.winner;
+      mwnRenderPhotos(d ? d.players : null, animate);
       if (!d) { mwnCard.style.display = 'none'; return; }
       const flagUrl = d.region ? '/flag/' + encodeURIComponent(d.region) + '_flag.png' : '';
       const [hasLogo, hasFlag] = await Promise.all([
@@ -6411,9 +6756,12 @@
       if (activeFeature !== 'mapwinner') return; /* superseded mid-await */
       rnkShowHeader('Map Winner');
       rnkShowBgVideo();
+      mwnPrepare();
       mwnPage.classList.add('mwn-on');
       void mwnPage.offsetWidth; /* force reflow so the opacity transition runs */
       mwnPage.classList.add('mwn-visible');
+      mwnShownAt = performance.now();
+      mwnAnimPending = true;
       const data = await dataPromise;
       if (activeFeature !== 'mapwinner') return; /* superseded while awaiting data */
       await mwnRender(data);
@@ -6423,6 +6771,7 @@
     function hideMapWinnerScene() {
       activeFeature = null;
       mwnLivePoll.stop();
+      mwnCancelAnim();
       mwnPage.classList.remove('mwn-visible');
       const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
       return Promise.all([
@@ -7943,7 +8292,7 @@
        header, only its own scoreboard content. Same precedent as
        cpDuringPostTransition above. */
     let duringRankTransition = false;
-    const RANK_FEATURES = new Set(['overallranking', 'mapranking', 'slotteams', 'groupranking', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'tournamentschedule', 'prizepool', 'mapwinner', 'postqualified']);
+    const RANK_FEATURES = new Set(['overallranking', 'overallranking2', 'mapranking', 'slotteams', 'groupa', 'groupb', 'groupc', 'groupd', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'tournamentschedule', 'prizepool', 'mapwinner', 'postqualified']);
 
     /* Keeps server-side state.fullscreenScene.<key> (and thus the dashboard's
        Control-tab board toggles/live indicator) in sync with board
@@ -8024,10 +8373,10 @@
       if (prev === 'waiting')  return hideWaitingScreen();
       if (prev === 'timer')    return hideWaitingTimer();
       if (prev === 'hexagon')  return hideTeamHexagon();
-      if (prev === 'overallranking') return hideOverallRankingScene();
+      if (prev === 'overallranking' || prev === 'overallranking2') return hideOverallRankingScene();
       if (prev === 'mapranking') return hideMapRankingScene();
       if (prev === 'slotteams') return hideSlotTeamsScene();
-      if (prev === 'groupranking') return hideGroupRankingScene();
+      if (/^group[abcd]$/.test(prev)) return hideGroupScene();
       if (prev === 'qualifiedteams1') return hideQualifiedTeams1Scene();
       if (prev === 'qualifiedteams2') return hideQualifiedTeams2Scene();
       if (prev === 'maprotation') return hideMapRotationScene();
@@ -8347,7 +8696,80 @@
     buildMhlSponsor();
     const mhlSponsorLoop = makeSponsorLoop('mhl-sponsor-img', 'mhl-sponsor-cat', 21.25, 10);
 
+    /* The team that placed #1 on the current map: the one with a 1 in that
+       map's P column (wins === 1) — NOT the top scorer — falling back to
+       the highest placement points if none is marked. Same pick Map
+       Winner's stat card uses. */
+    async function mhlFetchWinner() {
+      try {
+        const res = await fetch(buildUrl('/api/current-map-standings'), { cache: 'no-store' });
+        const cm = res.ok ? await res.json() : null;
+        const teams = (cm && cm.teams) || [];
+        let top = teams.find(t => t.wins === 1) || null;
+        if (!top && teams.length) {
+          top = teams.slice().sort((a, b) => b.placementPoints - a.placementPoints || b.totalScore - a.totalScore)[0];
+          if (!(top.placementPoints > 0)) top = null;
+        }
+        return top ? { name: top.name, region: top.region || '' } : null;
+      } catch (e) { return null; }
+    }
+
+    let mhlCapRatio = null; /* Teko cap-height / font-size, measured once */
+    /* Wrapped team name: up to 3 lines, 6px between the visible lines
+       (line-height = cap height + 6px), shrinking until it fits. */
+    async function mhlFitName(el) {
+      if (mhlCapRatio === null) {
+        try { await document.fonts.load('700 100px Teko'); } catch (e) {}
+        const ctx = document.createElement('canvas').getContext('2d');
+        ctx.font = '700 100px Teko';
+        mhlCapRatio = (ctx.measureText('H').actualBoundingBoxAscent || 70) / 100;
+      }
+      const txt = el.querySelector('.mhl-name-text');
+      el.style.fontSize = '';
+      let size = parseFloat(getComputedStyle(el).fontSize) || 50;
+      const apply = s => { el.style.fontSize = s + 'px'; el.style.lineHeight = (mhlCapRatio * s + 6) + 'px'; };
+      apply(size);
+      const tooBig = () => txt.offsetHeight > el.clientHeight || txt.scrollWidth > el.clientWidth
+        || Math.round(txt.offsetHeight / parseFloat(el.style.lineHeight)) > 3;
+      while (tooBig() && size > 16) apply(size -= 1);
+    }
+
+    function mhlProbe(url) {
+      return new Promise(resolve => {
+        const im = new Image();
+        im.onload = () => resolve(true);
+        im.onerror = () => resolve(false);
+        im.src = url;
+      });
+    }
+
+    async function mhlRenderWinner(w) {
+      const card = document.getElementById('mhl-winner-back');
+      if (!w) { card.style.display = 'none'; return; }
+      const flagUrl = w.region ? '/flag/' + encodeURIComponent(w.region) + '_flag.png' : '';
+      const logoUrl = '/logos/' + encodeURIComponent(w.name) + '.png';
+      const [hasLogo, hasFlag] = await Promise.all([mhlProbe(logoUrl), flagUrl ? mhlProbe(flagUrl) : Promise.resolve(false)]);
+      if (activeFeature !== 'maphighlights') return;
+      const logoImg = document.getElementById('mhl-winner-logo-img');
+      const logoFlag = document.getElementById('mhl-winner-logo-flag');
+      const flag = document.getElementById('mhl-winner-flag');
+      logoImg.style.display = logoFlag.style.display = flag.style.display = 'none';
+      if (hasLogo) {
+        logoImg.src = logoUrl; logoImg.style.display = 'block';
+        if (hasFlag) { flag.src = flagUrl; flag.style.display = 'block'; }
+      } else if (hasFlag) {
+        /* No logo: the flag takes the logo square instead. */
+        logoFlag.src = flagUrl; logoFlag.style.display = 'block';
+      }
+      const nameEl = document.getElementById('mhl-winner-name');
+      nameEl.querySelector('.mhl-name-text').textContent = w.name;
+      card.style.display = '';
+      await mhlFitName(nameEl);
+    }
+    const mhlLivePoll = rnkMakeLivePoll(mhlFetchWinner, mhlRenderWinner, 'maphighlights');
+
     async function showMapHighlightsScene() {
+      const dataPromise = mhlFetchWinner();
       await transitionTo('maphighlights');
       if (activeFeature !== 'maphighlights') return; /* superseded while awaiting transition */
       mhlBgVideo.currentTime = 0;
@@ -8356,10 +8778,15 @@
       mhlPage.classList.add('mhl-on');
       void mhlPage.offsetWidth; /* force reflow so the opacity transition runs */
       mhlPage.classList.add('mhl-visible');
+      const winner = await dataPromise;
+      if (activeFeature !== 'maphighlights') return; /* superseded while awaiting data */
+      await mhlRenderWinner(winner);
+      mhlLivePoll.start(winner);
     }
 
     function hideMapHighlightsScene() {
       activeFeature = null;
+      mhlLivePoll.stop();
       mhlPage.classList.remove('mhl-visible');
       mhlSponsorLoop.stop();
       return new Promise(resolve => setTimeout(() => {
@@ -8781,9 +9208,10 @@
           else if (scene.activeFeature === 'timer')    showWaitingTimer();
           else if (scene.activeFeature === 'hexagon')  showTeamHexagon();
           else if (scene.activeFeature === 'overallranking') showOverallRankingScene();
+          else if (scene.activeFeature === 'overallranking2') showOverallRankingScene2();
           else if (scene.activeFeature === 'mapranking') showMapRankingScene();
           else if (scene.activeFeature === 'slotteams') showSlotTeamsScene();
-          else if (scene.activeFeature === 'groupranking') showGroupRankingScene();
+          else if (/^group[abcd]$/.test(scene.activeFeature)) showGroupScene(scene.activeFeature.slice(5).toUpperCase());
           else if (scene.activeFeature === 'qualifiedteams1') showQualifiedTeams1Scene();
           else if (scene.activeFeature === 'qualifiedteams2') showQualifiedTeams2Scene();
           else if (scene.activeFeature === 'maprotation') showMapRotationScene();
@@ -8824,9 +9252,10 @@
         if (feature === 'timer')    showWaitingTimer();
         if (feature === 'hexagon')  showTeamHexagon();
         if (feature === 'overallranking') showOverallRankingScene();
+        if (feature === 'overallranking2') showOverallRankingScene2();
         if (feature === 'mapranking') showMapRankingScene();
         if (feature === 'slotteams') showSlotTeamsScene();
-        if (feature === 'groupranking') showGroupRankingScene();
+        if (/^group[abcd]$/.test(feature)) showGroupScene(feature.slice(5).toUpperCase());
         if (feature === 'qualifiedteams1') showQualifiedTeams1Scene();
         if (feature === 'qualifiedteams2') showQualifiedTeams2Scene();
         if (feature === 'maprotation') showMapRotationScene();
@@ -8850,7 +9279,7 @@
     window.previewTrigger = function(event, action) {
       document.querySelectorAll('.dbg-btn.preview').forEach(b => b.classList.remove('active'));
       if (action === 'show') {
-        const btnMap = { post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', map_ranking: 'preview-mapranking', slot_teams: 'preview-slotteams', group_ranking: 'preview-groupranking', qualified_teams_1: 'preview-qualifiedteams1', qualified_teams_2: 'preview-qualifiedteams2', map_rotation: 'preview-maprotation', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool', map_winner: 'preview-mapwinner' };
+        const btnMap = { post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', overall_ranking_2: 'preview-overallranking2', map_ranking: 'preview-mapranking', slot_teams: 'preview-slotteams', group_a: 'preview-groupa', group_b: 'preview-groupb', group_c: 'preview-groupc', group_d: 'preview-groupd', qualified_teams_1: 'preview-qualifiedteams1', qualified_teams_2: 'preview-qualifiedteams2', map_rotation: 'preview-maprotation', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool', map_winner: 'preview-mapwinner' };
         const btn = document.getElementById(btnMap[event]);
         if (btn) btn.classList.add('active');
       }
@@ -8859,9 +9288,10 @@
         if (event === 'waiting_timer') showWaitingTimer();
         if (event === 'team_hexagon') showTeamHexagon();
         if (event === 'overall_ranking') showOverallRankingScene();
+        if (event === 'overall_ranking_2') showOverallRankingScene2();
         if (event === 'map_ranking') showMapRankingScene();
         if (event === 'slot_teams') showSlotTeamsScene();
-        if (event === 'group_ranking') showGroupRankingScene();
+        if (/^group_[abcd]$/.test(event)) showGroupScene(event.slice(6).toUpperCase());
         if (event === 'qualified_teams_1') showQualifiedTeams1Scene();
         if (event === 'qualified_teams_2') showQualifiedTeams2Scene();
         if (event === 'map_rotation') showMapRotationScene();

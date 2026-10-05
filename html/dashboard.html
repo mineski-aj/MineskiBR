@@ -1605,9 +1605,10 @@
     team_lineup_red:  'lineupred',
     herolineup:       'herolineup',
     overall_ranking:   'overallranking',
+    overall_ranking_2: 'overallranking2',
     map_ranking:       'mapranking',
     slot_teams:        'slotteams',
-    group_ranking:     'groupranking',
+    group_a: 'groupa', group_b: 'groupb', group_c: 'groupc', group_d: 'groupd',
     qualified_teams_1: 'qualifiedteams1',
     qualified_teams_2: 'qualifiedteams2',
     map_rotation:      'maprotation',
@@ -1628,9 +1629,9 @@
     mvp: 'MVP Scene', credits: 'Credit Reel', finalteam: 'Final Team',
     lineupblue: 'Team Line-Up — Blue', lineupred: 'Team Line-Up — Red',
     herolineup: 'Hero Lineup',
-    overallranking: 'Overall Ranking', mapranking: 'Map Ranking',
+    overallranking: 'Overall Ranking 1', overallranking2: 'Overall Ranking 2', mapranking: 'Map Ranking',
     slotteams: 'Slot Teams',
-    groupranking: 'Group Ranking',
+    groupa: 'Group A', groupb: 'Group B', groupc: 'Group C', groupd: 'Group D',
     qualifiedteams1: 'Qualified Teams 1', qualifiedteams2: 'Qualified Teams 2',
     maprotation: 'Map Rotation',
     tournamentschedule: 'Tournament Schedule', prizepool: 'Prize Pool', mapwinner: 'Map Winner',
@@ -1957,10 +1958,14 @@
         { name: 'Team Line-Up — Blue', show: '/overlay/team_lineup_blue/show', hide: '/overlay/team_lineup_blue/hide' },
         { name: 'Team Line-Up — Red', show: '/overlay/team_lineup_red/show', hide: '/overlay/team_lineup_red/hide' },
         { name: 'Hero Lineup', show: '/overlay/herolineup/show', hide: '/overlay/herolineup/hide' },
-        { name: 'Overall Ranking', show: '/overlay/overall_ranking/show', hide: '/overlay/overall_ranking/hide' },
+        { name: 'Overall Ranking 1', show: '/overlay/overall_ranking/show', hide: '/overlay/overall_ranking/hide' },
+        { name: 'Overall Ranking 2', show: '/overlay/overall_ranking_2/show', hide: '/overlay/overall_ranking_2/hide' },
         { name: 'Map Ranking', show: '/overlay/map_ranking/show', hide: '/overlay/map_ranking/hide' },
         { name: 'Slot Teams', show: '/overlay/slot_teams/show', hide: '/overlay/slot_teams/hide' },
-        { name: 'Group Ranking', show: '/overlay/group_ranking/show', hide: '/overlay/group_ranking/hide' },
+        { name: 'Group A', show: '/overlay/group_a/show', hide: '/overlay/group_a/hide' },
+        { name: 'Group B', show: '/overlay/group_b/show', hide: '/overlay/group_b/hide' },
+        { name: 'Group C', show: '/overlay/group_c/show', hide: '/overlay/group_c/hide' },
+        { name: 'Group D', show: '/overlay/group_d/show', hide: '/overlay/group_d/hide' },
         { name: 'Qualified Teams 1', show: '/overlay/qualified_teams_1/show', hide: '/overlay/qualified_teams_1/hide' },
         { name: 'Qualified Teams 2', show: '/overlay/qualified_teams_2/show', hide: '/overlay/qualified_teams_2/hide' },
         { name: 'Map Rotation', show: '/overlay/map_rotation/show', hide: '/overlay/map_rotation/hide' },
@@ -2133,10 +2138,14 @@
      controlPanelArchiveBtn, which lives in the header so it survives
      buildControlBody's wipe on its own. */
   var archiveSection = null;
+  var archiveCount = 0;
+  function archiveBtnLabel(open) {
+    return (open ? '🗄 Hide Archive' : '🗄 Archive') + (archiveCount ? ' (' + archiveCount + ')' : '');
+  }
   controlPanelArchiveBtn.addEventListener('click', function () {
     if (!archiveSection) return;
     var open = archiveSection.classList.toggle('archive-open');
-    controlPanelArchiveBtn.textContent = open ? '🗄 Hide Archive' : '🗄 Archive';
+    controlPanelArchiveBtn.textContent = archiveBtnLabel(open);
   });
 
   function scalePreview() {
@@ -2166,8 +2175,9 @@
     } else {
       controlPanelOpen.style.display = 'none';
     }
-    controlPanelArchiveBtn.style.display = (ov.archivedFeatures && ov.archivedFeatures.length) ? '' : 'none';
-    controlPanelArchiveBtn.textContent = '🗄 Archive';
+    /* Archive button visibility/label are set by buildControlBody, which
+       knows about BOTH the fixed ov.archivedFeatures list and the scenes
+       the user archived themselves. */
     buildControlBody(ov);
     previewTitle.textContent = ov.name;
     previewLabel.textContent = ov.url || ov.file || '';
@@ -2486,6 +2496,8 @@
     activePreviewOff = null; // body.innerHTML just wiped whichever preview button held this
     previewToggleRegistry = {};
     archiveSection = null; // body.innerHTML just wiped any previous archive section element
+    archiveCount = 0;
+    controlPanelArchiveBtn.style.display = 'none'; // re-shown below if this overlay has anything archived
 
     if (ov.ingameControls)    { buildIngameControls(body);    return; }
     if (ov.ingameHrmControls) { buildIngameHrmControls(body, ov.ingameHrmControls); return; }
@@ -2787,7 +2799,10 @@
       var userArchivedFeats = (ov.id === 'fullscreen')
         ? ov.features.filter(function (f) { return fullscreenArchivedSet.indexOf(fullscreenFeatureKey(f)) !== -1; })
         : [];
-      if ((ov.archivedFeatures && ov.archivedFeatures.length) || userArchivedFeats.length) {
+      archiveCount = (ov.archivedFeatures ? ov.archivedFeatures.length : 0) + userArchivedFeats.length;
+      controlPanelArchiveBtn.style.display = archiveCount ? '' : 'none';
+      controlPanelArchiveBtn.textContent = archiveBtnLabel(false);
+      if (archiveCount) {
         if (body.children.length) body.appendChild(el('div', 'divider'));
         archiveSection = el('div', 'archive-section');
         archiveSection.appendChild(el('div', 'features-label', 'Archived'));
@@ -3406,11 +3421,22 @@
     '#mhl-bg-video':   { left: 0,    top: 0,  width: 1920, height: 1080 },
     '#mhl-overlay-bg': { left: 0,    top: 0,  width: 1920, height: 1080 },
     '#mhl-sponsor':    { left: 1647, top: 29, width: 273,  height: 130 },
+    /* Winner card is canvas-absolute; its children are relative to it. */
+    '#mhl-winner-back':  { left: 43,  top: 448, width: 415, height: 557 },
+    '#mhl-winner-title': { left: 0,   top: 0,   width: 415, height: 45,  fontSize: 43.33 },
+    '#mhl-winner-logo':  { left: 68,  top: 62,  width: 281, height: 281 },
+    '#mhl-winner-flag':  { left: 182, top: 371, width: 58,  height: 29 },
+    '#mhl-winner-name':  { left: 5,   top: 403, width: 404, height: 148, fontSize: 50 },
   };
   var MHL_ELEMENTS = [
     { group: 'Map Highlights Background', id: '#mhl-bg-video',   name: 'Background Video' },
     { group: 'Map Highlights Overlay',     id: '#mhl-overlay-bg', name: 'Overlay Art' },
     { group: 'Map Highlights Sponsor',     id: '#mhl-sponsor',    name: 'Sponsor Loop' },
+    { group: 'Map Highlights Winner Card',  id: '#mhl-winner-back',  name: 'Winner Card' },
+    { group: 'Map Highlights Winner Title', id: '#mhl-winner-title', name: 'MAP WINNER Label' },
+    { group: 'Map Highlights Winner Logo',  id: '#mhl-winner-logo',  name: 'Winner Logo Box' },
+    { group: 'Map Highlights Winner Flag',  id: '#mhl-winner-flag',  name: 'Winner Flag' },
+    { group: 'Map Highlights Winner Name',  id: '#mhl-winner-name',  name: 'Winner Name' },
   ];
 
   /* ── Overall Ranking (Fullscreen.html) element defaults ──────────────── */
@@ -3444,7 +3470,7 @@
     { group: 'Slot Teams Column 11-20', id: '#slt-col-right', name: 'Scoreboard Column (Teams 11-20)' },
   ];
 
-  /* ── Group Ranking (Fullscreen.html) element defaults ── */
+  /* ── Group A–D scenes (Fullscreen.html) element defaults — one shared layout ── */
   var GRK_DEFAULTS = {
     '#grk-col-left':  { left: 40,  top: 282, width: 905, height: 672 },
     '#grk-col-right': { left: 973, top: 282, width: 905, height: 672 },
@@ -3496,6 +3522,12 @@
     '#mwn-logo-box':  { left: 81,  top: 30,  width: 213,  height: 213 },
     '#mwn-flag':      { left: 13,  top: 32,  width: 58,   height: 29  },
     '#mwn-name':      { left: 491, top: 25,  width: 861,  height: 223, fontSize: 116.67 },
+    '#mwn-photos-back': { left: 40,   top: 261, width: 1378, height: 458 },
+    '#mwn-photo-1':     { left: 57,   top: -25, width: 340, height: 493 },
+    '#mwn-photo-2':     { left: 294.5, top: -25, width: 340, height: 493 },
+    '#mwn-photo-3':     { left: 532,  top: -25, width: 340, height: 493 },
+    '#mwn-photo-4':     { left: 769.5, top: -25, width: 340, height: 493 },
+    '#mwn-photo-5':     { left: 1007, top: -25, width: 340, height: 493 },
     '#mwn-stats-back':     { left: 1446, top: 261, width: 435, height: 728 },
     '#mwn-stats-title':    { left: 12,  top: 38,  width: 408, height: 47,  fontSize: 45.79 },
     '#mwn-stats-total':    { left: -1,  top: 108, width: 435, height: 291, fontSize: 354.5 },
@@ -3509,6 +3541,12 @@
     { group: 'Map Winner Logo',           id: '#mwn-logo-box',  name: 'Team Logo Box' },
     { group: 'Map Winner Flag',           id: '#mwn-flag',      name: 'Team Flag' },
     { group: 'Map Winner Name',           id: '#mwn-name',      name: 'Team Name' },
+    { group: 'Map Winner Photos Container', id: '#mwn-photos-back', name: 'Photos Container' },
+    { group: 'Map Winner Photo 1', id: '#mwn-photo-1', name: 'Player Photo 1' },
+    { group: 'Map Winner Photo 2', id: '#mwn-photo-2', name: 'Player Photo 2' },
+    { group: 'Map Winner Photo 3', id: '#mwn-photo-3', name: 'Player Photo 3 (middle)' },
+    { group: 'Map Winner Photo 4', id: '#mwn-photo-4', name: 'Player Photo 4' },
+    { group: 'Map Winner Photo 5', id: '#mwn-photo-5', name: 'Player Photo 5' },
     { group: 'Map Winner Stats Container', id: '#mwn-stats-back',     name: 'Stats Container' },
     { group: 'Map Winner Stats Title',     id: '#mwn-stats-title',    name: 'TOTAL POINTS Label' },
     { group: 'Map Winner Stats Total',     id: '#mwn-stats-total',    name: 'Total Points Value' },
@@ -3714,13 +3752,13 @@
       showFn:      'showSlotTeamsScene',
     },
     fullscreen_groupranking: {
-      label:       'Group Ranking · Fullscreen',
+      label:       'Group A–D · Fullscreen (shared layout)',
       file:        'Fullscreen.html',
       styleFile:   'fullscreen',
       defaultsKey: 'sb_edit_defaults_fullscreen_groupranking',
       elements:    GRK_ELEMENTS,
       defaults:    GRK_DEFAULTS,
-      showFn:      'showGroupRankingScene',
+      showFn:      'showGroupAScene',
     },
     fullscreen_qualifiedteams1: {
       label:       'Qualified Teams 1 · Fullscreen',
