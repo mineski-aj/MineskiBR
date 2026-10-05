@@ -165,6 +165,16 @@ var SB_MH1_TALLY_MAXSIZE = 48;
 function sbUpdateMh1Tally() {
   var tallyEl = document.querySelector('.sb-mh1-tally-text');
   if (!tallyEl) return;
+  /* Groupstage: "MAP 5 | GROUP A + B" with the group part bold. */
+  if (/groupstage/i.test(_sbStage) && _sbLiveTallyTab) {
+    tallyEl.textContent = 'Map ' + _sbMatchNum + ' | ';
+    var b = document.createElement('b');
+    b.style.fontWeight = '700';
+    b.textContent = 'Group ' + _sbLiveTallyTab;
+    tallyEl.appendChild(b);
+    sbFitText(tallyEl, SB_MH1_TEXT_WIDTH, SB_MH1_TALLY_MAXSIZE);
+    return;
+  }
   var parts = [];
   if (_sbLiveTallyTab) parts.push(_sbLiveTallyTab);
   /* Qualifiers: the live tally tab (e.g. "Qualifier 1") already IS the

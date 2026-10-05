@@ -1747,6 +1747,79 @@
     #prize-pool-page.ppl-visible { opacity: 1; }
     #ppl-art { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; }
 
+    /* ── MAP WINNER PAGE — the winning team of the current map (picked in
+       Match Board's Today's Maps → Winner). Header is the shared
+       #rnk-header (RANK_FEATURES family), not owned by this page. Logo box,
+       flag and name are children of the team container (positions relative
+       to it); each has its own Edit-tab entry. ── */
+    #map-winner-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #map-winner-page.mwn-on { display: block; }
+    #map-winner-page.mwn-visible { opacity: 1; }
+    #mwn-team-back {
+      position: absolute;
+      left: 40px; top: 719px; width: 1378px; height: 270px;
+      background: url('/assets/Map%20Winner/namewinner_back.png') no-repeat 0 0 / 100% 100%;
+    }
+    #mwn-logo-box {
+      position: absolute;
+      left: 81px; top: 30px; width: 213px; height: 213px;
+      background: #121212;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #mwn-logo-box img { display: none; width: 100%; height: 100%; object-fit: contain; }
+    #mwn-flag {
+      position: absolute;
+      left: 13px; top: 32px; width: 58px; height: 29px;
+      display: none; object-fit: contain;
+    }
+    #mwn-name {
+      position: absolute;
+      left: 491px; top: 25px; width: 861px; height: 223px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      font-family: 'Teko', sans-serif;
+      font-weight: 700;
+      font-size: 116.67px; /* 28pt @ 300dpi */
+      line-height: 1;
+      color: #ffffff;
+      overflow: hidden;
+    }
+    #mwn-name .mwn-name-text { display: block; max-width: 100%; }
+
+    /* Stat details container (right side) — TOTAL POINTS / RANK POINTS /
+       KILL POINTS of the team that placed #1 on the current map. Children
+       are positioned relative to it. */
+    #mwn-stats-back {
+      position: absolute;
+      left: 1446px; top: 261px; width: 435px; height: 728px;
+      background: url('/assets/Map%20Winner/mapwinner_back.png') no-repeat 0 0 / 100% 100%;
+    }
+    #mwn-stats-back > div {
+      position: absolute;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      font-family: 'Teko', sans-serif;
+      line-height: 1;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    #mwn-stats-back .mwn-fit { display: block; }
+    #mwn-stats-title    { left: 12px;  top: 38px;  width: 408px; height: 47px;  font-weight: 700; font-size: 45.79px; color: #000000; } /* 10.99pt @ 300dpi */
+    #mwn-stats-total    { left: -1px;  top: 108px; width: 435px; height: 291px; font-weight: 700; font-size: 354.5px; color: #ffe800; }
+    #mwn-stats-rp-label { left: 31px;  top: 496px; width: 155px; height: 40px;  font-weight: 500; font-size: 27.63px; color: #e9e8e9; } /* 6.63pt */
+    #mwn-stats-kp-label { left: 247px; top: 496px; width: 155px; height: 40px;  font-weight: 500; font-size: 27.63px; color: #e9e8e9; }
+    #mwn-stats-rp       { left: 13px;  top: 539px; width: 192px; height: 143px; font-weight: 700; font-size: 168.42px; color: #ffffff; }
+    #mwn-stats-kp       { left: 231px; top: 539px; width: 192px; height: 143px; font-weight: 700; font-size: 168.42px; color: #ffffff; }
+
     /* ── FINAL TEAM PAGE ── */
     #final-team-page {
       position: absolute;
@@ -2857,6 +2930,16 @@
       </div>
     </div>
 
+    <!-- MAP WINNER -->
+    <div class="feature-card">
+      <div class="feature-card-label">Map Winner</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showMapWinnerScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideMapWinnerScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-mapwinner" onclick="toggleLocalPreview('mapwinner', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
     <!-- POST QUALIFIED -->
     <div class="feature-card">
       <div class="feature-card-label">Post Qualified</div>
@@ -3237,6 +3320,24 @@
     </div>
     <div id="prize-pool-page">
       <img id="ppl-art" src="/assets/fullscreeners/prizepool.png" alt="">
+    </div>
+    <div id="map-winner-page">
+      <div id="mwn-team-back">
+        <div id="mwn-logo-box">
+          <img id="mwn-logo-img" alt="">
+          <img id="mwn-logo-flag" alt="">
+        </div>
+        <img id="mwn-flag" alt="">
+        <div id="mwn-name"><span class="mwn-name-text"></span></div>
+      </div>
+      <div id="mwn-stats-back">
+        <div id="mwn-stats-title"><span class="mwn-fit">TOTAL POINTS</span></div>
+        <div id="mwn-stats-total"><span class="mwn-fit"></span></div>
+        <div id="mwn-stats-rp-label"><span class="mwn-fit">RANK POINTS</span></div>
+        <div id="mwn-stats-kp-label"><span class="mwn-fit">KILL POINTS</span></div>
+        <div id="mwn-stats-rp"><span class="mwn-fit"></span></div>
+        <div id="mwn-stats-kp"><span class="mwn-fit"></span></div>
+      </div>
     </div>
     <div id="final-team-page">
       <div class="ft-teambox ft-teambox-blue">
@@ -3707,6 +3808,14 @@
         if (msg.action === 'show') {
           document.getElementById('config-bar').classList.remove('debug-open');
           setTimeout(showPrizePoolScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('map_winner', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showMapWinnerScene, 100);
         } else if (msg.action === 'hide') hideActiveFeature();
       });
 
@@ -4446,15 +4555,28 @@
       document.getElementById('wtvc-stage').textContent = wtvcStageLabel(ms && ms.stage);
       const daymapEl = document.getElementById('wtvc-daymap');
       let daymapText = 'DAY ' + ((ms && ms.day) || 1) + ' | MAP ' + ((ms && ms.match) || 1);
+      let daymapGroup = '';
       // Groupstage only: append the live tally tab's own name (e.g. "A + B")
       // as the group label — reuses wtvcStandings.sheet, the SAME
       // liveTallyTab name already driving this scene's standings rows in
       // 'live' mode (see getWaitingTvcStandings()), rather than a second,
       // redundant /tally/state fetch.
       if (/groupstage/i.test((ms && ms.stage) || '') && wtvcStandings && wtvcStandings.sheet) {
-        daymapText += ' | GROUP ' + wtvcStandings.sheet;
+        daymapGroup = 'GROUP ' + wtvcStandings.sheet;
       }
       daymapEl.textContent = daymapText;
+      if (daymapGroup) {
+        /* One wrapper span — #wtvc-daymap is a flex box, which would
+           collapse the spaces around separate text/bold pieces. */
+        const wrap = document.createElement('span');
+        wrap.appendChild(document.createTextNode(daymapText + ' | '));
+        const b = document.createElement('b');
+        b.style.fontWeight = '700';
+        b.textContent = daymapGroup;
+        wrap.appendChild(b);
+        daymapEl.textContent = '';
+        daymapEl.appendChild(wrap);
+      }
       ovrFitText(daymapEl, 29.17, 15);
       wtvcTimerState = (ms && ms.timer) || WS_TIMER_DEFAULT;
     }
@@ -5100,9 +5222,26 @@
       if (stageEl) stageEl.textContent = _rnkStage;
       if (dayEl) dayEl.textContent = 'Day ' + _rnkDay;
       if (mapEl) {
-        mapEl.textContent = rnkIsQualifiers()
-          ? (_rnkLiveTallyTab || _rnkStage)
-          : ('Map ' + _rnkMatch + '/' + _rnkTodayMapsCount);
+        if (rnkIsQualifiers()) {
+          mapEl.textContent = _rnkLiveTallyTab || _rnkStage;
+        } else {
+          mapEl.textContent = 'Map ' + _rnkMatch + '/' + _rnkTodayMapsCount;
+          /* Groupstage only: "| GROUP A + B" in bold, the live tally tab's
+             own name (same source Waiting TVC's header and the in-game
+             scoreboard use). Wrapped in one span — #rnk-header-mapname is a
+             flex box, which would otherwise collapse the spaces around
+             the separate text/bold pieces. */
+          if (/groupstage/i.test(_rnkStage) && _rnkLiveTallyTab) {
+            const wrap = document.createElement('span');
+            wrap.appendChild(document.createTextNode(mapEl.textContent + ' | '));
+            const b = document.createElement('b');
+            b.style.fontWeight = '700';
+            b.textContent = 'Group ' + _rnkLiveTallyTab;
+            wrap.appendChild(b);
+            mapEl.textContent = '';
+            mapEl.appendChild(wrap);
+          }
+        }
       }
       if (mapEl)   ovrFitText(mapEl, 28.79, 14);
       if (stageEl) ovrFitText(document.getElementById('rnk-header-stageday'), 45.79, 22);
@@ -6127,6 +6266,170 @@
         new Promise(resolve => {
           setTimeout(() => {
             pplPage.classList.remove('ppl-on');
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       MAP WINNER — the team picked as winner of the current map (Match
+       Board → Today's Maps → Winner for map number `match`). Part of the
+       RANK_FEATURES family — shares #rnk-header, labeled "Map Winner".
+       Region (flag) comes from /api/groupstage-qualifiers by team name.
+       No winner picked = falls back to the team that placed #1 (see
+       mwnFetchData); the plate is hidden only if there's neither.
+    ════════════════════════════════════════════════ */
+    const mwnPage = document.getElementById('map-winner-page');
+    const mwnCard = document.getElementById('mwn-team-back');
+    let mwnCapRatio = null; /* Teko cap-height / font-size, measured once */
+
+    /* Returns { winner: {name, region}|null, stats: {total, rp, kp}|null }.
+       winner = Match Board's Winner pick for this map; stats = the team
+       that PLACED #1 on the current map (P column = 1, i.e. wins === 1,
+       falling back to highest placement points) from the same
+       /api/current-map-standings Map Ranking uses — deliberately not the
+       top scorer, and independent of the Winner pick. */
+    async function mwnFetchData() {
+      try {
+        const [msRes, qRes, cmRes] = await Promise.all([
+          fetch(buildUrl('/match/state'), { cache: 'no-store' }),
+          fetch(buildUrl('/api/groupstage-qualifiers?limit=all'), { cache: 'no-store' }),
+          fetch(buildUrl('/api/current-map-standings'), { cache: 'no-store' }),
+        ]);
+        const ms = msRes.ok ? await msRes.json() : null;
+        const idx = Math.max(1, parseInt(ms && ms.match, 10) || 1) - 1;
+        const m = ms && ms.todayMaps && ms.todayMaps[idx];
+        const name = String((m && m.winner) || '').trim();
+        let winner = null;
+        if (name) {
+          const q = qRes.ok ? await qRes.json() : null;
+          const hit = ((q && q.qualifiers) || []).find(t => String(t.name).toLowerCase() === name.toLowerCase());
+          winner = { name: name, region: (hit && hit.region) || '' };
+        }
+        const cm = cmRes.ok ? await cmRes.json() : null;
+        const teams = (cm && cm.teams) || [];
+        let top = teams.find(t => t.wins === 1) || null;
+        if (!top && teams.length) {
+          top = teams.slice().sort((a, b) => b.placementPoints - a.placementPoints || b.totalScore - a.totalScore)[0];
+          if (!(top.placementPoints > 0)) top = null;
+        }
+        const stats = top ? { total: top.totalScore, rp: top.placementPoints, kp: top.totalKills } : null;
+        /* No Winner picked in Match Board → default the team plate to the
+           team that placed #1, so the plate and the stats agree. */
+        if (!winner && top) winner = { name: top.name, region: top.region || '' };
+        return { winner: winner, stats: stats };
+      } catch (e) { return { winner: null, stats: null }; }
+    }
+
+    /* Shrink-to-fit for the stat boxes (a 3-digit total at 93pt overflows
+       its 435px box) — max size is whatever CSS / the Edit tab gives. */
+    function mwnFitStat(el) {
+      const txt = el.querySelector('.mwn-fit');
+      el.style.fontSize = '';
+      let size = parseFloat(getComputedStyle(el).fontSize) || 40;
+      /* width only — the big total's line box (line-height 1) is taller than its box, but the digit ink (cap height) fits */
+      while (txt.offsetWidth > el.clientWidth && size > 12) {
+        size -= 2;
+        el.style.fontSize = size + 'px';
+      }
+    }
+    function mwnRenderStats(stats) {
+      const box = document.getElementById('mwn-stats-back');
+      if (!stats) { box.style.display = 'none'; return; }
+      const set = (id, v) => { const el = document.getElementById(id); el.querySelector('.mwn-fit').textContent = ovrFmtNum(v); };
+      set('mwn-stats-total', stats.total);
+      set('mwn-stats-rp', stats.rp);
+      set('mwn-stats-kp', stats.kp);
+      box.style.display = '';
+      ['mwn-stats-title', 'mwn-stats-total', 'mwn-stats-rp-label', 'mwn-stats-kp-label', 'mwn-stats-rp', 'mwn-stats-kp']
+        .forEach(id => mwnFitStat(document.getElementById(id)));
+    }
+
+    function mwnProbe(url) {
+      return new Promise(resolve => {
+        const im = new Image();
+        im.onload = () => resolve(true);
+        im.onerror = () => resolve(false);
+        im.src = url;
+      });
+    }
+
+    /* Wrapped name, 5px between the visible lines: line-height = Teko's
+       cap height + 5px (not the font-size, which would leave ~30px of
+       empty ascender/descender space between all-caps-height lines).
+       Shrinks until it fits the box; the Edit tab's font size is the max. */
+    async function mwnFitName(el) {
+      if (mwnCapRatio === null) {
+        try { await document.fonts.load('700 100px Teko'); } catch (e) {}
+        const ctx = document.createElement('canvas').getContext('2d');
+        ctx.font = '700 100px Teko';
+        mwnCapRatio = (ctx.measureText('H').actualBoundingBoxAscent || 70) / 100;
+      }
+      const txt = el.querySelector('.mwn-name-text');
+      el.style.fontSize = '';
+      let size = parseFloat(getComputedStyle(el).fontSize) || 116.67;
+      const apply = s => { el.style.fontSize = s + 'px'; el.style.lineHeight = (mwnCapRatio * s + 5) + 'px'; };
+      apply(size);
+      while ((txt.offsetHeight > el.clientHeight || txt.scrollWidth > el.clientWidth) && size > 30) apply(size -= 2);
+    }
+
+    async function mwnRender(data) {
+      mwnRenderStats(data && data.stats);
+      const d = data && data.winner;
+      if (!d) { mwnCard.style.display = 'none'; return; }
+      const flagUrl = d.region ? '/flag/' + encodeURIComponent(d.region) + '_flag.png' : '';
+      const [hasLogo, hasFlag] = await Promise.all([
+        mwnProbe('/logos/' + encodeURIComponent(d.name) + '.png'),
+        flagUrl ? mwnProbe(flagUrl) : Promise.resolve(false),
+      ]);
+      if (activeFeature !== 'mapwinner') return;
+      const logoImg = document.getElementById('mwn-logo-img');
+      const logoFlag = document.getElementById('mwn-logo-flag');
+      const flag = document.getElementById('mwn-flag');
+      logoImg.style.display = logoFlag.style.display = flag.style.display = 'none';
+      if (hasLogo) {
+        logoImg.src = '/logos/' + encodeURIComponent(d.name) + '.png';
+        logoImg.style.display = 'block';
+        if (hasFlag) { flag.src = flagUrl; flag.style.display = 'block'; }
+      } else if (hasFlag) {
+        /* No logo: the flag takes the logo square instead. */
+        logoFlag.src = flagUrl;
+        logoFlag.style.display = 'block';
+      }
+      const nameEl = document.getElementById('mwn-name');
+      nameEl.querySelector('.mwn-name-text').textContent = d.name;
+      mwnCard.style.display = '';
+      await mwnFitName(nameEl);
+    }
+    const mwnLivePoll = rnkMakeLivePoll(mwnFetchData, mwnRender, 'mapwinner');
+
+    async function showMapWinnerScene() {
+      const dataPromise = mwnFetchData();
+      await transitionTo('mapwinner');
+      if (activeFeature !== 'mapwinner') return; /* superseded mid-await */
+      rnkShowHeader('Map Winner');
+      rnkShowBgVideo();
+      mwnPage.classList.add('mwn-on');
+      void mwnPage.offsetWidth; /* force reflow so the opacity transition runs */
+      mwnPage.classList.add('mwn-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'mapwinner') return; /* superseded while awaiting data */
+      await mwnRender(data);
+      mwnLivePoll.start(data);
+    }
+
+    function hideMapWinnerScene() {
+      activeFeature = null;
+      mwnLivePoll.stop();
+      mwnPage.classList.remove('mwn-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            mwnPage.classList.remove('mwn-on');
             rnkHideBgVideo();
             resolve();
           }, 420);
@@ -7640,7 +7943,7 @@
        header, only its own scoreboard content. Same precedent as
        cpDuringPostTransition above. */
     let duringRankTransition = false;
-    const RANK_FEATURES = new Set(['overallranking', 'mapranking', 'slotteams', 'groupranking', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'tournamentschedule', 'prizepool', 'postqualified']);
+    const RANK_FEATURES = new Set(['overallranking', 'mapranking', 'slotteams', 'groupranking', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'tournamentschedule', 'prizepool', 'mapwinner', 'postqualified']);
 
     /* Keeps server-side state.fullscreenScene.<key> (and thus the dashboard's
        Control-tab board toggles/live indicator) in sync with board
@@ -7730,6 +8033,7 @@
       if (prev === 'maprotation') return hideMapRotationScene();
       if (prev === 'tournamentschedule') return hideTournamentScheduleScene();
       if (prev === 'prizepool') return hidePrizePoolScene();
+      if (prev === 'mapwinner') return hideMapWinnerScene();
       if (prev === 'highlights') return hideHighlights();
       if (prev === 'mvp')       return hideMvpScene();
       if (prev === 'credits')   return hideCreditsScene();
@@ -8485,6 +8789,7 @@
           else if (scene.activeFeature === 'maprotation') showMapRotationScene();
           else if (scene.activeFeature === 'tournamentschedule') showTournamentScheduleScene();
           else if (scene.activeFeature === 'prizepool') showPrizePoolScene();
+          else if (scene.activeFeature === 'mapwinner') showMapWinnerScene();
           else if (scene.activeFeature === 'highlights') showHighlights();
           else if (scene.activeFeature === 'mvp')        showMvpScene();
           else if (scene.activeFeature === 'credits')    showCreditsScene();
@@ -8527,6 +8832,7 @@
         if (feature === 'maprotation') showMapRotationScene();
         if (feature === 'tournamentschedule') showTournamentScheduleScene();
         if (feature === 'prizepool') showPrizePoolScene();
+        if (feature === 'mapwinner') showMapWinnerScene();
         if (feature === 'highlights') showHighlights();
         if (feature === 'mvp')        showMvpScene();
         if (feature === 'credits')    showCreditsScene();
@@ -8544,7 +8850,7 @@
     window.previewTrigger = function(event, action) {
       document.querySelectorAll('.dbg-btn.preview').forEach(b => b.classList.remove('active'));
       if (action === 'show') {
-        const btnMap = { post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', map_ranking: 'preview-mapranking', slot_teams: 'preview-slotteams', group_ranking: 'preview-groupranking', qualified_teams_1: 'preview-qualifiedteams1', qualified_teams_2: 'preview-qualifiedteams2', map_rotation: 'preview-maprotation', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool' };
+        const btnMap = { post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', map_ranking: 'preview-mapranking', slot_teams: 'preview-slotteams', group_ranking: 'preview-groupranking', qualified_teams_1: 'preview-qualifiedteams1', qualified_teams_2: 'preview-qualifiedteams2', map_rotation: 'preview-maprotation', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool', map_winner: 'preview-mapwinner' };
         const btn = document.getElementById(btnMap[event]);
         if (btn) btn.classList.add('active');
       }
@@ -8561,6 +8867,7 @@
         if (event === 'map_rotation') showMapRotationScene();
         if (event === 'tournament_schedule') showTournamentScheduleScene();
         if (event === 'prize_pool') showPrizePoolScene();
+        if (event === 'map_winner') showMapWinnerScene();
         if (event === 'highlights') showHighlights();
         if (event === 'mvp')        showMvpScene();
         if (event === 'final_team') showFinalTeam();

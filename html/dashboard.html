@@ -1613,6 +1613,7 @@
     map_rotation:      'maprotation',
     tournament_schedule: 'tournamentschedule',
     prize_pool:        'prizepool',
+    map_winner:        'mapwinner',
     post_qualified:    'postqualified',
     map_highlights:    'maphighlights',
   };
@@ -1632,7 +1633,7 @@
     groupranking: 'Group Ranking',
     qualifiedteams1: 'Qualified Teams 1', qualifiedteams2: 'Qualified Teams 2',
     maprotation: 'Map Rotation',
-    tournamentschedule: 'Tournament Schedule', prizepool: 'Prize Pool',
+    tournamentschedule: 'Tournament Schedule', prizepool: 'Prize Pool', mapwinner: 'Map Winner',
     postqualified: 'Post Qualified', maphighlights: 'Map Highlights',
   };
 
@@ -1965,6 +1966,7 @@
         { name: 'Map Rotation', show: '/overlay/map_rotation/show', hide: '/overlay/map_rotation/hide' },
         { name: 'Tournament Schedule', show: '/overlay/tournament_schedule/show', hide: '/overlay/tournament_schedule/hide' },
         { name: 'Prize Pool', show: '/overlay/prize_pool/show', hide: '/overlay/prize_pool/hide' },
+        { name: 'Map Winner', show: '/overlay/map_winner/show', hide: '/overlay/map_winner/hide' },
         { name: 'Post Qualified', show: '/overlay/post_qualified/show', hide: '/overlay/post_qualified/hide' },
         { name: 'Map Highlights', show: '/overlay/map_highlights/show', hide: '/overlay/map_highlights/hide' },
       ],
@@ -3486,6 +3488,36 @@
     { group: 'Map Rotation Cards', id: '#mrr-cards', name: 'Map Cards Area' },
   ];
 
+  /* ── Map Winner (Fullscreen.html) element defaults ────────────────────
+     Team container is canvas-absolute; logo box / flag / name are its
+     children, so THEIR left/top are relative to the container. ── */
+  var MWN_DEFAULTS = {
+    '#mwn-team-back': { left: 40,  top: 719, width: 1378, height: 270 },
+    '#mwn-logo-box':  { left: 81,  top: 30,  width: 213,  height: 213 },
+    '#mwn-flag':      { left: 13,  top: 32,  width: 58,   height: 29  },
+    '#mwn-name':      { left: 491, top: 25,  width: 861,  height: 223, fontSize: 116.67 },
+    '#mwn-stats-back':     { left: 1446, top: 261, width: 435, height: 728 },
+    '#mwn-stats-title':    { left: 12,  top: 38,  width: 408, height: 47,  fontSize: 45.79 },
+    '#mwn-stats-total':    { left: -1,  top: 108, width: 435, height: 291, fontSize: 354.5 },
+    '#mwn-stats-rp-label': { left: 31,  top: 496, width: 155, height: 40,  fontSize: 27.63 },
+    '#mwn-stats-kp-label': { left: 247, top: 496, width: 155, height: 40,  fontSize: 27.63 },
+    '#mwn-stats-rp':       { left: 13,  top: 539, width: 192, height: 143, fontSize: 168.42 },
+    '#mwn-stats-kp':       { left: 231, top: 539, width: 192, height: 143, fontSize: 168.42 },
+  };
+  var MWN_ELEMENTS = [
+    { group: 'Map Winner Team Container', id: '#mwn-team-back', name: 'Team Container' },
+    { group: 'Map Winner Logo',           id: '#mwn-logo-box',  name: 'Team Logo Box' },
+    { group: 'Map Winner Flag',           id: '#mwn-flag',      name: 'Team Flag' },
+    { group: 'Map Winner Name',           id: '#mwn-name',      name: 'Team Name' },
+    { group: 'Map Winner Stats Container', id: '#mwn-stats-back',     name: 'Stats Container' },
+    { group: 'Map Winner Stats Title',     id: '#mwn-stats-title',    name: 'TOTAL POINTS Label' },
+    { group: 'Map Winner Stats Total',     id: '#mwn-stats-total',    name: 'Total Points Value' },
+    { group: 'Map Winner Stats RP Label',  id: '#mwn-stats-rp-label', name: 'RANK POINTS Label' },
+    { group: 'Map Winner Stats KP Label',  id: '#mwn-stats-kp-label', name: 'KILL POINTS Label' },
+    { group: 'Map Winner Stats RP',        id: '#mwn-stats-rp',       name: 'Rank Points Value' },
+    { group: 'Map Winner Stats KP',        id: '#mwn-stats-kp',       name: 'Kill Points Value' },
+  ];
+
   /* ── Tournament Schedule (Fullscreen.html) element defaults —
      a single full-bleed PNG, nothing else. ── */
   var TSC_DEFAULTS = {
@@ -3734,6 +3766,15 @@
       elements:    PPL_ELEMENTS,
       defaults:    PPL_DEFAULTS,
       showFn:      'showPrizePoolScene',
+    },
+    fullscreen_mapwinner: {
+      label:       'Map Winner · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_mapwinner',
+      elements:    MWN_ELEMENTS,
+      defaults:    MWN_DEFAULTS,
+      showFn:      'showMapWinnerScene',
     },
     fullscreen_postqualified: {
       label:       'Post Qualified · Fullscreen',

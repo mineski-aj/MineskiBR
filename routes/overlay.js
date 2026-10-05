@@ -300,6 +300,21 @@ router.get('/overlay/prize_pool/hide', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
+// GET /overlay/map_winner/show — rank-header family (same as Prize Pool
+// above): just activeFeature + the feature's own SSE event.
+router.get('/overlay/map_winner/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'mapwinner';
+  state.overlayClients.forEach(c => { try { c.write('event: map_winner\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/map_winner/hide
+router.get('/overlay/map_winner/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: map_winner\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
 // GET /overlay/post_qualified/show — same rank-header family as Overall/
 // Map/Group Ranking, Map Rotation, Tournament Schedule, Prize Pool above:
 // no matchboard/middleboard touching here, Fullscreen.html's own

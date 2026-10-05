@@ -36,7 +36,7 @@ const KNOWN_EVENTS = [
   'featuretoggle', 'fights', 'final_team', 'fs_debugoff', 'fs_hide',
   'herolineup', 'highlights', 'hrm', 'led_draftpred',
   'led_fight', 'led_health', 'led_side', 'led_win',
-  'group_ranking', 'map_highlights', 'map_ranking', 'map_rotation', 'overall_ranking', 'match', 'matchboard', 'middleboard', 'mvp',
+  'group_ranking', 'map_highlights', 'map_winner', 'map_ranking', 'map_rotation', 'overall_ranking', 'match', 'matchboard', 'middleboard', 'mvp',
   'post_items', 'post_qualified', 'prize_pool', 'qualified_teams_1', 'qualified_teams_2', 'reload',
   'scoreboard', 'seat_arrangement', 'slot_teams', 'sponsorboxes', 'stylepatch', 'tally', 'team_hexagon', 'team_lineup_blue',
   'team_lineup_red', 'today_schedule', 'tomorrow_schedule', 'tournament_schedule', 'waiting_timer',
