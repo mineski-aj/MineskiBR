@@ -71,8 +71,8 @@
   "game": 1,
   "swapped": false,
   "official": true,
-  "week": 1,
-  "day": 1,
+  "week": 2,
+  "day": 4,
   "patch": " ",
   "hosts": [
     "Denisse",
@@ -172,8 +172,8 @@
   "countdownLabelAuto": true,
   "timer": {
     "running": true,
-    "endAt": 1790428799236,
-    "remaining": 1560
+    "endAt": 1791119880617,
+    "remaining": 720
   },
   "map": "Isolated",
   "enCasters": [
@@ -193,22 +193,22 @@
     {
       "time": "",
       "mapName": "Blackout",
-      "winner": ""
+      "done": false
     },
     {
       "time": "",
       "mapName": "Isolated",
-      "winner": ""
+      "done": false
     },
     {
       "time": "",
       "mapName": "Blackout",
-      "winner": ""
+      "done": false
     },
     {
       "time": "",
       "mapName": "Isolated",
-      "winner": ""
+      "done": false
     }
   ],
   "tomorrowMapsCount": 3,
