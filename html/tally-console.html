@@ -364,6 +364,7 @@
     <nav class="side-nav">
       <button class="side-nav-btn active" data-page="dashboard" onclick="switchPage('dashboard')"><span class="side-nav-icon">▤</span>Dashboard</button>
       <button class="side-nav-btn" data-page="roster" onclick="switchPage('roster')"><span class="side-nav-icon">☰</span>Roster</button>
+      <button class="side-nav-btn" data-page="stats" onclick="switchPage('stats')"><span class="side-nav-icon">▥</span>Stats</button>
       <button class="side-nav-btn" data-page="settings" onclick="switchPage('settings')"><span class="side-nav-icon">⚙</span>Settings</button>
       <button class="side-nav-btn" data-page="tally" onclick="switchPage('tally')"><span class="side-nav-icon">⇄</span>Tally</button>
     </nav>
@@ -456,6 +457,26 @@
         </div>
       </div>
 
+      <!-- STATS: read-only rankings derived from the Tally sheet (GET
+           /api/tally-stats, lib/tallyRoster.js getStats()). Scope buttons
+           beside the title pick Groupstage / Playoffs / Grand Finals /
+           Overall (Overall never includes Qualifiers); the sub-tab bar
+           below picks which stat. -->
+      <div id="page-stats" class="page" hidden>
+        <div class="section">
+          <div class="section-head">
+            <h2><span class="dot"></span>Stats</h2>
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+              <span class="subtext" id="statsStatus" style="margin:0;"></span>
+              <div class="btn-row" id="statsScopeBar"></div>
+            </div>
+          </div>
+          <div class="btn-row" id="statsTabBar" style="margin-bottom:12px;"></div>
+          <div class="btn-row" id="statsViewBar" style="margin-bottom:16px;"></div>
+          <div id="statsBody"></div>
+        </div>
+      </div>
+
       <!-- SETTINGS -->
       <div id="page-settings" class="page" hidden>
         <!-- TALLY DATA SOURCE: which Google Sheet the Tally tab reads
@@ -513,6 +534,7 @@ function switchPage(page){
   currentPage = page;
   document.querySelectorAll('.page').forEach(el => { el.hidden = (el.id !== 'page-' + page); });
   document.querySelectorAll('.side-nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+  if(page === 'stats') fetchStatsData();
 }
 
 // "Live" is a shared, manually-set flag for which Tally sheet tab is
@@ -558,6 +580,7 @@ async function fetchTallyExternal(){
     }
     renderTally();
     fetchRosterData(); // Roster is Tally-derived — refresh it on the same poll
+    if(currentPage === 'stats') fetchStatsData(); // same for Stats, only while it's open
     fetchGroupStageLeaderboard(); // same for the Dashboard's Group Leaderboard
     renderLiveBox(); // sidebar's tab list can change (renamed/added tabs)
     renderDashboardMatchSheet(); // and so can the live tab's own contents
@@ -904,6 +927,115 @@ function renderRoster(){
     </div>
   `).join('');
 }
+
+// ---- Stats page ----
+// Ranked stats for one scope at a time, fetched from GET /api/tally-stats
+// (server picks the sheets: Groupstage = the 6 crossover tabs, Overall =
+// those + Playoffs + Grand Finals, never Qualifiers). Everything below
+// (tab/view/ranking) is computed client-side from that one payload.
+const STATS_SCOPES = [
+  { value: 'groupstage', label: 'Groupstage' },
+  { value: 'playoffs', label: 'Playoffs' },
+  { value: 'grandfinals', label: 'Grand Finals' },
+  { value: 'overall', label: 'Overall' },
+];
+const STATS_TABS = [
+  { value: 'totalkills', label: 'Total Kills', hasPlayers: true },
+  { value: 'killspermap', label: 'Kills / Map', hasPlayers: true },
+  { value: 'killplacement', label: 'Kill / Placement Pt Ratio', hasPlayers: false },
+];
+let statsScope = 'overall';
+let statsTab = 'totalkills';
+let statsMap = 'all'; // map NAME (from the sheet's dropdown) or 'all' — Kills / Map tab only
+let statsView = 'teams'; // 'teams' | 'players' — only for tabs with hasPlayers
+let statsData = null;
+async function fetchStatsData(){
+  try{
+    const res = await fetch('/api/tally-stats?scope=' + encodeURIComponent(statsScope), { cache: 'no-store' });
+    const data = await res.json();
+    if(data.scope !== statsScope) return; // user switched scope mid-fetch
+    statsData = data;
+    renderStats();
+  }catch(e){ /* local server unreachable; keep showing last-known stats */ }
+}
+function setStatsScope(v){ statsScope = v; statsData = null; renderStats(); fetchStatsData(); }
+function setStatsTab(v){ statsTab = v; renderStats(); }
+function setStatsMap(v){ statsMap = v; renderStats(); }
+function setStatsView(v){ statsView = v; renderStats(); }
+function statsBtns(options, active, fn){
+  return options.map(o => `<button class="small ${active === o.value ? 'active' : ''}" onclick="${fn}('${o.value}')">${escapeHtml(o.label)}</button>`).join('');
+}
+function statsRankTable(headers, rows){
+  return `<table><thead><tr>${headers.map((h,i) => `<th style="${i === 0 ? 'width:50px;' : (i > 1 ? 'text-align:right;' : '')}">${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>`;
+}
+function statsRow(rank, name, team, cells){
+  return `<tr><td style="color:var(--text-faint);font-family:'JetBrains Mono',monospace;">${rank}</td>
+    <td><span class="swatch" style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:8px;background:${colorForTeam(team)}"></span>${escapeHtml(name)}${team !== name ? `<span style="color:var(--text-faint);margin-left:8px;font-size:12px;">${escapeHtml(team)}</span>` : ''}</td>
+    ${cells.map(c => `<td style="text-align:right;font-family:'JetBrains Mono',monospace;">${c}</td>`).join('')}</tr>`;
+}
+function renderStats(){
+  document.getElementById('statsScopeBar').innerHTML = statsBtns(STATS_SCOPES, statsScope, 'setStatsScope');
+  document.getElementById('statsTabBar').innerHTML = statsBtns(STATS_TABS, statsTab, 'setStatsTab');
+  const tab = STATS_TABS.find(t => t.value === statsTab);
+  const viewBar = document.getElementById('statsViewBar');
+  viewBar.innerHTML = tab.hasPlayers ? statsBtns([{ value: 'teams', label: 'Per Team' }, { value: 'players', label: 'Per Player' }], statsView, 'setStatsView') : '';
+  // Kills / Map gets a map-name picker (names come from the sheet's
+  // per-map dropdown; only maps that have actually been played show up).
+  const mapNames = (statsData && statsData.mapNames) || [];
+  if(statsMap !== 'all' && !mapNames.includes(statsMap)) statsMap = 'all';
+  if(statsTab === 'killspermap'){
+    viewBar.innerHTML += '<span style="width:14px;"></span>' + statsBtns([{ value: 'all', label: 'All Maps' }].concat(mapNames.map(n => ({ value: n, label: n }))), statsMap, 'setStatsMap');
+  }
+  const body = document.getElementById('statsBody');
+  const statusEl = document.getElementById('statsStatus');
+  if(!statsData){ body.innerHTML = '<span class="empty-note">Loading stats from the Tally sheet…</span>'; statusEl.textContent = ''; return; }
+  statusEl.textContent = statsData.error && statsData.teams.length === 0
+    ? `⚠ Could not load the Tally sheet (${statsData.error})`
+    : `From: ${statsData.sourceSheets.join(', ') || 'no sheets yet'}`;
+  const teams = statsData.teams.filter(t => t.mapsPlayed > 0 || t.totalKills > 0);
+  if(teams.length === 0){ body.innerHTML = '<span class="empty-note">No data for this scope yet.</span>'; return; }
+  const byName = (a, b) => a.name.localeCompare(b.name);
+  const fmt = n => n.toFixed(2);
+  let html;
+  if(statsTab === 'killplacement'){
+    // Kill Points ÷ Placement Points; a team with 0 placement points has no
+    // finite ratio, so it sorts last and shows "—".
+    const rows = teams.map(t => ({ t, r: t.placementPoints > 0 ? t.killPoints / t.placementPoints : null }))
+      .sort((a, b) => (b.r === null ? -1 : b.r) - (a.r === null ? -1 : a.r) || byName(a.t, b.t));
+    // % = that stat's share of kill pts + placement pts (the team's total).
+    const pct = (n, t) => t > 0 ? Math.round(n / t * 100) + '%' : '—';
+    html = statsRankTable(['#', 'Team', 'Kill Pts', 'Kill %', 'Placement Pts', 'Placement %', 'Ratio'],
+      rows.map((x, i) => { const tot = x.t.killPoints + x.t.placementPoints;
+        return statsRow(i + 1, x.t.name, x.t.name, [formatTallyNum(x.t.killPoints), pct(x.t.killPoints, tot), formatTallyNum(x.t.placementPoints), pct(x.t.placementPoints, tot), x.r === null ? '—' : `<b style="color:var(--accent);">${fmt(x.r)}</b>`]); }));
+  } else if(statsView === 'players'){
+    let players = [];
+    teams.forEach(t => t.players.forEach(p => {
+      if(statsTab === 'killspermap' && statsMap !== 'all'){
+        const bm = p.byMap[statsMap];
+        if(bm) players.push({ name: p.name, team: t.name, kills: bm.kills, maps: bm.played });
+      } else players.push({ name: p.name, team: t.name, kills: p.kills, maps: p.mapsPlayed });
+    }));
+    if(statsTab === 'killspermap'){
+      players = players.filter(p => p.maps > 0).map(p => ({ ...p, v: p.kills / p.maps })).sort((a, b) => b.v - a.v || b.kills - a.kills || byName(a, b));
+      html = statsRankTable(['#', 'Player', 'Kills', 'Maps', 'Kills / Map'], players.map((p, i) => statsRow(i + 1, p.name, p.team, [p.kills, p.maps, `<b style="color:var(--accent);">${fmt(p.v)}</b>`])));
+    } else {
+      players.sort((a, b) => b.kills - a.kills || byName(a, b));
+      html = statsRankTable(['#', 'Player', 'Maps', 'Total Kills'], players.map((p, i) => statsRow(i + 1, p.name, p.team, [p.maps, `<b style="color:var(--accent);">${p.kills}</b>`])));
+    }
+  } else if(statsTab === 'killspermap'){
+    const rows = teams.map(t => {
+      if(statsMap === 'all') return { name: t.name, totalKills: t.totalKills, mapsPlayed: t.mapsPlayed };
+      const bm = t.byMap[statsMap];
+      return bm ? { name: t.name, totalKills: bm.kills, mapsPlayed: bm.played } : null;
+    }).filter(t => t && t.mapsPlayed > 0).map(t => ({ ...t, v: t.totalKills / t.mapsPlayed })).sort((a, b) => b.v - a.v || b.totalKills - a.totalKills || byName(a, b));
+    html = statsRankTable(['#', 'Team', 'Kills', 'Maps', 'Kills / Map'], rows.map((t, i) => statsRow(i + 1, t.name, t.name, [t.totalKills, t.mapsPlayed, `<b style="color:var(--accent);">${fmt(t.v)}</b>`])));
+  } else {
+    const rows = teams.slice().sort((a, b) => b.totalKills - a.totalKills || byName(a, b));
+    html = statsRankTable(['#', 'Team', 'Maps', 'Total Kills'], rows.map((t, i) => statsRow(i + 1, t.name, t.name, [t.mapsPlayed, `<b style="color:var(--accent);">${t.totalKills}</b>`])));
+  }
+  body.innerHTML = html;
+}
+
 function formatTallyNum(n){ return n % 1 === 0 ? String(n) : n.toFixed(2); }
 
 // The Dashboard's Group Leaderboard — sourced from the Tally sheet's

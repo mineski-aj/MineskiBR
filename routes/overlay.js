@@ -5,6 +5,7 @@ const path    = require('path');
 const router  = express.Router();
 const state   = require('../lib/state');
 const matchState = require('../lib/matchState');
+const elimsMap = require('../lib/elimsMap');
 
 // GET /api/player-photos — basenames with both FRONT and VICTORY photos available
 const PHOTOS_DIR = path.join(__dirname, '..', 'photos');
@@ -284,6 +285,143 @@ router.get('/overlay/map_rotation/show', (req, res) => {
 router.get('/overlay/map_rotation/hide', (req, res) => {
   state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: map_rotation\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// Eliminations/Map — GET/POST the chosen map (dashboard Control tab).
+// POST re-broadcasts on the scene's own event with action 'refresh' so a
+// scene that's already on screen re-ranks without a hide/show.
+router.get('/overlay/elims_map/selection', (req, res) => {
+  res.set({ "Cache-Control": "no-store" }).json({ map: elimsMap.get(), maps: elimsMap.ELIMS_MAPS });
+});
+router.post('/overlay/elims_map/selection', (req, res) => {
+  const map = elimsMap.set(String((req.body || {}).map || ''));
+  if (!map) return res.status(400).json({ ok: false, error: 'unknown map' });
+  state.overlayClients.forEach(c => { try { c.write('event: elims_map\ndata: {"action":"refresh"}\n\n'); } catch {} });
+  res.json({ ok: true, map });
+});
+
+// GET /overlay/elims_map/show
+router.get('/overlay/elims_map/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'elimsmap';
+  state.overlayClients.forEach(c => { try { c.write('event: elims_map\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/elims_map/hide
+router.get('/overlay/elims_map/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: elims_map\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/elim_leaders/show
+router.get('/overlay/elim_leaders/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'elimleaders';
+  state.overlayClients.forEach(c => { try { c.write('event: elim_leaders\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/elim_leaders/hide
+router.get('/overlay/elim_leaders/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: elim_leaders\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/group_elim_leaders/show
+router.get('/overlay/group_elim_leaders/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'groupelimleaders';
+  state.overlayClients.forEach(c => { try { c.write('event: group_elim_leaders\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/group_elim_leaders/hide
+router.get('/overlay/group_elim_leaders/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: group_elim_leaders\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// Team Map Elims — own map pick (independent of Eliminations/Map's), same
+// GET/POST + 'refresh' push pattern as /overlay/elims_map/selection.
+router.get('/overlay/team_map_elims/selection', (req, res) => {
+  res.set({ "Cache-Control": "no-store" }).json({ map: elimsMap.get('team_map_elims'), maps: elimsMap.ELIMS_MAPS });
+});
+router.post('/overlay/team_map_elims/selection', (req, res) => {
+  const map = elimsMap.set(String((req.body || {}).map || ''), 'team_map_elims');
+  if (!map) return res.status(400).json({ ok: false, error: 'unknown map' });
+  state.overlayClients.forEach(c => { try { c.write('event: team_map_elims\ndata: {"action":"refresh"}\n\n'); } catch {} });
+  res.json({ ok: true, map });
+});
+
+// GET /overlay/team_map_elims/show
+router.get('/overlay/team_map_elims/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'teammapelims';
+  state.overlayClients.forEach(c => { try { c.write('event: team_map_elims\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/team_map_elims/hide
+router.get('/overlay/team_map_elims/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: team_map_elims\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/team_point_percent/show
+router.get('/overlay/team_point_percent/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'teampointpct';
+  state.overlayClients.forEach(c => { try { c.write('event: team_point_percent\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/team_point_percent/hide
+router.get('/overlay/team_point_percent/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: team_point_percent\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/qual_elim_leaders/show
+router.get('/overlay/qual_elim_leaders/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'qualelimleaders';
+  state.overlayClients.forEach(c => { try { c.write('event: qual_elim_leaders\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/qual_elim_leaders/hide
+router.get('/overlay/qual_elim_leaders/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: qual_elim_leaders\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/total_team_elims/show
+router.get('/overlay/total_team_elims/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'totalteamelims';
+  state.overlayClients.forEach(c => { try { c.write('event: total_team_elims\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/total_team_elims/hide
+router.get('/overlay/total_team_elims/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: total_team_elims\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/group_team_elims/show
+router.get('/overlay/group_team_elims/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'groupteamelims';
+  state.overlayClients.forEach(c => { try { c.write('event: group_team_elims\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/group_team_elims/hide
+router.get('/overlay/group_team_elims/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: group_team_elims\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 

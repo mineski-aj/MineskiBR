@@ -9,9 +9,9 @@
 // change — only the one line that used to say `new EventSource(...)`.
 // Bump on every change to overlay-shared-worker.js (new KNOWN_EVENTS entry,
 // logic change, etc.) — see the comment at its `new SharedWorker(...)` call
-// below for why this exists. Current bump: added 'qualified_teams_1' /
-// 'qualified_teams_2' (Qualified Teams 1/2 scenes added).
-const OVERLAY_WORKER_VERSION = 31;
+// below for why this exists. Current bump: added 'total_team_elims' + 'group_team_elims' (Total/Group Team Elims scenes); before that 'qual_elim_leaders' (Qualifier Elim Leaders scene); before that 'team_point_percent' (Team Point Percent scene); before that 'team_map_elims' (Team Map Elims scene); before that 'group_elim_leaders' (Group Elim Leaders scene); before that 'elim_leaders' (Total Elim Leaders
+// scene); before that 'elims_map' (Eliminations/Map scene), before that 'qualified_teams_1' / 'qualified_teams_2'.
+const OVERLAY_WORKER_VERSION = 38;
 
 function createOverlaySSE() {
   if (typeof SharedWorker === 'undefined') {

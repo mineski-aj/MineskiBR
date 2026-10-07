@@ -31,9 +31,66 @@ const express = require('express');
 const router = express.Router();
 const externalTally = require('../lib/externalTally');
 const tallyRoster = require('../lib/tallyRoster');
+const elimsMap = require('../lib/elimsMap');
 
 router.get('/api/tally-roster', function (req, res) {
   res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getRosterWithSummaries());
+});
+
+// GET /api/tally-stats?scope=groupstage|playoffs|grandfinals|overall
+// (default overall; never includes Qualifiers). Powers the Tally console's
+// Stats page — see lib/tallyRoster.js's getStats().
+router.get('/api/tally-stats', function (req, res) {
+  res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getStats(String(req.query.scope || 'overall')));
+});
+
+// GET /api/eliminations-map[?map=Blackout] — top 5 players by kills on one
+// map (defaults to the Control tab's saved pick, lib/elimsMap.js). Powers
+// Fullscreen.html's Eliminations/Map scene.
+router.get('/api/eliminations-map', function (req, res) {
+  const map = req.query.map || elimsMap.get();
+  res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getTopPlayersOnMap(map, 5));
+});
+
+// GET /api/total-elim-leaders — top 5 players by total kills across every
+// tally sheet. Powers Fullscreen.html's Total Elim Leaders scene.
+router.get('/api/total-elim-leaders', function (req, res) {
+  res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getTopPlayersTotal(5));
+});
+
+// GET /api/group-elim-leaders — same as total-elim-leaders but counting only
+// the Groupstage crossover sheets (A + B, C + D, ...). Powers Group Elim Leaders.
+router.get('/api/group-elim-leaders', function (req, res) {
+  res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getTopPlayersTotal(5, 'groupstage'));
+});
+
+// GET /api/team-map-elims[?map=Blackout] — top 5 TEAMS by kills on one map
+// (defaults to Team Map Elims' own saved pick). Powers Team Map Elims.
+router.get('/api/team-map-elims', function (req, res) {
+  const map = req.query.map || elimsMap.get('team_map_elims');
+  res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getTopTeamsOnMap(map, 5));
+});
+
+// GET /api/team-point-percent — top 5 teams by total points (Overall scope)
+// with their kill-point / placement-point split. Powers Team Point Percent.
+router.get('/api/team-point-percent', function (req, res) {
+  res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getTopTeamsByPoints(5));
+});
+
+// GET /api/qualifier-elim-leaders — same as total-elim-leaders but counting
+// only the Qualifier 1..N tabs. Powers Qualifier Elim Leaders.
+router.get('/api/qualifier-elim-leaders', function (req, res) {
+  res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getTopPlayersTotal(5, 'qualifiers'));
+});
+
+// GET /api/total-team-elims — top 5 TEAMS by total kills across every tally
+// sheet. Powers Total Team Elims. /api/group-team-elims is the same limited
+// to the Groupstage crossover tabs. Powers Group Team Elims.
+router.get('/api/total-team-elims', function (req, res) {
+  res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getTopTeamsTotalKills(5, 'all'));
+});
+router.get('/api/group-team-elims', function (req, res) {
+  res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getTopTeamsTotalKills(5, 'groupstage'));
 });
 
 router.get('/api/groupstage-qualifiers', function (req, res) {
@@ -85,6 +142,7 @@ router.get(/^\/api\/tab(\d+)$/, function (req, res) {
     tab: n,
     name: sheet.name,
     headerGroups: sheet.headerGroups,
+    mapNames: sheet.mapNames,
     subHeader: sheet.subHeader,
     dataRows: sheet.dataRows,
     fetchedAt: data.fetchedAt,

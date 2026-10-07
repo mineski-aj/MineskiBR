@@ -1736,6 +1736,553 @@
       text-transform: uppercase;
     }
 
+    /* ── ELIMINATIONS / MAP PAGE — top 5 players by kills on the map picked
+       in the dashboard's Control tab (GET /api/eliminations-map). Part of
+       the RANK_FEATURES family: header is the shared #rnk-header, labeled
+       "ELIMINATIONS/MAP". The map box (#ek-mapbox) is the Waiting TVC map
+       card (<map>_waiting.png + maplabel_waiting.png) scaled 521→607px
+       wide. The 5 cards are static markup (#ek-card-1..5); everything
+       inside a card is positioned relative to it, in the design's own
+       coordinates (the card art is 297×494). Cards flip in (rotateY) on a
+       stagger — same cadence/ease as Map Rotation's deal-in. ── */
+    #elims-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #elims-page.ek-on { display: block; }
+    #elims-page.ek-visible { opacity: 1; }
+    #ek-mapbox { position: absolute; left: 159px; top: 267px; width: 607px; height: 136px; }
+    #ek-mapbox-bg, #ek-mapbox-label {
+      position: absolute; left: 0; top: 0; width: 607px; height: 136px; object-fit: cover;
+    }
+    #ek-mapbox-label { pointer-events: none; }
+    #ek-mapbox-title, #ek-mapbox-name {
+      position: absolute;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 40.3px; line-height: 1;
+      white-space: nowrap; overflow: hidden; text-transform: uppercase;
+    }
+    #ek-mapbox-title { left: 4px; top: 50px; width: 152px; height: 37px; font-size: 24.3px; color: #000; }
+    #ek-mapbox-name  { left: 4px; top: 86px; width: 268px; height: 45px; color: #fff; }
+    .ek-card {
+      position: absolute; top: 384px; width: 297px; height: 494px;
+      opacity: 0;
+      transform: perspective(1400px) rotateY(-90deg);
+      backface-visibility: hidden;
+    }
+    .ek-card.ek-empty { display: none; }
+    .ek-card.ek-dealt {
+      transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease;
+      transform: perspective(1400px) rotateY(0deg);
+      opacity: 1;
+    }
+    /* Leaving flip (map changed while on screen) — plays the old cards
+       out before the new map's cards flip in. Only present while leaving,
+       so removing it afterwards snaps back to the hidden base state. */
+    .ek-card.ek-leaving {
+      transition: transform 320ms cubic-bezier(0.55, 0, 0.8, 0.4), opacity 260ms ease;
+      transform: perspective(1400px) rotateY(90deg);
+      opacity: 0;
+    }
+    #ek-card-1 { left: 158px; }
+    #ek-card-2 { left: 484.5px; }
+    #ek-card-3 { left: 811px; }
+    #ek-card-4 { left: 1137.5px; }
+    #ek-card-5 { left: 1464px; }
+    .ek-card-bg { position: absolute; left: 0; top: 0; width: 297px; height: 494px; }
+    /* Photo fades to transparent over its bottom 50px so it feathers into
+       the card's name bar instead of ending on a hard edge. */
+    .ek-photo {
+      position: absolute; left: -35px; top: 14px; width: 364px; height: 364px;
+      object-fit: cover;
+      -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 50px), transparent);
+      mask-image: linear-gradient(to bottom, #000 calc(100% - 50px), transparent);
+    }
+    .ek-teamlogo {
+      position: absolute; left: 223px; top: 297px; width: 69px; height: 69px;
+      background: #000; /* no logo file → stays a plain black square */
+    }
+    .ek-teamlogo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .ek-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px; object-fit: contain; }
+    .ek-num, .ek-name, .ek-label, .ek-count {
+      position: absolute;
+      display: flex; align-items: center;
+      font-family: 'Teko', sans-serif; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    .ek-num   { left: 1px;   top: 289px; width: 59px;  height: 78px; justify-content: center; text-align: center; font-weight: 700; font-size: 90px;    color: #000; }
+    .ek-name  { left: 79px;  top: 387px; width: 214px; height: 32px; justify-content: center; text-align: center; font-weight: 700; font-size: 32.86px; color: #fff; }
+    .ek-label { left: 12px;  top: 450px; width: 180px; height: 37px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 34px;    color: #000; }
+    .ek-count { left: 214px; top: 445px; width: 79px;  height: 49px; justify-content: center; text-align: center; font-weight: 700; font-size: 50px;    color: #fff; }
+    /* Teko sits high in its line box — nudge the ink down (see the Map
+       Rotation note on this). */
+    .ek-num span, .ek-name span, .ek-label span, .ek-count span,
+    #ek-mapbox-title span, #ek-mapbox-name span { display: block; transform: translateY(0.15em); }
+
+    /* ── TOTAL ELIM LEADERS PAGE — clone of Eliminations/Map minus the map box:
+       top 5 players by total kills across EVERY tally sheet
+       (GET /api/total-elim-leaders). Part of the RANK_FEATURES family,
+       header is the shared #rnk-header labeled "Total Elim Leaders".
+       Own ids/classes (tel-*) so it's editable independently of
+       Eliminations/Map. Cards flip in (rotateY) on a stagger. ── */
+    #elimlead-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #elimlead-page.tel-on { display: block; }
+    #elimlead-page.tel-visible { opacity: 1; }
+    .tel-card {
+      position: absolute; top: 312.3px; width: 326.7px; height: 543.4px;
+      opacity: 0;
+      transform: perspective(1440px) rotateY(-90deg);
+      backface-visibility: hidden;
+    }
+    .tel-card.tel-empty { display: none; }
+    .tel-card.tel-dealt {
+      transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease;
+      transform: perspective(1440px) rotateY(0deg);
+      opacity: 1;
+    }
+    #tel-card-1 { left: 78.35px; }
+    #tel-card-2 { left: 437.5px; }
+    #tel-card-3 { left: 796.65px; }
+    #tel-card-4 { left: 1155.8px; }
+    #tel-card-5 { left: 1514.95px; }
+    .tel-card-bg { position: absolute; left: 0; top: 0; width: 326.7px; height: 543.4px; }
+    /* Photo fades to transparent over its bottom 55px so it feathers into
+       the card's name bar instead of ending on a hard edge. */
+    .tel-photo {
+      position: absolute; left: -38.5px; top: 15.4px; width: 400.4px; height: 400.4px;
+      object-fit: cover;
+      -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 55px), transparent);
+      mask-image: linear-gradient(to bottom, #000 calc(100% - 55px), transparent);
+    }
+    .tel-teamlogo {
+      position: absolute; left: 245.3px; top: 326.7px; width: 75.9px; height: 75.9px;
+      background: #000; /* no logo file → stays a plain black square */
+    }
+    .tel-teamlogo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .tel-flag { position: absolute; left: 15.4px; top: 431.2px; width: 36.3px; height: 25.3px; object-fit: contain; }
+    .tel-num, .tel-name, .tel-label, .tel-count {
+      position: absolute;
+      display: flex; align-items: center;
+      font-family: 'Teko', sans-serif; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    .tel-num   { left: 1.1px;   top: 317.9px; width: 64.9px;  height: 85.8px; justify-content: center; text-align: center; font-weight: 700; font-size: 99px;    color: #000; }
+    .tel-name  { left: 86.9px;  top: 425.7px; width: 235.4px; height: 35.2px; justify-content: center; text-align: center; font-weight: 700; font-size: 36.15px; color: #fff; }
+    .tel-label { left: 13.2px;  top: 495px; width: 198px; height: 40.7px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 37.4px;    color: #000; }
+    .tel-count { left: 235.4px; top: 489.5px; width: 86.9px;  height: 53.9px; justify-content: center; text-align: center; font-weight: 700; font-size: 55px;    color: #fff; }
+    /* Teko sits high in its line box — nudge the ink down (see the Map
+       Rotation note on this). */
+    .tel-num span, .tel-name span, .tel-label span, .tel-count span { display: block; transform: translateY(0.15em); }
+
+    /* ── GROUP ELIM LEADERS PAGE — clone of Total Elim Leaders counting ONLY
+       the Groupstage sheets (GET /api/group-elim-leaders), with a black
+       group-letter square on each card's top-left corner. Own ids/classes
+       (gel-*) so it's editable independently. Shared #rnk-header labeled
+       "Group Elim Leaders". ── */
+    #groupelim-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #groupelim-page.gel-on { display: block; }
+    #groupelim-page.gel-visible { opacity: 1; }
+    .gel-card {
+      position: absolute; top: 312.3px; width: 326.7px; height: 543.4px;
+      opacity: 0;
+      transform: perspective(1440px) rotateY(-90deg);
+      backface-visibility: hidden;
+    }
+    .gel-card.gel-empty { display: none; }
+    .gel-card.gel-dealt {
+      transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease;
+      transform: perspective(1440px) rotateY(0deg);
+      opacity: 1;
+    }
+    #gel-card-1 { left: 78.35px; }
+    #gel-card-2 { left: 437.5px; }
+    #gel-card-3 { left: 796.65px; }
+    #gel-card-4 { left: 1155.8px; }
+    #gel-card-5 { left: 1514.95px; }
+    .gel-card-bg { position: absolute; left: 0; top: 0; width: 326.7px; height: 543.4px; }
+    /* Photo fades to transparent over its bottom 55px so it feathers into
+       the card's name bar instead of ending on a hard edge. */
+    .gel-photo {
+      position: absolute; left: -38.5px; top: 15.4px; width: 400.4px; height: 400.4px;
+      object-fit: cover;
+      -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 55px), transparent);
+      mask-image: linear-gradient(to bottom, #000 calc(100% - 55px), transparent);
+    }
+    .gel-teamlogo {
+      position: absolute; left: 245.3px; top: 326.7px; width: 75.9px; height: 75.9px;
+      background: #000; /* no logo file → stays a plain black square */
+    }
+    .gel-teamlogo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .gel-flag { position: absolute; left: 15.4px; top: 431.2px; width: 36.3px; height: 25.3px; object-fit: contain; }
+    .gel-num, .gel-name, .gel-label, .gel-count {
+      position: absolute;
+      display: flex; align-items: center;
+      font-family: 'Teko', sans-serif; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    .gel-num   { left: 1.1px;   top: 317.9px; width: 64.9px;  height: 85.8px; justify-content: center; text-align: center; font-weight: 700; font-size: 99px;    color: #000; }
+    .gel-name  { left: 86.9px;  top: 425.7px; width: 235.4px; height: 35.2px; justify-content: center; text-align: center; font-weight: 700; font-size: 36.15px; color: #fff; }
+    .gel-label { left: 13.2px;  top: 495px; width: 198px; height: 40.7px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 37.4px;    color: #000; }
+    .gel-count { left: 235.4px; top: 489.5px; width: 86.9px;  height: 53.9px; justify-content: center; text-align: center; font-weight: 700; font-size: 55px;    color: #fff; }
+    /* Teko sits high in its line box — nudge the ink down (see the Map
+       Rotation note on this). */
+    .gel-num span, .gel-name span, .gel-label span, .gel-count span { display: block; transform: translateY(0.15em); }
+    .gel-group {
+      position: absolute; left: 0px; top: 0px; width: 55px; height: 55px;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      background: #000; color: #fff;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 44px; line-height: 1;
+      overflow: hidden;
+    }
+    .gel-group span { display: block; transform: translateY(0.15em); }
+
+    /* ── TEAM MAP ELIMS PAGE — clone of Eliminations/Map showing the top 5
+       TEAMS (not players) by kills on the chosen map (GET /api/team-map-elims),
+       with its own map picker. Big team logo replaces the player photo; rank
+       number is yellow with a black glow. Own ids/classes (tme-*). ── */
+    #teammap-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #teammap-page.tme-on { display: block; }
+    #teammap-page.tme-visible { opacity: 1; }
+    #tme-mapbox { position: absolute; left: 159px; top: 267px; width: 607px; height: 136px; }
+    #tme-mapbox-bg, #tme-mapbox-label {
+      position: absolute; left: 0; top: 0; width: 607px; height: 136px; object-fit: cover;
+    }
+    #tme-mapbox-label { pointer-events: none; }
+    #tme-mapbox-title, #tme-mapbox-name {
+      position: absolute;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 40.3px; line-height: 1;
+      white-space: nowrap; overflow: hidden; text-transform: uppercase;
+    }
+    #tme-mapbox-title { left: 4px; top: 50px; width: 152px; height: 37px; font-size: 24.3px; color: #000; }
+    #tme-mapbox-name  { left: 4px; top: 86px; width: 268px; height: 45px; color: #fff; }
+    .tme-card {
+      position: absolute; top: 384px; width: 297px; height: 494px;
+      opacity: 0;
+      transform: perspective(1400px) rotateY(-90deg);
+      backface-visibility: hidden;
+    }
+    .tme-card.tme-empty { display: none; }
+    .tme-card.tme-dealt {
+      transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease;
+      transform: perspective(1400px) rotateY(0deg);
+      opacity: 1;
+    }
+    /* Leaving flip (map changed while on screen) — plays the old cards
+       out before the new map's cards flip in. Only present while leaving,
+       so removing it afterwards snaps back to the hidden base state. */
+    .tme-card.tme-leaving {
+      transition: transform 320ms cubic-bezier(0.55, 0, 0.8, 0.4), opacity 260ms ease;
+      transform: perspective(1400px) rotateY(90deg);
+      opacity: 0;
+    }
+    #tme-card-1 { left: 158px; }
+    #tme-card-2 { left: 484.5px; }
+    #tme-card-3 { left: 811px; }
+    #tme-card-4 { left: 1137.5px; }
+    #tme-card-5 { left: 1464px; }
+    .tme-card-bg { position: absolute; left: 0; top: 0; width: 297px; height: 494px; }
+    /* Big team logo in the photo's old slot (no feather), scaled down to
+       sit inside the container art above the name bar. */
+    .tme-photo {
+      position: absolute; left: 33.5px; top: 124px; width: 230px; height: 230px;
+      object-fit: contain;
+    }
+    .tme-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px; object-fit: contain; }
+    .tme-num, .tme-name, .tme-label, .tme-count {
+      position: absolute;
+      display: flex; align-items: center;
+      font-family: 'Teko', sans-serif; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    .tme-num   { left: 1px;   top: 289px; width: 59px;  height: 78px; justify-content: center; text-align: center; font-weight: 700; font-size: 90px;    color: #ffe600; text-shadow: 0 0 4px rgba(0,0,0,0.5), 0 0 9px rgba(0,0,0,0.5), 0 0 16px rgba(0,0,0,0.425); }
+    .tme-name  { left: 79px;  top: 387px; width: 214px; height: 32px; justify-content: center; text-align: center; font-weight: 700; font-size: 32.86px; color: #fff; }
+    .tme-label { left: 12px;  top: 450px; width: 180px; height: 37px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 34px;    color: #000; }
+    .tme-count { left: 214px; top: 445px; width: 79px;  height: 49px; justify-content: center; text-align: center; font-weight: 700; font-size: 50px;    color: #fff; }
+    /* Teko sits high in its line box — nudge the ink down (see the Map
+       Rotation note on this). */
+    .tme-num span, .tme-name span, .tme-label span, .tme-count span,
+    #tme-mapbox-title span, #tme-mapbox-name span { display: block; transform: translateY(0.15em); }
+
+    /* ── TEAM POINT PERCENT PAGE — top 5 teams by total points (Overall
+       scope, GET /api/team-point-percent), 5 rows stacked down the page,
+       each a 1110x133 container (percentage_container.png) with team
+       name, logo, total points, and a bar showing the elims/placement
+       split. Layout measured off assets/percentage/percentage_guide.png;
+       everything inside a row is positioned relative to it. Part of the
+       RANK_FEATURES family (shared #rnk-header, "Team Point Percent"). The
+       bar's yellow fill and the elims label slide with --pct (0..1) set
+       from JS, so the Edit-tab left/top of each stays meaningful. ── */
+    #teampoint-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #teampoint-page.tpp-on { display: block; }
+    #teampoint-page.tpp-visible { opacity: 1; }
+    .tpp-row {
+      position: absolute; left: 405px; width: 1110px; height: 133px;
+      opacity: 0; transform: translateX(-70px);
+    }
+    .tpp-row.tpp-empty { display: none; }
+    .tpp-row.tpp-in {
+      transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1), opacity 260ms ease;
+      transform: translateX(0); opacity: 1;
+    }
+    #tpp-row-1 { top: 257px; }
+    #tpp-row-2 { top: 399px; }
+    #tpp-row-3 { top: 541px; }
+    #tpp-row-4 { top: 683px; }
+    #tpp-row-5 { top: 825px; }
+    .tpp-bg { position: absolute; left: 0; top: 0; width: 1110px; height: 133px; }
+    .tpp-name, .tpp-total, .tpp-totallabel, .tpp-elimlabel, .tpp-placelabel {
+      position: absolute; display: flex; align-items: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    .tpp-name  { left: 0; top: 0; width: 334px; height: 33px; justify-content: center; text-align: center; font-size: 30px; color: #000; }
+    .tpp-logo  { position: absolute; left: 24px; top: 41px; width: 100px; height: 84px; object-fit: contain; }
+    .tpp-total { left: 188px; top: 42px; width: 132px; height: 58px; justify-content: center; text-align: center; font-size: 68px; color: #fff; }
+    .tpp-totallabel { left: 188px; top: 100px; width: 132px; height: 28px; justify-content: center; text-align: center; font-size: 26px; color: #fff; }
+    /* Percent labels sit above the bar, right-aligned: the elims one ends at
+       the yellow/black split (slides right with --pct), the placement one
+       ends at the bar's right end. */
+    .tpp-elimlabel  { left: 92px;  top: 58px; width: 300px; height: 28px; justify-content: flex-end; text-align: right; font-size: 28px; color: #000;
+                      transform: translateX(calc(var(--pct, 0) * 682px));
+                      /* Crop everything left of the bar's start (row x=392) so the label never overlaps
+                         the total-points plate while it slides out from 0%. Same easing/duration as the
+                         transform so the crop edge tracks the slide exactly. */
+                      clip-path: inset(0 0 0 calc(300px - var(--pct, 0) * 682px));
+                      transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1), clip-path 900ms cubic-bezier(0.16, 1, 0.3, 1); }
+    .tpp-placelabel { left: 774px; top: 58px; width: 300px; height: 28px; justify-content: flex-end; text-align: right; font-size: 28px; color: #000; }
+    .tpp-bar { position: absolute; left: 392px; top: 90px; width: 682px; height: 17px; }
+    .tpp-fill {
+      position: absolute; left: 0; top: 0; height: 100%;
+      width: calc(var(--pct, 0) * 100%);
+      background: #ffe738;
+      transition: width 900ms cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+    .tpp-barval {
+      position: absolute; top: 0; height: 100%; display: flex; align-items: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 16px; line-height: 1; white-space: nowrap;
+    }
+    .tpp-elimval  { left: 8px;  color: #000; }
+    .tpp-placeval { right: 8px; color: #fff; }
+    .tpp-name span, .tpp-total span, .tpp-totallabel span, .tpp-elimlabel span, .tpp-placelabel span, .tpp-barval span { display: block; transform: translateY(0.15em); }
+
+    /* ── QUALIFIER ELIM LEADERS PAGE — clone of Total Elim Leaders counting ONLY
+       the Qualifier 1..N tabs (GET /api/qualifier-elim-leaders). Own
+       ids/classes (qel-*) so it's editable independently. Shared
+       #rnk-header labeled "Qualifier Elim Leaders". ── */
+    #qualelim-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #qualelim-page.qel-on { display: block; }
+    #qualelim-page.qel-visible { opacity: 1; }
+    .qel-card {
+      position: absolute; top: 312.3px; width: 326.7px; height: 543.4px;
+      opacity: 0;
+      transform: perspective(1440px) rotateY(-90deg);
+      backface-visibility: hidden;
+    }
+    .qel-card.qel-empty { display: none; }
+    .qel-card.qel-dealt {
+      transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease;
+      transform: perspective(1440px) rotateY(0deg);
+      opacity: 1;
+    }
+    #qel-card-1 { left: 78.35px; }
+    #qel-card-2 { left: 437.5px; }
+    #qel-card-3 { left: 796.65px; }
+    #qel-card-4 { left: 1155.8px; }
+    #qel-card-5 { left: 1514.95px; }
+    .qel-card-bg { position: absolute; left: 0; top: 0; width: 326.7px; height: 543.4px; }
+    /* Photo fades to transparent over its bottom 55px so it feathers into
+       the card's name bar instead of ending on a hard edge. */
+    .qel-photo {
+      position: absolute; left: -38.5px; top: 15.4px; width: 400.4px; height: 400.4px;
+      object-fit: cover;
+      -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 55px), transparent);
+      mask-image: linear-gradient(to bottom, #000 calc(100% - 55px), transparent);
+    }
+    .qel-teamlogo {
+      position: absolute; left: 245.3px; top: 326.7px; width: 75.9px; height: 75.9px;
+      background: #000; /* no logo file → stays a plain black square */
+    }
+    .qel-teamlogo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .qel-flag { position: absolute; left: 15.4px; top: 431.2px; width: 36.3px; height: 25.3px; object-fit: contain; }
+    .qel-num, .qel-name, .qel-label, .qel-count {
+      position: absolute;
+      display: flex; align-items: center;
+      font-family: 'Teko', sans-serif; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    .qel-num   { left: 1.1px;   top: 317.9px; width: 64.9px;  height: 85.8px; justify-content: center; text-align: center; font-weight: 700; font-size: 99px;    color: #000; }
+    .qel-name  { left: 86.9px;  top: 425.7px; width: 235.4px; height: 35.2px; justify-content: center; text-align: center; font-weight: 700; font-size: 36.15px; color: #fff; }
+    .qel-label { left: 13.2px;  top: 495px; width: 198px; height: 40.7px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 37.4px;    color: #000; }
+    .qel-count { left: 235.4px; top: 489.5px; width: 86.9px;  height: 53.9px; justify-content: center; text-align: center; font-weight: 700; font-size: 55px;    color: #fff; }
+    /* Teko sits high in its line box — nudge the ink down (see the Map
+       Rotation note on this). */
+    .qel-num span, .qel-name span, .qel-label span, .qel-count span { display: block; transform: translateY(0.15em); }
+
+    /* ── Total Team Elims PAGE — clone of Team Map Elims minus the map box and picker:
+       top 5 TEAMS by total kills across every tally sheet (Qualifiers included) (GET /api/total-team-elims). Big team logo
+       as the card's main picture, yellow rank number with a soft black
+       glow, team name in the name bar. Own ids/classes (tte-*) so it's
+       editable independently. Shared #rnk-header labeled "Total Team Elims". Cards
+       sit higher than Team Map Elims' (top 337) since there's no map box. ── */
+    #totalteam-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #totalteam-page.tte-on { display: block; }
+    #totalteam-page.tte-visible { opacity: 1; }
+    .tte-card {
+      position: absolute; top: 337px; width: 297px; height: 494px;
+      opacity: 0;
+      transform: perspective(1400px) rotateY(-90deg);
+      backface-visibility: hidden;
+    }
+    .tte-card.tte-empty { display: none; }
+    .tte-card.tte-dealt {
+      transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease;
+      transform: perspective(1400px) rotateY(0deg);
+      opacity: 1;
+    }
+    #tte-card-1 { left: 158px; }
+    #tte-card-2 { left: 484.5px; }
+    #tte-card-3 { left: 811px; }
+    #tte-card-4 { left: 1137.5px; }
+    #tte-card-5 { left: 1464px; }
+    .tte-card-bg { position: absolute; left: 0; top: 0; width: 297px; height: 494px; }
+    .tte-photo {
+      position: absolute; left: 33.5px; top: 124px; width: 230px; height: 230px;
+      object-fit: contain;
+    }
+    .tte-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px; object-fit: contain; }
+    .tte-num, .tte-name, .tte-label, .tte-count {
+      position: absolute;
+      display: flex; align-items: center;
+      font-family: 'Teko', sans-serif; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    .tte-num   { left: 1px;   top: 289px; width: 59px;  height: 78px; justify-content: center; text-align: center; font-weight: 700; font-size: 90px;    color: #ffe600; text-shadow: 0 0 4px rgba(0,0,0,0.5), 0 0 9px rgba(0,0,0,0.5), 0 0 16px rgba(0,0,0,0.425); }
+    .tte-name  { left: 79px;  top: 387px; width: 214px; height: 32px; justify-content: center; text-align: center; font-weight: 700; font-size: 32.86px; color: #fff; }
+    .tte-label { left: 12px;  top: 450px; width: 180px; height: 37px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 34px;    color: #000; }
+    .tte-count { left: 214px; top: 445px; width: 79px;  height: 49px; justify-content: center; text-align: center; font-weight: 700; font-size: 50px;    color: #fff; }
+    /* Teko sits high in its line box — nudge the ink down (see the Map
+       Rotation note on this). */
+    .tte-num span, .tte-name span, .tte-label span, .tte-count span { display: block; transform: translateY(0.15em); }
+
+
+    /* ── Group Team Elims PAGE — clone of Team Map Elims minus the map box and picker:
+       top 5 TEAMS by total kills in the Groupstage tabs only (A + B, C + D, ...), with the team's group letter in a black square (GET /api/group-team-elims). Big team logo
+       as the card's main picture, yellow rank number with a soft black
+       glow, team name in the name bar. Own ids/classes (gte-*) so it's
+       editable independently. Shared #rnk-header labeled "Group Team Elims". Cards
+       sit higher than Team Map Elims' (top 337) since there's no map box. ── */
+    #groupteam-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #groupteam-page.gte-on { display: block; }
+    #groupteam-page.gte-visible { opacity: 1; }
+    .gte-card {
+      position: absolute; top: 337px; width: 297px; height: 494px;
+      opacity: 0;
+      transform: perspective(1400px) rotateY(-90deg);
+      backface-visibility: hidden;
+    }
+    .gte-card.gte-empty { display: none; }
+    .gte-card.gte-dealt {
+      transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease;
+      transform: perspective(1400px) rotateY(0deg);
+      opacity: 1;
+    }
+    #gte-card-1 { left: 158px; }
+    #gte-card-2 { left: 484.5px; }
+    #gte-card-3 { left: 811px; }
+    #gte-card-4 { left: 1137.5px; }
+    #gte-card-5 { left: 1464px; }
+    .gte-card-bg { position: absolute; left: 0; top: 0; width: 297px; height: 494px; }
+    .gte-photo {
+      position: absolute; left: 33.5px; top: 124px; width: 230px; height: 230px;
+      object-fit: contain;
+    }
+    .gte-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px; object-fit: contain; }
+    .gte-num, .gte-name, .gte-label, .gte-count {
+      position: absolute;
+      display: flex; align-items: center;
+      font-family: 'Teko', sans-serif; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    .gte-num   { left: 1px;   top: 289px; width: 59px;  height: 78px; justify-content: center; text-align: center; font-weight: 700; font-size: 90px;    color: #ffe600; text-shadow: 0 0 4px rgba(0,0,0,0.5), 0 0 9px rgba(0,0,0,0.5), 0 0 16px rgba(0,0,0,0.425); }
+    .gte-name  { left: 79px;  top: 387px; width: 214px; height: 32px; justify-content: center; text-align: center; font-weight: 700; font-size: 32.86px; color: #fff; }
+    .gte-label { left: 12px;  top: 450px; width: 180px; height: 37px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 34px;    color: #000; }
+    .gte-count { left: 214px; top: 445px; width: 79px;  height: 49px; justify-content: center; text-align: center; font-weight: 700; font-size: 50px;    color: #fff; }
+    /* Teko sits high in its line box — nudge the ink down (see the Map
+       Rotation note on this). */
+    .gte-num span, .gte-name span, .gte-label span, .gte-count span { display: block; transform: translateY(0.15em); }
+    .gte-group {
+      position: absolute; left: 0px; top: 63px; width: 50px; height: 50px;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      background: #000; color: #fff;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 40px; line-height: 1;
+      overflow: hidden;
+    }
+    .gte-group span { display: block; transform: translateY(0.15em); }
+
+
     /* ── TOURNAMENT SCHEDULE PAGE — a single full-bleed PNG, nothing else.
        Header is the shared #rnk-header (part of the RANK_FEATURES
        family), not owned by this page. ── */
@@ -1819,7 +2366,7 @@
     #mwn-name .mwn-name-text { display: block; max-width: 100%; }
 
     /* Player photo container (above the team container) — the winning
-       team's players from /photos/FRONT/<name>.png. Photos overlap, are
+       team's players from /photos/FRONT/<team name>/<name>.png. Photos overlap, are
        clipped by the container (overflow:hidden), and stack with the
        middle player in front, 2 & 4 next, 1 & 5 furthest back. */
     #mwn-photos-back {
@@ -3033,6 +3580,86 @@
       </div>
     </div>
 
+    <!-- ELIMINATIONS / MAP -->
+    <div class="feature-card">
+      <div class="feature-card-label">Eliminations / Map</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showElimsMapScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideElimsMapScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-elimsmap" onclick="toggleLocalPreview('elimsmap', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- TOTAL ELIM LEADERS -->
+    <div class="feature-card">
+      <div class="feature-card-label">Total Elim Leaders</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showElimLeadersScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideElimLeadersScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-elimleaders" onclick="toggleLocalPreview('elimleaders', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- GROUP ELIM LEADERS -->
+    <div class="feature-card">
+      <div class="feature-card-label">Group Elim Leaders</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showGroupElimLeadersScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideGroupElimLeadersScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-groupelimleaders" onclick="toggleLocalPreview('groupelimleaders', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- TEAM MAP ELIMS -->
+    <div class="feature-card">
+      <div class="feature-card-label">Team Map Elims</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showTeamMapElimsScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideTeamMapElimsScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-teammapelims" onclick="toggleLocalPreview('teammapelims', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- TEAM POINT PERCENT -->
+    <div class="feature-card">
+      <div class="feature-card-label">Team Point Percent</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showTeamPointPercentScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideTeamPointPercentScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-teampointpct" onclick="toggleLocalPreview('teampointpct', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- QUALIFIER ELIM LEADERS -->
+    <div class="feature-card">
+      <div class="feature-card-label">Qualifier Elim Leaders</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showQualElimLeadersScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideQualElimLeadersScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-qualelimleaders" onclick="toggleLocalPreview('qualelimleaders', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- TOTAL TEAM ELIMS -->
+    <div class="feature-card">
+      <div class="feature-card-label">Total Team Elims</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showTotalTeamElimsScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideTotalTeamElimsScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-totalteamelims" onclick="toggleLocalPreview('totalteamelims', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- GROUP TEAM ELIMS -->
+    <div class="feature-card">
+      <div class="feature-card-label">Group Team Elims</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showGroupTeamElimsScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideGroupTeamElimsScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-groupteamelims" onclick="toggleLocalPreview('groupteamelims', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
     <!-- TOURNAMENT SCHEDULE -->
     <div class="feature-card">
       <div class="feature-card-label">Tournament Schedule</div>
@@ -3437,6 +4064,444 @@
 
     <div id="map-rotation-page">
       <div id="mrr-cards"></div>
+    </div>
+    <div id="elims-page">
+      <div id="ek-mapbox">
+        <img id="ek-mapbox-bg" src="" alt="">
+        <img id="ek-mapbox-label" src="/maps/maplabel_waiting.png" alt="">
+        <div id="ek-mapbox-title"><span>ELIMINATIONS</span></div>
+        <div id="ek-mapbox-name"><span></span></div>
+      </div>
+      <div class="ek-card ek-empty" id="ek-card-1">
+        <img class="ek-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="ek-photo" src="" alt="">
+        <div class="ek-num"><span>1</span></div>
+        <div class="ek-teamlogo"><img src="" alt=""></div>
+        <img class="ek-flag" src="" alt="">
+        <div class="ek-name"><span></span></div>
+        <div class="ek-label"><span>ELIMINATIONS</span></div>
+        <div class="ek-count"><span></span></div>
+      </div>
+      <div class="ek-card ek-empty" id="ek-card-2">
+        <img class="ek-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="ek-photo" src="" alt="">
+        <div class="ek-num"><span>2</span></div>
+        <div class="ek-teamlogo"><img src="" alt=""></div>
+        <img class="ek-flag" src="" alt="">
+        <div class="ek-name"><span></span></div>
+        <div class="ek-label"><span>ELIMINATIONS</span></div>
+        <div class="ek-count"><span></span></div>
+      </div>
+      <div class="ek-card ek-empty" id="ek-card-3">
+        <img class="ek-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="ek-photo" src="" alt="">
+        <div class="ek-num"><span>3</span></div>
+        <div class="ek-teamlogo"><img src="" alt=""></div>
+        <img class="ek-flag" src="" alt="">
+        <div class="ek-name"><span></span></div>
+        <div class="ek-label"><span>ELIMINATIONS</span></div>
+        <div class="ek-count"><span></span></div>
+      </div>
+      <div class="ek-card ek-empty" id="ek-card-4">
+        <img class="ek-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="ek-photo" src="" alt="">
+        <div class="ek-num"><span>4</span></div>
+        <div class="ek-teamlogo"><img src="" alt=""></div>
+        <img class="ek-flag" src="" alt="">
+        <div class="ek-name"><span></span></div>
+        <div class="ek-label"><span>ELIMINATIONS</span></div>
+        <div class="ek-count"><span></span></div>
+      </div>
+      <div class="ek-card ek-empty" id="ek-card-5">
+        <img class="ek-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="ek-photo" src="" alt="">
+        <div class="ek-num"><span>5</span></div>
+        <div class="ek-teamlogo"><img src="" alt=""></div>
+        <img class="ek-flag" src="" alt="">
+        <div class="ek-name"><span></span></div>
+        <div class="ek-label"><span>ELIMINATIONS</span></div>
+        <div class="ek-count"><span></span></div>
+      </div>
+    </div>
+    <div id="elimlead-page">
+      <div class="tel-card tel-empty" id="tel-card-1">
+        <img class="tel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="tel-photo" src="" alt="">
+        <div class="tel-num"><span>1</span></div>
+        <div class="tel-teamlogo"><img src="" alt=""></div>
+        <img class="tel-flag" src="" alt="">
+        <div class="tel-name"><span></span></div>
+        <div class="tel-label"><span>ELIMINATIONS</span></div>
+        <div class="tel-count"><span></span></div>
+      </div>
+      <div class="tel-card tel-empty" id="tel-card-2">
+        <img class="tel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="tel-photo" src="" alt="">
+        <div class="tel-num"><span>2</span></div>
+        <div class="tel-teamlogo"><img src="" alt=""></div>
+        <img class="tel-flag" src="" alt="">
+        <div class="tel-name"><span></span></div>
+        <div class="tel-label"><span>ELIMINATIONS</span></div>
+        <div class="tel-count"><span></span></div>
+      </div>
+      <div class="tel-card tel-empty" id="tel-card-3">
+        <img class="tel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="tel-photo" src="" alt="">
+        <div class="tel-num"><span>3</span></div>
+        <div class="tel-teamlogo"><img src="" alt=""></div>
+        <img class="tel-flag" src="" alt="">
+        <div class="tel-name"><span></span></div>
+        <div class="tel-label"><span>ELIMINATIONS</span></div>
+        <div class="tel-count"><span></span></div>
+      </div>
+      <div class="tel-card tel-empty" id="tel-card-4">
+        <img class="tel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="tel-photo" src="" alt="">
+        <div class="tel-num"><span>4</span></div>
+        <div class="tel-teamlogo"><img src="" alt=""></div>
+        <img class="tel-flag" src="" alt="">
+        <div class="tel-name"><span></span></div>
+        <div class="tel-label"><span>ELIMINATIONS</span></div>
+        <div class="tel-count"><span></span></div>
+      </div>
+      <div class="tel-card tel-empty" id="tel-card-5">
+        <img class="tel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="tel-photo" src="" alt="">
+        <div class="tel-num"><span>5</span></div>
+        <div class="tel-teamlogo"><img src="" alt=""></div>
+        <img class="tel-flag" src="" alt="">
+        <div class="tel-name"><span></span></div>
+        <div class="tel-label"><span>ELIMINATIONS</span></div>
+        <div class="tel-count"><span></span></div>
+      </div>
+    </div>
+    <div id="groupelim-page">
+      <div class="gel-card gel-empty" id="gel-card-1">
+        <img class="gel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="gel-photo" src="" alt="">
+        <div class="gel-num"><span>1</span></div>
+        <div class="gel-teamlogo"><img src="" alt=""></div>
+        <img class="gel-flag" src="" alt="">
+        <div class="gel-name"><span></span></div>
+        <div class="gel-label"><span>ELIMINATIONS</span></div>
+        <div class="gel-count"><span></span></div>
+        <div class="gel-group"><span></span></div>
+      </div>
+      <div class="gel-card gel-empty" id="gel-card-2">
+        <img class="gel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="gel-photo" src="" alt="">
+        <div class="gel-num"><span>2</span></div>
+        <div class="gel-teamlogo"><img src="" alt=""></div>
+        <img class="gel-flag" src="" alt="">
+        <div class="gel-name"><span></span></div>
+        <div class="gel-label"><span>ELIMINATIONS</span></div>
+        <div class="gel-count"><span></span></div>
+        <div class="gel-group"><span></span></div>
+      </div>
+      <div class="gel-card gel-empty" id="gel-card-3">
+        <img class="gel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="gel-photo" src="" alt="">
+        <div class="gel-num"><span>3</span></div>
+        <div class="gel-teamlogo"><img src="" alt=""></div>
+        <img class="gel-flag" src="" alt="">
+        <div class="gel-name"><span></span></div>
+        <div class="gel-label"><span>ELIMINATIONS</span></div>
+        <div class="gel-count"><span></span></div>
+        <div class="gel-group"><span></span></div>
+      </div>
+      <div class="gel-card gel-empty" id="gel-card-4">
+        <img class="gel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="gel-photo" src="" alt="">
+        <div class="gel-num"><span>4</span></div>
+        <div class="gel-teamlogo"><img src="" alt=""></div>
+        <img class="gel-flag" src="" alt="">
+        <div class="gel-name"><span></span></div>
+        <div class="gel-label"><span>ELIMINATIONS</span></div>
+        <div class="gel-count"><span></span></div>
+        <div class="gel-group"><span></span></div>
+      </div>
+      <div class="gel-card gel-empty" id="gel-card-5">
+        <img class="gel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="gel-photo" src="" alt="">
+        <div class="gel-num"><span>5</span></div>
+        <div class="gel-teamlogo"><img src="" alt=""></div>
+        <img class="gel-flag" src="" alt="">
+        <div class="gel-name"><span></span></div>
+        <div class="gel-label"><span>ELIMINATIONS</span></div>
+        <div class="gel-count"><span></span></div>
+        <div class="gel-group"><span></span></div>
+      </div>
+    </div>
+    <div id="teammap-page">
+      <div id="tme-mapbox">
+        <img id="tme-mapbox-bg" src="" alt="">
+        <img id="tme-mapbox-label" src="/maps/maplabel_waiting.png" alt="">
+        <div id="tme-mapbox-title"><span>ELIMINATIONS</span></div>
+        <div id="tme-mapbox-name"><span></span></div>
+      </div>
+      <div class="tme-card tme-empty" id="tme-card-1">
+        <img class="tme-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="tme-photo" src="" alt="">
+        <div class="tme-num"><span>1</span></div>
+        <img class="tme-flag" src="" alt="">
+        <div class="tme-name"><span></span></div>
+        <div class="tme-label"><span>ELIMINATIONS</span></div>
+        <div class="tme-count"><span></span></div>
+      </div>
+      <div class="tme-card tme-empty" id="tme-card-2">
+        <img class="tme-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="tme-photo" src="" alt="">
+        <div class="tme-num"><span>2</span></div>
+        <img class="tme-flag" src="" alt="">
+        <div class="tme-name"><span></span></div>
+        <div class="tme-label"><span>ELIMINATIONS</span></div>
+        <div class="tme-count"><span></span></div>
+      </div>
+      <div class="tme-card tme-empty" id="tme-card-3">
+        <img class="tme-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="tme-photo" src="" alt="">
+        <div class="tme-num"><span>3</span></div>
+        <img class="tme-flag" src="" alt="">
+        <div class="tme-name"><span></span></div>
+        <div class="tme-label"><span>ELIMINATIONS</span></div>
+        <div class="tme-count"><span></span></div>
+      </div>
+      <div class="tme-card tme-empty" id="tme-card-4">
+        <img class="tme-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="tme-photo" src="" alt="">
+        <div class="tme-num"><span>4</span></div>
+        <img class="tme-flag" src="" alt="">
+        <div class="tme-name"><span></span></div>
+        <div class="tme-label"><span>ELIMINATIONS</span></div>
+        <div class="tme-count"><span></span></div>
+      </div>
+      <div class="tme-card tme-empty" id="tme-card-5">
+        <img class="tme-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="tme-photo" src="" alt="">
+        <div class="tme-num"><span>5</span></div>
+        <img class="tme-flag" src="" alt="">
+        <div class="tme-name"><span></span></div>
+        <div class="tme-label"><span>ELIMINATIONS</span></div>
+        <div class="tme-count"><span></span></div>
+      </div>
+    </div>
+    <div id="teampoint-page">
+      <div class="tpp-row tpp-empty" id="tpp-row-1">
+        <img class="tpp-bg" src="/assets/percentage/percentage_container.png" alt="">
+        <div class="tpp-name"><span></span></div>
+        <img class="tpp-logo" src="" alt="">
+        <div class="tpp-total"><span></span></div>
+        <div class="tpp-totallabel"><span>TOTAL PTS</span></div>
+        <div class="tpp-elimlabel"><span></span></div>
+        <div class="tpp-placelabel"><span></span></div>
+        <div class="tpp-bar">
+          <div class="tpp-fill"><div class="tpp-barval tpp-elimval"><span></span></div></div>
+          <div class="tpp-barval tpp-placeval"><span></span></div>
+        </div>
+      </div>
+      <div class="tpp-row tpp-empty" id="tpp-row-2">
+        <img class="tpp-bg" src="/assets/percentage/percentage_container.png" alt="">
+        <div class="tpp-name"><span></span></div>
+        <img class="tpp-logo" src="" alt="">
+        <div class="tpp-total"><span></span></div>
+        <div class="tpp-totallabel"><span>TOTAL PTS</span></div>
+        <div class="tpp-elimlabel"><span></span></div>
+        <div class="tpp-placelabel"><span></span></div>
+        <div class="tpp-bar">
+          <div class="tpp-fill"><div class="tpp-barval tpp-elimval"><span></span></div></div>
+          <div class="tpp-barval tpp-placeval"><span></span></div>
+        </div>
+      </div>
+      <div class="tpp-row tpp-empty" id="tpp-row-3">
+        <img class="tpp-bg" src="/assets/percentage/percentage_container.png" alt="">
+        <div class="tpp-name"><span></span></div>
+        <img class="tpp-logo" src="" alt="">
+        <div class="tpp-total"><span></span></div>
+        <div class="tpp-totallabel"><span>TOTAL PTS</span></div>
+        <div class="tpp-elimlabel"><span></span></div>
+        <div class="tpp-placelabel"><span></span></div>
+        <div class="tpp-bar">
+          <div class="tpp-fill"><div class="tpp-barval tpp-elimval"><span></span></div></div>
+          <div class="tpp-barval tpp-placeval"><span></span></div>
+        </div>
+      </div>
+      <div class="tpp-row tpp-empty" id="tpp-row-4">
+        <img class="tpp-bg" src="/assets/percentage/percentage_container.png" alt="">
+        <div class="tpp-name"><span></span></div>
+        <img class="tpp-logo" src="" alt="">
+        <div class="tpp-total"><span></span></div>
+        <div class="tpp-totallabel"><span>TOTAL PTS</span></div>
+        <div class="tpp-elimlabel"><span></span></div>
+        <div class="tpp-placelabel"><span></span></div>
+        <div class="tpp-bar">
+          <div class="tpp-fill"><div class="tpp-barval tpp-elimval"><span></span></div></div>
+          <div class="tpp-barval tpp-placeval"><span></span></div>
+        </div>
+      </div>
+      <div class="tpp-row tpp-empty" id="tpp-row-5">
+        <img class="tpp-bg" src="/assets/percentage/percentage_container.png" alt="">
+        <div class="tpp-name"><span></span></div>
+        <img class="tpp-logo" src="" alt="">
+        <div class="tpp-total"><span></span></div>
+        <div class="tpp-totallabel"><span>TOTAL PTS</span></div>
+        <div class="tpp-elimlabel"><span></span></div>
+        <div class="tpp-placelabel"><span></span></div>
+        <div class="tpp-bar">
+          <div class="tpp-fill"><div class="tpp-barval tpp-elimval"><span></span></div></div>
+          <div class="tpp-barval tpp-placeval"><span></span></div>
+        </div>
+      </div>
+    </div>
+    <div id="qualelim-page">
+      <div class="qel-card qel-empty" id="qel-card-1">
+        <img class="qel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="qel-photo" src="" alt="">
+        <div class="qel-num"><span>1</span></div>
+        <div class="qel-teamlogo"><img src="" alt=""></div>
+        <img class="qel-flag" src="" alt="">
+        <div class="qel-name"><span></span></div>
+        <div class="qel-label"><span>ELIMINATIONS</span></div>
+        <div class="qel-count"><span></span></div>
+      </div>
+      <div class="qel-card qel-empty" id="qel-card-2">
+        <img class="qel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="qel-photo" src="" alt="">
+        <div class="qel-num"><span>2</span></div>
+        <div class="qel-teamlogo"><img src="" alt=""></div>
+        <img class="qel-flag" src="" alt="">
+        <div class="qel-name"><span></span></div>
+        <div class="qel-label"><span>ELIMINATIONS</span></div>
+        <div class="qel-count"><span></span></div>
+      </div>
+      <div class="qel-card qel-empty" id="qel-card-3">
+        <img class="qel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="qel-photo" src="" alt="">
+        <div class="qel-num"><span>3</span></div>
+        <div class="qel-teamlogo"><img src="" alt=""></div>
+        <img class="qel-flag" src="" alt="">
+        <div class="qel-name"><span></span></div>
+        <div class="qel-label"><span>ELIMINATIONS</span></div>
+        <div class="qel-count"><span></span></div>
+      </div>
+      <div class="qel-card qel-empty" id="qel-card-4">
+        <img class="qel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="qel-photo" src="" alt="">
+        <div class="qel-num"><span>4</span></div>
+        <div class="qel-teamlogo"><img src="" alt=""></div>
+        <img class="qel-flag" src="" alt="">
+        <div class="qel-name"><span></span></div>
+        <div class="qel-label"><span>ELIMINATIONS</span></div>
+        <div class="qel-count"><span></span></div>
+      </div>
+      <div class="qel-card qel-empty" id="qel-card-5">
+        <img class="qel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="qel-photo" src="" alt="">
+        <div class="qel-num"><span>5</span></div>
+        <div class="qel-teamlogo"><img src="" alt=""></div>
+        <img class="qel-flag" src="" alt="">
+        <div class="qel-name"><span></span></div>
+        <div class="qel-label"><span>ELIMINATIONS</span></div>
+        <div class="qel-count"><span></span></div>
+      </div>
+    </div>
+    <div id="totalteam-page">
+      <div class="tte-card tte-empty" id="tte-card-1">
+        <img class="tte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="tte-photo" src="" alt="">
+        <div class="tte-num"><span>1</span></div>
+        <img class="tte-flag" src="" alt="">
+        <div class="tte-name"><span></span></div>
+        <div class="tte-label"><span>ELIMINATIONS</span></div>
+        <div class="tte-count"><span></span></div>
+      </div>
+      <div class="tte-card tte-empty" id="tte-card-2">
+        <img class="tte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="tte-photo" src="" alt="">
+        <div class="tte-num"><span>2</span></div>
+        <img class="tte-flag" src="" alt="">
+        <div class="tte-name"><span></span></div>
+        <div class="tte-label"><span>ELIMINATIONS</span></div>
+        <div class="tte-count"><span></span></div>
+      </div>
+      <div class="tte-card tte-empty" id="tte-card-3">
+        <img class="tte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="tte-photo" src="" alt="">
+        <div class="tte-num"><span>3</span></div>
+        <img class="tte-flag" src="" alt="">
+        <div class="tte-name"><span></span></div>
+        <div class="tte-label"><span>ELIMINATIONS</span></div>
+        <div class="tte-count"><span></span></div>
+      </div>
+      <div class="tte-card tte-empty" id="tte-card-4">
+        <img class="tte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="tte-photo" src="" alt="">
+        <div class="tte-num"><span>4</span></div>
+        <img class="tte-flag" src="" alt="">
+        <div class="tte-name"><span></span></div>
+        <div class="tte-label"><span>ELIMINATIONS</span></div>
+        <div class="tte-count"><span></span></div>
+      </div>
+      <div class="tte-card tte-empty" id="tte-card-5">
+        <img class="tte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="tte-photo" src="" alt="">
+        <div class="tte-num"><span>5</span></div>
+        <img class="tte-flag" src="" alt="">
+        <div class="tte-name"><span></span></div>
+        <div class="tte-label"><span>ELIMINATIONS</span></div>
+        <div class="tte-count"><span></span></div>
+      </div>
+    </div>
+    <div id="groupteam-page">
+      <div class="gte-card gte-empty" id="gte-card-1">
+        <img class="gte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="gte-photo" src="" alt="">
+        <div class="gte-num"><span>1</span></div>
+        <img class="gte-flag" src="" alt="">
+        <div class="gte-name"><span></span></div>
+        <div class="gte-label"><span>ELIMINATIONS</span></div>
+        <div class="gte-count"><span></span></div>
+        <div class="gte-group"><span></span></div>
+      </div>
+      <div class="gte-card gte-empty" id="gte-card-2">
+        <img class="gte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="gte-photo" src="" alt="">
+        <div class="gte-num"><span>2</span></div>
+        <img class="gte-flag" src="" alt="">
+        <div class="gte-name"><span></span></div>
+        <div class="gte-label"><span>ELIMINATIONS</span></div>
+        <div class="gte-count"><span></span></div>
+        <div class="gte-group"><span></span></div>
+      </div>
+      <div class="gte-card gte-empty" id="gte-card-3">
+        <img class="gte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="gte-photo" src="" alt="">
+        <div class="gte-num"><span>3</span></div>
+        <img class="gte-flag" src="" alt="">
+        <div class="gte-name"><span></span></div>
+        <div class="gte-label"><span>ELIMINATIONS</span></div>
+        <div class="gte-count"><span></span></div>
+        <div class="gte-group"><span></span></div>
+      </div>
+      <div class="gte-card gte-empty" id="gte-card-4">
+        <img class="gte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="gte-photo" src="" alt="">
+        <div class="gte-num"><span>4</span></div>
+        <img class="gte-flag" src="" alt="">
+        <div class="gte-name"><span></span></div>
+        <div class="gte-label"><span>ELIMINATIONS</span></div>
+        <div class="gte-count"><span></span></div>
+        <div class="gte-group"><span></span></div>
+      </div>
+      <div class="gte-card gte-empty" id="gte-card-5">
+        <img class="gte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="gte-photo" src="" alt="">
+        <div class="gte-num"><span>5</span></div>
+        <img class="gte-flag" src="" alt="">
+        <div class="gte-name"><span></span></div>
+        <div class="gte-label"><span>ELIMINATIONS</span></div>
+        <div class="gte-count"><span></span></div>
+        <div class="gte-group"><span></span></div>
+      </div>
     </div>
     <div id="tournament-schedule-page">
       <img id="tsc-art" src="/assets/fullscreeners/tournament%20schedule.png" alt="">
@@ -3938,6 +5003,72 @@
         if (msg.action === 'show') {
           document.getElementById('config-bar').classList.remove('debug-open');
           setTimeout(showMapRotationScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('elims_map', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showElimsMapScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+        else if (msg.action === 'refresh') ekRefresh(); /* purely local re-render, safe in the preview frame too */
+      });
+
+      sseSource.addEventListener('elim_leaders', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showElimLeadersScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('group_elim_leaders', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showGroupElimLeadersScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('team_map_elims', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showTeamMapElimsScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+        else if (msg.action === 'refresh') tmeRefresh(); /* purely local re-render, safe in the preview frame too */
+      });
+
+      sseSource.addEventListener('team_point_percent', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showTeamPointPercentScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('qual_elim_leaders', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showQualElimLeadersScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('total_team_elims', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showTotalTeamElimsScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('group_team_elims', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showGroupTeamElimsScene, 100);
         } else if (msg.action === 'hide') hideActiveFeature();
       });
 
@@ -6448,6 +7579,818 @@
     }
 
     /* ════════════════════════════════════════════════
+       ELIMINATIONS / MAP — top 5 players by kills on the map chosen in the
+       dashboard's Control tab (/api/eliminations-map: Tally sheet, Overall
+       scope, ranked by kills on that map). Part of the RANK_FEATURES
+       family — shares #rnk-header, labeled "ELIMINATIONS/MAP". The
+       'elims_map' SSE event also carries action:'refresh' (sent when the
+       map pick changes) which re-ranks and re-flips a scene already on
+       screen.
+    ════════════════════════════════════════════════ */
+    const ekPage = document.getElementById('elims-page');
+    const EK_MAP_ASSET = {
+      'Isolated': 'isolated', 'Blackout': 'blackout', 'Alcatraz': 'alcatraz',
+      'Krai': 'krai', 'Rebirth Island': 'rebirth', 'Rebirth': 'rebirth',
+    };
+    const EK_FLIP_STAGGER_MS = 130;
+
+    async function ekFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/eliminations-map'), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch (e) { return null; }
+    }
+
+    /* An <img> that hides itself when its file is missing (and un-hides
+       when a later src does load), instead of showing a broken icon. */
+    function ekSetImg(img, src, fallback) {
+      img.style.display = '';
+      img.onerror = () => {
+        if (fallback && img.getAttribute('src') !== fallback) { img.src = fallback; return; }
+        img.style.display = 'none';
+      };
+      img.src = src;
+    }
+
+    /* Must run AFTER #elims-page has .ek-on (real layout) — the fit calls
+       measure against it. */
+    function ekApply(data) {
+      const mapName = (data && data.map) || '';
+      const slug = EK_MAP_ASSET[mapName] || mapName.toLowerCase().replace(/\s+/g, '_');
+      ekSetImg(document.getElementById('ek-mapbox-bg'), '/maps/' + slug + '_waiting.png');
+      const nameSpan = document.querySelector('#ek-mapbox-name span');
+      nameSpan.textContent = mapName;
+      ovrFitText(document.getElementById('ek-mapbox-title'), 24.3, 14);
+      ovrFitText(document.getElementById('ek-mapbox-name'), 40.3, 20);
+
+      const players = (data && data.players) || [];
+      for (let i = 0; i < 5; i++) {
+        const card = document.getElementById('ek-card-' + (i + 1));
+        card.classList.remove('ek-dealt');
+        const p = players[i];
+        card.classList.toggle('ek-empty', !p);
+        if (!p) continue;
+        ekSetImg(card.querySelector('.ek-photo'), '/photos/FRONT/' + encodeURIComponent(p.team) + '/' + encodeURIComponent(p.name) + '.png', '/photos/placeholder.png');
+        ekSetImg(card.querySelector('.ek-teamlogo img'), '/logos/' + encodeURIComponent(p.team) + '.png');
+        ekSetImg(card.querySelector('.ek-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        card.querySelector('.ek-name span').textContent = p.name;
+        card.querySelector('.ek-count span').textContent = p.kills;
+        ovrFitText(card.querySelector('.ek-name'), 32.86, 16);
+        ovrFitText(card.querySelector('.ek-label'), 34, 18);
+      }
+      return players.length;
+    }
+
+    async function ekRender(data) {
+      const count = ekApply(data);
+      await preloadMedia(ekPage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'elimsmap') return;
+      void ekPage.offsetWidth; /* snap the reset (no transition on the base class) before flipping */
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          if (activeFeature !== 'elimsmap') return;
+          document.getElementById('ek-card-' + (i + 1)).classList.add('ek-dealt');
+        }, i * EK_FLIP_STAGGER_MS);
+      }
+    }
+
+    let ekRefreshSeq = 0;
+    async function ekRefresh() {
+      if (activeFeature !== 'elimsmap') return;
+      const seq = ++ekRefreshSeq; /* a newer map pick supersedes this one */
+      const dataPromise = ekFetchData();
+      const cards = Array.from(ekPage.querySelectorAll('.ek-card.ek-dealt'));
+      cards.forEach((c, i) => setTimeout(() => {
+        c.classList.remove('ek-dealt');
+        c.classList.add('ek-leaving');
+      }, i * 60));
+      await new Promise(r => setTimeout(r, cards.length ? cards.length * 60 + 380 : 0));
+      const data = await dataPromise;
+      if (activeFeature !== 'elimsmap' || seq !== ekRefreshSeq) return;
+      ekPage.querySelectorAll('.ek-card').forEach(c => c.classList.remove('ek-leaving'));
+      ekRender(data);
+    }
+
+    async function showElimsMapScene() {
+      const dataPromise = ekFetchData();
+      await transitionTo('elimsmap');
+      if (activeFeature !== 'elimsmap') return; /* superseded mid-await */
+      rnkShowHeader('ELIMINATIONS/MAP');
+      rnkShowBgVideo();
+      ekPage.classList.add('ek-on');
+      void ekPage.offsetWidth; /* force reflow so the opacity transition runs */
+      ekPage.classList.add('ek-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'elimsmap') return; /* superseded while awaiting data */
+      ekRender(data);
+    }
+
+    function hideElimsMapScene() {
+      activeFeature = null;
+      ekPage.classList.remove('ek-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            ekPage.classList.remove('ek-on');
+            ekPage.querySelectorAll('.ek-card').forEach(c => c.classList.remove('ek-dealt'));
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       TOTAL ELIM LEADERS — top 5 players by total kills across every Tally
+       sheet (/api/total-elim-leaders, Qualifiers included). Clone of
+       Eliminations/Map without the map box or map picker, so no refresh
+       event. Part of the RANK_FEATURES family — shares #rnk-header,
+       labeled "Total Elim Leaders".
+    ════════════════════════════════════════════════ */
+    const telPage = document.getElementById('elimlead-page');
+    const TEL_FLIP_STAGGER_MS = 130;
+
+    async function telFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/total-elim-leaders'), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch (e) { return null; }
+    }
+
+    /* An <img> that hides itself when its file is missing (and un-hides
+       when a later src does load), instead of showing a broken icon. */
+    function telSetImg(img, src, fallback) {
+      img.style.display = '';
+      img.onerror = () => {
+        if (fallback && img.getAttribute('src') !== fallback) { img.src = fallback; return; }
+        img.style.display = 'none';
+      };
+      img.src = src;
+    }
+
+    /* Must run AFTER #elimlead-page has .tel-on (real layout) — the fit calls
+       measure against it. */
+    function telApply(data) {
+      const players = (data && data.players) || [];
+      for (let i = 0; i < 5; i++) {
+        const card = document.getElementById('tel-card-' + (i + 1));
+        card.classList.remove('tel-dealt');
+        const p = players[i];
+        card.classList.toggle('tel-empty', !p);
+        if (!p) continue;
+        telSetImg(card.querySelector('.tel-photo'), '/photos/FRONT/' + encodeURIComponent(p.team) + '/' + encodeURIComponent(p.name) + '.png', '/photos/placeholder.png');
+        telSetImg(card.querySelector('.tel-teamlogo img'), '/logos/' + encodeURIComponent(p.team) + '.png');
+        telSetImg(card.querySelector('.tel-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        card.querySelector('.tel-name span').textContent = p.name;
+        card.querySelector('.tel-count span').textContent = p.kills;
+        ovrFitText(card.querySelector('.tel-name'), 36.15, 17.6);
+        ovrFitText(card.querySelector('.tel-label'), 37.4, 19.8);
+      }
+      return players.length;
+    }
+
+    async function telRender(data) {
+      const count = telApply(data);
+      await preloadMedia(telPage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'elimleaders') return;
+      void telPage.offsetWidth; /* snap the reset (no transition on the base class) before flipping */
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          if (activeFeature !== 'elimleaders') return;
+          document.getElementById('tel-card-' + (i + 1)).classList.add('tel-dealt');
+        }, i * TEL_FLIP_STAGGER_MS);
+      }
+    }
+
+    async function showElimLeadersScene() {
+      const dataPromise = telFetchData();
+      await transitionTo('elimleaders');
+      if (activeFeature !== 'elimleaders') return; /* superseded mid-await */
+      rnkShowHeader('Total Elim Leaders');
+      rnkShowBgVideo();
+      telPage.classList.add('tel-on');
+      void telPage.offsetWidth; /* force reflow so the opacity transition runs */
+      telPage.classList.add('tel-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'elimleaders') return; /* superseded while awaiting data */
+      telRender(data);
+    }
+
+    function hideElimLeadersScene() {
+      activeFeature = null;
+      telPage.classList.remove('tel-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            telPage.classList.remove('tel-on');
+            telPage.querySelectorAll('.tel-card').forEach(c => c.classList.remove('tel-dealt'));
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       GROUP ELIM LEADERS — top 5 players by total kills across every Tally
+       sheet (/api/group-elim-leaders, Qualifiers included). Clone of
+       Eliminations/Map without the map box or map picker, so no refresh
+       event. Part of the RANK_FEATURES family — shares #rnk-header,
+       labeled "Group Elim Leaders".
+    ════════════════════════════════════════════════ */
+    const gelPage = document.getElementById('groupelim-page');
+    const GEL_FLIP_STAGGER_MS = 130;
+
+    async function gelFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/group-elim-leaders'), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch (e) { return null; }
+    }
+
+    /* An <img> that hides itself when its file is missing (and un-hides
+       when a later src does load), instead of showing a broken icon. */
+    function gelSetImg(img, src, fallback) {
+      img.style.display = '';
+      img.onerror = () => {
+        if (fallback && img.getAttribute('src') !== fallback) { img.src = fallback; return; }
+        img.style.display = 'none';
+      };
+      img.src = src;
+    }
+
+    /* Must run AFTER #groupelim-page has .gel-on (real layout) — the fit calls
+       measure against it. */
+    function gelApply(data) {
+      const players = (data && data.players) || [];
+      for (let i = 0; i < 5; i++) {
+        const card = document.getElementById('gel-card-' + (i + 1));
+        card.classList.remove('gel-dealt');
+        const p = players[i];
+        card.classList.toggle('gel-empty', !p);
+        if (!p) continue;
+        gelSetImg(card.querySelector('.gel-photo'), '/photos/FRONT/' + encodeURIComponent(p.team) + '/' + encodeURIComponent(p.name) + '.png', '/photos/placeholder.png');
+        gelSetImg(card.querySelector('.gel-teamlogo img'), '/logos/' + encodeURIComponent(p.team) + '.png');
+        gelSetImg(card.querySelector('.gel-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        card.querySelector('.gel-name span').textContent = p.name;
+        card.querySelector('.gel-count span').textContent = p.kills;
+        const grp = card.querySelector('.gel-group');
+        grp.querySelector('span').textContent = p.group || '';
+        grp.style.display = p.group ? '' : 'none';
+        ovrFitText(card.querySelector('.gel-name'), 36.15, 17.6);
+        ovrFitText(card.querySelector('.gel-label'), 37.4, 19.8);
+      }
+      return players.length;
+    }
+
+    async function gelRender(data) {
+      const count = gelApply(data);
+      await preloadMedia(gelPage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'groupelimleaders') return;
+      void gelPage.offsetWidth; /* snap the reset (no transition on the base class) before flipping */
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          if (activeFeature !== 'groupelimleaders') return;
+          document.getElementById('gel-card-' + (i + 1)).classList.add('gel-dealt');
+        }, i * GEL_FLIP_STAGGER_MS);
+      }
+    }
+
+    async function showGroupElimLeadersScene() {
+      const dataPromise = gelFetchData();
+      await transitionTo('groupelimleaders');
+      if (activeFeature !== 'groupelimleaders') return; /* superseded mid-await */
+      rnkShowHeader('Group Elim Leaders');
+      rnkShowBgVideo();
+      gelPage.classList.add('gel-on');
+      void gelPage.offsetWidth; /* force reflow so the opacity transition runs */
+      gelPage.classList.add('gel-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'groupelimleaders') return; /* superseded while awaiting data */
+      gelRender(data);
+    }
+
+    function hideGroupElimLeadersScene() {
+      activeFeature = null;
+      gelPage.classList.remove('gel-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            gelPage.classList.remove('gel-on');
+            gelPage.querySelectorAll('.gel-card').forEach(c => c.classList.remove('gel-dealt'));
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       TEAM MAP ELIMS — top 5 TEAMS by kills on the map chosen in the
+       dashboard's Control tab (/api/team-map-elims: Tally sheet, Overall
+       scope, ranked by kills on that map). Part of the RANK_FEATURES
+       family — shares #rnk-header, labeled "Team Map Elims". The
+       'team_map_elims' SSE event also carries action:'refresh' (sent when the
+       map pick changes) which re-ranks and re-flips a scene already on
+       screen.
+    ════════════════════════════════════════════════ */
+    const tmePage = document.getElementById('teammap-page');
+    const TME_MAP_ASSET = {
+      'Isolated': 'isolated', 'Blackout': 'blackout', 'Alcatraz': 'alcatraz',
+      'Krai': 'krai', 'Rebirth Island': 'rebirth', 'Rebirth': 'rebirth',
+    };
+    const TME_FLIP_STAGGER_MS = 130;
+
+    async function tmeFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/team-map-elims'), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch (e) { return null; }
+    }
+
+    /* An <img> that hides itself when its file is missing (and un-hides
+       when a later src does load), instead of showing a broken icon. */
+    function tmeSetImg(img, src, fallback) {
+      img.style.display = '';
+      img.onerror = () => {
+        if (fallback && img.getAttribute('src') !== fallback) { img.src = fallback; return; }
+        img.style.display = 'none';
+      };
+      img.src = src;
+    }
+
+    /* Must run AFTER #teammap-page has .tme-on (real layout) — the fit calls
+       measure against it. */
+    function tmeApply(data) {
+      const mapName = (data && data.map) || '';
+      const slug = TME_MAP_ASSET[mapName] || mapName.toLowerCase().replace(/\s+/g, '_');
+      tmeSetImg(document.getElementById('tme-mapbox-bg'), '/maps/' + slug + '_waiting.png');
+      const nameSpan = document.querySelector('#tme-mapbox-name span');
+      nameSpan.textContent = mapName;
+      ovrFitText(document.getElementById('tme-mapbox-title'), 24.3, 14);
+      ovrFitText(document.getElementById('tme-mapbox-name'), 40.3, 20);
+
+      const players = (data && data.teams) || [];
+      for (let i = 0; i < 5; i++) {
+        const card = document.getElementById('tme-card-' + (i + 1));
+        card.classList.remove('tme-dealt');
+        const p = players[i];
+        card.classList.toggle('tme-empty', !p);
+        if (!p) continue;
+        tmeSetImg(card.querySelector('.tme-photo'), '/logos/' + encodeURIComponent(p.team) + '.png');
+        tmeSetImg(card.querySelector('.tme-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        card.querySelector('.tme-name span').textContent = p.team;
+        card.querySelector('.tme-count span').textContent = p.kills;
+        ovrFitText(card.querySelector('.tme-name'), 32.86, 16);
+        ovrFitText(card.querySelector('.tme-label'), 34, 18);
+      }
+      return players.length;
+    }
+
+    async function tmeRender(data) {
+      const count = tmeApply(data);
+      await preloadMedia(tmePage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'teammapelims') return;
+      void tmePage.offsetWidth; /* snap the reset (no transition on the base class) before flipping */
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          if (activeFeature !== 'teammapelims') return;
+          document.getElementById('tme-card-' + (i + 1)).classList.add('tme-dealt');
+        }, i * TME_FLIP_STAGGER_MS);
+      }
+    }
+
+    let tmeRefreshSeq = 0;
+    async function tmeRefresh() {
+      if (activeFeature !== 'teammapelims') return;
+      const seq = ++tmeRefreshSeq; /* a newer map pick supersedes this one */
+      const dataPromise = tmeFetchData();
+      const cards = Array.from(tmePage.querySelectorAll('.tme-card.tme-dealt'));
+      cards.forEach((c, i) => setTimeout(() => {
+        c.classList.remove('tme-dealt');
+        c.classList.add('tme-leaving');
+      }, i * 60));
+      await new Promise(r => setTimeout(r, cards.length ? cards.length * 60 + 380 : 0));
+      const data = await dataPromise;
+      if (activeFeature !== 'teammapelims' || seq !== tmeRefreshSeq) return;
+      tmePage.querySelectorAll('.tme-card').forEach(c => c.classList.remove('tme-leaving'));
+      tmeRender(data);
+    }
+
+    async function showTeamMapElimsScene() {
+      const dataPromise = tmeFetchData();
+      await transitionTo('teammapelims');
+      if (activeFeature !== 'teammapelims') return; /* superseded mid-await */
+      rnkShowHeader('Team Map Elims');
+      rnkShowBgVideo();
+      tmePage.classList.add('tme-on');
+      void tmePage.offsetWidth; /* force reflow so the opacity transition runs */
+      tmePage.classList.add('tme-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'teammapelims') return; /* superseded while awaiting data */
+      tmeRender(data);
+    }
+
+    function hideTeamMapElimsScene() {
+      activeFeature = null;
+      tmePage.classList.remove('tme-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            tmePage.classList.remove('tme-on');
+            tmePage.querySelectorAll('.tme-card').forEach(c => c.classList.remove('tme-dealt'));
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       TEAM POINT PERCENT — top 5 teams by total points (Overall scope:
+       Groupstage + Playoffs + Grand Finals, no Qualifiers —
+       /api/team-point-percent), each with the % of their points that came
+       from eliminations (kill points) vs placement. Part of the
+       RANK_FEATURES family — shares #rnk-header, labeled "Team Point
+       Percent". Data is fetched on show (not live-polled) — hide/show to
+       refresh mid-broadcast.
+    ════════════════════════════════════════════════ */
+    const tppPage = document.getElementById('teampoint-page');
+    const TPP_BAR_W = 682;
+    const TPP_ROW_STAGGER_MS = 130;
+
+    async function tppFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/team-point-percent'), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch (e) { return null; }
+    }
+
+    function tppSetImg(img, src) {
+      img.style.display = '';
+      img.onerror = () => { img.style.display = 'none'; };
+      img.src = src;
+    }
+
+    /* Must run AFTER #teampoint-page has .tpp-on (real layout) — the fit
+       calls measure against it. Returns the per-row target --pct values. */
+    function tppApply(data) {
+      const teams = (data && data.teams) || [];
+      const targets = [];
+      for (let i = 0; i < 5; i++) {
+        const row = document.getElementById('tpp-row-' + (i + 1));
+        row.classList.remove('tpp-in');
+        row.style.setProperty('--pct', '0');
+        const t = teams[i];
+        row.classList.toggle('tpp-empty', !t);
+        if (!t) { targets.push(0); continue; }
+        const total = t.totalScore || 0;
+        const elimPct = total > 0 ? Math.round(t.killPoints / total * 100) : 0;
+        const placePct = total > 0 ? 100 - elimPct : 0;
+        const fmt = n => (n % 1 === 0 ? String(n) : n.toFixed(2));
+        row.querySelector('.tpp-name span').textContent = t.team;
+        row.querySelector('.tpp-total span').textContent = fmt(total);
+        row.querySelector('.tpp-elimlabel span').textContent = elimPct + '% ELIMS';
+        row.querySelector('.tpp-placelabel span').textContent = placePct + '% PLACEMENT';
+        row.querySelector('.tpp-elimval span').textContent = fmt(t.killPoints);
+        row.querySelector('.tpp-placeval span').textContent = fmt(t.placementPoints);
+        /* Number inside a bar segment only when the segment is wide enough to hold it. */
+        row.querySelector('.tpp-elimval').style.display = (elimPct / 100 * TPP_BAR_W) < 40 ? 'none' : '';
+        row.querySelector('.tpp-placeval').style.display = (placePct / 100 * TPP_BAR_W) < 40 ? 'none' : '';
+        tppSetImg(row.querySelector('.tpp-logo'), '/logos/' + encodeURIComponent(t.team) + '.png');
+        ovrFitText(row.querySelector('.tpp-name'), 30, 14);
+        targets.push(elimPct / 100);
+      }
+      return targets;
+    }
+
+    async function tppRender(data) {
+      const targets = tppApply(data);
+      await preloadMedia(tppPage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'teampointpct') return;
+      void tppPage.offsetWidth; /* snap the reset (no transition on the base class) before animating */
+      targets.forEach((pct, i) => {
+        setTimeout(() => {
+          if (activeFeature !== 'teampointpct') return;
+          const row = document.getElementById('tpp-row-' + (i + 1));
+          row.classList.add('tpp-in');
+          setTimeout(() => { if (activeFeature === 'teampointpct') row.style.setProperty('--pct', String(pct)); }, 250);
+        }, i * TPP_ROW_STAGGER_MS);
+      });
+    }
+
+    async function showTeamPointPercentScene() {
+      const dataPromise = tppFetchData();
+      await transitionTo('teampointpct');
+      if (activeFeature !== 'teampointpct') return; /* superseded mid-await */
+      rnkShowHeader('Team Point Percent');
+      rnkShowBgVideo();
+      tppPage.classList.add('tpp-on');
+      void tppPage.offsetWidth; /* force reflow so the opacity transition runs */
+      tppPage.classList.add('tpp-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'teampointpct') return; /* superseded while awaiting data */
+      tppRender(data);
+    }
+
+    function hideTeamPointPercentScene() {
+      activeFeature = null;
+      tppPage.classList.remove('tpp-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            tppPage.classList.remove('tpp-on');
+            tppPage.querySelectorAll('.tpp-row').forEach(r => { r.classList.remove('tpp-in'); r.style.setProperty('--pct', '0'); });
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       QUALIFIER ELIM LEADERS — top 5 players by total kills across every Tally
+       sheet (/api/qualifier-elim-leaders, Qualifier tabs only). Clone of
+       Eliminations/Map without the map box or map picker, so no refresh
+       event. Part of the RANK_FEATURES family — shares #rnk-header,
+       labeled "Qualifier Elim Leaders".
+    ════════════════════════════════════════════════ */
+    const qelPage = document.getElementById('qualelim-page');
+    const QEL_FLIP_STAGGER_MS = 130;
+
+    async function qelFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/qualifier-elim-leaders'), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch (e) { return null; }
+    }
+
+    /* An <img> that hides itself when its file is missing (and un-hides
+       when a later src does load), instead of showing a broken icon. */
+    function qelSetImg(img, src, fallback) {
+      img.style.display = '';
+      img.onerror = () => {
+        if (fallback && img.getAttribute('src') !== fallback) { img.src = fallback; return; }
+        img.style.display = 'none';
+      };
+      img.src = src;
+    }
+
+    /* Must run AFTER #qualelim-page has .qel-on (real layout) — the fit calls
+       measure against it. */
+    function qelApply(data) {
+      const players = (data && data.players) || [];
+      for (let i = 0; i < 5; i++) {
+        const card = document.getElementById('qel-card-' + (i + 1));
+        card.classList.remove('qel-dealt');
+        const p = players[i];
+        card.classList.toggle('qel-empty', !p);
+        if (!p) continue;
+        qelSetImg(card.querySelector('.qel-photo'), '/photos/FRONT/' + encodeURIComponent(p.team) + '/' + encodeURIComponent(p.name) + '.png', '/photos/placeholder.png');
+        qelSetImg(card.querySelector('.qel-teamlogo img'), '/logos/' + encodeURIComponent(p.team) + '.png');
+        qelSetImg(card.querySelector('.qel-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        card.querySelector('.qel-name span').textContent = p.name;
+        card.querySelector('.qel-count span').textContent = p.kills;
+        ovrFitText(card.querySelector('.qel-name'), 36.15, 17.6);
+        ovrFitText(card.querySelector('.qel-label'), 37.4, 19.8);
+      }
+      return players.length;
+    }
+
+    async function qelRender(data) {
+      const count = qelApply(data);
+      await preloadMedia(qelPage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'qualelimleaders') return;
+      void qelPage.offsetWidth; /* snap the reset (no transition on the base class) before flipping */
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          if (activeFeature !== 'qualelimleaders') return;
+          document.getElementById('qel-card-' + (i + 1)).classList.add('qel-dealt');
+        }, i * QEL_FLIP_STAGGER_MS);
+      }
+    }
+
+    async function showQualElimLeadersScene() {
+      const dataPromise = qelFetchData();
+      await transitionTo('qualelimleaders');
+      if (activeFeature !== 'qualelimleaders') return; /* superseded mid-await */
+      rnkShowHeader('Qualifier Elim Leaders');
+      rnkShowBgVideo();
+      qelPage.classList.add('qel-on');
+      void qelPage.offsetWidth; /* force reflow so the opacity transition runs */
+      qelPage.classList.add('qel-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'qualelimleaders') return; /* superseded while awaiting data */
+      qelRender(data);
+    }
+
+    function hideQualElimLeadersScene() {
+      activeFeature = null;
+      qelPage.classList.remove('qel-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            qelPage.classList.remove('qel-on');
+            qelPage.querySelectorAll('.qel-card').forEach(c => c.classList.remove('qel-dealt'));
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       TOTAL TEAM ELIMS — top 5 TEAMS by total kills across every tally sheet (Qualifiers included) (/api/total-team-elims). Clone of
+       Team Map Elims without the map box/picker (no refresh event). Part of
+       the RANK_FEATURES family — shares #rnk-header, labeled "Total Team Elims".
+       Fetched on show — hide/show to refresh mid-broadcast.
+    ════════════════════════════════════════════════ */
+    const ttePage = document.getElementById('totalteam-page');
+    const TTE_FLIP_STAGGER_MS = 130;
+
+    async function tteFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/total-team-elims'), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch (e) { return null; }
+    }
+
+    /* An <img> that hides itself when its file is missing (and un-hides
+       when a later src does load), instead of showing a broken icon. */
+    function tteSetImg(img, src) {
+      img.style.display = '';
+      img.onerror = () => { img.style.display = 'none'; };
+      img.src = src;
+    }
+
+    /* Must run AFTER #totalteam-page has .tte-on (real layout) — the fit calls
+       measure against it. */
+    function tteApply(data) {
+      const teams = (data && data.teams) || [];
+      for (let i = 0; i < 5; i++) {
+        const card = document.getElementById('tte-card-' + (i + 1));
+        card.classList.remove('tte-dealt');
+        const p = teams[i];
+        card.classList.toggle('tte-empty', !p);
+        if (!p) continue;
+        tteSetImg(card.querySelector('.tte-photo'), '/logos/' + encodeURIComponent(p.team) + '.png');
+        tteSetImg(card.querySelector('.tte-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        card.querySelector('.tte-name span').textContent = p.team;
+        card.querySelector('.tte-count span').textContent = p.kills;
+        ovrFitText(card.querySelector('.tte-name'), 32.86, 16);
+        ovrFitText(card.querySelector('.tte-label'), 34, 18);
+      }
+      return teams.length;
+    }
+
+    async function tteRender(data) {
+      const count = tteApply(data);
+      await preloadMedia(ttePage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'totalteamelims') return;
+      void ttePage.offsetWidth; /* snap the reset (no transition on the base class) before flipping */
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          if (activeFeature !== 'totalteamelims') return;
+          document.getElementById('tte-card-' + (i + 1)).classList.add('tte-dealt');
+        }, i * TTE_FLIP_STAGGER_MS);
+      }
+    }
+
+    async function showTotalTeamElimsScene() {
+      const dataPromise = tteFetchData();
+      await transitionTo('totalteamelims');
+      if (activeFeature !== 'totalteamelims') return; /* superseded mid-await */
+      rnkShowHeader('Total Team Elims');
+      rnkShowBgVideo();
+      ttePage.classList.add('tte-on');
+      void ttePage.offsetWidth; /* force reflow so the opacity transition runs */
+      ttePage.classList.add('tte-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'totalteamelims') return; /* superseded while awaiting data */
+      tteRender(data);
+    }
+
+    function hideTotalTeamElimsScene() {
+      activeFeature = null;
+      ttePage.classList.remove('tte-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            ttePage.classList.remove('tte-on');
+            ttePage.querySelectorAll('.tte-card').forEach(c => c.classList.remove('tte-dealt'));
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       GROUP TEAM ELIMS — top 5 TEAMS by total kills in the Groupstage tabs only (A + B, C + D, ...), with the team's group letter in a black square (/api/group-team-elims). Clone of
+       Team Map Elims without the map box/picker (no refresh event). Part of
+       the RANK_FEATURES family — shares #rnk-header, labeled "Group Team Elims".
+       Fetched on show — hide/show to refresh mid-broadcast.
+    ════════════════════════════════════════════════ */
+    const gtePage = document.getElementById('groupteam-page');
+    const GTE_FLIP_STAGGER_MS = 130;
+
+    async function gteFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/group-team-elims'), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch (e) { return null; }
+    }
+
+    /* An <img> that hides itself when its file is missing (and un-hides
+       when a later src does load), instead of showing a broken icon. */
+    function gteSetImg(img, src) {
+      img.style.display = '';
+      img.onerror = () => { img.style.display = 'none'; };
+      img.src = src;
+    }
+
+    /* Must run AFTER #groupteam-page has .gte-on (real layout) — the fit calls
+       measure against it. */
+    function gteApply(data) {
+      const teams = (data && data.teams) || [];
+      for (let i = 0; i < 5; i++) {
+        const card = document.getElementById('gte-card-' + (i + 1));
+        card.classList.remove('gte-dealt');
+        const p = teams[i];
+        card.classList.toggle('gte-empty', !p);
+        if (!p) continue;
+        gteSetImg(card.querySelector('.gte-photo'), '/logos/' + encodeURIComponent(p.team) + '.png');
+        gteSetImg(card.querySelector('.gte-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        card.querySelector('.gte-name span').textContent = p.team;
+        card.querySelector('.gte-count span').textContent = p.kills;
+        const grp = card.querySelector('.gte-group');
+        grp.querySelector('span').textContent = p.group || '';
+        grp.style.display = p.group ? '' : 'none';
+        ovrFitText(card.querySelector('.gte-name'), 32.86, 16);
+        ovrFitText(card.querySelector('.gte-label'), 34, 18);
+      }
+      return teams.length;
+    }
+
+    async function gteRender(data) {
+      const count = gteApply(data);
+      await preloadMedia(gtePage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'groupteamelims') return;
+      void gtePage.offsetWidth; /* snap the reset (no transition on the base class) before flipping */
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          if (activeFeature !== 'groupteamelims') return;
+          document.getElementById('gte-card-' + (i + 1)).classList.add('gte-dealt');
+        }, i * GTE_FLIP_STAGGER_MS);
+      }
+    }
+
+    async function showGroupTeamElimsScene() {
+      const dataPromise = gteFetchData();
+      await transitionTo('groupteamelims');
+      if (activeFeature !== 'groupteamelims') return; /* superseded mid-await */
+      rnkShowHeader('Group Team Elims');
+      rnkShowBgVideo();
+      gtePage.classList.add('gte-on');
+      void gtePage.offsetWidth; /* force reflow so the opacity transition runs */
+      gtePage.classList.add('gte-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'groupteamelims') return; /* superseded while awaiting data */
+      gteRender(data);
+    }
+
+    function hideGroupTeamElimsScene() {
+      activeFeature = null;
+      gtePage.classList.remove('gte-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            gtePage.classList.remove('gte-on');
+            gtePage.querySelectorAll('.gte-card').forEach(c => c.classList.remove('gte-dealt'));
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
        TOURNAMENT SCHEDULE — a single full-bleed PNG, nothing else. Part
        of the RANK_FEATURES family — shares #rnk-header, labeled
        "Tournament Schedule".
@@ -6700,7 +8643,12 @@
       });
     }
 
-    function mwnRenderPhotos(players, animate) {
+    /* /photos/FRONT/<team name>/<player name>.png */
+    function mwnPhotoUrl(team, name) {
+      return '/photos/FRONT/' + encodeURIComponent(team) + '/' + encodeURIComponent(name) + '.png';
+    }
+
+    function mwnRenderPhotos(players, teamName, animate) {
       const box = document.getElementById('mwn-photos-back');
       box.style.display = players && players.length ? '' : 'none';
       for (let i = 0; i < 5; i++) {
@@ -6711,7 +8659,7 @@
         if (!name) continue;
         img.onload = () => { img.style.display = 'block'; };
         img.onerror = () => { img.style.display = 'none'; };
-        img.src = '/photos/FRONT/' + encodeURIComponent(name) + '.png';
+        img.src = mwnPhotoUrl(teamName, name);
       }
       if (animate) mwnRevealPhotos();
     }
@@ -6722,7 +8670,7 @@
       mwnAnimPending = false;
       mwnRenderStats(data && data.stats, animate);
       const d = data && data.winner;
-      mwnRenderPhotos(d ? d.players : null, animate);
+      mwnRenderPhotos(d ? d.players : null, d ? d.name : '', animate);
       if (!d) { mwnCard.style.display = 'none'; return; }
       const flagUrl = d.region ? '/flag/' + encodeURIComponent(d.region) + '_flag.png' : '';
       const [hasLogo, hasFlag] = await Promise.all([
@@ -8292,7 +10240,7 @@
        header, only its own scoreboard content. Same precedent as
        cpDuringPostTransition above. */
     let duringRankTransition = false;
-    const RANK_FEATURES = new Set(['overallranking', 'overallranking2', 'mapranking', 'slotteams', 'groupa', 'groupb', 'groupc', 'groupd', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'tournamentschedule', 'prizepool', 'mapwinner', 'postqualified']);
+    const RANK_FEATURES = new Set(['overallranking', 'overallranking2', 'mapranking', 'slotteams', 'groupa', 'groupb', 'groupc', 'groupd', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'elimsmap', 'elimleaders', 'groupelimleaders', 'teammapelims', 'teampointpct', 'qualelimleaders', 'totalteamelims', 'groupteamelims', 'tournamentschedule', 'prizepool', 'mapwinner', 'postqualified']);
 
     /* Keeps server-side state.fullscreenScene.<key> (and thus the dashboard's
        Control-tab board toggles/live indicator) in sync with board
@@ -8380,6 +10328,14 @@
       if (prev === 'qualifiedteams1') return hideQualifiedTeams1Scene();
       if (prev === 'qualifiedteams2') return hideQualifiedTeams2Scene();
       if (prev === 'maprotation') return hideMapRotationScene();
+      if (prev === 'elimsmap') return hideElimsMapScene();
+      if (prev === 'elimleaders') return hideElimLeadersScene();
+      if (prev === 'groupelimleaders') return hideGroupElimLeadersScene();
+      if (prev === 'teammapelims') return hideTeamMapElimsScene();
+      if (prev === 'teampointpct') return hideTeamPointPercentScene();
+      if (prev === 'qualelimleaders') return hideQualElimLeadersScene();
+      if (prev === 'totalteamelims') return hideTotalTeamElimsScene();
+      if (prev === 'groupteamelims') return hideGroupTeamElimsScene();
       if (prev === 'tournamentschedule') return hideTournamentScheduleScene();
       if (prev === 'prizepool') return hidePrizePoolScene();
       if (prev === 'mapwinner') return hideMapWinnerScene();
@@ -9215,6 +11171,14 @@
           else if (scene.activeFeature === 'qualifiedteams1') showQualifiedTeams1Scene();
           else if (scene.activeFeature === 'qualifiedteams2') showQualifiedTeams2Scene();
           else if (scene.activeFeature === 'maprotation') showMapRotationScene();
+          else if (scene.activeFeature === 'elimsmap') showElimsMapScene();
+          else if (scene.activeFeature === 'elimleaders') showElimLeadersScene();
+          else if (scene.activeFeature === 'groupelimleaders') showGroupElimLeadersScene();
+          else if (scene.activeFeature === 'teammapelims') showTeamMapElimsScene();
+          else if (scene.activeFeature === 'teampointpct') showTeamPointPercentScene();
+          else if (scene.activeFeature === 'qualelimleaders') showQualElimLeadersScene();
+          else if (scene.activeFeature === 'totalteamelims') showTotalTeamElimsScene();
+          else if (scene.activeFeature === 'groupteamelims') showGroupTeamElimsScene();
           else if (scene.activeFeature === 'tournamentschedule') showTournamentScheduleScene();
           else if (scene.activeFeature === 'prizepool') showPrizePoolScene();
           else if (scene.activeFeature === 'mapwinner') showMapWinnerScene();
@@ -9259,6 +11223,14 @@
         if (feature === 'qualifiedteams1') showQualifiedTeams1Scene();
         if (feature === 'qualifiedteams2') showQualifiedTeams2Scene();
         if (feature === 'maprotation') showMapRotationScene();
+        if (feature === 'elimsmap') showElimsMapScene();
+        if (feature === 'elimleaders') showElimLeadersScene();
+        if (feature === 'groupelimleaders') showGroupElimLeadersScene();
+        if (feature === 'teammapelims') showTeamMapElimsScene();
+        if (feature === 'teampointpct') showTeamPointPercentScene();
+        if (feature === 'qualelimleaders') showQualElimLeadersScene();
+        if (feature === 'totalteamelims') showTotalTeamElimsScene();
+        if (feature === 'groupteamelims') showGroupTeamElimsScene();
         if (feature === 'tournamentschedule') showTournamentScheduleScene();
         if (feature === 'prizepool') showPrizePoolScene();
         if (feature === 'mapwinner') showMapWinnerScene();
@@ -9279,7 +11251,7 @@
     window.previewTrigger = function(event, action) {
       document.querySelectorAll('.dbg-btn.preview').forEach(b => b.classList.remove('active'));
       if (action === 'show') {
-        const btnMap = { post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', overall_ranking_2: 'preview-overallranking2', map_ranking: 'preview-mapranking', slot_teams: 'preview-slotteams', group_a: 'preview-groupa', group_b: 'preview-groupb', group_c: 'preview-groupc', group_d: 'preview-groupd', qualified_teams_1: 'preview-qualifiedteams1', qualified_teams_2: 'preview-qualifiedteams2', map_rotation: 'preview-maprotation', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool', map_winner: 'preview-mapwinner' };
+        const btnMap = { post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', overall_ranking_2: 'preview-overallranking2', map_ranking: 'preview-mapranking', slot_teams: 'preview-slotteams', group_a: 'preview-groupa', group_b: 'preview-groupb', group_c: 'preview-groupc', group_d: 'preview-groupd', qualified_teams_1: 'preview-qualifiedteams1', qualified_teams_2: 'preview-qualifiedteams2', map_rotation: 'preview-maprotation', elims_map: 'preview-elimsmap', elim_leaders: 'preview-elimleaders', group_elim_leaders: 'preview-groupelimleaders', team_map_elims: 'preview-teammapelims', team_point_percent: 'preview-teampointpct', qual_elim_leaders: 'preview-qualelimleaders', total_team_elims: 'preview-totalteamelims', group_team_elims: 'preview-groupteamelims', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool', map_winner: 'preview-mapwinner' };
         const btn = document.getElementById(btnMap[event]);
         if (btn) btn.classList.add('active');
       }
@@ -9295,6 +11267,14 @@
         if (event === 'qualified_teams_1') showQualifiedTeams1Scene();
         if (event === 'qualified_teams_2') showQualifiedTeams2Scene();
         if (event === 'map_rotation') showMapRotationScene();
+        if (event === 'elims_map') showElimsMapScene();
+        if (event === 'elim_leaders') showElimLeadersScene();
+        if (event === 'group_elim_leaders') showGroupElimLeadersScene();
+        if (event === 'team_map_elims') showTeamMapElimsScene();
+        if (event === 'team_point_percent') showTeamPointPercentScene();
+        if (event === 'qual_elim_leaders') showQualElimLeadersScene();
+        if (event === 'total_team_elims') showTotalTeamElimsScene();
+        if (event === 'group_team_elims') showGroupTeamElimsScene();
         if (event === 'tournament_schedule') showTournamentScheduleScene();
         if (event === 'prize_pool') showPrizePoolScene();
         if (event === 'map_winner') showMapWinnerScene();
