@@ -166,16 +166,16 @@
       "matchType": "regular"
     }
   ],
-  "countdownLabel": "SHOW STARTS IN",
+  "countdownLabel": "SHOW RESUMES IN",
   "goodbyeLabel": "SEE YOU TOMORROW",
-  "match": 1,
+  "match": 4,
   "countdownLabelAuto": true,
   "timer": {
     "running": true,
-    "endAt": 1791620814039,
-    "remaining": 656
+    "endAt": 1791637199914,
+    "remaining": 1740
   },
-  "map": "Isolated",
+  "map": "Blackout",
   "enCasters": [
     "Leo",
     "Naisou",
@@ -187,7 +187,7 @@
     {
       "time": "6:00PM",
       "mapName": "Isolated",
-      "winner": "",
+      "winner": "LEAP UNBOUND",
       "done": false,
       "groupMatch": "A + B"
     },
@@ -196,14 +196,14 @@
       "mapName": "Blackout",
       "done": false,
       "groupMatch": "A + B",
-      "winner": ""
+      "winner": "AVX DELTA FOC"
     },
     {
       "time": "",
       "mapName": "Isolated",
       "done": false,
       "groupMatch": "B + D",
-      "winner": ""
+      "winner": "POISON IVY GIZY"
     },
     {
       "time": "",
