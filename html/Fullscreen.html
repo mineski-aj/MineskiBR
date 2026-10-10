@@ -2078,14 +2078,18 @@
     .tpp-total { left: 188px; top: 42px; width: 132px; height: 58px; justify-content: center; text-align: center; font-size: 68px; color: #fff; }
     .tpp-totallabel { left: 188px; top: 100px; width: 132px; height: 28px; justify-content: center; text-align: center; font-size: 26px; color: #fff; }
     /* Percent labels sit above the bar, right-aligned: the elims one ends at
-       the yellow/black split (slides right with --pct), the placement one
-       ends at the bar's right end. */
+       the yellow/black split (slides right with --ep, a clamped version of
+       --pct — see tppApply), the placement one ends at the bar's right end.
+       --ep is clamped (not raw --pct) so the label is never narrower than its
+       own text (would clip the number on the left at low %) and never slides
+       far enough right to run into .tpp-placelabel's text (would overlap it
+       at high %); the bar's actual fill still tracks the true --pct. */
     .tpp-elimlabel  { left: 92px;  top: 58px; width: 300px; height: 28px; justify-content: flex-end; text-align: right; font-size: 28px; color: #000;
-                      transform: translateX(calc(var(--pct, 0) * 682px));
+                      transform: translateX(calc(var(--ep, 0) * 682px));
                       /* Crop everything left of the bar's start (row x=392) so the label never overlaps
                          the total-points plate while it slides out from 0%. Same easing/duration as the
                          transform so the crop edge tracks the slide exactly. */
-                      clip-path: inset(0 0 0 calc(300px - var(--pct, 0) * 682px));
+                      clip-path: inset(0 0 0 calc(300px - var(--ep, 0) * 682px));
                       transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1), clip-path 900ms cubic-bezier(0.16, 1, 0.3, 1); }
     .tpp-placelabel { left: 774px; top: 58px; width: 300px; height: 28px; justify-content: flex-end; text-align: right; font-size: 28px; color: #000; }
     .tpp-bar { position: absolute; left: 392px; top: 90px; width: 682px; height: 17px; }
@@ -8049,17 +8053,20 @@
         const row = document.getElementById('tpp-row-' + (i + 1));
         row.classList.remove('tpp-in');
         row.style.setProperty('--pct', '0');
+        row.style.setProperty('--ep', '0');
         const t = teams[i];
         row.classList.toggle('tpp-empty', !t);
-        if (!t) { targets.push(0); continue; }
+        if (!t) { targets.push({ pct: 0, ep: 0 }); continue; }
         const total = t.totalScore || 0;
         const elimPct = total > 0 ? Math.round(t.killPoints / total * 100) : 0;
         const placePct = total > 0 ? 100 - elimPct : 0;
         const fmt = n => (n % 1 === 0 ? String(n) : n.toFixed(2));
         row.querySelector('.tpp-name span').textContent = t.team;
         row.querySelector('.tpp-total span').textContent = fmt(total);
-        row.querySelector('.tpp-elimlabel span').textContent = elimPct + '% ELIMS';
-        row.querySelector('.tpp-placelabel span').textContent = placePct + '% PLACEMENT';
+        const elimLabelSpan = row.querySelector('.tpp-elimlabel span');
+        const placeLabelSpan = row.querySelector('.tpp-placelabel span');
+        elimLabelSpan.textContent = elimPct + '% ELIMS';
+        placeLabelSpan.textContent = placePct + '% PLACEMENT';
         row.querySelector('.tpp-elimval span').textContent = fmt(t.killPoints);
         row.querySelector('.tpp-placeval span').textContent = fmt(t.placementPoints);
         /* Number inside a bar segment only when the segment is wide enough to hold it. */
@@ -8067,7 +8074,15 @@
         row.querySelector('.tpp-placeval').style.display = (placePct / 100 * TPP_BAR_W) < 40 ? 'none' : '';
         tppSetImg(row.querySelector('.tpp-logo'), '/logos/' + encodeURIComponent(t.team) + '.png');
         ovrFitText(row.querySelector('.tpp-name'), 30, 14);
-        targets.push(elimPct / 100);
+        /* --ep clamps the elim label's slide ratio so it (a) always reveals at least
+           its own text width (fixes the label getting clipped on the left at small %)
+           and (b) never slides far enough to run its text into .tpp-placelabel's,
+           which sits fixed at the bar's right end (fixes the overlap at large %). */
+        const TPP_LABEL_GAP = 16;
+        const epMin = elimLabelSpan.scrollWidth / TPP_BAR_W;
+        const epMax = 1 - (placeLabelSpan.scrollWidth + TPP_LABEL_GAP) / TPP_BAR_W;
+        const ep = Math.min(Math.max(elimPct / 100, epMin), Math.max(epMax, epMin));
+        targets.push({ pct: elimPct / 100, ep });
       }
       return targets;
     }
@@ -8077,12 +8092,16 @@
       await preloadMedia(tppPage.querySelectorAll('img'), 1500);
       if (activeFeature !== 'teampointpct') return;
       void tppPage.offsetWidth; /* snap the reset (no transition on the base class) before animating */
-      targets.forEach((pct, i) => {
+      targets.forEach((t, i) => {
         setTimeout(() => {
           if (activeFeature !== 'teampointpct') return;
           const row = document.getElementById('tpp-row-' + (i + 1));
           row.classList.add('tpp-in');
-          setTimeout(() => { if (activeFeature === 'teampointpct') row.style.setProperty('--pct', String(pct)); }, 250);
+          setTimeout(() => {
+            if (activeFeature !== 'teampointpct') return;
+            row.style.setProperty('--pct', String(t.pct));
+            row.style.setProperty('--ep', String(t.ep));
+          }, 250);
         }, i * TPP_ROW_STAGGER_MS);
       });
     }
@@ -8110,7 +8129,7 @@
         new Promise(resolve => {
           setTimeout(() => {
             tppPage.classList.remove('tpp-on');
-            tppPage.querySelectorAll('.tpp-row').forEach(r => { r.classList.remove('tpp-in'); r.style.setProperty('--pct', '0'); });
+            tppPage.querySelectorAll('.tpp-row').forEach(r => { r.classList.remove('tpp-in'); r.style.setProperty('--pct', '0'); r.style.setProperty('--ep', '0'); });
             rnkHideBgVideo();
             resolve();
           }, 420);

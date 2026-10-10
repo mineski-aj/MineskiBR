@@ -71,7 +71,7 @@
   "game": 1,
   "swapped": false,
   "official": true,
-  "week": 1,
+  "week": 3,
   "day": 1,
   "patch": " ",
   "hosts": [
@@ -166,14 +166,14 @@
       "matchType": "regular"
     }
   ],
-  "countdownLabel": "SHOW RESUMES IN",
+  "countdownLabel": "SHOW STARTS IN",
   "goodbyeLabel": "SEE YOU TOMORROW",
-  "match": 5,
+  "match": 1,
   "countdownLabelAuto": true,
   "timer": {
     "running": true,
-    "endAt": 1791119880617,
-    "remaining": 720
+    "endAt": 1791620814039,
+    "remaining": 656
   },
   "map": "Isolated",
   "enCasters": [
@@ -187,12 +187,12 @@
     {
       "time": "6:00PM",
       "mapName": "Isolated",
-      "winner": "ROYAL AMATERASU CC",
+      "winner": "",
       "done": false,
       "groupMatch": "A + B"
     },
     {
-      "time": "",
+      "time": "                                           ",
       "mapName": "Blackout",
       "done": false,
       "groupMatch": "A + B",
@@ -221,7 +221,7 @@
     },
     {
       "time": "",
-      "mapName": "Isolated",
+      "mapName": "Blackout",
       "done": false,
       "groupMatch": "A + D",
       "winner": ""
