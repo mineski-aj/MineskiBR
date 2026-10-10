@@ -172,8 +172,8 @@
   "countdownLabelAuto": true,
   "timer": {
     "running": true,
-    "endAt": 1791637199914,
-    "remaining": 1740
+    "endAt": 1791638343856,
+    "remaining": 360
   },
   "map": "Blackout",
   "enCasters": [
@@ -210,14 +210,14 @@
       "mapName": "Blackout",
       "done": false,
       "groupMatch": "B + D",
-      "winner": ""
+      "winner": "GNR ESPORTS LEGACY OMEN"
     },
     {
       "time": "",
       "mapName": "Isolated",
       "done": false,
       "groupMatch": "A + D",
-      "winner": ""
+      "winner": "ROYAL GEMINI JA LN"
     },
     {
       "time": "",
