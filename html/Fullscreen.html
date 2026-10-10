@@ -1818,7 +1818,7 @@
     .ek-num   { left: 1px;   top: 289px; width: 59px;  height: 78px; justify-content: center; text-align: center; font-weight: 700; font-size: 90px;    color: #000; }
     .ek-name  { left: 79px;  top: 387px; width: 214px; height: 32px; justify-content: center; text-align: center; font-weight: 700; font-size: 32.86px; color: #fff; }
     .ek-label { left: 12px;  top: 450px; width: 180px; height: 37px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 34px;    color: #000; }
-    .ek-count { left: 214px; top: 445px; width: 79px;  height: 49px; justify-content: center; text-align: center; font-weight: 700; font-size: 50px;    color: #fff; }
+    .ek-count { left: 214px; top: 441px; width: 79px;  height: 49px; justify-content: center; text-align: center; font-weight: 700; font-size: 50px;    color: #fff; }
     /* Teko sits high in its line box — nudge the ink down (see the Map
        Rotation note on this). */
     .ek-num span, .ek-name span, .ek-label span, .ek-count span,
@@ -1882,7 +1882,7 @@
     .tel-num   { left: 1.1px;   top: 317.9px; width: 64.9px;  height: 85.8px; justify-content: center; text-align: center; font-weight: 700; font-size: 99px;    color: #000; }
     .tel-name  { left: 86.9px;  top: 425.7px; width: 235.4px; height: 35.2px; justify-content: center; text-align: center; font-weight: 700; font-size: 36.15px; color: #fff; }
     .tel-label { left: 13.2px;  top: 495px; width: 198px; height: 40.7px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 37.4px;    color: #000; }
-    .tel-count { left: 235.4px; top: 489.5px; width: 86.9px;  height: 53.9px; justify-content: center; text-align: center; font-weight: 700; font-size: 55px;    color: #fff; }
+    .tel-count { left: 235.4px; top: 485.5px; width: 86.9px;  height: 53.9px; justify-content: center; text-align: center; font-weight: 700; font-size: 55px;    color: #fff; }
     /* Teko sits high in its line box — nudge the ink down (see the Map
        Rotation note on this). */
     .tel-num span, .tel-name span, .tel-label span, .tel-count span { display: block; transform: translateY(0.15em); }
@@ -1944,7 +1944,7 @@
     .gel-num   { left: 1.1px;   top: 317.9px; width: 64.9px;  height: 85.8px; justify-content: center; text-align: center; font-weight: 700; font-size: 99px;    color: #000; }
     .gel-name  { left: 86.9px;  top: 425.7px; width: 235.4px; height: 35.2px; justify-content: center; text-align: center; font-weight: 700; font-size: 36.15px; color: #fff; }
     .gel-label { left: 13.2px;  top: 495px; width: 198px; height: 40.7px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 37.4px;    color: #000; }
-    .gel-count { left: 235.4px; top: 489.5px; width: 86.9px;  height: 53.9px; justify-content: center; text-align: center; font-weight: 700; font-size: 55px;    color: #fff; }
+    .gel-count { left: 235.4px; top: 485.5px; width: 86.9px;  height: 53.9px; justify-content: center; text-align: center; font-weight: 700; font-size: 55px;    color: #fff; }
     /* Teko sits high in its line box — nudge the ink down (see the Map
        Rotation note on this). */
     .gel-num span, .gel-name span, .gel-label span, .gel-count span { display: block; transform: translateY(0.15em); }
@@ -2027,7 +2027,7 @@
     .tme-num   { left: 1px;   top: 289px; width: 59px;  height: 78px; justify-content: center; text-align: center; font-weight: 700; font-size: 90px;    color: #ffe600; text-shadow: 0 0 4px rgba(0,0,0,0.5), 0 0 9px rgba(0,0,0,0.5), 0 0 16px rgba(0,0,0,0.425); }
     .tme-name  { left: 79px;  top: 387px; width: 214px; height: 32px; justify-content: center; text-align: center; font-weight: 700; font-size: 32.86px; color: #fff; }
     .tme-label { left: 12px;  top: 450px; width: 180px; height: 37px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 34px;    color: #000; }
-    .tme-count { left: 214px; top: 445px; width: 79px;  height: 49px; justify-content: center; text-align: center; font-weight: 700; font-size: 50px;    color: #fff; }
+    .tme-count { left: 214px; top: 441px; width: 79px;  height: 49px; justify-content: center; text-align: center; font-weight: 700; font-size: 50px;    color: #fff; }
     /* Teko sits high in its line box — nudge the ink down (see the Map
        Rotation note on this). */
     .tme-num span, .tme-name span, .tme-label span, .tme-count span,
@@ -2108,6 +2108,89 @@
     .tpp-placeval { right: 8px; color: #fff; }
     .tpp-name span, .tpp-total span, .tpp-totallabel span, .tpp-elimlabel span, .tpp-placelabel span, .tpp-barval span { display: block; transform: translateY(0.15em); }
 
+    /* ── POINT CONTRIBUTION PAGE — per-PLAYER clone of Team Point Percent: top 5
+       players by total elims (Overall scope, GET /api/point-contribution);
+       each row's yellow bar = that player's share of their team's total kills,
+       and the player's photo sits in the container's yellow wedge, masked to
+       it (percentage_yellowmask.png, baked from the container art). Layout measured off assets/percentage/percentage_guide.png;
+       everything inside a row is positioned relative to it. Part of the
+       RANK_FEATURES family (shared #rnk-header, "Point Contribution"). The
+       bar's yellow fill and the elims label slide with --pct (0..1) set
+       from JS, so the Edit-tab left/top of each stays meaningful. ── */
+    #pointcontrib-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #pointcontrib-page.pcp-on { display: block; }
+    #pointcontrib-page.pcp-visible { opacity: 1; }
+    .pcp-row {
+      position: absolute; left: 405px; width: 1110px; height: 133px;
+      opacity: 0; transform: translateX(-70px);
+    }
+    .pcp-row.pcp-empty { display: none; }
+    .pcp-row.pcp-in {
+      transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1), opacity 260ms ease;
+      transform: translateX(0); opacity: 1;
+    }
+    #pcp-row-1 { top: 257px; }
+    #pcp-row-2 { top: 399px; }
+    #pcp-row-3 { top: 541px; }
+    #pcp-row-4 { top: 683px; }
+    #pcp-row-5 { top: 825px; }
+    .pcp-bg { position: absolute; left: 0; top: 0; width: 1110px; height: 133px; }
+    .pcp-name, .pcp-total, .pcp-totallabel, .pcp-elimlabel, .pcp-placelabel {
+      position: absolute; display: flex; align-items: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    .pcp-name  { left: 0; top: 0; width: 334px; height: 33px; justify-content: center; text-align: center; font-size: 30px; color: #000; }
+    /* Photo window = the container's yellow wedge (x0-178, y33-132); the mask PNG is that wedge's
+       exact shape, so the photo only shows inside the yellow. The img inside is positioned
+       relative to this window. */
+    .pcp-photomask { position: absolute; left: 0; top: 33px; width: 179px; height: 100px; overflow: hidden;
+      -webkit-mask: url('/assets/percentage/percentage_yellowmask.png') no-repeat 0 0 / 100% 100%;
+              mask: url('/assets/percentage/percentage_yellowmask.png') no-repeat 0 0 / 100% 100%; }
+    /* Team logo — sits OUTSIDE the container, in the free space to its left (row x < 0). */
+    .pcp-teamlogo { position: absolute; left: -112px; top: 16px; width: 100px; height: 100px; object-fit: contain; }
+    .pcp-photo { position: absolute; left: -19px; top: -48px; width: 210px; height: 210px; object-fit: contain; object-position: top center; }
+    .pcp-total { left: 188px; top: 36px; width: 132px; height: 58px; justify-content: center; text-align: center; font-size: 68px; color: #fff; }
+    .pcp-totallabel { left: 188px; top: 100px; width: 132px; height: 28px; justify-content: center; text-align: center; font-size: 26px; color: #fff; }
+    /* Percent labels sit above the bar, right-aligned: the elims one ends at
+       the yellow/black split (slides right with --ep, a clamped version of
+       --pct — see tppApply), the placement one ends at the bar's right end.
+       --ep is clamped (not raw --pct) so the label is never narrower than its
+       own text (would clip the number on the left at low %) and never slides
+       far enough right to run into .pcp-placelabel's text (would overlap it
+       at high %); the bar's actual fill still tracks the true --pct. */
+    .pcp-elimlabel  { left: 92px;  top: 58px; width: 300px; height: 28px; justify-content: flex-end; text-align: right; font-size: 28px; color: #000;
+                      transform: translateX(calc(var(--ep, 0) * 682px));
+                      /* Crop everything left of the bar's start (row x=392) so the label never overlaps
+                         the total-points plate while it slides out from 0%. Same easing/duration as the
+                         transform so the crop edge tracks the slide exactly. */
+                      clip-path: inset(0 0 0 calc(300px - var(--ep, 0) * 682px));
+                      transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1), clip-path 900ms cubic-bezier(0.16, 1, 0.3, 1); }
+    .pcp-placelabel { left: 774px; top: 58px; width: 300px; height: 28px; justify-content: flex-end; text-align: right; font-size: 28px; color: #000; }
+    .pcp-bar { position: absolute; left: 392px; top: 90px; width: 682px; height: 17px; }
+    .pcp-fill {
+      position: absolute; left: 0; top: 0; height: 100%;
+      width: calc(var(--pct, 0) * 100%);
+      background: #ffe738;
+      transition: width 900ms cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+    .pcp-barval {
+      position: absolute; top: 0; height: 100%; display: flex; align-items: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 16px; line-height: 1; white-space: nowrap;
+    }
+    .pcp-elimval  { left: 8px;  color: #000; }
+    .pcp-placeval { right: 8px; color: #fff; }
+    .pcp-name span, .pcp-total span, .pcp-totallabel span, .pcp-elimlabel span, .pcp-placelabel span, .pcp-barval span { display: block; transform: translateY(0.15em); }
+
     /* ── QUALIFIER ELIM LEADERS PAGE — clone of Total Elim Leaders counting ONLY
        the Qualifier 1..N tabs (GET /api/qualifier-elim-leaders). Own
        ids/classes (qel-*) so it's editable independently. Shared
@@ -2164,7 +2247,7 @@
     .qel-num   { left: 1.1px;   top: 317.9px; width: 64.9px;  height: 85.8px; justify-content: center; text-align: center; font-weight: 700; font-size: 99px;    color: #000; }
     .qel-name  { left: 86.9px;  top: 425.7px; width: 235.4px; height: 35.2px; justify-content: center; text-align: center; font-weight: 700; font-size: 36.15px; color: #fff; }
     .qel-label { left: 13.2px;  top: 495px; width: 198px; height: 40.7px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 37.4px;    color: #000; }
-    .qel-count { left: 235.4px; top: 489.5px; width: 86.9px;  height: 53.9px; justify-content: center; text-align: center; font-weight: 700; font-size: 55px;    color: #fff; }
+    .qel-count { left: 235.4px; top: 485.5px; width: 86.9px;  height: 53.9px; justify-content: center; text-align: center; font-weight: 700; font-size: 55px;    color: #fff; }
     /* Teko sits high in its line box — nudge the ink down (see the Map
        Rotation note on this). */
     .qel-num span, .qel-name span, .qel-label span, .qel-count span { display: block; transform: translateY(0.15em); }
@@ -2218,7 +2301,7 @@
     .tte-num   { left: 1px;   top: 289px; width: 59px;  height: 78px; justify-content: center; text-align: center; font-weight: 700; font-size: 90px;    color: #ffe600; text-shadow: 0 0 4px rgba(0,0,0,0.5), 0 0 9px rgba(0,0,0,0.5), 0 0 16px rgba(0,0,0,0.425); }
     .tte-name  { left: 79px;  top: 387px; width: 214px; height: 32px; justify-content: center; text-align: center; font-weight: 700; font-size: 32.86px; color: #fff; }
     .tte-label { left: 12px;  top: 450px; width: 180px; height: 37px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 34px;    color: #000; }
-    .tte-count { left: 214px; top: 445px; width: 79px;  height: 49px; justify-content: center; text-align: center; font-weight: 700; font-size: 50px;    color: #fff; }
+    .tte-count { left: 214px; top: 441px; width: 79px;  height: 49px; justify-content: center; text-align: center; font-weight: 700; font-size: 50px;    color: #fff; }
     /* Teko sits high in its line box — nudge the ink down (see the Map
        Rotation note on this). */
     .tte-num span, .tte-name span, .tte-label span, .tte-count span { display: block; transform: translateY(0.15em); }
@@ -2273,7 +2356,7 @@
     .gte-num   { left: 1px;   top: 289px; width: 59px;  height: 78px; justify-content: center; text-align: center; font-weight: 700; font-size: 90px;    color: #ffe600; text-shadow: 0 0 4px rgba(0,0,0,0.5), 0 0 9px rgba(0,0,0,0.5), 0 0 16px rgba(0,0,0,0.425); }
     .gte-name  { left: 79px;  top: 387px; width: 214px; height: 32px; justify-content: center; text-align: center; font-weight: 700; font-size: 32.86px; color: #fff; }
     .gte-label { left: 12px;  top: 450px; width: 180px; height: 37px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 34px;    color: #000; }
-    .gte-count { left: 214px; top: 445px; width: 79px;  height: 49px; justify-content: center; text-align: center; font-weight: 700; font-size: 50px;    color: #fff; }
+    .gte-count { left: 214px; top: 441px; width: 79px;  height: 49px; justify-content: center; text-align: center; font-weight: 700; font-size: 50px;    color: #fff; }
     /* Teko sits high in its line box — nudge the ink down (see the Map
        Rotation note on this). */
     .gte-num span, .gte-name span, .gte-label span, .gte-count span { display: block; transform: translateY(0.15em); }
@@ -2285,6 +2368,61 @@
       overflow: hidden;
     }
     .gte-group span { display: block; transform: translateY(0.15em); }
+
+
+    /* ── Qualifier Team Elims PAGE — clone of Team Map Elims minus the map box and picker:
+       top 5 TEAMS by total kills in the Qualifier tabs only, no group-letter square (GET /api/qual-team-elims). Big team logo
+       as the card's main picture, yellow rank number with a soft black
+       glow, team name in the name bar. Own ids/classes (qte-*) so it's
+       editable independently. Shared #rnk-header labeled "Qualifier Team Elims". Cards
+       sit higher than Team Map Elims' (top 337) since there's no map box. ── */
+    #qualteam-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #qualteam-page.qte-on { display: block; }
+    #qualteam-page.qte-visible { opacity: 1; }
+    .qte-card {
+      position: absolute; top: 337px; width: 297px; height: 494px;
+      opacity: 0;
+      transform: perspective(1400px) rotateY(-90deg);
+      backface-visibility: hidden;
+    }
+    .qte-card.qte-empty { display: none; }
+    .qte-card.qte-dealt {
+      transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease;
+      transform: perspective(1400px) rotateY(0deg);
+      opacity: 1;
+    }
+    #qte-card-1 { left: 158px; }
+    #qte-card-2 { left: 484.5px; }
+    #qte-card-3 { left: 811px; }
+    #qte-card-4 { left: 1137.5px; }
+    #qte-card-5 { left: 1464px; }
+    .qte-card-bg { position: absolute; left: 0; top: 0; width: 297px; height: 494px; }
+    .qte-photo {
+      position: absolute; left: 33.5px; top: 124px; width: 230px; height: 230px;
+      object-fit: contain;
+    }
+    .qte-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px; object-fit: contain; }
+    .qte-num, .qte-name, .qte-label, .qte-count {
+      position: absolute;
+      display: flex; align-items: center;
+      font-family: 'Teko', sans-serif; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    .qte-num   { left: 1px;   top: 289px; width: 59px;  height: 78px; justify-content: center; text-align: center; font-weight: 700; font-size: 90px;    color: #ffe600; text-shadow: 0 0 4px rgba(0,0,0,0.5), 0 0 9px rgba(0,0,0,0.5), 0 0 16px rgba(0,0,0,0.425); }
+    .qte-name  { left: 79px;  top: 387px; width: 214px; height: 32px; justify-content: center; text-align: center; font-weight: 700; font-size: 32.86px; color: #fff; }
+    .qte-label { left: 12px;  top: 450px; width: 180px; height: 37px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 34px;    color: #000; }
+    .qte-count { left: 214px; top: 441px; width: 79px;  height: 49px; justify-content: center; text-align: center; font-weight: 700; font-size: 50px;    color: #fff; }
+    /* Teko sits high in its line box — nudge the ink down (see the Map
+       Rotation note on this). */
+    .qte-num span, .qte-name span, .qte-label span, .qte-count span { display: block; transform: translateY(0.15em); }
 
 
     /* ── TOURNAMENT SCHEDULE PAGE — a single full-bleed PNG, nothing else.
@@ -3554,6 +3692,16 @@
       </div>
     </div>
 
+    <!-- DANGER ZONE -->
+    <div class="feature-card">
+      <div class="feature-card-label">Danger Zone</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showDangerZoneScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideGroupScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-dangerzone" onclick="toggleLocalPreview('dangerzone', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
     <!-- QUALIFIED TEAMS 1 -->
     <div class="feature-card">
       <div class="feature-card-label">Qualified Teams 1</div>
@@ -3634,6 +3782,16 @@
       </div>
     </div>
 
+    <!-- POINT CONTRIBUTION -->
+    <div class="feature-card">
+      <div class="feature-card-label">Point Contribution</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showPointContributionScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hidePointContributionScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-pointcontribution" onclick="toggleLocalPreview('pointcontribution', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
     <!-- QUALIFIER ELIM LEADERS -->
     <div class="feature-card">
       <div class="feature-card-label">Qualifier Elim Leaders</div>
@@ -3661,6 +3819,16 @@
         <button class="dbg-btn show" onclick="showGroupTeamElimsScene()">▶ SHOW</button>
         <button class="dbg-btn hide" onclick="hideGroupTeamElimsScene()">■ HIDE</button>
         <button class="dbg-btn preview" id="preview-groupteamelims" onclick="toggleLocalPreview('groupteamelims', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- QUALIFIER TEAM ELIMS -->
+    <div class="feature-card">
+      <div class="feature-card-label">Qualifier Team Elims</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showQualTeamElimsScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideQualTeamElimsScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-qualteamelims" onclick="toggleLocalPreview('qualteamelims', this)">◈ PREVIEW</button>
       </div>
     </div>
 
@@ -4356,6 +4524,78 @@
         </div>
       </div>
     </div>
+    <div id="pointcontrib-page">
+      <div class="pcp-row pcp-empty" id="pcp-row-1">
+        <img class="pcp-bg" src="/assets/percentage/percentage_container.png" alt="">
+        <div class="pcp-name"><span></span></div>
+        <div class="pcp-photomask"><img class="pcp-photo" src="" alt=""></div>
+        <img class="pcp-teamlogo" src="" alt="">
+        <div class="pcp-total"><span></span></div>
+        <div class="pcp-totallabel"><span>TOTAL ELIMS</span></div>
+        <div class="pcp-elimlabel"><span></span></div>
+        <div class="pcp-placelabel"><span></span></div>
+        <div class="pcp-bar">
+          <div class="pcp-fill"><div class="pcp-barval pcp-elimval"><span></span></div></div>
+          <div class="pcp-barval pcp-placeval"><span></span></div>
+        </div>
+      </div>
+      <div class="pcp-row pcp-empty" id="pcp-row-2">
+        <img class="pcp-bg" src="/assets/percentage/percentage_container.png" alt="">
+        <div class="pcp-name"><span></span></div>
+        <div class="pcp-photomask"><img class="pcp-photo" src="" alt=""></div>
+        <img class="pcp-teamlogo" src="" alt="">
+        <div class="pcp-total"><span></span></div>
+        <div class="pcp-totallabel"><span>TOTAL ELIMS</span></div>
+        <div class="pcp-elimlabel"><span></span></div>
+        <div class="pcp-placelabel"><span></span></div>
+        <div class="pcp-bar">
+          <div class="pcp-fill"><div class="pcp-barval pcp-elimval"><span></span></div></div>
+          <div class="pcp-barval pcp-placeval"><span></span></div>
+        </div>
+      </div>
+      <div class="pcp-row pcp-empty" id="pcp-row-3">
+        <img class="pcp-bg" src="/assets/percentage/percentage_container.png" alt="">
+        <div class="pcp-name"><span></span></div>
+        <div class="pcp-photomask"><img class="pcp-photo" src="" alt=""></div>
+        <img class="pcp-teamlogo" src="" alt="">
+        <div class="pcp-total"><span></span></div>
+        <div class="pcp-totallabel"><span>TOTAL ELIMS</span></div>
+        <div class="pcp-elimlabel"><span></span></div>
+        <div class="pcp-placelabel"><span></span></div>
+        <div class="pcp-bar">
+          <div class="pcp-fill"><div class="pcp-barval pcp-elimval"><span></span></div></div>
+          <div class="pcp-barval pcp-placeval"><span></span></div>
+        </div>
+      </div>
+      <div class="pcp-row pcp-empty" id="pcp-row-4">
+        <img class="pcp-bg" src="/assets/percentage/percentage_container.png" alt="">
+        <div class="pcp-name"><span></span></div>
+        <div class="pcp-photomask"><img class="pcp-photo" src="" alt=""></div>
+        <img class="pcp-teamlogo" src="" alt="">
+        <div class="pcp-total"><span></span></div>
+        <div class="pcp-totallabel"><span>TOTAL ELIMS</span></div>
+        <div class="pcp-elimlabel"><span></span></div>
+        <div class="pcp-placelabel"><span></span></div>
+        <div class="pcp-bar">
+          <div class="pcp-fill"><div class="pcp-barval pcp-elimval"><span></span></div></div>
+          <div class="pcp-barval pcp-placeval"><span></span></div>
+        </div>
+      </div>
+      <div class="pcp-row pcp-empty" id="pcp-row-5">
+        <img class="pcp-bg" src="/assets/percentage/percentage_container.png" alt="">
+        <div class="pcp-name"><span></span></div>
+        <div class="pcp-photomask"><img class="pcp-photo" src="" alt=""></div>
+        <img class="pcp-teamlogo" src="" alt="">
+        <div class="pcp-total"><span></span></div>
+        <div class="pcp-totallabel"><span>TOTAL ELIMS</span></div>
+        <div class="pcp-elimlabel"><span></span></div>
+        <div class="pcp-placelabel"><span></span></div>
+        <div class="pcp-bar">
+          <div class="pcp-fill"><div class="pcp-barval pcp-elimval"><span></span></div></div>
+          <div class="pcp-barval pcp-placeval"><span></span></div>
+        </div>
+      </div>
+    </div>
     <div id="qualelim-page">
       <div class="qel-card qel-empty" id="qel-card-1">
         <img class="qel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
@@ -4505,6 +4745,53 @@
         <div class="gte-label"><span>ELIMINATIONS</span></div>
         <div class="gte-count"><span></span></div>
         <div class="gte-group"><span></span></div>
+      </div>
+    </div>
+    <div id="qualteam-page">
+      <div class="qte-card qte-empty" id="qte-card-1">
+        <img class="qte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="qte-photo" src="" alt="">
+        <div class="qte-num"><span>1</span></div>
+        <img class="qte-flag" src="" alt="">
+        <div class="qte-name"><span></span></div>
+        <div class="qte-label"><span>ELIMINATIONS</span></div>
+        <div class="qte-count"><span></span></div>
+      </div>
+      <div class="qte-card qte-empty" id="qte-card-2">
+        <img class="qte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="qte-photo" src="" alt="">
+        <div class="qte-num"><span>2</span></div>
+        <img class="qte-flag" src="" alt="">
+        <div class="qte-name"><span></span></div>
+        <div class="qte-label"><span>ELIMINATIONS</span></div>
+        <div class="qte-count"><span></span></div>
+      </div>
+      <div class="qte-card qte-empty" id="qte-card-3">
+        <img class="qte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="qte-photo" src="" alt="">
+        <div class="qte-num"><span>3</span></div>
+        <img class="qte-flag" src="" alt="">
+        <div class="qte-name"><span></span></div>
+        <div class="qte-label"><span>ELIMINATIONS</span></div>
+        <div class="qte-count"><span></span></div>
+      </div>
+      <div class="qte-card qte-empty" id="qte-card-4">
+        <img class="qte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="qte-photo" src="" alt="">
+        <div class="qte-num"><span>4</span></div>
+        <img class="qte-flag" src="" alt="">
+        <div class="qte-name"><span></span></div>
+        <div class="qte-label"><span>ELIMINATIONS</span></div>
+        <div class="qte-count"><span></span></div>
+      </div>
+      <div class="qte-card qte-empty" id="qte-card-5">
+        <img class="qte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="qte-photo" src="" alt="">
+        <div class="qte-num"><span>5</span></div>
+        <img class="qte-flag" src="" alt="">
+        <div class="qte-name"><span></span></div>
+        <div class="qte-label"><span>ELIMINATIONS</span></div>
+        <div class="qte-count"><span></span></div>
       </div>
     </div>
     <div id="tournament-schedule-page">
@@ -4986,6 +5273,14 @@
         });
       });
 
+      sseSource.addEventListener('danger_zone', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showDangerZoneScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
       sseSource.addEventListener('qualified_teams_1', (e) => {
         const msg = JSON.parse(e.data);
         if (msg.action === 'show') {
@@ -5052,6 +5347,14 @@
         } else if (msg.action === 'hide') hideActiveFeature();
       });
 
+      sseSource.addEventListener('point_contribution', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showPointContributionScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
       sseSource.addEventListener('qual_elim_leaders', (e) => {
         const msg = JSON.parse(e.data);
         if (msg.action === 'show') {
@@ -5065,6 +5368,14 @@
         if (msg.action === 'show') {
           document.getElementById('config-bar').classList.remove('debug-open');
           setTimeout(showTotalTeamElimsScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('qual_team_elims', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showQualTeamElimsScene, 100);
         } else if (msg.action === 'hide') hideActiveFeature();
       });
 
@@ -7271,6 +7582,35 @@
       grkRenderTeams(teams);
       grkLivePolls[letter].start(teams);
     }
+    /* DANGER ZONE — same page/layout as Group A–D, but the 10 teams ranked
+       16th–25th OVERALL (across all groups, by total score): the teams on
+       the verge of entering or leaving elimination. grkRowBgSrc already
+       gives the yellow container to overallRank <= 20 (once scored), so
+       ranks 16–20 are yellow and 21–25 plain; `rank` is the overall rank
+       (set in grkFetchAll), so the rank column reads 16..25. */
+    async function grkFetchDangerZone() {
+      const all = await grkFetchAll();
+      return all.slice(15, 25);
+    }
+    const grkDangerPoll = rnkMakeLivePoll(grkFetchDangerZone, grkRenderTeams, 'dangerzone');
+
+    async function showDangerZoneScene() {
+      const feature = 'dangerzone';
+      const dataPromise = grkFetchDangerZone();
+      await transitionTo(feature);
+      if (activeFeature !== feature) return; /* superseded mid-await */
+      grkActiveLetter = null;
+      rnkShowHeader('Danger Zone');
+      rnkShowBgVideo();
+      grkPage.classList.add('grk-on');
+      void grkPage.offsetWidth; /* force reflow so the opacity transition runs */
+      grkPage.classList.add('grk-visible');
+      const teams = await dataPromise;
+      if (activeFeature !== feature) return; /* superseded while awaiting data */
+      grkRenderTeams(teams);
+      grkDangerPoll.start(teams);
+    }
+
     function showGroupAScene() { return showGroupScene('A'); }
     function showGroupBScene() { return showGroupScene('B'); }
     function showGroupCScene() { return showGroupScene('C'); }
@@ -7279,6 +7619,7 @@
     function hideGroupScene() {
       activeFeature = null;
       GRK_LETTERS.forEach(L => grkLivePolls[L].stop());
+      grkDangerPoll.stop();
       grkPage.classList.remove('grk-visible');
       const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
       return Promise.all([
@@ -8138,6 +8479,124 @@
     }
 
     /* ════════════════════════════════════════════════
+       POINT CONTRIBUTION — per-player clone of Team Point Percent: top 5
+       players by total elims (Overall scope: Groupstage + Playoffs + Grand
+       Finals — /api/point-contribution). Each row shows the player's photo
+       (masked into the container's yellow wedge), name, total elims, and a
+       bar whose yellow part is the player's % of their TEAM's total kills.
+       Part of the RANK_FEATURES family — shares #rnk-header, labeled "Point
+       Contribution". Fetched on show (not live-polled), like Team Point
+       Percent — hide/show to refresh mid-broadcast.
+    ════════════════════════════════════════════════ */
+    const pcpPage = document.getElementById('pointcontrib-page');
+    const PCP_BAR_W = 682;
+    const PCP_ROW_STAGGER_MS = 130;
+
+    async function pcpFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/point-contribution'), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch (e) { return null; }
+    }
+
+    function pcpSetImg(img, src) {
+      img.style.display = '';
+      img.onerror = () => { img.style.display = 'none'; };
+      img.src = src;
+    }
+
+    /* Must run AFTER #pointcontrib-page has .pcp-on (real layout) — the fit
+       calls measure against it. Returns the per-row target --pct/--ep values. */
+    function pcpApply(data) {
+      const players = (data && data.players) || [];
+      const targets = [];
+      for (let i = 0; i < 5; i++) {
+        const row = document.getElementById('pcp-row-' + (i + 1));
+        row.classList.remove('pcp-in');
+        row.style.setProperty('--pct', '0');
+        row.style.setProperty('--ep', '0');
+        const p = players[i];
+        row.classList.toggle('pcp-empty', !p);
+        if (!p) { targets.push({ pct: 0, ep: 0 }); continue; }
+        const teamKills = p.teamKills || 0;
+        const pct = teamKills > 0 ? Math.round(p.kills / teamKills * 100) : 0;
+        const restPct = teamKills > 0 ? 100 - pct : 0;
+        row.querySelector('.pcp-name span').textContent = p.name;
+        row.querySelector('.pcp-total span').textContent = p.kills;
+        const pctLabelSpan = row.querySelector('.pcp-elimlabel span');
+        const restLabelSpan = row.querySelector('.pcp-placelabel span');
+        pctLabelSpan.textContent = pct + '% OF TEAM ELIMS';
+        restLabelSpan.textContent = restPct + '% TEAMMATES';
+        row.querySelector('.pcp-elimval span').textContent = p.kills;
+        row.querySelector('.pcp-placeval span').textContent = Math.max(0, teamKills - p.kills);
+        /* Number inside a bar segment only when the segment is wide enough to hold it. */
+        row.querySelector('.pcp-elimval').style.display = (pct / 100 * PCP_BAR_W) < 40 ? 'none' : '';
+        row.querySelector('.pcp-placeval').style.display = (restPct / 100 * PCP_BAR_W) < 40 ? 'none' : '';
+        pcpSetImg(row.querySelector('.pcp-photo'), '/photos/FRONT/' + encodeURIComponent(p.team) + '/' + encodeURIComponent(p.name) + '.png');
+        pcpSetImg(row.querySelector('.pcp-teamlogo'), '/logos/' + encodeURIComponent(p.team) + '.png');
+        ovrFitText(row.querySelector('.pcp-name'), 30, 14);
+        /* Same --ep clamp as Team Point Percent: the % label always reveals at
+           least its own text width and never slides into the right-hand label. */
+        const PCP_LABEL_GAP = 16;
+        const epMin = pctLabelSpan.scrollWidth / PCP_BAR_W;
+        const epMax = 1 - (restLabelSpan.scrollWidth + PCP_LABEL_GAP) / PCP_BAR_W;
+        const ep = Math.min(Math.max(pct / 100, epMin), Math.max(epMax, epMin));
+        targets.push({ pct: pct / 100, ep });
+      }
+      return targets;
+    }
+
+    async function pcpRender(data) {
+      const targets = pcpApply(data);
+      await preloadMedia(pcpPage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'pointcontribution') return;
+      void pcpPage.offsetWidth; /* snap the reset (no transition on the base class) before animating */
+      targets.forEach((t, i) => {
+        setTimeout(() => {
+          if (activeFeature !== 'pointcontribution') return;
+          const row = document.getElementById('pcp-row-' + (i + 1));
+          row.classList.add('pcp-in');
+          setTimeout(() => {
+            if (activeFeature !== 'pointcontribution') return;
+            row.style.setProperty('--pct', String(t.pct));
+            row.style.setProperty('--ep', String(t.ep));
+          }, 250);
+        }, i * PCP_ROW_STAGGER_MS);
+      });
+    }
+
+    async function showPointContributionScene() {
+      const dataPromise = pcpFetchData();
+      await transitionTo('pointcontribution');
+      if (activeFeature !== 'pointcontribution') return; /* superseded mid-await */
+      rnkShowHeader('Point Contribution');
+      rnkShowBgVideo();
+      pcpPage.classList.add('pcp-on');
+      void pcpPage.offsetWidth; /* force reflow so the opacity transition runs */
+      pcpPage.classList.add('pcp-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'pointcontribution') return; /* superseded while awaiting data */
+      pcpRender(data);
+    }
+
+    function hidePointContributionScene() {
+      activeFeature = null;
+      pcpPage.classList.remove('pcp-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            pcpPage.classList.remove('pcp-on');
+            pcpPage.querySelectorAll('.pcp-row').forEach(r => { r.classList.remove('pcp-in'); r.style.setProperty('--pct', '0'); r.style.setProperty('--ep', '0'); });
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
        QUALIFIER ELIM LEADERS — top 5 players by total kills across every Tally
        sheet (/api/qualifier-elim-leaders, Qualifier tabs only). Clone of
        Eliminations/Map without the map box or map picker, so no refresh
@@ -8402,6 +8861,94 @@
           setTimeout(() => {
             gtePage.classList.remove('gte-on');
             gtePage.querySelectorAll('.gte-card').forEach(c => c.classList.remove('gte-dealt'));
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       QUALIFIER TEAM ELIMS — top 5 TEAMS by total kills in the Qualifier tabs only (/api/qual-team-elims). Clone of
+       Team Map Elims without the map box/picker (no refresh event). Part of
+       the RANK_FEATURES family — shares #rnk-header, labeled "Qualifier Team Elims".
+       Fetched on show — hide/show to refresh mid-broadcast.
+    ════════════════════════════════════════════════ */
+    const qtePage = document.getElementById('qualteam-page');
+    const QTE_FLIP_STAGGER_MS = 130;
+
+    async function qteFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/qual-team-elims'), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch (e) { return null; }
+    }
+
+    /* An <img> that hides itself when its file is missing (and un-hides
+       when a later src does load), instead of showing a broken icon. */
+    function qteSetImg(img, src) {
+      img.style.display = '';
+      img.onerror = () => { img.style.display = 'none'; };
+      img.src = src;
+    }
+
+    /* Must run AFTER #qualteam-page has .qte-on (real layout) — the fit calls
+       measure against it. */
+    function qteApply(data) {
+      const teams = (data && data.teams) || [];
+      for (let i = 0; i < 5; i++) {
+        const card = document.getElementById('qte-card-' + (i + 1));
+        card.classList.remove('qte-dealt');
+        const p = teams[i];
+        card.classList.toggle('qte-empty', !p);
+        if (!p) continue;
+        qteSetImg(card.querySelector('.qte-photo'), '/logos/' + encodeURIComponent(p.team) + '.png');
+        qteSetImg(card.querySelector('.qte-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        card.querySelector('.qte-name span').textContent = p.team;
+        card.querySelector('.qte-count span').textContent = p.kills;
+        ovrFitText(card.querySelector('.qte-name'), 32.86, 16);
+        ovrFitText(card.querySelector('.qte-label'), 34, 18);
+      }
+      return teams.length;
+    }
+
+    async function qteRender(data) {
+      const count = qteApply(data);
+      await preloadMedia(qtePage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'qualteamelims') return;
+      void qtePage.offsetWidth; /* snap the reset (no transition on the base class) before flipping */
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          if (activeFeature !== 'qualteamelims') return;
+          document.getElementById('qte-card-' + (i + 1)).classList.add('qte-dealt');
+        }, i * QTE_FLIP_STAGGER_MS);
+      }
+    }
+
+    async function showQualTeamElimsScene() {
+      const dataPromise = qteFetchData();
+      await transitionTo('qualteamelims');
+      if (activeFeature !== 'qualteamelims') return; /* superseded mid-await */
+      rnkShowHeader('Qualifier Team Elims');
+      rnkShowBgVideo();
+      qtePage.classList.add('qte-on');
+      void qtePage.offsetWidth; /* force reflow so the opacity transition runs */
+      qtePage.classList.add('qte-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'qualteamelims') return; /* superseded while awaiting data */
+      qteRender(data);
+    }
+
+    function hideQualTeamElimsScene() {
+      activeFeature = null;
+      qtePage.classList.remove('qte-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            qtePage.classList.remove('qte-on');
+            qtePage.querySelectorAll('.qte-card').forEach(c => c.classList.remove('qte-dealt'));
             rnkHideBgVideo();
             resolve();
           }, 420);
@@ -10304,7 +10851,7 @@
        header, only its own scoreboard content. Same precedent as
        cpDuringPostTransition above. */
     let duringRankTransition = false;
-    const RANK_FEATURES = new Set(['overallranking', 'overallranking2', 'mapranking', 'slotteams', 'groupa', 'groupb', 'groupc', 'groupd', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'elimsmap', 'elimleaders', 'groupelimleaders', 'teammapelims', 'teampointpct', 'qualelimleaders', 'totalteamelims', 'groupteamelims', 'tournamentschedule', 'prizepool', 'mapwinner', 'postqualified']);
+    const RANK_FEATURES = new Set(['overallranking', 'overallranking2', 'mapranking', 'slotteams', 'groupa', 'groupb', 'groupc', 'groupd', 'dangerzone', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'elimsmap', 'elimleaders', 'groupelimleaders', 'teammapelims', 'teampointpct', 'pointcontribution', 'qualelimleaders', 'totalteamelims', 'groupteamelims', 'qualteamelims', 'tournamentschedule', 'prizepool', 'mapwinner', 'postqualified']);
 
     /* Keeps server-side state.fullscreenScene.<key> (and thus the dashboard's
        Control-tab board toggles/live indicator) in sync with board
@@ -10388,7 +10935,7 @@
       if (prev === 'overallranking' || prev === 'overallranking2') return hideOverallRankingScene();
       if (prev === 'mapranking') return hideMapRankingScene();
       if (prev === 'slotteams') return hideSlotTeamsScene();
-      if (/^group[abcd]$/.test(prev)) return hideGroupScene();
+      if (/^group[abcd]$/.test(prev) || prev === 'dangerzone') return hideGroupScene();
       if (prev === 'qualifiedteams1') return hideQualifiedTeams1Scene();
       if (prev === 'qualifiedteams2') return hideQualifiedTeams2Scene();
       if (prev === 'maprotation') return hideMapRotationScene();
@@ -10397,9 +10944,11 @@
       if (prev === 'groupelimleaders') return hideGroupElimLeadersScene();
       if (prev === 'teammapelims') return hideTeamMapElimsScene();
       if (prev === 'teampointpct') return hideTeamPointPercentScene();
+      if (prev === 'pointcontribution') return hidePointContributionScene();
       if (prev === 'qualelimleaders') return hideQualElimLeadersScene();
       if (prev === 'totalteamelims') return hideTotalTeamElimsScene();
       if (prev === 'groupteamelims') return hideGroupTeamElimsScene();
+      if (prev === 'qualteamelims') return hideQualTeamElimsScene();
       if (prev === 'tournamentschedule') return hideTournamentScheduleScene();
       if (prev === 'prizepool') return hidePrizePoolScene();
       if (prev === 'mapwinner') return hideMapWinnerScene();
@@ -11232,6 +11781,7 @@
           else if (scene.activeFeature === 'mapranking') showMapRankingScene();
           else if (scene.activeFeature === 'slotteams') showSlotTeamsScene();
           else if (/^group[abcd]$/.test(scene.activeFeature)) showGroupScene(scene.activeFeature.slice(5).toUpperCase());
+          else if (scene.activeFeature === 'dangerzone') showDangerZoneScene();
           else if (scene.activeFeature === 'qualifiedteams1') showQualifiedTeams1Scene();
           else if (scene.activeFeature === 'qualifiedteams2') showQualifiedTeams2Scene();
           else if (scene.activeFeature === 'maprotation') showMapRotationScene();
@@ -11240,9 +11790,11 @@
           else if (scene.activeFeature === 'groupelimleaders') showGroupElimLeadersScene();
           else if (scene.activeFeature === 'teammapelims') showTeamMapElimsScene();
           else if (scene.activeFeature === 'teampointpct') showTeamPointPercentScene();
+          else if (scene.activeFeature === 'pointcontribution') showPointContributionScene();
           else if (scene.activeFeature === 'qualelimleaders') showQualElimLeadersScene();
           else if (scene.activeFeature === 'totalteamelims') showTotalTeamElimsScene();
           else if (scene.activeFeature === 'groupteamelims') showGroupTeamElimsScene();
+          else if (scene.activeFeature === 'qualteamelims') showQualTeamElimsScene();
           else if (scene.activeFeature === 'tournamentschedule') showTournamentScheduleScene();
           else if (scene.activeFeature === 'prizepool') showPrizePoolScene();
           else if (scene.activeFeature === 'mapwinner') showMapWinnerScene();
@@ -11284,6 +11836,7 @@
         if (feature === 'mapranking') showMapRankingScene();
         if (feature === 'slotteams') showSlotTeamsScene();
         if (/^group[abcd]$/.test(feature)) showGroupScene(feature.slice(5).toUpperCase());
+        if (feature === 'dangerzone') showDangerZoneScene();
         if (feature === 'qualifiedteams1') showQualifiedTeams1Scene();
         if (feature === 'qualifiedteams2') showQualifiedTeams2Scene();
         if (feature === 'maprotation') showMapRotationScene();
@@ -11292,9 +11845,11 @@
         if (feature === 'groupelimleaders') showGroupElimLeadersScene();
         if (feature === 'teammapelims') showTeamMapElimsScene();
         if (feature === 'teampointpct') showTeamPointPercentScene();
+        if (feature === 'pointcontribution') showPointContributionScene();
         if (feature === 'qualelimleaders') showQualElimLeadersScene();
         if (feature === 'totalteamelims') showTotalTeamElimsScene();
         if (feature === 'groupteamelims') showGroupTeamElimsScene();
+        if (feature === 'qualteamelims') showQualTeamElimsScene();
         if (feature === 'tournamentschedule') showTournamentScheduleScene();
         if (feature === 'prizepool') showPrizePoolScene();
         if (feature === 'mapwinner') showMapWinnerScene();
@@ -11315,7 +11870,7 @@
     window.previewTrigger = function(event, action) {
       document.querySelectorAll('.dbg-btn.preview').forEach(b => b.classList.remove('active'));
       if (action === 'show') {
-        const btnMap = { post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', overall_ranking_2: 'preview-overallranking2', map_ranking: 'preview-mapranking', slot_teams: 'preview-slotteams', group_a: 'preview-groupa', group_b: 'preview-groupb', group_c: 'preview-groupc', group_d: 'preview-groupd', qualified_teams_1: 'preview-qualifiedteams1', qualified_teams_2: 'preview-qualifiedteams2', map_rotation: 'preview-maprotation', elims_map: 'preview-elimsmap', elim_leaders: 'preview-elimleaders', group_elim_leaders: 'preview-groupelimleaders', team_map_elims: 'preview-teammapelims', team_point_percent: 'preview-teampointpct', qual_elim_leaders: 'preview-qualelimleaders', total_team_elims: 'preview-totalteamelims', group_team_elims: 'preview-groupteamelims', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool', map_winner: 'preview-mapwinner' };
+        const btnMap = { post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', overall_ranking_2: 'preview-overallranking2', map_ranking: 'preview-mapranking', slot_teams: 'preview-slotteams', group_a: 'preview-groupa', group_b: 'preview-groupb', group_c: 'preview-groupc', group_d: 'preview-groupd', danger_zone: 'preview-dangerzone', qualified_teams_1: 'preview-qualifiedteams1', qualified_teams_2: 'preview-qualifiedteams2', map_rotation: 'preview-maprotation', elims_map: 'preview-elimsmap', elim_leaders: 'preview-elimleaders', group_elim_leaders: 'preview-groupelimleaders', team_map_elims: 'preview-teammapelims', team_point_percent: 'preview-teampointpct', point_contribution: 'preview-pointcontribution', qual_elim_leaders: 'preview-qualelimleaders', total_team_elims: 'preview-totalteamelims', group_team_elims: 'preview-groupteamelims', qual_team_elims: 'preview-qualteamelims', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool', map_winner: 'preview-mapwinner' };
         const btn = document.getElementById(btnMap[event]);
         if (btn) btn.classList.add('active');
       }
@@ -11328,6 +11883,7 @@
         if (event === 'map_ranking') showMapRankingScene();
         if (event === 'slot_teams') showSlotTeamsScene();
         if (/^group_[abcd]$/.test(event)) showGroupScene(event.slice(6).toUpperCase());
+        if (event === 'danger_zone') showDangerZoneScene();
         if (event === 'qualified_teams_1') showQualifiedTeams1Scene();
         if (event === 'qualified_teams_2') showQualifiedTeams2Scene();
         if (event === 'map_rotation') showMapRotationScene();
@@ -11336,9 +11892,11 @@
         if (event === 'group_elim_leaders') showGroupElimLeadersScene();
         if (event === 'team_map_elims') showTeamMapElimsScene();
         if (event === 'team_point_percent') showTeamPointPercentScene();
+        if (event === 'point_contribution') showPointContributionScene();
         if (event === 'qual_elim_leaders') showQualElimLeadersScene();
         if (event === 'total_team_elims') showTotalTeamElimsScene();
         if (event === 'group_team_elims') showGroupTeamElimsScene();
+        if (event === 'qual_team_elims') showQualTeamElimsScene();
         if (event === 'tournament_schedule') showTournamentScheduleScene();
         if (event === 'prize_pool') showPrizePoolScene();
         if (event === 'map_winner') showMapWinnerScene();

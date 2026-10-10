@@ -1608,7 +1608,7 @@
     overall_ranking_2: 'overallranking2',
     map_ranking:       'mapranking',
     slot_teams:        'slotteams',
-    group_a: 'groupa', group_b: 'groupb', group_c: 'groupc', group_d: 'groupd',
+    group_a: 'groupa', group_b: 'groupb', group_c: 'groupc', group_d: 'groupd', danger_zone: 'dangerzone',
     qualified_teams_1: 'qualifiedteams1',
     qualified_teams_2: 'qualifiedteams2',
     map_rotation:      'maprotation',
@@ -1617,9 +1617,11 @@
     group_elim_leaders: 'groupelimleaders',
     team_map_elims:    'teammapelims',
     team_point_percent: 'teampointpct',
+    point_contribution: 'pointcontribution',
     qual_elim_leaders: 'qualelimleaders',
     total_team_elims:  'totalteamelims',
     group_team_elims:  'groupteamelims',
+    qual_team_elims:   'qualteamelims',
     tournament_schedule: 'tournamentschedule',
     prize_pool:        'prizepool',
     map_winner:        'mapwinner',
@@ -1639,9 +1641,9 @@
     herolineup: 'Hero Lineup',
     overallranking: 'Overall Ranking 1', overallranking2: 'Overall Ranking 2', mapranking: 'Map Ranking',
     slotteams: 'Slot Teams',
-    groupa: 'Group A', groupb: 'Group B', groupc: 'Group C', groupd: 'Group D',
+    groupa: 'Group A', groupb: 'Group B', groupc: 'Group C', groupd: 'Group D', dangerzone: 'Danger Zone',
     qualifiedteams1: 'Qualified Teams 1', qualifiedteams2: 'Qualified Teams 2',
-    maprotation: 'Map Rotation', elimsmap: 'Eliminations/Map', elimleaders: 'Total Elim Leaders', groupelimleaders: 'Group Elim Leaders', teammapelims: 'Team Map Elims', teampointpct: 'Team Point Percent', qualelimleaders: 'Qualifier Elim Leaders', totalteamelims: 'Total Team Elims', groupteamelims: 'Group Team Elims',
+    maprotation: 'Map Rotation', elimsmap: 'Eliminations/Map', elimleaders: 'Total Elim Leaders', groupelimleaders: 'Group Elim Leaders', teammapelims: 'Team Map Elims', pointcontribution: 'Point Contribution', teampointpct: 'Team Point Percent', qualelimleaders: 'Qualifier Elim Leaders', totalteamelims: 'Total Team Elims', groupteamelims: 'Group Team Elims', qualteamelims: 'Qualifier Team Elims',
     tournamentschedule: 'Tournament Schedule', prizepool: 'Prize Pool', mapwinner: 'Map Winner',
     postqualified: 'Post Qualified', maphighlights: 'Map Highlights',
   };
@@ -1974,6 +1976,7 @@
         { name: 'Group B', show: '/overlay/group_b/show', hide: '/overlay/group_b/hide' },
         { name: 'Group C', show: '/overlay/group_c/show', hide: '/overlay/group_c/hide' },
         { name: 'Group D', show: '/overlay/group_d/show', hide: '/overlay/group_d/hide' },
+        { name: 'Danger Zone', show: '/overlay/danger_zone/show', hide: '/overlay/danger_zone/hide' },
         { name: 'Qualified Teams 1', show: '/overlay/qualified_teams_1/show', hide: '/overlay/qualified_teams_1/hide' },
         { name: 'Qualified Teams 2', show: '/overlay/qualified_teams_2/show', hide: '/overlay/qualified_teams_2/hide' },
         { name: 'Map Rotation', show: '/overlay/map_rotation/show', hide: '/overlay/map_rotation/hide' },
@@ -1982,9 +1985,11 @@
         { name: 'Group Elim Leaders', show: '/overlay/group_elim_leaders/show', hide: '/overlay/group_elim_leaders/hide' },
         { name: 'Team Map Elims', show: '/overlay/team_map_elims/show', hide: '/overlay/team_map_elims/hide', elimsMapSelect: 'team_map_elims' },
         { name: 'Team Point Percent', show: '/overlay/team_point_percent/show', hide: '/overlay/team_point_percent/hide' },
+        { name: 'Point Contribution', show: '/overlay/point_contribution/show', hide: '/overlay/point_contribution/hide' },
         { name: 'Qualifier Elim Leaders', show: '/overlay/qual_elim_leaders/show', hide: '/overlay/qual_elim_leaders/hide' },
         { name: 'Total Team Elims', show: '/overlay/total_team_elims/show', hide: '/overlay/total_team_elims/hide' },
         { name: 'Group Team Elims', show: '/overlay/group_team_elims/show', hide: '/overlay/group_team_elims/hide' },
+        { name: 'Qualifier Team Elims', show: '/overlay/qual_team_elims/show', hide: '/overlay/qual_team_elims/hide' },
         { name: 'Tournament Schedule', show: '/overlay/tournament_schedule/show', hide: '/overlay/tournament_schedule/hide' },
         { name: 'Prize Pool', show: '/overlay/prize_pool/show', hide: '/overlay/prize_pool/hide' },
         { name: 'Map Winner', show: '/overlay/map_winner/show', hide: '/overlay/map_winner/hide' },
@@ -3588,7 +3593,7 @@
     '.ek-flag':      { left: 14,  top: 392, width: 33,  height: 23 },
     '.ek-name':      { left: 79,  top: 387, width: 214, height: 32,  fontSize: 32.86 },
     '.ek-label':     { left: 12,  top: 450, width: 180, height: 37,  fontSize: 34 },
-    '.ek-count':     { left: 214, top: 445, width: 79,  height: 49,  fontSize: 50 },
+    '.ek-count':     { left: 214, top: 441, width: 79,  height: 49,  fontSize: 50 },
   };
   var EK_ELEMENTS = [
     { group: 'Map Box',            id: '#ek-mapbox',       name: 'Map Box (container)' },
@@ -3629,7 +3634,7 @@
     '.tme-flag':      { left: 14,  top: 392, width: 33,  height: 23 },
     '.tme-name':      { left: 79,  top: 387, width: 214, height: 32,  fontSize: 32.86 },
     '.tme-label':     { left: 12,  top: 450, width: 180, height: 37,  fontSize: 34 },
-    '.tme-count':     { left: 214, top: 445, width: 79,  height: 49,  fontSize: 50 },
+    '.tme-count':     { left: 214, top: 441, width: 79,  height: 49,  fontSize: 50 },
   };
   var TME_ELEMENTS = [
     { group: 'Map Box',            id: '#tme-mapbox',       name: 'Map Box (container)' },
@@ -3665,7 +3670,7 @@
     '.tel-flag':      { left: 15.4,  top: 431.2, width: 36.3,  height: 25.3 },
     '.tel-name':      { left: 86.9,  top: 425.7, width: 235.4, height: 35.2,  fontSize: 36.15 },
     '.tel-label':     { left: 13.2,  top: 495, width: 198, height: 40.7,  fontSize: 37.4 },
-    '.tel-count':     { left: 235.4, top: 489.5, width: 86.9,  height: 53.9,  fontSize: 55 },
+    '.tel-count':     { left: 235.4, top: 485.5, width: 86.9,  height: 53.9,  fontSize: 55 },
   };
   var TEL_ELEMENTS = [
     { group: 'Card 1', id: '#tel-card-1', name: 'Player Card 1' },
@@ -3697,7 +3702,7 @@
     '.qel-flag':      { left: 15.4,  top: 431.2, width: 36.3,  height: 25.3 },
     '.qel-name':      { left: 86.9,  top: 425.7, width: 235.4, height: 35.2,  fontSize: 36.15 },
     '.qel-label':     { left: 13.2,  top: 495, width: 198, height: 40.7,  fontSize: 37.4 },
-    '.qel-count':     { left: 235.4, top: 489.5, width: 86.9,  height: 53.9,  fontSize: 55 },
+    '.qel-count':     { left: 235.4, top: 485.5, width: 86.9,  height: 53.9,  fontSize: 55 },
   };
   var QEL_ELEMENTS = [
     { group: 'Card 1', id: '#qel-card-1', name: 'Player Card 1' },
@@ -3730,7 +3735,7 @@
     '.gel-name':      { left: 86.9,  top: 425.7, width: 235.4, height: 35.2,  fontSize: 36.15 },
     '.gel-label':     { left: 13.2,  top: 495, width: 198, height: 40.7,  fontSize: 37.4 },
     '.gel-group':     { left: 0, top: 0, width: 55, height: 55, fontSize: 44 },
-    '.gel-count':     { left: 235.4, top: 489.5, width: 86.9,  height: 53.9,  fontSize: 55 },
+    '.gel-count':     { left: 235.4, top: 485.5, width: 86.9,  height: 53.9,  fontSize: 55 },
   };
   var GEL_ELEMENTS = [
     { group: 'Card 1', id: '#gel-card-1', name: 'Player Card 1' },
@@ -3786,6 +3791,48 @@
     { group: 'Row Bar',         id: '.tpp-bar',        name: 'Percentage Bar (all rows)' },
   ];
 
+  /* ── Point Contribution (Fullscreen.html) element defaults — per-player clone of Team Point Percent;
+     the photo window (.pcp-photomask) sits on the container's yellow wedge, the photo img is positioned inside it ────────────
+     5 row containers (canvas-absolute), then the elements inside a row —
+     shared class selectors (one edit applies to all 5 rows), positions
+     relative to the row (art is 1110x133, measured off percentage_guide.png).
+     The elims label's left is its position at 0% — it slides right with
+     the bar split automatically. ── */
+  var PCP_DEFAULTS = {
+    '#pcp-row-1': { left: 405, top: 257, width: 1110, height: 133 },
+    '#pcp-row-2': { left: 405, top: 399, width: 1110, height: 133 },
+    '#pcp-row-3': { left: 405, top: 541, width: 1110, height: 133 },
+    '#pcp-row-4': { left: 405, top: 683, width: 1110, height: 133 },
+    '#pcp-row-5': { left: 405, top: 825, width: 1110, height: 133 },
+    '.pcp-bg':         { left: 0,   top: 0,   width: 1110, height: 133 },
+    '.pcp-name':       { left: 0,   top: 0,   width: 334,  height: 33,  fontSize: 30 },
+    '.pcp-photomask':  { left: 0,   top: 33,  width: 179,  height: 100 },
+    '.pcp-teamlogo':   { left: -112, top: 16, width: 100, height: 100 },
+    '.pcp-photo':      { left: -19, top: -48, width: 210,  height: 210 },
+    '.pcp-total':      { left: 188, top: 36,  width: 132,  height: 58,  fontSize: 68 },
+    '.pcp-totallabel': { left: 188, top: 100, width: 132,  height: 28,  fontSize: 26 },
+    '.pcp-elimlabel':  { left: 92,  top: 58,  width: 300,  height: 28,  fontSize: 28 },
+    '.pcp-placelabel': { left: 774, top: 58,  width: 300,  height: 28,  fontSize: 28 },
+    '.pcp-bar':        { left: 392, top: 90,  width: 682,  height: 17 },
+  };
+  var PCP_ELEMENTS = [
+    { group: 'Row 1', id: '#pcp-row-1', name: 'Player Row 1' },
+    { group: 'Row 2', id: '#pcp-row-2', name: 'Player Row 2' },
+    { group: 'Row 3', id: '#pcp-row-3', name: 'Player Row 3' },
+    { group: 'Row 4', id: '#pcp-row-4', name: 'Player Row 4' },
+    { group: 'Row 5', id: '#pcp-row-5', name: 'Player Row 5' },
+    { group: 'Row Background',  id: '.pcp-bg',         name: 'Row Background (all rows)' },
+    { group: 'Row Team Name',   id: '.pcp-name',       name: 'Player Name (all rows)' },
+    { group: 'Row Photo Window', id: '.pcp-photomask', name: 'Player Photo Window / yellow mask (all rows)' },
+    { group: 'Row Team Logo',    id: '.pcp-teamlogo', name: 'Team Logo (all rows)' },
+    { group: 'Row Photo',        id: '.pcp-photo',     name: 'Player Photo inside window (all rows)' },
+    { group: 'Row Total',       id: '.pcp-total',      name: 'Total Elims Number (all rows)' },
+    { group: 'Row Total Label', id: '.pcp-totallabel', name: 'TOTAL ELIMS Label (all rows)' },
+    { group: 'Row Elims Label', id: '.pcp-elimlabel',  name: '% OF TEAM ELIMS Label (all rows)' },
+    { group: 'Row Place Label', id: '.pcp-placelabel', name: '% TEAMMATES Label (all rows)' },
+    { group: 'Row Bar',         id: '.pcp-bar',        name: 'Percentage Bar (all rows)' },
+  ];
+
   /* ── Total Team Elims (Fullscreen.html) — clone of Team Map Elims minus the map box (tte-* selectors). ── */
   var TTE_DEFAULTS = {
     '#tte-card-1': { left: 158, top: 337, width: 297, height: 494 },
@@ -3799,7 +3846,7 @@
     '.tte-flag':      { left: 14,   top: 392, width: 33,  height: 23 },
     '.tte-name':      { left: 79,   top: 387, width: 214, height: 32,  fontSize: 32.86 },
     '.tte-label':     { left: 12,   top: 450, width: 180, height: 37,  fontSize: 34 },
-    '.tte-count':     { left: 214,  top: 445, width: 79,  height: 49,  fontSize: 50 },
+    '.tte-count':     { left: 214,  top: 441, width: 79,  height: 49,  fontSize: 50 },
   };
   var TTE_ELEMENTS = [
     { group: 'Card 1', id: '#tte-card-1', name: 'Team Card 1' },
@@ -3829,7 +3876,7 @@
     '.gte-flag':      { left: 14,   top: 392, width: 33,  height: 23 },
     '.gte-name':      { left: 79,   top: 387, width: 214, height: 32,  fontSize: 32.86 },
     '.gte-label':     { left: 12,   top: 450, width: 180, height: 37,  fontSize: 34 },
-    '.gte-count':     { left: 214,  top: 445, width: 79,  height: 49,  fontSize: 50 },
+    '.gte-count':     { left: 214,  top: 441, width: 79,  height: 49,  fontSize: 50 },
     '.gte-group':     { left: 0,    top: 63,  width: 50,  height: 50,  fontSize: 40 },
   };
   var GTE_ELEMENTS = [
@@ -3846,6 +3893,36 @@
     { group: 'Card Label',      id: '.gte-label',   name: 'ELIMINATIONS Label (all cards)' },
     { group: 'Card Count',      id: '.gte-count',   name: 'Elimination Count (all cards)' },
     { group: 'Card Group Letter', id: '.gte-group', name: 'Group Letter Square (all cards)' },
+  ];
+
+  /* ── Qualifier Team Elims (Fullscreen.html) — clone of Team Map Elims minus the map box (qte-* selectors). ── */
+  var QTE_DEFAULTS = {
+    '#qte-card-1': { left: 158, top: 337, width: 297, height: 494 },
+    '#qte-card-2': { left: 484.5, top: 337, width: 297, height: 494 },
+    '#qte-card-3': { left: 811, top: 337, width: 297, height: 494 },
+    '#qte-card-4': { left: 1137.5, top: 337, width: 297, height: 494 },
+    '#qte-card-5': { left: 1464, top: 337, width: 297, height: 494 },
+    '.qte-card-bg':   { left: 0,    top: 0,   width: 297, height: 494 },
+    '.qte-photo':     { left: 33.5, top: 124, width: 230, height: 230 },
+    '.qte-num':       { left: 1,    top: 289, width: 59,  height: 78,  fontSize: 90 },
+    '.qte-flag':      { left: 14,   top: 392, width: 33,  height: 23 },
+    '.qte-name':      { left: 79,   top: 387, width: 214, height: 32,  fontSize: 32.86 },
+    '.qte-label':     { left: 12,   top: 450, width: 180, height: 37,  fontSize: 34 },
+    '.qte-count':     { left: 214,  top: 441, width: 79,  height: 49,  fontSize: 50 },
+  };
+  var QTE_ELEMENTS = [
+    { group: 'Card 1', id: '#qte-card-1', name: 'Team Card 1' },
+    { group: 'Card 2', id: '#qte-card-2', name: 'Team Card 2' },
+    { group: 'Card 3', id: '#qte-card-3', name: 'Team Card 3' },
+    { group: 'Card 4', id: '#qte-card-4', name: 'Team Card 4' },
+    { group: 'Card 5', id: '#qte-card-5', name: 'Team Card 5' },
+    { group: 'Card Background', id: '.qte-card-bg', name: 'Card Background (all cards)' },
+    { group: 'Card Logo',       id: '.qte-photo',   name: 'Team Logo — big (all cards)' },
+    { group: 'Card Number',     id: '.qte-num',     name: 'Rank Number (all cards)' },
+    { group: 'Card Flag',       id: '.qte-flag',    name: 'Country Flag (all cards)' },
+    { group: 'Card Name',       id: '.qte-name',    name: 'Team Name (all cards)' },
+    { group: 'Card Label',      id: '.qte-label',   name: 'ELIMINATIONS Label (all cards)' },
+    { group: 'Card Count',      id: '.qte-count',   name: 'Elimination Count (all cards)' },
   ];
 
   /* ── Map Winner (Fullscreen.html) element defaults ────────────────────
@@ -4166,6 +4243,15 @@
       defaults:    TPP_DEFAULTS,
       showFn:      'showTeamPointPercentScene',
     },
+    fullscreen_pointcontribution: {
+      label:       'Point Contribution · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_pointcontribution',
+      elements:    PCP_ELEMENTS,
+      defaults:    PCP_DEFAULTS,
+      showFn:      'showPointContributionScene',
+    },
     fullscreen_qualelimleaders: {
       label:       'Qualifier Elim Leaders · Fullscreen',
       file:        'Fullscreen.html',
@@ -4192,6 +4278,15 @@
       elements:    GTE_ELEMENTS,
       defaults:    GTE_DEFAULTS,
       showFn:      'showGroupTeamElimsScene',
+    },
+    fullscreen_qualteamelims: {
+      label:       'Qualifier Team Elims · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_qualteamelims',
+      elements:    QTE_ELEMENTS,
+      defaults:    QTE_DEFAULTS,
+      showFn:      'showQualTeamElimsScene',
     },
     fullscreen_tournamentschedule: {
       label:       'Tournament Schedule · Fullscreen',

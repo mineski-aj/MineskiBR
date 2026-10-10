@@ -72,7 +72,7 @@
   "swapped": false,
   "official": true,
   "week": 3,
-  "day": 1,
+  "day": 2,
   "patch": " ",
   "hosts": [
     "Denisse",
@@ -166,9 +166,9 @@
       "matchType": "regular"
     }
   ],
-  "countdownLabel": "SHOW RESUMES IN",
+  "countdownLabel": "SHOW STARTS IN",
   "goodbyeLabel": "SEE YOU TOMORROW",
-  "match": 6,
+  "match": 1,
   "countdownLabelAuto": true,
   "timer": {
     "running": true,
@@ -186,44 +186,44 @@
   "todayMaps": [
     {
       "time": "6:00PM",
-      "mapName": "Isolated",
-      "winner": "LEAP UNBOUND",
+      "mapName": "Blackout",
+      "winner": "",
       "done": false,
-      "groupMatch": "A + B"
+      "groupMatch": "A + C"
     },
     {
       "time": "                                           ",
+      "mapName": "Isolated",
+      "done": false,
+      "groupMatch": "A + C",
+      "winner": ""
+    },
+    {
+      "time": "",
       "mapName": "Blackout",
       "done": false,
-      "groupMatch": "A + B",
-      "winner": "AVX DELTA FOC"
+      "groupMatch": "B + C",
+      "winner": ""
     },
     {
       "time": "",
       "mapName": "Isolated",
       "done": false,
-      "groupMatch": "B + D",
-      "winner": "POISON IVY GIZY"
+      "groupMatch": "B + C",
+      "winner": ""
     },
     {
       "time": "",
       "mapName": "Blackout",
       "done": false,
-      "groupMatch": "B + D",
-      "winner": "GNR ESPORTS LEGACY OMEN"
+      "groupMatch": "C + D",
+      "winner": ""
     },
     {
       "time": "",
       "mapName": "Isolated",
       "done": false,
-      "groupMatch": "A + D",
-      "winner": "ROYAL GEMINI JA LN"
-    },
-    {
-      "time": "",
-      "mapName": "Blackout",
-      "done": false,
-      "groupMatch": "A + D",
+      "groupMatch": "C + D",
       "winner": ""
     }
   ],

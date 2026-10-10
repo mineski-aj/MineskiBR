@@ -377,11 +377,11 @@ function sbFillScoreRow(row, team, qualifiers) {
     }
   } else {
     if (elimSoloEl) elimSoloEl.style.display = 'none';
-    /* PTS = total score so far (all maps), ELIM = +kills on THIS map only
+    /* PTS = total score so far (all maps), ELIM = kills on THIS map only
        (not the season-long running kill total — see currentMapKills in
        lib/tallyRoster.js's getLiveSheetStandings). */
-    if (ptsEl)  { ptsEl.style.display  = 'flex'; ptsEl.textContent  = (team && team.totalScore) || 0; }
-    if (elimEl) { elimEl.style.display = 'flex'; elimEl.textContent = '+' + ((team && team.currentMapKills) || 0); }
+    if (ptsEl)  { ptsEl.style.display  = 'flex'; ptsEl.textContent  = (team && (team.overallScore !== undefined ? team.overallScore : team.totalScore)) || 0; }
+    if (elimEl) { elimEl.style.display = 'flex'; elimEl.textContent = (team && team.currentMapKills) || 0; }
   }
 }
 
@@ -512,6 +512,18 @@ function sbPollTeamScores() {
     .then(function(r) { return r.json(); })
     .then(function(d) {
       _sbTeams = (d && d.teams) || [];
+      /* Groupstage: PTS is the team's overall score across every group-stage
+         sheet (overallScore, see getLiveSheetStandings), so rank by that
+         too — otherwise the rank column would follow the sheet-only total
+         while PTS shows something else. Stable sort keeps the sheet order
+         (and kill-point tiebreak) for equal overall scores. */
+      if (d && d.overall) {
+        _sbTeams = _sbTeams.map(function(t, i) { return { t: t, i: i }; })
+          .sort(function(a, b) {
+            return (b.t.overallScore - a.t.overallScore) ||
+                   (b.t.overallKillPoints - a.t.overallKillPoints) || (a.i - b.i);
+          }).map(function(x) { return x.t; });
+      }
       sbRenderScoreboard();
     })
     .catch(function() {});

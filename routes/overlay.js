@@ -246,6 +246,19 @@ router.get('/overlay/slot_teams/hide', (req, res) => {
   });
 });
 
+// GET /overlay/danger_zone/show|hide — Danger Zone (Group A..D page layout,
+// overall rank 16-25). Rank-header family; activeFeature is 'dangerzone'.
+router.get('/overlay/danger_zone/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'dangerzone';
+  state.overlayClients.forEach(c => { try { c.write('event: danger_zone\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+router.get('/overlay/danger_zone/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: danger_zone\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
 // GET /overlay/qualified_teams_1/show
 router.get('/overlay/qualified_teams_1/show', (req, res) => {
   state.fullscreenScene.activeFeature = 'qualifiedteams1';
@@ -369,6 +382,20 @@ router.get('/overlay/team_map_elims/hide', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
+// GET /overlay/point_contribution/show|hide — Point Contribution (per-player
+// clone of Team Point Percent). Rank-header family; activeFeature is
+// 'pointcontribution'.
+router.get('/overlay/point_contribution/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'pointcontribution';
+  state.overlayClients.forEach(c => { try { c.write('event: point_contribution\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+router.get('/overlay/point_contribution/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: point_contribution\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
 // GET /overlay/team_point_percent/show
 router.get('/overlay/team_point_percent/show', (req, res) => {
   state.fullscreenScene.activeFeature = 'teampointpct';
@@ -408,6 +435,20 @@ router.get('/overlay/total_team_elims/show', (req, res) => {
 router.get('/overlay/total_team_elims/hide', (req, res) => {
   state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: total_team_elims\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/qual_team_elims/show|hide — Qualifier Team Elims (clone of Group
+// Team Elims, Qualifier tabs only). Rank-header family; activeFeature is
+// 'qualteamelims'.
+router.get('/overlay/qual_team_elims/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'qualteamelims';
+  state.overlayClients.forEach(c => { try { c.write('event: qual_team_elims\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+router.get('/overlay/qual_team_elims/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: qual_team_elims\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 

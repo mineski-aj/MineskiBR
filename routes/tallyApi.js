@@ -77,6 +77,12 @@ router.get('/api/team-point-percent', function (req, res) {
   res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getTopTeamsByPoints(5));
 });
 
+// GET /api/point-contribution — top 5 players by total kills (Overall scope)
+// with their % of their own team's total kills. Powers Point Contribution.
+router.get('/api/point-contribution', function (req, res) {
+  res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getTopPlayersContribution(5));
+});
+
 // GET /api/qualifier-elim-leaders — same as total-elim-leaders but counting
 // only the Qualifier 1..N tabs. Powers Qualifier Elim Leaders.
 router.get('/api/qualifier-elim-leaders', function (req, res) {
@@ -91,6 +97,12 @@ router.get('/api/total-team-elims', function (req, res) {
 });
 router.get('/api/group-team-elims', function (req, res) {
   res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getTopTeamsTotalKills(5, 'groupstage'));
+});
+
+// GET /api/qual-team-elims — top 5 TEAMS by total kills across the Qualifier
+// 1..N tabs only. Powers Qualifier Team Elims.
+router.get('/api/qual-team-elims', function (req, res) {
+  res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getTopTeamsTotalKills(5, 'qualifiers'));
 });
 
 router.get('/api/groupstage-qualifiers', function (req, res) {
