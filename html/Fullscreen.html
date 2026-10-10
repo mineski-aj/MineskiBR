@@ -8515,6 +8515,8 @@
           fetch(buildUrl('/api/current-map-standings'), { cache: 'no-store' }),
         ]);
         const ms = msRes.ok ? await msRes.json() : null;
+        const cm = cmRes.ok ? await cmRes.json() : null;
+        /* `match` is the broadcast map number (1-6) = the row in Today's Maps. */
         const idx = Math.max(1, parseInt(ms && ms.match, 10) || 1) - 1;
         const m = ms && ms.todayMaps && ms.todayMaps[idx];
         const name = String((m && m.winner) || '').trim();
@@ -8524,7 +8526,6 @@
           const hit = ((q && q.qualifiers) || []).find(t => String(t.name).toLowerCase() === name.toLowerCase());
           winner = { name: name, region: (hit && hit.region) || '' };
         }
-        const cm = cmRes.ok ? await cmRes.json() : null;
         const teams = (cm && cm.teams) || [];
         let top = teams.find(t => t.wins === 1) || null;
         if (!top && teams.length) {

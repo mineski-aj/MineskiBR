@@ -168,7 +168,7 @@
   ],
   "countdownLabel": "SHOW RESUMES IN",
   "goodbyeLabel": "SEE YOU TOMORROW",
-  "match": 4,
+  "match": 6,
   "countdownLabelAuto": true,
   "timer": {
     "running": true,
