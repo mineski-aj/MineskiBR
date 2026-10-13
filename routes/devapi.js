@@ -283,6 +283,34 @@ router.post('/api/fullscreen-archived-features', (req, res) => {
   res.json({ ok: true, keys });
 });
 
+// Dashboard Control tab — user-made folders for organizing the Fullscreen
+// feature list: [{ id, name, open, keys: [featureKey, ...] }]. Same
+// feature-key and project-scoping rules as the archived set above, so the
+// layout travels with the project folder / repo when moving to another PC.
+const FULLSCREEN_FOLDERS_FILE = 'fullscreen_folders.json';
+
+router.get('/api/fullscreen-folders', (req, res) => {
+  try {
+    res.set('Cache-Control', 'no-store').json(JSON.parse(fs.readFileSync(projects.getProjectScopedFilePath(FULLSCREEN_FOLDERS_FILE), 'utf8')));
+  } catch (e) {
+    res.set('Cache-Control', 'no-store').json({ folders: [] });
+  }
+});
+
+router.post('/api/fullscreen-folders', (req, res) => {
+  const raw = Array.isArray((req.body || {}).folders) ? req.body.folders : [];
+  const seen = new Set();
+  const folders = raw.filter((f) => f && typeof f.id === 'string').map((f) => ({
+    id: f.id.slice(0, 64),
+    name: String(f.name || 'New Folder').slice(0, 60),
+    open: f.open !== false,
+    // a feature lives in at most one folder
+    keys: (Array.isArray(f.keys) ? f.keys : []).filter((k) => typeof k === 'string' && !seen.has(k) && seen.add(k)),
+  }));
+  fs.writeFileSync(projects.getProjectScopedFilePath(FULLSCREEN_FOLDERS_FILE), JSON.stringify({ folders }, null, 2));
+  res.json({ ok: true, folders });
+});
+
 // Game API base URL — GET to read, POST { url } to update
 const GAME_URL_FILE = path.join(__dirname, '..', 'game_api_url.json');
 

@@ -71,8 +71,8 @@
   "game": 1,
   "swapped": false,
   "official": true,
-  "week": 3,
-  "day": 2,
+  "week": 1,
+  "day": 1,
   "patch": " ",
   "hosts": [
     "Denisse",
@@ -181,49 +181,61 @@
     "Naisou",
     "Wolf"
   ],
-  "stage": "Groupstage",
-  "todayMapsCount": 6,
+  "stage": "Playoffs",
+  "todayMapsCount": 8,
   "todayMaps": [
     {
       "time": "6:00PM",
       "mapName": "Blackout",
       "winner": "",
       "done": false,
-      "groupMatch": "A + C"
+      "groupMatch": ""
     },
     {
       "time": "                                           ",
       "mapName": "Isolated",
       "done": false,
-      "groupMatch": "A + C",
+      "groupMatch": "",
       "winner": ""
     },
     {
       "time": "",
       "mapName": "Blackout",
       "done": false,
-      "groupMatch": "B + C",
+      "groupMatch": "",
       "winner": ""
     },
     {
       "time": "",
       "mapName": "Isolated",
       "done": false,
-      "groupMatch": "B + C",
+      "groupMatch": "",
       "winner": ""
     },
     {
       "time": "",
       "mapName": "Blackout",
       "done": false,
-      "groupMatch": "C + D",
+      "groupMatch": "",
       "winner": ""
     },
     {
       "time": "",
       "mapName": "Isolated",
       "done": false,
-      "groupMatch": "C + D",
+      "groupMatch": "",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "groupMatch": "",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "groupMatch": "",
       "winner": ""
     }
   ],

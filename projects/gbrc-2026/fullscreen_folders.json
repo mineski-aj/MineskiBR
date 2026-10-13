@@ -1,0 +1,45 @@
+{
+  "folders": [
+    {
+      "id": "fmv6rnuld",
+      "name": "Waiting",
+      "open": false,
+      "keys": [
+        "waiting_tvc",
+        "waiting_timer"
+      ]
+    },
+    {
+      "id": "fmv6rof9q",
+      "name": "Rankings",
+      "open": false,
+      "keys": [
+        "overall_ranking",
+        "map_ranking",
+        "group_a",
+        "group_b",
+        "group_c",
+        "group_d"
+      ]
+    },
+    {
+      "id": "fmv6rqb0j",
+      "name": "Stats",
+      "open": false,
+      "keys": [
+        "elim_leaders",
+        "total_team_elims",
+        "group_elim_leaders",
+        "group_team_elims",
+        "qual_elim_leaders",
+        "qual_team_elims",
+        "playoffs_elim_leaders",
+        "playoffs_team_elims",
+        "point_contribution",
+        "team_point_percent",
+        "team_map_elims",
+        "elims_map"
+      ]
+    }
+  ]
+}

@@ -1659,11 +1659,12 @@
     .mrr-card {
       position: absolute; top: 274px; width: 297px; height: 707px;
       opacity: 0;
-      transform: translate(var(--deal-dx, 0), 80px) rotate(var(--deal-rot, 0deg));
+      transform-origin: 0 0;
+      transform: translate(var(--deal-dx, 0), 80px) rotate(var(--deal-rot, 0deg)) scale(var(--mrr-scale, 1));
     }
     .mrr-card.mrr-dealt {
       transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease;
-      transform: translate(0, 0) rotate(0deg);
+      transform: translate(0, 0) rotate(0deg) scale(var(--mrr-scale, 1));
       opacity: 1;
     }
     .mrr-card-bg, .mrr-card-label {
@@ -1956,6 +1957,75 @@
       overflow: hidden;
     }
     .gel-group span { display: block; transform: translateY(0.15em); }
+    /* ── PLAYOFFS ELIM LEADERS PAGE — clone of Total Elim Leaders counting ONLY
+       the Groupstage sheets (GET /api/playoffs-elim-leaders), with a black
+       group-letter square on each card's top-left corner. Own ids/classes
+       (pel-*) so it's editable independently. Shared #rnk-header labeled
+       "Playoffs Elim Leaders". ── */
+    #playoffselim-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #playoffselim-page.pel-on { display: block; }
+    #playoffselim-page.pel-visible { opacity: 1; }
+    .pel-card {
+      position: absolute; top: 312.3px; width: 326.7px; height: 543.4px;
+      opacity: 0;
+      transform: perspective(1440px) rotateY(-90deg);
+      backface-visibility: hidden;
+    }
+    .pel-card.pel-empty { display: none; }
+    .pel-card.pel-dealt {
+      transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease;
+      transform: perspective(1440px) rotateY(0deg);
+      opacity: 1;
+    }
+    #pel-card-1 { left: 78.35px; }
+    #pel-card-2 { left: 437.5px; }
+    #pel-card-3 { left: 796.65px; }
+    #pel-card-4 { left: 1155.8px; }
+    #pel-card-5 { left: 1514.95px; }
+    .pel-card-bg { position: absolute; left: 0; top: 0; width: 326.7px; height: 543.4px; }
+    /* Photo fades to transparent over its bottom 55px so it feathers into
+       the card's name bar instead of ending on a hard edge. */
+    .pel-photo {
+      position: absolute; left: -38.5px; top: 15.4px; width: 400.4px; height: 400.4px;
+      object-fit: cover;
+      -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 55px), transparent);
+      mask-image: linear-gradient(to bottom, #000 calc(100% - 55px), transparent);
+    }
+    .pel-teamlogo {
+      position: absolute; left: 245.3px; top: 326.7px; width: 75.9px; height: 75.9px;
+      background: #000; /* no logo file → stays a plain black square */
+    }
+    .pel-teamlogo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .pel-flag { position: absolute; left: 15.4px; top: 431.2px; width: 36.3px; height: 25.3px; object-fit: contain; }
+    .pel-num, .pel-name, .pel-label, .pel-count {
+      position: absolute;
+      display: flex; align-items: center;
+      font-family: 'Teko', sans-serif; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    .pel-num   { left: 1.1px;   top: 317.9px; width: 64.9px;  height: 85.8px; justify-content: center; text-align: center; font-weight: 700; font-size: 99px;    color: #000; }
+    .pel-name  { left: 86.9px;  top: 425.7px; width: 235.4px; height: 35.2px; justify-content: center; text-align: center; font-weight: 700; font-size: 36.15px; color: #fff; }
+    .pel-label { left: 13.2px;  top: 495px; width: 198px; height: 40.7px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 37.4px;    color: #000; }
+    .pel-count { left: 235.4px; top: 485.5px; width: 86.9px;  height: 53.9px; justify-content: center; text-align: center; font-weight: 700; font-size: 55px;    color: #fff; }
+    /* Teko sits high in its line box — nudge the ink down (see the Map
+       Rotation note on this). */
+    .pel-num span, .pel-name span, .pel-label span, .pel-count span { display: block; transform: translateY(0.15em); }
+    .pel-group {
+      position: absolute; left: 0px; top: 0px; width: 55px; height: 55px;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      background: #000; color: #fff;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 44px; line-height: 1;
+      overflow: hidden;
+    }
+    .pel-group span { display: block; transform: translateY(0.15em); }
 
     /* ── TEAM MAP ELIMS PAGE — clone of Eliminations/Map showing the top 5
        TEAMS (not players) by kills on the chosen map (GET /api/team-map-elims),
@@ -2368,6 +2438,68 @@
       overflow: hidden;
     }
     .gte-group span { display: block; transform: translateY(0.15em); }
+
+    /* ── Playoffs Team Elims PAGE — clone of Team Map Elims minus the map box and picker:
+       top 5 TEAMS by total kills in the Playoffs tab only, with the team's group letter in a black square (GET /api/playoffs-team-elims). Big team logo
+       as the card's main picture, yellow rank number with a soft black
+       glow, team name in the name bar. Own ids/classes (pte-*) so it's
+       editable independently. Shared #rnk-header labeled "Playoffs Team Elims". Cards
+       sit higher than Team Map Elims' (top 337) since there's no map box. ── */
+    #playoffsteam-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #playoffsteam-page.pte-on { display: block; }
+    #playoffsteam-page.pte-visible { opacity: 1; }
+    .pte-card {
+      position: absolute; top: 337px; width: 297px; height: 494px;
+      opacity: 0;
+      transform: perspective(1400px) rotateY(-90deg);
+      backface-visibility: hidden;
+    }
+    .pte-card.pte-empty { display: none; }
+    .pte-card.pte-dealt {
+      transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease;
+      transform: perspective(1400px) rotateY(0deg);
+      opacity: 1;
+    }
+    #pte-card-1 { left: 158px; }
+    #pte-card-2 { left: 484.5px; }
+    #pte-card-3 { left: 811px; }
+    #pte-card-4 { left: 1137.5px; }
+    #pte-card-5 { left: 1464px; }
+    .pte-card-bg { position: absolute; left: 0; top: 0; width: 297px; height: 494px; }
+    .pte-photo {
+      position: absolute; left: 33.5px; top: 124px; width: 230px; height: 230px;
+      object-fit: contain;
+    }
+    .pte-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px; object-fit: contain; }
+    .pte-num, .pte-name, .pte-label, .pte-count {
+      position: absolute;
+      display: flex; align-items: center;
+      font-family: 'Teko', sans-serif; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    .pte-num   { left: 1px;   top: 289px; width: 59px;  height: 78px; justify-content: center; text-align: center; font-weight: 700; font-size: 90px;    color: #ffe600; text-shadow: 0 0 4px rgba(0,0,0,0.5), 0 0 9px rgba(0,0,0,0.5), 0 0 16px rgba(0,0,0,0.425); }
+    .pte-name  { left: 79px;  top: 387px; width: 214px; height: 32px; justify-content: center; text-align: center; font-weight: 700; font-size: 32.86px; color: #fff; }
+    .pte-label { left: 12px;  top: 450px; width: 180px; height: 37px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 34px;    color: #000; }
+    .pte-count { left: 214px; top: 441px; width: 79px;  height: 49px; justify-content: center; text-align: center; font-weight: 700; font-size: 50px;    color: #fff; }
+    /* Teko sits high in its line box — nudge the ink down (see the Map
+       Rotation note on this). */
+    .pte-num span, .pte-name span, .pte-label span, .pte-count span { display: block; transform: translateY(0.15em); }
+    .pte-group {
+      position: absolute; left: 0px; top: 63px; width: 50px; height: 50px;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      background: #000; color: #fff;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 40px; line-height: 1;
+      overflow: hidden;
+    }
+    .pte-group span { display: block; transform: translateY(0.15em); }
 
 
     /* ── Qualifier Team Elims PAGE — clone of Team Map Elims minus the map box and picker:
@@ -3761,6 +3893,15 @@
         <button class="dbg-btn preview" id="preview-groupelimleaders" onclick="toggleLocalPreview('groupelimleaders', this)">◈ PREVIEW</button>
       </div>
     </div>
+    <!-- PLAYOFFS ELIM LEADERS -->
+    <div class="feature-card">
+      <div class="feature-card-label">Playoffs Elim Leaders</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showPlayoffsElimLeadersScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hidePlayoffsElimLeadersScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-playoffselimleaders" onclick="toggleLocalPreview('playoffselimleaders', this)">◈ PREVIEW</button>
+      </div>
+    </div>
 
     <!-- TEAM MAP ELIMS -->
     <div class="feature-card">
@@ -3819,6 +3960,15 @@
         <button class="dbg-btn show" onclick="showGroupTeamElimsScene()">▶ SHOW</button>
         <button class="dbg-btn hide" onclick="hideGroupTeamElimsScene()">■ HIDE</button>
         <button class="dbg-btn preview" id="preview-groupteamelims" onclick="toggleLocalPreview('groupteamelims', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+    <!-- PLAYOFFS TEAM ELIMS -->
+    <div class="feature-card">
+      <div class="feature-card-label">Playoffs Team Elims</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showPlayoffsTeamElimsScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hidePlayoffsTeamElimsScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-playoffsteamelims" onclick="toggleLocalPreview('playoffsteamelims', this)">◈ PREVIEW</button>
       </div>
     </div>
 
@@ -4404,6 +4554,64 @@
         <div class="gel-group"><span></span></div>
       </div>
     </div>
+
+    <div id="playoffselim-page">
+      <div class="pel-card pel-empty" id="pel-card-1">
+        <img class="pel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="pel-photo" src="" alt="">
+        <div class="pel-num"><span>1</span></div>
+        <div class="pel-teamlogo"><img src="" alt=""></div>
+        <img class="pel-flag" src="" alt="">
+        <div class="pel-name"><span></span></div>
+        <div class="pel-label"><span>ELIMINATIONS</span></div>
+        <div class="pel-count"><span></span></div>
+        <div class="pel-group"><span></span></div>
+      </div>
+      <div class="pel-card pel-empty" id="pel-card-2">
+        <img class="pel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="pel-photo" src="" alt="">
+        <div class="pel-num"><span>2</span></div>
+        <div class="pel-teamlogo"><img src="" alt=""></div>
+        <img class="pel-flag" src="" alt="">
+        <div class="pel-name"><span></span></div>
+        <div class="pel-label"><span>ELIMINATIONS</span></div>
+        <div class="pel-count"><span></span></div>
+        <div class="pel-group"><span></span></div>
+      </div>
+      <div class="pel-card pel-empty" id="pel-card-3">
+        <img class="pel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="pel-photo" src="" alt="">
+        <div class="pel-num"><span>3</span></div>
+        <div class="pel-teamlogo"><img src="" alt=""></div>
+        <img class="pel-flag" src="" alt="">
+        <div class="pel-name"><span></span></div>
+        <div class="pel-label"><span>ELIMINATIONS</span></div>
+        <div class="pel-count"><span></span></div>
+        <div class="pel-group"><span></span></div>
+      </div>
+      <div class="pel-card pel-empty" id="pel-card-4">
+        <img class="pel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="pel-photo" src="" alt="">
+        <div class="pel-num"><span>4</span></div>
+        <div class="pel-teamlogo"><img src="" alt=""></div>
+        <img class="pel-flag" src="" alt="">
+        <div class="pel-name"><span></span></div>
+        <div class="pel-label"><span>ELIMINATIONS</span></div>
+        <div class="pel-count"><span></span></div>
+        <div class="pel-group"><span></span></div>
+      </div>
+      <div class="pel-card pel-empty" id="pel-card-5">
+        <img class="pel-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="pel-photo" src="" alt="">
+        <div class="pel-num"><span>5</span></div>
+        <div class="pel-teamlogo"><img src="" alt=""></div>
+        <img class="pel-flag" src="" alt="">
+        <div class="pel-name"><span></span></div>
+        <div class="pel-label"><span>ELIMINATIONS</span></div>
+        <div class="pel-count"><span></span></div>
+        <div class="pel-group"><span></span></div>
+      </div>
+    </div>
     <div id="teammap-page">
       <div id="tme-mapbox">
         <img id="tme-mapbox-bg" src="" alt="">
@@ -4745,6 +4953,59 @@
         <div class="gte-label"><span>ELIMINATIONS</span></div>
         <div class="gte-count"><span></span></div>
         <div class="gte-group"><span></span></div>
+      </div>
+    </div>
+
+    <div id="playoffsteam-page">
+      <div class="pte-card pte-empty" id="pte-card-1">
+        <img class="pte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="pte-photo" src="" alt="">
+        <div class="pte-num"><span>1</span></div>
+        <img class="pte-flag" src="" alt="">
+        <div class="pte-name"><span></span></div>
+        <div class="pte-label"><span>ELIMINATIONS</span></div>
+        <div class="pte-count"><span></span></div>
+        <div class="pte-group"><span></span></div>
+      </div>
+      <div class="pte-card pte-empty" id="pte-card-2">
+        <img class="pte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="pte-photo" src="" alt="">
+        <div class="pte-num"><span>2</span></div>
+        <img class="pte-flag" src="" alt="">
+        <div class="pte-name"><span></span></div>
+        <div class="pte-label"><span>ELIMINATIONS</span></div>
+        <div class="pte-count"><span></span></div>
+        <div class="pte-group"><span></span></div>
+      </div>
+      <div class="pte-card pte-empty" id="pte-card-3">
+        <img class="pte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="pte-photo" src="" alt="">
+        <div class="pte-num"><span>3</span></div>
+        <img class="pte-flag" src="" alt="">
+        <div class="pte-name"><span></span></div>
+        <div class="pte-label"><span>ELIMINATIONS</span></div>
+        <div class="pte-count"><span></span></div>
+        <div class="pte-group"><span></span></div>
+      </div>
+      <div class="pte-card pte-empty" id="pte-card-4">
+        <img class="pte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="pte-photo" src="" alt="">
+        <div class="pte-num"><span>4</span></div>
+        <img class="pte-flag" src="" alt="">
+        <div class="pte-name"><span></span></div>
+        <div class="pte-label"><span>ELIMINATIONS</span></div>
+        <div class="pte-count"><span></span></div>
+        <div class="pte-group"><span></span></div>
+      </div>
+      <div class="pte-card pte-empty" id="pte-card-5">
+        <img class="pte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="pte-photo" src="" alt="">
+        <div class="pte-num"><span>5</span></div>
+        <img class="pte-flag" src="" alt="">
+        <div class="pte-name"><span></span></div>
+        <div class="pte-label"><span>ELIMINATIONS</span></div>
+        <div class="pte-count"><span></span></div>
+        <div class="pte-group"><span></span></div>
       </div>
     </div>
     <div id="qualteam-page">
@@ -5330,6 +5591,14 @@
         } else if (msg.action === 'hide') hideActiveFeature();
       });
 
+      sseSource.addEventListener('playoffs_elim_leaders', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showPlayoffsElimLeadersScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
       sseSource.addEventListener('team_map_elims', (e) => {
         const msg = JSON.parse(e.data);
         if (msg.action === 'show') {
@@ -5384,6 +5653,14 @@
         if (msg.action === 'show') {
           document.getElementById('config-bar').classList.remove('debug-open');
           setTimeout(showGroupTeamElimsScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('playoffs_team_elims', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showPlayoffsTeamElimsScene, 100);
         } else if (msg.action === 'hide') hideActiveFeature();
       });
 
@@ -7832,10 +8109,21 @@
     const MRR_PITCH = (1436 - 202) / 4;
     const MRR_DEAL_STAGGER_MS = 130;
 
+    // More than 5 maps (up to 8) would overflow the 1920 canvas at full
+    // size, so the whole card scales down uniformly (pitch included) until
+    // the group fits MRR_MAX_GROUP_WIDTH; <=5 maps stay at scale 1.
+    const MRR_CARD_HEIGHT = 707;
+    const MRR_CARD_TOP = 274;
+    const MRR_MAX_GROUP_WIDTH = 1800;
+    function mrrScale(count) {
+      const full = (count - 1) * MRR_PITCH + MRR_CARD_WIDTH;
+      return Math.min(1, MRR_MAX_GROUP_WIDTH / full);
+    }
     function mrrCardLeft(i, count) {
-      const groupWidth = (count - 1) * MRR_PITCH + MRR_CARD_WIDTH;
+      const sc = mrrScale(count);
+      const groupWidth = ((count - 1) * MRR_PITCH + MRR_CARD_WIDTH) * sc;
       const groupLeft = 960 - groupWidth / 2;
-      return groupLeft + i * MRR_PITCH;
+      return groupLeft + i * MRR_PITCH * sc;
     }
 
     function mrrRenderCards(maps) {
@@ -7846,6 +8134,10 @@
         const card = document.createElement('div');
         card.className = 'mrr-card';
         card.style.left = mrrCardLeft(i, maps.length) + 'px';
+        const sc = mrrScale(maps.length);
+        card.style.setProperty('--mrr-scale', sc);
+        // keep the scaled row vertically centered on the same midline
+        card.style.top = (MRR_CARD_TOP + MRR_CARD_HEIGHT * (1 - sc) / 2) + 'px';
         // Cards fan in from below, tilted away from center (left cards
         // lean left, right cards lean right) — same "dealt from a stack"
         // idiom used elsewhere for staggered card reveals, just converging
@@ -8229,6 +8521,102 @@
           setTimeout(() => {
             gelPage.classList.remove('gel-on');
             gelPage.querySelectorAll('.gel-card').forEach(c => c.classList.remove('gel-dealt'));
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       PLAYOFFS ELIM LEADERS — top 5 players by total kills across every Tally
+       sheet (/api/playoffs-elim-leaders, Playoffs tab only). Clone of
+       Eliminations/Map without the map box or map picker, so no refresh
+       event. Part of the RANK_FEATURES family — shares #rnk-header,
+       labeled "Playoffs Elim Leaders".
+    ════════════════════════════════════════════════ */
+    const pelPage = document.getElementById('playoffselim-page');
+    const PEL_FLIP_STAGGER_MS = 130;
+
+    async function pelFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/playoffs-elim-leaders'), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch (e) { return null; }
+    }
+
+    /* An <img> that hides itself when its file is missing (and un-hides
+       when a later src does load), instead of showing a broken icon. */
+    function pelSetImg(img, src, fallback) {
+      img.style.display = '';
+      img.onerror = () => {
+        if (fallback && img.getAttribute('src') !== fallback) { img.src = fallback; return; }
+        img.style.display = 'none';
+      };
+      img.src = src;
+    }
+
+    /* Must run AFTER #playoffselim-page has .pel-on (real layout) — the fit calls
+       measure against it. */
+    function pelApply(data) {
+      const players = (data && data.players) || [];
+      for (let i = 0; i < 5; i++) {
+        const card = document.getElementById('pel-card-' + (i + 1));
+        card.classList.remove('pel-dealt');
+        const p = players[i];
+        card.classList.toggle('pel-empty', !p);
+        if (!p) continue;
+        pelSetImg(card.querySelector('.pel-photo'), '/photos/FRONT/' + encodeURIComponent(p.team) + '/' + encodeURIComponent(p.name) + '.png', '/photos/placeholder.png');
+        pelSetImg(card.querySelector('.pel-teamlogo img'), '/logos/' + encodeURIComponent(p.team) + '.png');
+        pelSetImg(card.querySelector('.pel-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        card.querySelector('.pel-name span').textContent = p.name;
+        card.querySelector('.pel-count span').textContent = p.kills;
+        const grp = card.querySelector('.pel-group');
+        grp.querySelector('span').textContent = p.group || '';
+        grp.style.display = p.group ? '' : 'none';
+        ovrFitText(card.querySelector('.pel-name'), 36.15, 17.6);
+        ovrFitText(card.querySelector('.pel-label'), 37.4, 19.8);
+      }
+      return players.length;
+    }
+
+    async function pelRender(data) {
+      const count = pelApply(data);
+      await preloadMedia(pelPage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'playoffselimleaders') return;
+      void pelPage.offsetWidth; /* snap the reset (no transition on the base class) before flipping */
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          if (activeFeature !== 'playoffselimleaders') return;
+          document.getElementById('pel-card-' + (i + 1)).classList.add('pel-dealt');
+        }, i * PEL_FLIP_STAGGER_MS);
+      }
+    }
+
+    async function showPlayoffsElimLeadersScene() {
+      const dataPromise = pelFetchData();
+      await transitionTo('playoffselimleaders');
+      if (activeFeature !== 'playoffselimleaders') return; /* superseded mid-await */
+      rnkShowHeader('Playoffs Elim Leaders');
+      rnkShowBgVideo();
+      pelPage.classList.add('pel-on');
+      void pelPage.offsetWidth; /* force reflow so the opacity transition runs */
+      pelPage.classList.add('pel-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'playoffselimleaders') return; /* superseded while awaiting data */
+      pelRender(data);
+    }
+
+    function hidePlayoffsElimLeadersScene() {
+      activeFeature = null;
+      pelPage.classList.remove('pel-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            pelPage.classList.remove('pel-on');
+            pelPage.querySelectorAll('.pel-card').forEach(c => c.classList.remove('pel-dealt'));
             rnkHideBgVideo();
             resolve();
           }, 420);
@@ -8861,6 +9249,97 @@
           setTimeout(() => {
             gtePage.classList.remove('gte-on');
             gtePage.querySelectorAll('.gte-card').forEach(c => c.classList.remove('gte-dealt'));
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       PLAYOFFS TEAM ELIMS — top 5 TEAMS by total kills in the Playoffs tab only, with the team's group letter in a black square (/api/playoffs-team-elims). Clone of
+       Team Map Elims without the map box/picker (no refresh event). Part of
+       the RANK_FEATURES family — shares #rnk-header, labeled "Playoffs Team Elims".
+       Fetched on show — hide/show to refresh mid-broadcast.
+    ════════════════════════════════════════════════ */
+    const ptePage = document.getElementById('playoffsteam-page');
+    const PTE_FLIP_STAGGER_MS = 130;
+
+    async function pteFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/playoffs-team-elims'), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch (e) { return null; }
+    }
+
+    /* An <img> that hides itself when its file is missing (and un-hides
+       when a later src does load), instead of showing a broken icon. */
+    function pteSetImg(img, src) {
+      img.style.display = '';
+      img.onerror = () => { img.style.display = 'none'; };
+      img.src = src;
+    }
+
+    /* Must run AFTER #playoffsteam-page has .pte-on (real layout) — the fit calls
+       measure against it. */
+    function pteApply(data) {
+      const teams = (data && data.teams) || [];
+      for (let i = 0; i < 5; i++) {
+        const card = document.getElementById('pte-card-' + (i + 1));
+        card.classList.remove('pte-dealt');
+        const p = teams[i];
+        card.classList.toggle('pte-empty', !p);
+        if (!p) continue;
+        pteSetImg(card.querySelector('.pte-photo'), '/logos/' + encodeURIComponent(p.team) + '.png');
+        pteSetImg(card.querySelector('.pte-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        card.querySelector('.pte-name span').textContent = p.team;
+        card.querySelector('.pte-count span').textContent = p.kills;
+        const grp = card.querySelector('.pte-group');
+        grp.querySelector('span').textContent = p.group || '';
+        grp.style.display = p.group ? '' : 'none';
+        ovrFitText(card.querySelector('.pte-name'), 32.86, 16);
+        ovrFitText(card.querySelector('.pte-label'), 34, 18);
+      }
+      return teams.length;
+    }
+
+    async function pteRender(data) {
+      const count = pteApply(data);
+      await preloadMedia(ptePage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'playoffsteamelims') return;
+      void ptePage.offsetWidth; /* snap the reset (no transition on the base class) before flipping */
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          if (activeFeature !== 'playoffsteamelims') return;
+          document.getElementById('pte-card-' + (i + 1)).classList.add('pte-dealt');
+        }, i * PTE_FLIP_STAGGER_MS);
+      }
+    }
+
+    async function showPlayoffsTeamElimsScene() {
+      const dataPromise = pteFetchData();
+      await transitionTo('playoffsteamelims');
+      if (activeFeature !== 'playoffsteamelims') return; /* superseded mid-await */
+      rnkShowHeader('Playoffs Team Elims');
+      rnkShowBgVideo();
+      ptePage.classList.add('pte-on');
+      void ptePage.offsetWidth; /* force reflow so the opacity transition runs */
+      ptePage.classList.add('pte-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'playoffsteamelims') return; /* superseded while awaiting data */
+      pteRender(data);
+    }
+
+    function hidePlayoffsTeamElimsScene() {
+      activeFeature = null;
+      ptePage.classList.remove('pte-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            ptePage.classList.remove('pte-on');
+            ptePage.querySelectorAll('.pte-card').forEach(c => c.classList.remove('pte-dealt'));
             rnkHideBgVideo();
             resolve();
           }, 420);
@@ -10851,7 +11330,7 @@
        header, only its own scoreboard content. Same precedent as
        cpDuringPostTransition above. */
     let duringRankTransition = false;
-    const RANK_FEATURES = new Set(['overallranking', 'overallranking2', 'mapranking', 'slotteams', 'groupa', 'groupb', 'groupc', 'groupd', 'dangerzone', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'elimsmap', 'elimleaders', 'groupelimleaders', 'teammapelims', 'teampointpct', 'pointcontribution', 'qualelimleaders', 'totalteamelims', 'groupteamelims', 'qualteamelims', 'tournamentschedule', 'prizepool', 'mapwinner', 'postqualified']);
+    const RANK_FEATURES = new Set(['overallranking', 'overallranking2', 'mapranking', 'slotteams', 'groupa', 'groupb', 'groupc', 'groupd', 'dangerzone', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'playoffselimleaders', 'playoffsteamelims', 'elimsmap', 'elimleaders', 'groupelimleaders', 'teammapelims', 'teampointpct', 'pointcontribution', 'qualelimleaders', 'totalteamelims', 'groupteamelims', 'qualteamelims', 'tournamentschedule', 'prizepool', 'mapwinner', 'postqualified']);
 
     /* Keeps server-side state.fullscreenScene.<key> (and thus the dashboard's
        Control-tab board toggles/live indicator) in sync with board
@@ -10942,12 +11421,14 @@
       if (prev === 'elimsmap') return hideElimsMapScene();
       if (prev === 'elimleaders') return hideElimLeadersScene();
       if (prev === 'groupelimleaders') return hideGroupElimLeadersScene();
+      if (prev === 'playoffselimleaders') return hidePlayoffsElimLeadersScene();
       if (prev === 'teammapelims') return hideTeamMapElimsScene();
       if (prev === 'teampointpct') return hideTeamPointPercentScene();
       if (prev === 'pointcontribution') return hidePointContributionScene();
       if (prev === 'qualelimleaders') return hideQualElimLeadersScene();
       if (prev === 'totalteamelims') return hideTotalTeamElimsScene();
       if (prev === 'groupteamelims') return hideGroupTeamElimsScene();
+      if (prev === 'playoffsteamelims') return hidePlayoffsTeamElimsScene();
       if (prev === 'qualteamelims') return hideQualTeamElimsScene();
       if (prev === 'tournamentschedule') return hideTournamentScheduleScene();
       if (prev === 'prizepool') return hidePrizePoolScene();
@@ -11788,12 +12269,14 @@
           else if (scene.activeFeature === 'elimsmap') showElimsMapScene();
           else if (scene.activeFeature === 'elimleaders') showElimLeadersScene();
           else if (scene.activeFeature === 'groupelimleaders') showGroupElimLeadersScene();
+          else if (scene.activeFeature === 'playoffselimleaders') showPlayoffsElimLeadersScene();
           else if (scene.activeFeature === 'teammapelims') showTeamMapElimsScene();
           else if (scene.activeFeature === 'teampointpct') showTeamPointPercentScene();
           else if (scene.activeFeature === 'pointcontribution') showPointContributionScene();
           else if (scene.activeFeature === 'qualelimleaders') showQualElimLeadersScene();
           else if (scene.activeFeature === 'totalteamelims') showTotalTeamElimsScene();
           else if (scene.activeFeature === 'groupteamelims') showGroupTeamElimsScene();
+          else if (scene.activeFeature === 'playoffsteamelims') showPlayoffsTeamElimsScene();
           else if (scene.activeFeature === 'qualteamelims') showQualTeamElimsScene();
           else if (scene.activeFeature === 'tournamentschedule') showTournamentScheduleScene();
           else if (scene.activeFeature === 'prizepool') showPrizePoolScene();
@@ -11843,12 +12326,14 @@
         if (feature === 'elimsmap') showElimsMapScene();
         if (feature === 'elimleaders') showElimLeadersScene();
         if (feature === 'groupelimleaders') showGroupElimLeadersScene();
+        if (feature === 'playoffselimleaders') showPlayoffsElimLeadersScene();
         if (feature === 'teammapelims') showTeamMapElimsScene();
         if (feature === 'teampointpct') showTeamPointPercentScene();
         if (feature === 'pointcontribution') showPointContributionScene();
         if (feature === 'qualelimleaders') showQualElimLeadersScene();
         if (feature === 'totalteamelims') showTotalTeamElimsScene();
         if (feature === 'groupteamelims') showGroupTeamElimsScene();
+        if (feature === 'playoffsteamelims') showPlayoffsTeamElimsScene();
         if (feature === 'qualteamelims') showQualTeamElimsScene();
         if (feature === 'tournamentschedule') showTournamentScheduleScene();
         if (feature === 'prizepool') showPrizePoolScene();
@@ -11890,12 +12375,14 @@
         if (event === 'elims_map') showElimsMapScene();
         if (event === 'elim_leaders') showElimLeadersScene();
         if (event === 'group_elim_leaders') showGroupElimLeadersScene();
+        if (event === 'playoffs_elim_leaders') showPlayoffsElimLeadersScene();
         if (event === 'team_map_elims') showTeamMapElimsScene();
         if (event === 'team_point_percent') showTeamPointPercentScene();
         if (event === 'point_contribution') showPointContributionScene();
         if (event === 'qual_elim_leaders') showQualElimLeadersScene();
         if (event === 'total_team_elims') showTotalTeamElimsScene();
         if (event === 'group_team_elims') showGroupTeamElimsScene();
+        if (event === 'playoffs_team_elims') showPlayoffsTeamElimsScene();
         if (event === 'qual_team_elims') showQualTeamElimsScene();
         if (event === 'tournament_schedule') showTournamentScheduleScene();
         if (event === 'prize_pool') showPrizePoolScene();

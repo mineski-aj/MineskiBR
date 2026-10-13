@@ -101,6 +101,13 @@ router.get('/api/group-team-elims', function (req, res) {
 
 // GET /api/qual-team-elims — top 5 TEAMS by total kills across the Qualifier
 // 1..N tabs only. Powers Qualifier Team Elims.
+router.get('/api/playoffs-elim-leaders', function (req, res) {
+  res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getTopPlayersTotal(5, 'playoffs'));
+});
+router.get('/api/playoffs-team-elims', function (req, res) {
+  res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getTopTeamsTotalKills(5, 'playoffs'));
+});
+
 router.get('/api/qual-team-elims', function (req, res) {
   res.set({ 'Cache-Control': 'no-store' }).json(tallyRoster.getTopTeamsTotalKills(5, 'qualifiers'));
 });

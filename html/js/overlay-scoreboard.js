@@ -162,6 +162,14 @@ var SB_MH1_TEXT_WIDTH = 309; /* .sb-mh1-name/.sb-mh1-tally's own 317px width, mi
 var SB_MH1_NAME_MAXSIZE  = 52;
 var SB_MH1_TALLY_MAXSIZE = 48;
 
+var _sbTodayMaps = [];
+/* The current match's map name from Match Board's Today's Maps list
+   (/match/state's todayMaps, 1-indexed by `match`). */
+function sbCurrentMapName() {
+  var m = _sbTodayMaps[_sbMatchNum - 1];
+  return (m && m.mapName) ? String(m.mapName).trim() : '';
+}
+
 function sbUpdateMh1Tally() {
   var tallyEl = document.querySelector('.sb-mh1-tally-text');
   if (!tallyEl) return;
@@ -176,7 +184,13 @@ function sbUpdateMh1Tally() {
     return;
   }
   var parts = [];
-  if (_sbLiveTallyTab) parts.push(_sbLiveTallyTab);
+  /* Playoffs: the live tally tab is just "Playoffs" again (same as the
+     Stage line above it), so lead with the current map's NAME instead —
+     "Isolated | Map 1". Falls back to the tab name when Match Board has
+     no map picked for this match number yet. */
+  var playoffMap = /playoffs/i.test(_sbStage) ? sbCurrentMapName() : '';
+  if (playoffMap) parts.push(playoffMap);
+  else if (_sbLiveTallyTab) parts.push(_sbLiveTallyTab);
   /* Qualifiers: the live tally tab (e.g. "Qualifier 1") already IS the
      map identity for that stage, so "Map N" is redundant — drop it and
      show just the tally tab (see sbIsQualifiers below). */
@@ -212,6 +226,7 @@ function sbPollMatchState() {
          sbIsQualifiers() (which reads _sbStage) to decide whether to
          drop the "Map N" part of the tally line. */
       _sbStage = s.stage || '';
+      _sbTodayMaps = s.todayMaps || [];
       sbUpdateMh1Tally();
       sbRenderScoreboard();
     })

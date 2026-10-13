@@ -349,6 +349,20 @@ router.get('/overlay/group_elim_leaders/show', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 
+// GET /overlay/playoffs_elim_leaders/show
+router.get('/overlay/playoffs_elim_leaders/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'playoffselimleaders';
+  state.overlayClients.forEach(c => { try { c.write('event: playoffs_elim_leaders\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/playoffs_elim_leaders/hide
+router.get('/overlay/playoffs_elim_leaders/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: playoffs_elim_leaders\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
 // GET /overlay/group_elim_leaders/hide
 router.get('/overlay/group_elim_leaders/hide', (req, res) => {
   state.fullscreenScene.activeFeature = null;
@@ -457,6 +471,20 @@ router.get('/overlay/group_team_elims/show', (req, res) => {
   state.fullscreenScene.activeFeature = 'groupteamelims';
   state.overlayClients.forEach(c => { try { c.write('event: group_team_elims\ndata: {"action":"show"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/playoffs_team_elims/show
+router.get('/overlay/playoffs_team_elims/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'playoffsteamelims';
+  state.overlayClients.forEach(c => { try { c.write('event: playoffs_team_elims\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/playoffs_team_elims/hide
+router.get('/overlay/playoffs_team_elims/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: playoffs_team_elims\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/group_team_elims/hide
