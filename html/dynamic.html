@@ -137,6 +137,25 @@
     background: rgba(255,255,255,0.07);
   }
   textarea::placeholder { color: #333; }
+
+  /* ── Map MVP picker ── */
+  .badge-mvp { background: #3a3410; color: #ffe800; border: 1px solid #5a4f10; }
+  select {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid #252535;
+    border-radius: 6px;
+    color: #ddd;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+  }
+  select:focus { border-color: #4455aa; }
+  select option, select optgroup { background: #13131c; color: #ddd; }
+  .mvp-row { display: flex; align-items: center; gap: 8px; }
+  .mvp-current { font-size: 12px; color: #888; }
+  .mvp-current b { color: #ffe800; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -164,6 +183,22 @@
       <label class="field-label" for="ph-headline">Headline</label>
       <textarea id="ph-headline" name="ph_headline" rows="2" placeholder="Enter PH headline…"></textarea>
     </div>
+  </div>
+
+  <!-- Map MVP Panel — who the Map MVP scene (Fullscreen) features -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-badge badge-mvp">MAP MVP</span>
+      <button id="mvp-apply-btn" class="panel-save-btn" onclick="applyMvp()">Apply</button>
+      <button class="panel-save-btn" onclick="clearMvp()">Clear</button>
+      <span id="mvp-status" class="panel-save-status">—</span>
+      <span class="panel-label-sub" id="mvp-map-label">Loading map…</span>
+    </div>
+    <div class="field">
+      <label class="field-label" for="mvp-select">Player (current map, from the tally sheet)</label>
+      <select id="mvp-select"></select>
+    </div>
+    <div class="mvp-current" id="mvp-current">—</div>
   </div>
 
 </div>
@@ -239,6 +274,98 @@
   });
 
   load();
+
+  /* ── Map MVP picker ──
+     Players come from /api/map-mvp-players (live tally sheet, current map),
+     the saved pick from /api/map-mvp-selection. The list refreshes every
+     5s so kills stay current, but never clobbers a choice you've made in
+     the dropdown and not applied yet. */
+  const mvpSel = document.getElementById('mvp-select');
+  let mvpSaved = { team: '', player: '' }; /* what the server has */
+  let mvpTouched = false;                  /* dropdown changed, not applied */
+  const mvpKey = (team, player) => JSON.stringify([team, player]);
+
+  function setMvpStatus(s) {
+    const el = document.getElementById('mvp-status');
+    el.className = 'panel-save-status ' + s;
+    el.textContent = s === 'saving' ? 'Saving…' : s === 'saved' ? 'Saved' : s === 'error' ? 'Error' : s === 'dirty' ? 'Not applied' : '—';
+  }
+
+  function renderMvpList(live) {
+    const teams = (live && live.teams) || [];
+    document.getElementById('mvp-map-label').textContent =
+      live && live.sheet ? (live.sheet + (live.map ? ' · Map ' + live.map : '')) : 'No live tally sheet';
+    const keep = mvpTouched ? mvpSel.value : mvpKey(mvpSaved.team, mvpSaved.player);
+    mvpSel.innerHTML = '';
+    const none = document.createElement('option');
+    none.value = ''; none.textContent = '— Select a player —';
+    mvpSel.appendChild(none);
+    let found = false;
+    teams.forEach(t => {
+      const g = document.createElement('optgroup');
+      g.label = t.name + ' — ' + t.kills + ' kills';
+      t.players.forEach(p => {
+        const o = document.createElement('option');
+        o.value = mvpKey(t.name, p.name);
+        o.textContent = p.name + ' (' + p.kills + ')';
+        if (o.value === keep) found = true;
+        g.appendChild(o);
+      });
+      mvpSel.appendChild(g);
+    });
+    mvpSel.value = found ? keep : '';
+    /* the saved pick may not be on this sheet/map any more */
+    const cur = document.getElementById('mvp-current');
+    if (!mvpSaved.player) cur.textContent = 'No player picked — the scene shows only its header.';
+    else {
+      const t = teams.find(x => x.name === mvpSaved.team);
+      const p = t && t.players.find(x => x.name === mvpSaved.player);
+      cur.innerHTML = p
+        ? 'On air: <b>' + esc(p.name) + '</b> (' + esc(t.name) + ') — ' + p.kills + ' elims, '
+            + (t.kills > 0 ? Math.round(p.kills / t.kills * 100) : 0) + '% kill participation'
+        : 'Saved pick <b>' + esc(mvpSaved.player) + '</b> (' + esc(mvpSaved.team) + ') is not on the current map — scene shows only its header.';
+    }
+  }
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  async function refreshMvp() {
+    try {
+      const [live, sel] = await Promise.all([
+        fetch('/api/map-mvp-players', { cache: 'no-store' }).then(r => r.json()),
+        fetch('/api/map-mvp-selection', { cache: 'no-store' }).then(r => r.json()),
+      ]);
+      mvpSaved = { team: sel.team || '', player: sel.player || '' };
+      renderMvpList(live);
+    } catch (e) {
+      document.getElementById('mvp-map-label').textContent = 'Could not load players';
+    }
+  }
+
+  async function saveMvp(team, player) {
+    setMvpStatus('saving');
+    try {
+      const r = await fetch('/api/map-mvp-selection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ team, player }),
+      });
+      if (!r.ok) throw new Error();
+      mvpTouched = false;
+      setMvpStatus('saved');
+      setTimeout(() => setMvpStatus(''), 2000);
+      await refreshMvp();
+    } catch (e) { setMvpStatus('error'); }
+  }
+  function applyMvp() {
+    if (!mvpSel.value) return clearMvp();
+    const [team, player] = JSON.parse(mvpSel.value);
+    saveMvp(team, player);
+  }
+  function clearMvp() { mvpTouched = false; saveMvp('', ''); }
+
+  mvpSel.addEventListener('change', () => { mvpTouched = true; setMvpStatus('dirty'); });
+  refreshMvp();
+  setInterval(refreshMvp, 5000);
 </script>
 </body>
 </html>

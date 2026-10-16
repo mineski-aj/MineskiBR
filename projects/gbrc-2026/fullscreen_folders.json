@@ -3,7 +3,7 @@
     {
       "id": "fmv6rnuld",
       "name": "Waiting",
-      "open": false,
+      "open": true,
       "keys": [
         "waiting_tvc",
         "waiting_timer"
@@ -12,9 +12,10 @@
     {
       "id": "fmv6rof9q",
       "name": "Rankings",
-      "open": false,
+      "open": true,
       "keys": [
         "overall_ranking",
+        "overall_ranking_2",
         "map_ranking",
         "group_a",
         "group_b",

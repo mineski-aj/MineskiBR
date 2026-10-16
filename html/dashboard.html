@@ -877,6 +877,7 @@
   <button class="tab-btn" data-page="ssanimator">SS Animator</button>
   <button class="tab-btn active" data-page="control">Control</button>
   <button class="tab-btn" data-page="dynamic">Dynamic</button>
+  <button class="tab-btn" data-page="playoffs">Playoffs</button>
   <button class="tab-btn" data-page="sponsors">Sponsors</button>
   <button class="tab-btn" data-page="edit">Edit</button>
   <button class="tab-btn" data-page="settings">Settings</button>
@@ -912,6 +913,11 @@
     <a href="/html/dynamic.html" target="_blank" class="btn btn-open" style="font-size:12px;padding:5px 14px;text-decoration:none;">Open ↗</a>
   </div>
   <iframe src="/html/dynamic.html" style="width:100%;flex:1;border:none;min-height:0;"></iframe>
+</div>
+
+<!-- Page: Playoffs — Lobby A / Lobby B squad lists (fetch-only, no SSE) -->
+<div id="page-playoffs" class="page">
+  <iframe src="/html/playoffs-dashboard.html" style="width:100%;flex:1;border:none;min-height:0;"></iframe>
 </div>
 
 <!-- Page: Sponsors -->
@@ -1643,7 +1649,8 @@
     tournament_schedule: 'tournamentschedule',
     prize_pool:        'prizepool',
     map_winner:        'mapwinner',
-    post_qualified:    'postqualified',
+    map_mvp:           'mapmvp',
+    post_qualified:   'postqualified',
     map_highlights:    'maphighlights',
   };
   /* Display names for the "is anything live" indicator below — same
@@ -1662,7 +1669,7 @@
     groupa: 'Group A', groupb: 'Group B', groupc: 'Group C', groupd: 'Group D', dangerzone: 'Danger Zone',
     qualifiedteams1: 'Qualified Teams 1', qualifiedteams2: 'Qualified Teams 2',
     maprotation: 'Map Rotation', elimsmap: 'Eliminations/Map', elimleaders: 'Total Elim Leaders', groupelimleaders: 'Group Elim Leaders', teammapelims: 'Team Map Elims', pointcontribution: 'Point Contribution', teampointpct: 'Team Point Percent', qualelimleaders: 'Qualifier Elim Leaders', totalteamelims: 'Total Team Elims', groupteamelims: 'Group Team Elims', qualteamelims: 'Qualifier Team Elims', playoffselimleaders: 'Playoffs Elim Leaders', playoffsteamelims: 'Playoffs Team Elims',
-    tournamentschedule: 'Tournament Schedule', prizepool: 'Prize Pool', mapwinner: 'Map Winner',
+    tournamentschedule: 'Tournament Schedule', prizepool: 'Prize Pool', mapwinner: 'Map Winner', mapmvp: 'Map MVP',
     postqualified: 'Post Qualified', maphighlights: 'Map Highlights',
   };
 
@@ -2013,6 +2020,7 @@
         { name: 'Tournament Schedule', show: '/overlay/tournament_schedule/show', hide: '/overlay/tournament_schedule/hide' },
         { name: 'Prize Pool', show: '/overlay/prize_pool/show', hide: '/overlay/prize_pool/hide' },
         { name: 'Map Winner', show: '/overlay/map_winner/show', hide: '/overlay/map_winner/hide' },
+        { name: 'Map MVP', show: '/overlay/map_mvp/show', hide: '/overlay/map_mvp/hide' },
         { name: 'Post Qualified', show: '/overlay/post_qualified/show', hide: '/overlay/post_qualified/hide' },
         { name: 'Map Highlights', show: '/overlay/map_highlights/show', hide: '/overlay/map_highlights/hide' },
       ],
@@ -4236,6 +4244,31 @@
     { group: 'Map Winner Stats KP',        id: '#mwn-stats-kp',       name: 'Kill Points Value' },
   ];
 
+  /* ── Map MVP (Fullscreen.html) element defaults — every element is
+     canvas-absolute (no shared container), below the shared rank header. ── */
+  var MMVP_DEFAULTS = {
+    '#mmvp-photo':       { left: 880, top: 67,  width: 1100, height: 1100 },
+    '#mmvp-logo-box':    { left: 80,  top: 320, width: 190, height: 190 },
+    '#mmvp-namebar':     { left: 290, top: 320, width: 690, height: 190 },
+    '#mmvp-flag':        { left: 322, top: 391, width: 96,  height: 48  },
+    '#mmvp-name':        { left: 430, top: 320, width: 530, height: 190, fontSize: 120 },
+    '#mmvp-elims-label': { left: 80,  top: 560, width: 560, height: 190, fontSize: 120 },
+    '#mmvp-elims-value': { left: 660, top: 560, width: 320, height: 190, fontSize: 150 },
+    '#mmvp-kp-label':    { left: 80,  top: 790, width: 560, height: 190, fontSize: 120 },
+    '#mmvp-kp-value':    { left: 660, top: 790, width: 320, height: 190, fontSize: 150 },
+  };
+  var MMVP_ELEMENTS = [
+    { group: 'Map MVP Photo',       id: '#mmvp-photo',       name: 'Player Photo' },
+    { group: 'Map MVP Logo',        id: '#mmvp-logo-box',    name: 'Team Logo Box' },
+    { group: 'Map MVP Name Bar',    id: '#mmvp-namebar',     name: 'Name Bar' },
+    { group: 'Map MVP Flag',        id: '#mmvp-flag',        name: 'Flag' },
+    { group: 'Map MVP Name',        id: '#mmvp-name',        name: 'Player Name' },
+    { group: 'Map MVP Elims Label', id: '#mmvp-elims-label', name: 'ELIMINATIONS Label' },
+    { group: 'Map MVP Elims Value', id: '#mmvp-elims-value', name: 'Eliminations Value' },
+    { group: 'Map MVP KP Label',    id: '#mmvp-kp-label',    name: 'KILL PARTICIPATION Label' },
+    { group: 'Map MVP KP Value',    id: '#mmvp-kp-value',    name: 'Kill Participation Value' },
+  ];
+
   /* ── Tournament Schedule (Fullscreen.html) element defaults —
      a single full-bleed PNG, nothing else. ── */
   var TSC_DEFAULTS = {
@@ -4603,6 +4636,15 @@
       elements:    MWN_ELEMENTS,
       defaults:    MWN_DEFAULTS,
       showFn:      'showMapWinnerScene',
+    },
+    fullscreen_mapmvp: {
+      label:       'Map MVP · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_mapmvp',
+      elements:    MMVP_ELEMENTS,
+      defaults:    MMVP_DEFAULTS,
+      showFn:      'showMapMvpScene',
     },
     fullscreen_postqualified: {
       label:       'Post Qualified · Fullscreen',

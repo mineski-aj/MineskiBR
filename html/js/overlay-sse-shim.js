@@ -11,7 +11,7 @@
 // logic change, etc.) — see the comment at its `new SharedWorker(...)` call
 // below for why this exists. Current bump: added 'playoffs_elim_leaders' + 'playoffs_team_elims' (Playoffs Elim Leaders / Team Elims scenes); before that added 'total_team_elims' + 'group_team_elims' (Total/Group Team Elims scenes); before that 'qual_elim_leaders' (Qualifier Elim Leaders scene); before that 'team_point_percent' (Team Point Percent scene); before that 'team_map_elims' (Team Map Elims scene); before that 'group_elim_leaders' (Group Elim Leaders scene); before that 'elim_leaders' (Total Elim Leaders
 // scene); before that 'elims_map' (Eliminations/Map scene), before that 'qualified_teams_1' / 'qualified_teams_2'.
-const OVERLAY_WORKER_VERSION = 42;
+const OVERLAY_WORKER_VERSION = 43;
 
 function createOverlaySSE() {
   if (typeof SharedWorker === 'undefined') {

@@ -1328,6 +1328,17 @@
       overflow: hidden;
     }
     .ovr-rc-rank  { left: 33px;  width: 60px; }
+    /* Rank change vs the previous map — inside the row, left of the rank
+       number: on the black tab of a yellow row, in the empty space beside
+       the number on a plain one. Yellow rows (.on-dark) get brighter colors
+       to read on black; plain rows get deeper ones. See ovrChangeCell. */
+    .ovr-rc-chg { left: 3px; width: 36px; font-size: 26px; }
+    .ovr-rc-chg.up   { color: #0f9a47; }
+    .ovr-rc-chg.down { color: #d81f26; }
+    .ovr-rc-chg.same { color: #6b6b6b; }
+    .ovr-rc-chg.on-dark.up   { color: #35e07a; }
+    .ovr-rc-chg.on-dark.down { color: #ff5a5a; }
+    .ovr-rc-chg.on-dark.same { color: #a8a8a8; }
     .ovr-rc-flag  { left: 117px; width: 56px; font-size: 20.87px; } /* no flag asset in the data model — falls back to the region/country-code text at a smaller size */
     .ovr-rc-name  { left: 192px; width: 208px; justify-content: flex-start; text-align: left; padding-left: 4px; white-space: nowrap; }
     .ovr-rc-group { left: 393px; width: 92px; }
@@ -2690,6 +2701,85 @@
     #mwn-stats-rp       { left: 13px;  top: 539px; width: 192px; height: 143px; font-weight: 700; font-size: 168.42px; color: #ffffff; }
     #mwn-stats-kp       { left: 231px; top: 539px; width: 192px; height: 143px; font-weight: 700; font-size: 168.42px; color: #ffffff; }
 
+    /* ── MAP MVP PAGE ──
+       Manually-picked MVP of the current map (Dynamic tab → Map MVP). Sits
+       under the shared #rnk-header (RANK_FEATURES family, label "Map MVP"),
+       so content starts below its 191px. Every element is its own
+       canvas-absolute box — no shared wrapper — so each is independently
+       editable from the Edit tab. Left column: team logo + flag/name bar,
+       then ELIMINATIONS and KILL PARTICIPATION rows; player photo on the
+       right. ── */
+    #map-mvp-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #map-mvp-page.mmvp-on { display: block; }
+    #map-mvp-page.mmvp-visible { opacity: 1; }
+    /* Nothing picked (or the pick isn't on the current map): header only. */
+    #map-mvp-page.mmvp-empty > * { display: none !important; }
+
+    /* Entrance: left column slides in from the left, photo from the right
+       (-pre = parked + hidden, -anim adds the transition; see mmvpReveal). */
+    .mmvp-el.mmvp-pre { opacity: 0; transform: translateX(-80px); transition: none; }
+    #mmvp-photo.mmvp-pre { transform: translateX(100px); }
+    .mmvp-el.mmvp-anim { transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease-out; }
+
+    /* Photos are 1000x1000 squares (subject low, headroom above), so this is
+       a 1100px square starting above the usable area — only transparent
+       headroom sits behind the header; the head lands just under it and the
+       body bleeds off the bottom/right edge like the reference layout. */
+    #mmvp-photo {
+      position: absolute;
+      left: 880px; top: 67px; width: 1100px; height: 1100px;
+      object-fit: cover; object-position: center top;
+      display: none;
+    }
+    #mmvp-logo-box {
+      position: absolute;
+      left: 80px; top: 320px; width: 190px; height: 190px;
+      background: #121212;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #mmvp-logo-box img { display: none; width: 100%; height: 100%; object-fit: contain; }
+    #mmvp-namebar {
+      position: absolute;
+      left: 290px; top: 320px; width: 690px; height: 190px;
+      box-sizing: border-box;
+      background: #000000; border: 3px solid #ffe800;
+    }
+    #mmvp-flag {
+      position: absolute;
+      left: 322px; top: 391px; width: 96px; height: 48px;
+      object-fit: contain; display: none;
+    }
+    #mmvp-name, #mmvp-elims-label, #mmvp-elims-value, #mmvp-kp-label, #mmvp-kp-value {
+      position: absolute;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      font-family: 'Teko', sans-serif;
+      font-weight: 700;
+      line-height: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      text-transform: uppercase;
+      box-sizing: border-box;
+      padding: 0 24px; /* keeps text off the box edges; fit measures inside it */
+    }
+    /* Teko sits high in its line box — nudge down in em so it stays
+       centered when the fit pass shrinks the font. */
+    #map-mvp-page .mmvp-fit { display: block; transform: translateY(0.08em); }
+    #mmvp-name         { left: 430px; top: 320px; width: 530px; height: 190px; font-size: 120px; color: #ffffff; }
+    #mmvp-elims-label  { left: 80px;  top: 560px; width: 560px; height: 190px; font-size: 120px; color: #ffffff; background: #000000; }
+    #mmvp-elims-value  { left: 660px; top: 560px; width: 320px; height: 190px; font-size: 150px; color: #000000; background: #ffe800; }
+    #mmvp-kp-label     { left: 80px;  top: 790px; width: 560px; height: 190px; font-size: 120px; color: #ffffff; background: #000000; }
+    #mmvp-kp-value     { left: 660px; top: 790px; width: 320px; height: 190px; font-size: 150px; color: #000000; background: #ffe800; }
+
     /* ── FINAL TEAM PAGE ── */
     #final-team-page {
       position: absolute;
@@ -4012,6 +4102,16 @@
       </div>
     </div>
 
+    <!-- MAP MVP -->
+    <div class="feature-card">
+      <div class="feature-card-label">Map MVP</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showMapMvpScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideMapMvpScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-mapmvp" onclick="toggleLocalPreview('mapmvp', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
     <!-- POST QUALIFIED -->
     <div class="feature-card">
       <div class="feature-card-label">Post Qualified</div>
@@ -5086,6 +5186,17 @@
         <div id="mwn-stats-kp"><span class="mwn-fit"></span></div>
       </div>
     </div>
+    <div id="map-mvp-page" class="mmvp-empty">
+      <img class="mmvp-el" id="mmvp-photo" alt="">
+      <div class="mmvp-el" id="mmvp-logo-box"><img id="mmvp-logo-img" alt=""></div>
+      <div class="mmvp-el" id="mmvp-namebar"></div>
+      <img class="mmvp-el" id="mmvp-flag" alt="">
+      <div class="mmvp-el" id="mmvp-name"><span class="mmvp-fit"></span></div>
+      <div class="mmvp-el" id="mmvp-elims-label"><span class="mmvp-fit">ELIMINATIONS</span></div>
+      <div class="mmvp-el" id="mmvp-elims-value"><span class="mmvp-fit"></span></div>
+      <div class="mmvp-el" id="mmvp-kp-label"><span class="mmvp-fit">KILL PARTICIPATION</span></div>
+      <div class="mmvp-el" id="mmvp-kp-value"><span class="mmvp-fit"></span></div>
+    </div>
     <div id="final-team-page">
       <div class="ft-teambox ft-teambox-blue">
         <img class="ft-teambox-bg" src="/assets/finalteam/finalteambackblue.png" alt="">
@@ -5685,6 +5796,14 @@
         if (msg.action === 'show') {
           document.getElementById('config-bar').classList.remove('debug-open');
           setTimeout(showMapWinnerScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('map_mvp', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showMapMvpScene, 100);
         } else if (msg.action === 'hide') hideActiveFeature();
       });
 
@@ -6377,7 +6496,7 @@
     function wtvcRenderMapPages(ms) {
       const root = document.getElementById('wtvc-maps');
       root.innerHTML = '';
-      const maps = ((ms && ms.todayMaps) || []).slice(0, (ms && ms.todayMapsCount) || 0);
+      const maps = brMapRows(ms);
       let start = 0;
       wtvcMapPageSizes(maps.length).forEach(size => {
         root.appendChild(wtvcBuildMapPage(maps.slice(start, start + size), start + 1));
@@ -6545,7 +6664,7 @@
         standings && standings.mode === 'qualifiers' ? standings.pages : (standings && standings.teams)
       );
       const ms = data.ms;
-      const maps = ((ms && ms.todayMaps) || []).slice(0, (ms && ms.todayMapsCount) || 0);
+      const maps = brMapRows(ms);
       const mapsKey = JSON.stringify(maps);
       const speedMs = Math.max(1, (data.pageSpeed && data.pageSpeed.seconds) || 5) * 1000;
       let structureChanged = false;
@@ -7119,7 +7238,18 @@
     let _rnkDay = 1;
     let _rnkMatch = 1;
     let _rnkTodayMapsCount = 0;
+    let _rnkTodayMaps = [];
     let _rnkLiveTallyTab = '';
+
+    /* Playoffs: Match Board lists one row per sheet map block (Map 1, 2.1,
+       2.2, 3 ...). Every per-MAP lineup (Waiting TVC's map pages, Map
+       Rotation, the header's "Map N/M") folds the lobby-B (.2) rows back
+       into their .1 so a split map is still ONE map. */
+    function brMapRows(ms) {
+      let maps = ((ms && ms.todayMaps) || []).slice(0, (ms && ms.todayMapsCount) || 0);
+      if (/playoffs/i.test((ms && ms.stage) || '')) maps = maps.filter(m => m.lobby !== 'B');
+      return maps;
+    }
 
     function rnkIsQualifiers() {
       return /qualifier/i.test(_rnkStage);
@@ -7135,7 +7265,12 @@
         if (rnkIsQualifiers()) {
           mapEl.textContent = _rnkLiveTallyTab || _rnkStage;
         } else {
-          mapEl.textContent = 'Map ' + _rnkMatch + '/' + _rnkTodayMapsCount;
+          /* Playoffs: the row's sheet label ("2.1") out of the number of
+             real maps (the .1/.2 pair counts once) — not match/rows. */
+          const poRow = /playoffs/i.test(_rnkStage) ? _rnkTodayMaps[_rnkMatch - 1] : null;
+          mapEl.textContent = (poRow && poRow.label)
+            ? 'Map ' + poRow.label + '/' + brMapRows({ stage: _rnkStage, todayMaps: _rnkTodayMaps, todayMapsCount: _rnkTodayMapsCount }).length
+            : 'Map ' + _rnkMatch + '/' + _rnkTodayMapsCount;
           /* Groupstage only: "| GROUP A + B" in bold, the live tally tab's
              own name (same source Waiting TVC's header and the in-game
              scoreboard use). Wrapped in one span — #rnk-header-mapname is a
@@ -7166,6 +7301,7 @@
           _rnkDay = s.day || 1;
           _rnkMatch = s.match || 1;
           _rnkTodayMapsCount = s.todayMapsCount || 0;
+          _rnkTodayMaps = s.todayMaps || [];
           rnkApplyMapStage();
         })
         .catch(() => {});
@@ -7333,11 +7469,13 @@
       };
     }
 
-    function rnkRowBgSrc(rank, score) {
+    function rnkRowBgSrc(rank, score, maxRank) {
       // Rank 1's special backer only applies once rank 1 actually has a
       // score — an all-zero board (no results yet) still ranks a team
       // #1 by tiebreak alone, and that shouldn't look like a real win.
-      return (rank === 1 && Number(score) > 0)
+      // maxRank (optional, default 1) widens that to ranks 1..maxRank —
+      // only Overall Ranking passes it (Playoffs: 7), see ovrFetchScoreboard.
+      return (rank >= 1 && rank <= (maxRank || 1) && Number(score) > 0)
         ? '/assets/Overall%20Ranking/teamscoreboard_rank1.png'
         : '/assets/Overall%20Ranking/teamscoreboard.png';
     }
@@ -7359,17 +7497,29 @@
         : '';
       return logo + '<div class="' + cellClass + '">' + img + '<span>' + (region || '') + '</span></div>';
     }
+    /* Rank change vs the previous map (q.rankChange from
+       /api/live-sheet-overall-standings: > 0 up, < 0 down, 0 same) — "+3" in
+       green, "-2" in red, a grey dash when unchanged. Empty when the server
+       had nothing to compare (first map, single-map sheet, Groupstage). */
+    function ovrChangeCell(q, onDark) {
+      if (typeof q.rankChange !== 'number') return '';
+      const n = q.rankChange;
+      const cls = n > 0 ? 'up' : n < 0 ? 'down' : 'same';
+      const txt = n > 0 ? '+' + n : n < 0 ? '-' + Math.abs(n) : '—';
+      return '<div class="ovr-row-cell ovr-rc-chg ' + cls + (onDark ? ' on-dark' : '') + '">' + txt + '</div>';
+    }
     function ovrBuildRow(q) {
       const row = document.createElement('div');
       row.className = 'ovr-row rnk-anim-item';
       row.innerHTML =
-        '<img class="ovr-row-bg" src="' + rnkRowBgSrc(q.rank, q.totalScore) + '" alt="">' +
+        '<img class="ovr-row-bg" src="' + rnkRowBgSrc(q.rank, q.totalScore, q.yellowMax) + '" alt="">' +
         '<div class="ovr-row-divider" style="left:182px"></div>' +
         '<div class="ovr-row-divider" style="left:487px"></div>' +
         '<div class="ovr-row-divider" style="left:591px"></div>' +
         '<div class="ovr-row-divider" style="left:691px"></div>' +
         '<div class="ovr-row-divider" style="left:789px"></div>' +
         '<div class="ovr-row-cell ovr-rc-rank">' + (q.rank || '') + '</div>' +
+        ovrChangeCell(q, rnkRowBgSrc(q.rank, q.totalScore, q.yellowMax).indexOf('rank1') !== -1) +
         rnkFlagCellHtml('ovr-row-cell ovr-rc-flag', q.region, q.name) +
         '<div class="ovr-row-cell ovr-rc-name">' + (q.name || '') + '</div>' +
         '<div class="ovr-row-cell ovr-rc-group">' + (q.group || '') + '</div>' +
@@ -7399,7 +7549,11 @@
         if (/groupstage/i.test((ms && ms.stage) || '')) return await grkFetchAll();
         const res = await fetch(buildUrl('/api/live-sheet-overall-standings'), { cache: 'no-store' });
         const data = res.ok ? await res.json() : null;
-        return (data && data.teams) || [];
+        const teams = (data && data.teams) || [];
+        /* Playoffs: the yellow container covers ranks 1-7, not just #1
+           (rnkRowBgSrc's maxRank). Any other stage keeps rank 1 only. */
+        if (/playoffs/i.test((ms && ms.stage) || '')) teams.forEach(t => { t.yellowMax = 7; });
+        return teams;
       } catch (e) { return []; }
     }
 
@@ -7763,7 +7917,8 @@
        20 of ALL group-stage teams (overallRank, set in grkFetchAll) — and
        only once it has a score, so an all-zero board isn't all yellow. */
     function grkRowBgSrc(q) {
-      return (q.overallRank <= 20 && Number(q.totalScore) > 0)
+      /* q.yellowMax overrides the cutoff (Danger Zone in Playoffs: ranks 6-7) */
+      return (q.overallRank <= (q.yellowMax || 20) && Number(q.totalScore) > 0)
         ? '/assets/Overall%20Ranking/teamscoreboard_rank1.png'
         : '/assets/Overall%20Ranking/teamscoreboard.png';
     }
@@ -7865,7 +8020,23 @@
        gives the yellow container to overallRank <= 20 (once scored), so
        ranks 16–20 are yellow and 21–25 plain; `rank` is the overall rank
        (set in grkFetchAll), so the rank column reads 16..25. */
+    /* PLAYOFFS (Match Board Stage = Playoffs): ranks 6–15 of the live
+       Playoffs standings instead, with only ranks 6–7 in the yellow
+       container (yellowMax = 7; 8–15 plain). Ranks come from the sheet's own
+       ranking (/api/live-sheet-overall-standings), so `rank` already reads
+       6..15 and overallRank mirrors it for the yellow check. Any other
+       stage keeps the group-stage behavior above. */
     async function grkFetchDangerZone() {
+      const ms = await fetch(buildUrl('/match/state'), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null);
+      if (/playoffs/i.test((ms && ms.stage) || '')) {
+        try {
+          const res = await fetch(buildUrl('/api/live-sheet-overall-standings'), { cache: 'no-store' });
+          const data = res.ok ? await res.json() : null;
+          const teams = ((data && data.teams) || []).slice(5, 15);
+          teams.forEach(t => { t.overallRank = t.rank; t.yellowMax = 7; });
+          return teams;
+        } catch (e) { return []; }
+      }
       const all = await grkFetchAll();
       return all.slice(15, 25);
     }
@@ -8179,8 +8350,7 @@
       try {
         const res = await fetch(buildUrl('/match/state'), { cache: 'no-store' });
         const ms = res.ok ? await res.json() : null;
-        const count = (ms && ms.todayMapsCount) || 0;
-        return ((ms && ms.todayMaps) || []).slice(0, count);
+        return brMapRows(ms);
       } catch (e) { return []; }
     }
 
@@ -9825,6 +9995,184 @@
     }
 
     /* ════════════════════════════════════════════════
+       MAP MVP — the MVP of the current map, picked by hand in the
+       Dynamic tab (POST /api/map-mvp-selection). /api/map-mvp resolves that
+       pick against the live tally sheet's current map: eliminations = the
+       player's K on this map, kill participation = those kills as a % of
+       the team's kills on this map. Part of the RANK_FEATURES family —
+       shares #rnk-header, labeled "Map MVP". Live-polled so a sheet edit or
+       a new pick updates the card without replaying the entrance.
+    ════════════════════════════════════════════════ */
+    const mmvpPage = document.getElementById('map-mvp-page');
+    const MMVP_ROWS = [ /* [ids, entrance delay ms] */
+      [['mmvp-logo-box', 'mmvp-namebar', 'mmvp-flag', 'mmvp-name'], 0],
+      [['mmvp-elims-label', 'mmvp-elims-value'], 120],
+      [['mmvp-kp-label', 'mmvp-kp-value'], 240],
+      [['mmvp-photo'], 0],
+    ];
+    const MMVP_FADE_MS = 400;
+    const MMVP_NUM_DUR = 900;
+    let mmvpTimers = [], mmvpRaf = null, mmvpAnimPending = false;
+    const mmvpEl = id => document.getElementById(id);
+    const mmvpSpan = id => mmvpEl(id).querySelector('.mmvp-fit');
+
+    function mmvpCancelAnim() {
+      mmvpTimers.forEach(clearTimeout);
+      mmvpTimers = [];
+      if (mmvpRaf) cancelAnimationFrame(mmvpRaf);
+      mmvpRaf = null;
+    }
+
+    async function mmvpFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/map-mvp'), { cache: 'no-store' });
+        return res.ok ? await res.json() : { player: null };
+      } catch (e) { return { player: null }; }
+    }
+
+    /* Park every element off to its side, hidden — called as the scene
+       starts fading in, before data arrives, so a previous show's final
+       state never flashes. */
+    function mmvpPrepare() {
+      mmvpCancelAnim();
+      mmvpPage.classList.add('mmvp-empty');
+      mmvpPhotoKey = '';
+      MMVP_ROWS.forEach(([ids]) => ids.forEach(id => {
+        const el = mmvpEl(id);
+        el.style.transitionDelay = '';
+        el.classList.remove('mmvp-anim');
+        el.classList.add('mmvp-pre');
+      }));
+    }
+
+    /* animate=false (a live-poll re-render): just un-park everything. */
+    function mmvpReveal(animate) {
+      MMVP_ROWS.forEach(([ids, delay]) => ids.forEach(id => {
+        const el = mmvpEl(id);
+        if (animate) {
+          el.style.transitionDelay = delay + 'ms';
+          el.classList.add('mmvp-anim');
+          void el.offsetWidth; /* commit the parked state before moving */
+        }
+        el.classList.remove('mmvp-pre');
+      }));
+    }
+
+    /* Shrink-to-fit on width; the CSS / Edit-tab font size is the max. */
+    function mmvpFit(id) {
+      const el = mmvpEl(id), txt = mmvpSpan(id);
+      const run = () => {
+        el.style.fontSize = '';
+        let size = parseFloat(getComputedStyle(el).fontSize) || 100;
+        const cs = getComputedStyle(el);
+        const room = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+        while (txt.offsetWidth > room && size > 24) { size -= 2; el.style.fontSize = size + 'px'; }
+      };
+      run();
+      /* font may still be loading — re-measure once the real face is in */
+      if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(run);
+    }
+
+    function mmvpCountUp(targets) {
+      const t0 = performance.now();
+      const step = now => {
+        const k = Math.min(1, (now - t0) / MMVP_NUM_DUR);
+        const e = 1 - Math.pow(1 - k, 3); /* ease-out */
+        targets.forEach(t => { mmvpSpan(t.id).textContent = Math.round(t.v * (k >= 1 ? 1 : e)) + t.suffix; });
+        mmvpRaf = k < 1 ? requestAnimationFrame(step) : null;
+      };
+      mmvpRaf = requestAnimationFrame(step);
+    }
+
+    /* /photos/FRONT/<team>/<player>.png — same convention as Map Winner. */
+    let mmvpPhotoKey = '';
+    function mmvpLoadPhoto(team, name) {
+      const img = mmvpEl('mmvp-photo');
+      const key = team + '/' + name;
+      if (key === mmvpPhotoKey) return Promise.resolve();
+      mmvpPhotoKey = key;
+      img.style.display = 'none';
+      return new Promise(resolve => {
+        img.onload = () => { img.style.display = 'block'; resolve(); };
+        img.onerror = () => { img.style.display = 'none'; resolve(); };
+        img.src = '/photos/FRONT/' + encodeURIComponent(team) + '/' + encodeURIComponent(name) + '.png';
+      });
+    }
+
+    async function mmvpRender(data) {
+      const animate = mmvpAnimPending;
+      mmvpAnimPending = false;
+      const p = data && data.player;
+      if (!p) { mmvpPage.classList.add('mmvp-empty'); mmvpPhotoKey = ''; return; }
+      const flagUrl = p.region ? '/flag/' + encodeURIComponent(p.region) + '_flag.png' : '';
+      const logoUrl = '/logos/' + encodeURIComponent(p.team) + '.png';
+      const [hasLogo, hasFlag] = await Promise.all([
+        mwnProbe(logoUrl),
+        flagUrl ? mwnProbe(flagUrl) : Promise.resolve(false),
+        mmvpLoadPhoto(p.team, p.name),
+      ]);
+      if (activeFeature !== 'mapmvp') return; /* superseded mid-await */
+      const logo = mmvpEl('mmvp-logo-img'), flag = mmvpEl('mmvp-flag');
+      logo.style.display = 'none';
+      if (hasLogo) { logo.src = logoUrl; logo.style.display = 'block'; }
+      flag.style.display = 'none';
+      if (hasFlag) { flag.src = flagUrl; flag.style.display = 'block'; }
+      mmvpSpan('mmvp-name').textContent = p.name;
+      const vals = [
+        { id: 'mmvp-elims-value', v: p.kills, suffix: '' },
+        { id: 'mmvp-kp-value', v: p.kp, suffix: '%' },
+      ];
+      /* Lay out + fit against the FINAL numbers so the size doesn't jump
+         while counting up — and only once the page is display:block. */
+      vals.forEach(t => { mmvpSpan(t.id).textContent = t.v + t.suffix; });
+      mmvpPage.classList.remove('mmvp-empty');
+      ['mmvp-name', 'mmvp-elims-label', 'mmvp-elims-value', 'mmvp-kp-label', 'mmvp-kp-value'].forEach(mmvpFit);
+      if (!animate) { mmvpReveal(false); return; }
+      vals.forEach(t => { mmvpSpan(t.id).textContent = '0' + t.suffix; });
+      /* wait for the fade-in to finish, then slide in + count up */
+      const wait = Math.max(0, mmvpShownAt + MMVP_FADE_MS - performance.now());
+      mmvpTimers.push(setTimeout(() => { mmvpReveal(true); mmvpCountUp(vals); }, wait));
+    }
+    let mmvpShownAt = 0;
+    const mmvpLivePoll = rnkMakeLivePoll(mmvpFetchData, mmvpRender, 'mapmvp');
+
+    async function showMapMvpScene() {
+      const dataPromise = mmvpFetchData();
+      await transitionTo('mapmvp');
+      if (activeFeature !== 'mapmvp') return; /* superseded mid-await */
+      rnkShowHeader('Map MVP');
+      rnkShowBgVideo();
+      mmvpPrepare();
+      mmvpPage.classList.add('mmvp-on');
+      void mmvpPage.offsetWidth; /* force reflow so the opacity transition runs */
+      mmvpPage.classList.add('mmvp-visible');
+      mmvpShownAt = performance.now();
+      mmvpAnimPending = true;
+      const data = await dataPromise;
+      if (activeFeature !== 'mapmvp') return; /* superseded while awaiting data */
+      await mmvpRender(data);
+      mmvpLivePoll.start(data);
+    }
+
+    function hideMapMvpScene() {
+      activeFeature = null;
+      mmvpLivePoll.stop();
+      mmvpCancelAnim();
+      mmvpPage.classList.remove('mmvp-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            mmvpPage.classList.remove('mmvp-on');
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
        MVP HIGHLIGHTS — single-player MVP card, fed by the game-mvp/view
        API (see /api/highlights-url in Settings to repoint it)
     ════════════════════════════════════════════════ */
@@ -11330,7 +11678,7 @@
        header, only its own scoreboard content. Same precedent as
        cpDuringPostTransition above. */
     let duringRankTransition = false;
-    const RANK_FEATURES = new Set(['overallranking', 'overallranking2', 'mapranking', 'slotteams', 'groupa', 'groupb', 'groupc', 'groupd', 'dangerzone', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'playoffselimleaders', 'playoffsteamelims', 'elimsmap', 'elimleaders', 'groupelimleaders', 'teammapelims', 'teampointpct', 'pointcontribution', 'qualelimleaders', 'totalteamelims', 'groupteamelims', 'qualteamelims', 'tournamentschedule', 'prizepool', 'mapwinner', 'postqualified']);
+    const RANK_FEATURES = new Set(['overallranking', 'overallranking2', 'mapranking', 'slotteams', 'groupa', 'groupb', 'groupc', 'groupd', 'dangerzone', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'playoffselimleaders', 'playoffsteamelims', 'elimsmap', 'elimleaders', 'groupelimleaders', 'teammapelims', 'teampointpct', 'pointcontribution', 'qualelimleaders', 'totalteamelims', 'groupteamelims', 'qualteamelims', 'tournamentschedule', 'prizepool', 'mapwinner', 'mapmvp', 'postqualified']);
 
     /* Keeps server-side state.fullscreenScene.<key> (and thus the dashboard's
        Control-tab board toggles/live indicator) in sync with board
@@ -11433,6 +11781,7 @@
       if (prev === 'tournamentschedule') return hideTournamentScheduleScene();
       if (prev === 'prizepool') return hidePrizePoolScene();
       if (prev === 'mapwinner') return hideMapWinnerScene();
+      if (prev === 'mapmvp') return hideMapMvpScene();
       if (prev === 'highlights') return hideHighlights();
       if (prev === 'mvp')       return hideMvpScene();
       if (prev === 'credits')   return hideCreditsScene();
@@ -12281,6 +12630,7 @@
           else if (scene.activeFeature === 'tournamentschedule') showTournamentScheduleScene();
           else if (scene.activeFeature === 'prizepool') showPrizePoolScene();
           else if (scene.activeFeature === 'mapwinner') showMapWinnerScene();
+          else if (scene.activeFeature === 'mapmvp') showMapMvpScene();
           else if (scene.activeFeature === 'highlights') showHighlights();
           else if (scene.activeFeature === 'mvp')        showMvpScene();
           else if (scene.activeFeature === 'credits')    showCreditsScene();
@@ -12338,6 +12688,7 @@
         if (feature === 'tournamentschedule') showTournamentScheduleScene();
         if (feature === 'prizepool') showPrizePoolScene();
         if (feature === 'mapwinner') showMapWinnerScene();
+        if (feature === 'mapmvp') showMapMvpScene();
         if (feature === 'highlights') showHighlights();
         if (feature === 'mvp')        showMvpScene();
         if (feature === 'credits')    showCreditsScene();
@@ -12355,7 +12706,7 @@
     window.previewTrigger = function(event, action) {
       document.querySelectorAll('.dbg-btn.preview').forEach(b => b.classList.remove('active'));
       if (action === 'show') {
-        const btnMap = { post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', overall_ranking_2: 'preview-overallranking2', map_ranking: 'preview-mapranking', slot_teams: 'preview-slotteams', group_a: 'preview-groupa', group_b: 'preview-groupb', group_c: 'preview-groupc', group_d: 'preview-groupd', danger_zone: 'preview-dangerzone', qualified_teams_1: 'preview-qualifiedteams1', qualified_teams_2: 'preview-qualifiedteams2', map_rotation: 'preview-maprotation', elims_map: 'preview-elimsmap', elim_leaders: 'preview-elimleaders', group_elim_leaders: 'preview-groupelimleaders', team_map_elims: 'preview-teammapelims', team_point_percent: 'preview-teampointpct', point_contribution: 'preview-pointcontribution', qual_elim_leaders: 'preview-qualelimleaders', total_team_elims: 'preview-totalteamelims', group_team_elims: 'preview-groupteamelims', qual_team_elims: 'preview-qualteamelims', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool', map_winner: 'preview-mapwinner' };
+        const btnMap = { post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', overall_ranking_2: 'preview-overallranking2', map_ranking: 'preview-mapranking', slot_teams: 'preview-slotteams', group_a: 'preview-groupa', group_b: 'preview-groupb', group_c: 'preview-groupc', group_d: 'preview-groupd', danger_zone: 'preview-dangerzone', qualified_teams_1: 'preview-qualifiedteams1', qualified_teams_2: 'preview-qualifiedteams2', map_rotation: 'preview-maprotation', elims_map: 'preview-elimsmap', elim_leaders: 'preview-elimleaders', group_elim_leaders: 'preview-groupelimleaders', team_map_elims: 'preview-teammapelims', team_point_percent: 'preview-teampointpct', point_contribution: 'preview-pointcontribution', qual_elim_leaders: 'preview-qualelimleaders', total_team_elims: 'preview-totalteamelims', group_team_elims: 'preview-groupteamelims', qual_team_elims: 'preview-qualteamelims', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool', map_winner: 'preview-mapwinner', map_mvp: 'preview-mapmvp' };
         const btn = document.getElementById(btnMap[event]);
         if (btn) btn.classList.add('active');
       }
@@ -12387,6 +12738,7 @@
         if (event === 'tournament_schedule') showTournamentScheduleScene();
         if (event === 'prize_pool') showPrizePoolScene();
         if (event === 'map_winner') showMapWinnerScene();
+        if (event === 'map_mvp') showMapMvpScene();
         if (event === 'highlights') showHighlights();
         if (event === 'mvp')        showMvpScene();
         if (event === 'final_team') showFinalTeam();

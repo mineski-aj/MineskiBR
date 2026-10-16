@@ -537,6 +537,22 @@ router.get('/overlay/map_winner/hide', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
+// GET /overlay/map_mvp/show — rank-header family (same as Map Winner
+// above): just activeFeature + the feature's own SSE event. The picked
+// player lives in map_mvp_selection.json (routes/devapi.js).
+router.get('/overlay/map_mvp/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'mapmvp';
+  state.overlayClients.forEach(c => { try { c.write('event: map_mvp\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/map_mvp/hide
+router.get('/overlay/map_mvp/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: map_mvp\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
 // GET /overlay/post_qualified/show — same rank-header family as Overall/
 // Map/Group Ranking, Map Rotation, Tournament Schedule, Prize Pool above:
 // no matchboard/middleboard touching here, Fullscreen.html's own

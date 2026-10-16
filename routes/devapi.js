@@ -242,6 +242,59 @@ router.post('/api/mvp-selection', (req, res) => {
   res.json({ ok: true, roleid });
 });
 
+// Map MVP (Fullscreen.html's mapmvp scene) — the caster picks the player
+// from the Dynamic tab's picker, which lists every player on the live tally
+// sheet's current map (/api/map-mvp-players). The pick is stored as
+// { team, player } (names, since the tally sheet has no ids) and resolved
+// against the same live data on every read, so the kills / kill
+// participation shown always match the sheet right now.
+const MAP_MVP_SELECTION_FILE = path.join(__dirname, '..', 'map_mvp_selection.json');
+
+function readMapMvpSelection() {
+  try {
+    const d = JSON.parse(fs.readFileSync(MAP_MVP_SELECTION_FILE, 'utf8'));
+    return { team: String(d.team || ''), player: String(d.player || '') };
+  } catch (e) {
+    return { team: '', player: '' };
+  }
+}
+
+router.get('/api/map-mvp-selection', (req, res) => {
+  res.set('Cache-Control', 'no-store').json(readMapMvpSelection());
+});
+
+router.post('/api/map-mvp-selection', (req, res) => {
+  const b = req.body || {};
+  const sel = { team: String(b.team || '').trim(), player: String(b.player || '').trim() };
+  fs.writeFileSync(MAP_MVP_SELECTION_FILE, JSON.stringify(sel));
+  res.json({ ok: true, ...sel });
+});
+
+// Picker feed: live sheet / map number + every team's players with kills.
+router.get('/api/map-mvp-players', (req, res) => {
+  res.set('Cache-Control', 'no-store').json(require('../lib/tallyRoster').getMapPlayerKills());
+});
+
+// Overlay feed: the picked player resolved against the live map data.
+// kp = the player's kills as a whole-number % of their team's kills on
+// this map. player is null when nothing is picked or the pick isn't on
+// the current sheet/map anymore.
+router.get('/api/map-mvp', (req, res) => {
+  const sel = readMapMvpSelection();
+  const live = require('../lib/tallyRoster').getMapPlayerKills();
+  let player = null;
+  const team = live.teams.find(t => t.name === sel.team);
+  const p = team && team.players.find(x => x.name === sel.player);
+  if (team && p) {
+    player = {
+      name: p.name, team: team.name, region: team.region,
+      kills: p.kills, teamKills: team.kills,
+      kp: team.kills > 0 ? Math.round((p.kills / team.kills) * 100) : 0,
+    };
+  }
+  res.set('Cache-Control', 'no-store').json({ sheet: live.sheet, map: live.map, player });
+});
+
 // Credit Reel font sizes, in px — GET to read, POST { headingSize, bodySize } to update
 const CREDITS_STYLE_FILE = path.join(__dirname, '..', 'credits_style.json');
 

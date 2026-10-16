@@ -170,6 +170,14 @@ function sbCurrentMapName() {
   return (m && m.mapName) ? String(m.mapName).trim() : '';
 }
 
+/* Playoffs: Match Board's map list is the Playoffs sheet's own blocks, so
+   the label is the sheet's ("2.1"), stamped on each row — not the plain
+   match number. Any other stage (or a row without one) = the number. */
+function sbCurrentMapLabel() {
+  var m = _sbTodayMaps[_sbMatchNum - 1];
+  return (/playoffs/i.test(_sbStage) && m && m.label) ? String(m.label) : String(_sbMatchNum);
+}
+
 function sbUpdateMh1Tally() {
   var tallyEl = document.querySelector('.sb-mh1-tally-text');
   if (!tallyEl) return;
@@ -194,7 +202,7 @@ function sbUpdateMh1Tally() {
   /* Qualifiers: the live tally tab (e.g. "Qualifier 1") already IS the
      map identity for that stage, so "Map N" is redundant — drop it and
      show just the tally tab (see sbIsQualifiers below). */
-  if (!sbIsQualifiers()) parts.push('Map ' + _sbMatchNum);
+  if (!sbIsQualifiers()) parts.push('Map ' + sbCurrentMapLabel());
   tallyEl.textContent = parts.join(' | ');
   sbFitText(tallyEl, SB_MH1_TEXT_WIDTH, SB_MH1_TALLY_MAXSIZE);
 }

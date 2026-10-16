@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="js/cache-bust.js"></script>
+<title>Playoffs</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0d0d12; color: #d0d0d8;
+    display: flex; flex-direction: column; padding: 20px 24px; gap: 16px; overflow-y: auto;
+  }
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding-bottom: 14px; border-bottom: 1px solid #222232; flex-shrink: 0; flex-wrap: wrap;
+  }
+  .page-title { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: 0.08em; text-transform: uppercase; }
+  .actions { display: flex; align-items: center; gap: 8px; }
+  .btn {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    color: #ddd; background: #2a2a3e; border: 1px solid #3a3a52; border-radius: 5px;
+    padding: 6px 14px; cursor: pointer;
+  }
+  .btn:hover { background: #34344a; }
+  .btn:disabled { opacity: 0.4; cursor: default; }
+  .btn.primary { background: #2c4f9e; border-color: #3a64c4; color: #fff; }
+  .status { font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #444; min-width: 90px; }
+  .status.saving { color: #5577cc; } .status.saved { color: #00cc88; }
+  .status.error { color: #ff4455; }  .status.dirty { color: #ddaa33; }
+
+  .now {
+    background: #13131c; border: 1px solid #1e1e2c; border-radius: 10px;
+    padding: 12px 16px; font-size: 13px; color: #aaa; line-height: 1.5;
+  }
+  .now b { color: #fff; }
+  .chip { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 4px; margin-left: 6px; color: #fff; }
+  .chip.A { background: #3a5aa0; } .chip.B { background: #b5622a; } .chip.all { background: #444; }
+
+  .lobbies { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .lobbies { grid-template-columns: 1fr; } }
+  .lobby { background: #13131c; border: 1px solid #1e1e2c; border-radius: 10px; overflow: hidden; }
+  .lobby-head { padding: 10px 16px; font-size: 13px; font-weight: 800; letter-spacing: 0.12em; color: #fff; display: flex; justify-content: space-between; }
+  .lobby.A .lobby-head { background: #3a5aa0; }
+  .lobby.B .lobby-head { background: #b5622a; }
+  .lobby-head small { font-weight: 600; opacity: 0.85; letter-spacing: 0.04em; }
+  .slots { padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 7px; }
+  .slot { display: flex; align-items: center; gap: 10px; }
+  .slot-n { width: 22px; text-align: right; font-size: 12px; font-weight: 700; color: #666; flex-shrink: 0; }
+  select {
+    flex: 1; min-width: 0; background: rgba(255,255,255,0.04); border: 1px solid #252535; border-radius: 6px;
+    color: #ddd; padding: 7px 10px; font-family: inherit; font-size: 13px; outline: none;
+  }
+  select:focus { border-color: #4455aa; }
+  select option { background: #13131c; color: #ddd; }
+  select option:disabled { color: #555; }
+  .note { font-size: 11px; color: #555; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <span class="page-title">Playoffs · Lobbies</span>
+  <div class="actions">
+    <span id="status" class="status">—</span>
+    <button class="btn" id="btn-reset">Reset to default seeding</button>
+    <button class="btn primary" id="btn-save">Save</button>
+  </div>
+</div>
+
+<div class="now" id="now">Loading…</div>
+
+<div class="lobbies">
+  <div class="lobby A">
+    <div class="lobby-head"><span>LOBBY A</span><small>plays the .1 maps</small></div>
+    <div class="slots" id="slots-A"></div>
+  </div>
+  <div class="lobby B">
+    <div class="lobby-head"><span>LOBBY B</span><small>plays the .2 maps</small></div>
+    <div class="slots" id="slots-B"></div>
+  </div>
+</div>
+
+<div class="note">
+  While Match Board's Stage is <b>Playoffs</b>, a <b>.1</b> map (Map 2.1, 4.1, 7.1) features only Lobby&nbsp;A's squads and a
+  <b>.2</b> map only Lobby&nbsp;B's — in Map Ranking, the in-game scoreboard, Map Winner and Map MVP. Whole-number maps
+  (1, 3, 5, 6, 8) feature all squads. A squad can only be in one lobby. Changes take effect on the next refresh of each overlay (a few seconds).
+</div>
+
+<script>
+  var SLOTS = 10;
+  var teams = [];                       /* every squad on the Playoffs sheet */
+  var saved = { lobbyA: [], lobbyB: [] };
+  var dirty = false;
+
+  function el(id) { return document.getElementById(id); }
+  function setStatus(s) {
+    var e = el('status'); e.className = 'status ' + s;
+    e.textContent = s === 'saving' ? 'Saving…' : s === 'saved' ? 'Saved' : s === 'error' ? 'Error' : s === 'dirty' ? 'Unsaved changes' : '—';
+  }
+
+  function selects(lobby) { return Array.prototype.slice.call(el('slots-' + lobby).querySelectorAll('select')); }
+  function values(lobby) { return selects(lobby).map(function (s) { return s.value; }).filter(Boolean); }
+
+  /* (Re)build every slot's options so a squad picked anywhere is disabled
+     everywhere else — one squad, one slot. */
+  function refreshOptions() {
+    var taken = {};
+    ['A', 'B'].forEach(function (L) { selects(L).forEach(function (s, i) { if (s.value) taken[s.value] = L + (i + 1); }); });
+    ['A', 'B'].forEach(function (L) {
+      selects(L).forEach(function (s, i) {
+        var mine = s.value;
+        s.innerHTML = '';
+        var none = document.createElement('option'); none.value = ''; none.textContent = '— empty —'; s.appendChild(none);
+        teams.forEach(function (t) {
+          var o = document.createElement('option'); o.value = t;
+          var at = taken[t];
+          o.textContent = at && t !== mine ? t + '   (Lobby ' + at[0] + ', slot ' + at.slice(1) + ')' : t;
+          o.disabled = !!at && t !== mine;
+          s.appendChild(o);
+        });
+        s.value = mine;
+      });
+    });
+  }
+
+  function buildSlots(L, list) {
+    var box = el('slots-' + L); box.innerHTML = '';
+    for (var i = 0; i < SLOTS; i++) {
+      var row = document.createElement('div'); row.className = 'slot';
+      row.innerHTML = '<span class="slot-n">' + (i + 1) + '</span>';
+      var s = document.createElement('select');
+      s.dataset.value = list[i] || '';
+      s.addEventListener('change', function () { dirty = true; setStatus('dirty'); refreshOptions(); });
+      row.appendChild(s); box.appendChild(row);
+    }
+    selects(L).forEach(function (s) {
+      /* seed the value before refreshOptions builds the option list */
+      var o = document.createElement('option'); o.value = s.dataset.value; s.appendChild(o); s.value = s.dataset.value;
+    });
+  }
+
+  function render(lobbies) {
+    saved = lobbies;
+    buildSlots('A', lobbies.lobbyA);
+    buildSlots('B', lobbies.lobbyB);
+    refreshOptions();
+    dirty = false; setStatus('');
+  }
+
+  function load() {
+    return fetch('/api/playoffs/lobbies', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+      teams = d.teams || [];
+      /* A saved name that isn't on the sheet any more still has to show, or saving would silently drop it. */
+      (d.lobbyA.concat(d.lobbyB)).forEach(function (n) { if (teams.indexOf(n) === -1) teams.push(n); });
+      render({ lobbyA: d.lobbyA, lobbyB: d.lobbyB });
+    }).catch(function () { el('now').textContent = 'Could not load the Playoffs sheet / lobbies.'; });
+  }
+
+  function save(body) {
+    setStatus('saving');
+    return fetch('/api/playoffs/lobbies', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    }).then(function (r) { if (!r.ok) throw new Error(); return r.json(); }).then(function (d) {
+      render({ lobbyA: d.lobbyA, lobbyB: d.lobbyB });
+      setStatus('saved'); setTimeout(function () { if (!dirty) setStatus(''); }, 2000);
+      refreshNow();
+    }).catch(function () { setStatus('error'); });
+  }
+
+  el('btn-save').addEventListener('click', function () { save({ lobbyA: values('A'), lobbyB: values('B') }); });
+  el('btn-reset').addEventListener('click', function () {
+    if (confirm('Reset Lobby A and Lobby B to the original seeding? Your manual changes will be lost.')) save({ reset: true });
+  });
+
+  /* What the broadcast is on right now, per Match Board. */
+  function refreshNow() {
+    Promise.all([
+      fetch('/match/state', { cache: 'no-store' }).then(function (r) { return r.json(); }),
+      fetch('/api/playoffs/maps', { cache: 'no-store' }).then(function (r) { return r.json(); }),
+    ]).then(function (res) {
+      var ms = res[0], blocks = res[1].blocks || [];
+      var now = el('now');
+      if (!/^playoffs$/i.test(String(ms.stage || '').trim())) {
+        now.innerHTML = 'Match Board Stage is <b>' + (ms.stage || '—') + '</b> — these lobbies only apply while it is set to <b>Playoffs</b>.';
+        return;
+      }
+      var b = blocks[(parseInt(ms.match, 10) || 1) - 1];
+      if (!b) { now.innerHTML = 'Match Board Map <b>' + (ms.match || 1) + '</b> is past the Playoffs sheet’s last map.'; return; }
+      var n = b.lobby === 'A' ? saved.lobbyA.length : b.lobby === 'B' ? saved.lobbyB.length : null;
+      now.innerHTML = 'On air: <b>Map ' + b.label + '</b>' + (b.name ? ' · ' + b.name : '') +
+        '<span class="chip ' + (b.lobby || 'all') + '">' + (b.lobby ? 'LOBBY ' + b.lobby + ' · ' + n + ' squads' : 'ALL SQUADS') + '</span>';
+    }).catch(function () {});
+  }
+
+  load().then(refreshNow);
+  setInterval(refreshNow, 5000);
+</script>
+</body>
+</html>

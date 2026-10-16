@@ -130,6 +130,7 @@ app.use(require('./routes/matchboard'));
 app.use(require('./routes/tally'));
 app.use(require('./routes/externalTally'));
 app.use(require('./routes/tallyApi'));
+app.use(require('./routes/playoffs'));
 app.use(require('./routes/ssAnimator'));
 
 // Debug: log unmatched routes

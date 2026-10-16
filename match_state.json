@@ -182,61 +182,101 @@
     "Wolf"
   ],
   "stage": "Playoffs",
-  "todayMapsCount": 8,
+  "todayMapsCount": 11,
   "todayMaps": [
     {
       "time": "6:00PM",
       "mapName": "Blackout",
       "winner": "",
       "done": false,
-      "groupMatch": ""
+      "groupMatch": "",
+      "label": "1",
+      "lobby": ""
     },
     {
       "time": "                                           ",
-      "mapName": "Isolated",
+      "mapName": "Krai",
       "done": false,
       "groupMatch": "",
-      "winner": ""
+      "winner": "",
+      "label": "2.1",
+      "lobby": "A"
+    },
+    {
+      "time": "",
+      "mapName": "Krai",
+      "done": false,
+      "groupMatch": "",
+      "winner": "",
+      "label": "2.2",
+      "lobby": "B"
     },
     {
       "time": "",
       "mapName": "Blackout",
       "done": false,
       "groupMatch": "",
-      "winner": ""
+      "winner": "",
+      "label": "3",
+      "lobby": ""
+    },
+    {
+      "time": "",
+      "mapName": "Rebirth Island",
+      "done": false,
+      "groupMatch": "",
+      "winner": "",
+      "label": "4.1",
+      "lobby": "A"
+    },
+    {
+      "time": "",
+      "mapName": "Rebirth Island",
+      "done": false,
+      "groupMatch": "",
+      "winner": "",
+      "label": "4.2",
+      "lobby": "B"
     },
     {
       "time": "",
       "mapName": "Isolated",
-      "done": false,
       "groupMatch": "",
-      "winner": ""
+      "winner": "",
+      "label": "5",
+      "lobby": ""
     },
     {
       "time": "",
       "mapName": "Blackout",
-      "done": false,
       "groupMatch": "",
-      "winner": ""
+      "winner": "",
+      "label": "6",
+      "lobby": ""
+    },
+    {
+      "time": "",
+      "mapName": "Krai",
+      "groupMatch": "",
+      "winner": "",
+      "label": "7.1",
+      "lobby": "A"
+    },
+    {
+      "time": "",
+      "mapName": "Krai",
+      "groupMatch": "",
+      "winner": "",
+      "label": "7.2",
+      "lobby": "B"
     },
     {
       "time": "",
       "mapName": "Isolated",
-      "done": false,
       "groupMatch": "",
-      "winner": ""
-    },
-    {
-      "time": "",
-      "mapName": "Isolated",
-      "groupMatch": "",
-      "winner": ""
-    },
-    {
-      "time": "",
-      "mapName": "Isolated",
-      "groupMatch": "",
-      "winner": ""
+      "winner": "",
+      "label": "8",
+      "lobby": ""
     }
   ],
   "tomorrowMapsCount": 6,

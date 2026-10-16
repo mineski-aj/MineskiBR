@@ -596,6 +596,17 @@
     updateShowLabel();
     var goodbyeEl = document.getElementById('goodbye-label-val');
     if (goodbyeEl) goodbyeEl.value = s.goodbyeLabel || computeGoodbye(s.day || 1);
+    if (needsPlayoffsSync()) applyPlayoffsLayout();
+  }
+  /* True when the saved todayMaps disagree with the current stage's layout
+     rules: Playoffs rows/count not yet applied, or Playoffs leftovers
+     (labels, an 11-map count) still saved after switching to another stage.
+     Never "undoes" Playoffs just because the sheet's blocks haven't
+     loaded yet. */
+  function needsPlayoffsSync() {
+    if (isPlayoffsStage()) return poBlocks.length > 0;
+    return parseInt(localState.todayMapsCount, 10) > BR_MAPS_MAX ||
+           (localState.todayMaps || []).some(function (m) { return m && (m.label !== undefined || m.lobby !== undefined); });
   }
 
   function updatePreview() {
@@ -636,11 +647,12 @@
     var sel = document.getElementById('match-picker');
     var n   = getMapsCount('today');
     var cur = sel.value;
+    var maps = getMapsList('today');
     sel.innerHTML = '';
     for (var i = 0; i < n; i++) {
       var opt = document.createElement('option');
       opt.value = String(i);
-      opt.textContent = 'Map ' + (i + 1);
+      opt.textContent = 'Map ' + mapRowLabel(maps[i], i);
       sel.appendChild(opt);
     }
     if (cur !== '' && parseInt(cur, 10) < n) sel.value = cur;
@@ -654,7 +666,7 @@
     if (el) el.textContent = name;
     // Live Preview's "Map" / "Current Map" pills mirror the same values.
     var pvNum  = document.getElementById('pv-map-num');
-    if (pvNum) pvNum.textContent = 'Map ' + (idx + 1);
+    if (pvNum) pvNum.textContent = 'Map ' + mapRowLabel(maps[idx], idx);
     var pvName = document.getElementById('pv-map-name');
     if (pvName) pvName.textContent = name;
     if (localState.map !== name) {
@@ -681,6 +693,9 @@
   document.getElementById('stage').addEventListener('change', function () {
     localState.stage = this.value;
     push({ stage: this.value });
+    /* Playoffs swaps in the sheet's own map list; any other stage restores
+       the normal 1-8 list. Re-read the sheet's blocks/lobbies on entry. */
+    if (isPlayoffsStage()) loadPlayoffs(); else renderAll();
   });
 
   /* ── COUNTDOWN TIMER (server-authoritative — MM:SS) ──
@@ -812,8 +827,39 @@
     tomorrow: { listField: 'tomorrowMaps', countField: 'tomorrowMapsCount', listId: 'tomorrow-maps-list', countSelId: 'tomorrow-maps-count', defaultCount: 3 },
   };
 
+  /* ── PLAYOFFS STAGE ──
+     While Stage = Playoffs, TODAY's map list is hardcoded to the Playoffs
+     tally sheet's own map blocks (Map 1, 2.1, 2.2, 3, 4.1, 4.2 ...) — count,
+     order and labels all come from /api/playoffs/maps, and the count can't
+     be edited. Each row also records its `label` and `lobby` ('A' for .1,
+     'B' for .2, '' for a plain map) so every overlay reading
+     /match/state can show "Map 2.1" and fold the .1/.2 pair back into one
+     map. Winner choices are that lobby's squads (/api/playoffs/lobbies).
+     "Tomorrow's" list is a separate planning list and is left alone. */
+  var poBlocks  = [];                              /* sheet map blocks */
+  var poLobbies = { lobbyA: [], lobbyB: [], teams: [] };
+  function isPlayoffsStage() { return /^playoffs$/i.test(String(localState.stage || '').trim()); }
+  function playoffsActive(key) { return key === 'today' && isPlayoffsStage() && poBlocks.length > 0; }
+  function loadPlayoffs() {
+    return Promise.all([
+      fetch('/api/playoffs/maps',    { cache: 'no-store' }).then(function (r) { return r.json(); }),
+      fetch('/api/playoffs/lobbies', { cache: 'no-store' }).then(function (r) { return r.json(); }),
+    ]).then(function (res) {
+      poBlocks  = res[0].blocks || [];
+      poLobbies = res[1] || poLobbies;
+      renderAll(); /* renderAll applies the layout only if the saved state needs it */
+    }).catch(function () { console.warn('Could not load Playoffs sheet map blocks'); });
+  }
+  /* Squads that can win row `lobby` ('A' | 'B' | '' = everyone). */
+  function playoffsTeamsFor(lobby) {
+    if (lobby === 'A') return poLobbies.lobbyA;
+    if (lobby === 'B') return poLobbies.lobbyB;
+    return (poLobbies.teams && poLobbies.teams.length) ? poLobbies.teams : poLobbies.lobbyA.concat(poLobbies.lobbyB);
+  }
+
   function getMapsCount(key) {
     var cfg = MAPS_CONFIG[key];
+    if (playoffsActive(key)) return poBlocks.length;
     var n = parseInt(localState[cfg.countField], 10);
     if (!n || n < 1) n = cfg.defaultCount;
     return Math.min(BR_MAPS_MAX, Math.max(1, n));
@@ -824,8 +870,33 @@
     var maps = (localState[cfg.listField] || []).slice();
     var n    = getMapsCount(key);
     while (maps.length < n) maps.push({ time: '', mapName: BR_MAP_NAMES[0], groupMatch: '', winner: '' });
-    return maps.slice(0, n);
+    maps = maps.slice(0, n);
+    if (key !== 'today') return maps;
+    /* Playoffs: stamp each row with its sheet block's label/lobby (the
+       Group Match pick means nothing here). Any other stage: strip them. */
+    return maps.map(function (m, i) {
+      var copy = Object.assign({}, m);
+      if (playoffsActive(key)) {
+        var b = poBlocks[i];
+        copy.label = b.label; copy.lobby = b.lobby || ''; copy.groupMatch = '';
+      } else { delete copy.label; delete copy.lobby; }
+      return copy;
+    });
   }
+  /* Push the Playoffs layout (or undo it) if the saved state doesn't match. */
+  function applyPlayoffsLayout() {
+    var n = getMapsCount('today');
+    var maps = getMapsList('today');
+    var stale = parseInt(localState.todayMapsCount, 10) !== n ||
+                JSON.stringify(maps) !== JSON.stringify(localState.todayMaps || []);
+    if (stale) {
+      localState.todayMapsCount = n; localState.todayMaps = maps;
+      push({ todayMapsCount: n, todayMaps: maps });
+    }
+    if ((localState.match || 1) > n) { localState.match = n; push({ match: n }); }
+  }
+  /* A row's label for display ("2.1"), falling back to its position. */
+  function mapRowLabel(m, idx) { return (isPlayoffsStage() && m && m.label) ? m.label : String(idx + 1); }
 
   function saveMapsList(key, maps) {
     var cfg = MAPS_CONFIG[key];
@@ -881,20 +952,28 @@
     }
     sel.value = current || '';
   }
-  function fillWinnerSelect(sel, group, current) {
+  /* po = this row is a Playoffs row ({ on:true, lobby }) — winners are that
+     lobby's squads, not a group sheet's, and no Group Match pick is needed. */
+  function fillWinnerSelect(sel, group, current, po) {
     sel.innerHTML = '';
     var none = document.createElement('option'); none.value = ''; none.textContent = '— No winner yet —';
     sel.appendChild(none);
-    var g = groupSheets.filter(function (x) { return x.name === group; })[0];
-    var teams = g ? g.teams.slice() : [];
+    var teams;
+    if (po && po.on) {
+      teams = playoffsTeamsFor(po.lobby).slice();
+    } else {
+      var g = groupSheets.filter(function (x) { return x.name === group; })[0];
+      teams = g ? g.teams.slice() : [];
+    }
     if (current && teams.indexOf(current) === -1) teams.push(current);
     teams.forEach(function (t) {
       var o = document.createElement('option'); o.value = t; o.textContent = t;
       sel.appendChild(o);
     });
-    sel.disabled = !group;
+    sel.disabled = !(po && po.on) && !group;
     sel.value = current || '';
   }
+  function rowPo(key, m) { return { on: playoffsActive(key), lobby: (m && m.lobby) || '' }; }
   function refreshGroupSelects() {
     ['today', 'tomorrow'].forEach(function (key) {
       var cfg = MAPS_CONFIG[key];
@@ -905,7 +984,7 @@
         var gEl = row.querySelector('.br-map-group'), wEl = row.querySelector('.br-map-winner');
         var m = maps[idx] || {};
         if (gEl && document.activeElement !== gEl) fillGroupSelect(gEl, m.groupMatch || '');
-        if (wEl && document.activeElement !== wEl) fillWinnerSelect(wEl, m.groupMatch || '', m.winner || '');
+        if (wEl && document.activeElement !== wEl) fillWinnerSelect(wEl, m.groupMatch || '', m.winner || '', rowPo(key, m));
       });
     });
   }
@@ -926,7 +1005,8 @@
     var numField = document.createElement('div');
     numField.className = 'meta-field';
     numField.style.flex = '0 0 44px';
-    numField.innerHTML = '<div class="meta-label">Map</div><div class="game-display" style="padding:7px 0;">' + (idx + 1) + '</div>';
+    numField.style.flex = '0 0 ' + (playoffsActive(key) ? '52px' : '44px');
+    numField.innerHTML = '<div class="meta-label">Map</div><div class="game-display" style="padding:7px 0;">' + (playoffsActive(key) ? m.label : (idx + 1)) + '</div>';
     row.appendChild(numField);
 
     var timeField = document.createElement('div');
@@ -944,11 +1024,18 @@
     var groupField = document.createElement('div');
     groupField.className = 'meta-field';
     groupField.style.flex = '0 0 96px';
-    groupField.innerHTML = '<div class="meta-label">Group Match</div>';
     var groupSel = document.createElement('select');
     groupSel.className = 'br-map-group';
-    fillGroupSelect(groupSel, m.groupMatch || '');
-    groupField.appendChild(groupSel);
+    if (playoffsActive(key)) {
+      /* Playoffs: no group sheet to pick — show which lobby plays this map. */
+      groupField.innerHTML = '<div class="meta-label">Lobby</div><div class="game-display br-map-lobby" style="padding:7px 0;">' +
+        (m.lobby ? 'Lobby ' + m.lobby : 'All 20') + '</div>';
+      groupSel.style.display = 'none';
+    } else {
+      groupField.innerHTML = '<div class="meta-label">Group Match</div>';
+      fillGroupSelect(groupSel, m.groupMatch || '');
+      groupField.appendChild(groupSel);
+    }
     row.appendChild(groupField);
 
     var nameField = document.createElement('div');
@@ -972,7 +1059,7 @@
     winField.innerHTML = '<div class="meta-label">Winner</div>';
     var winSel = document.createElement('select');
     winSel.className = 'br-map-winner';
-    fillWinnerSelect(winSel, m.groupMatch || '', m.winner || '');
+    fillWinnerSelect(winSel, m.groupMatch || '', m.winner || '', rowPo(key, m));
     winSel.addEventListener('change', function () { commitMapField(key, idx, 'winner', winSel.value); });
     winField.appendChild(winSel);
     row.appendChild(winField);
@@ -992,12 +1079,24 @@
     var countSel  = document.getElementById(cfg.countSelId);
     if (!container || !countSel) return;
     var n = getMapsCount(key);
+    var po = playoffsActive(key);
+    /* Playoffs: the count is the sheet's, not the operator's — show it
+       (adding an option for it if it's past the 1-8 choices) but lock it. */
+    if (n > BR_MAPS_MAX && !Array.prototype.some.call(countSel.options, function (o) { return o.value === String(n); })) {
+      var extra = document.createElement('option'); extra.value = String(n); extra.textContent = String(n);
+      countSel.appendChild(extra);
+    }
+    countSel.disabled = po;
+    countSel.title = po ? 'Hardcoded to the Playoffs tally sheet’s map list' : '';
     if (document.activeElement !== countSel) countSel.value = String(n);
     var maps = getMapsList(key);
     // Only rebuild the DOM when the row count actually changed — an
     // in-place row-count match means just a field value changed elsewhere
     // (e.g. an SSE echo of this tab's own edit), and rebuilding on every
-    // keystroke's round-trip would steal focus mid-type.
+    // keystroke's round-trip would steal focus mid-type. Switching in/out
+    // of Playoffs changes the row layout too, so that also forces a rebuild.
+    var layoutKey = po ? 'po:' + maps.map(function (m) { return m.label; }).join(',') : 'std';
+    if (container.dataset.layout !== layoutKey) { container.dataset.layout = layoutKey; container.innerHTML = ''; }
     if (container.children.length !== n) {
       container.innerHTML = '';
       maps.forEach(function (m, idx) { container.appendChild(buildMapRow(key, idx, m)); });
@@ -1010,8 +1109,8 @@
         var winEl  = row.querySelector('.br-map-winner');
         if (timeEl && document.activeElement !== timeEl) timeEl.value = m.time || '';
         if (selEl  && document.activeElement !== selEl)  selEl.value  = m.mapName || BR_MAP_NAMES[0];
-        if (grpEl && document.activeElement !== grpEl) fillGroupSelect(grpEl, m.groupMatch || '');
-        if (winEl && document.activeElement !== winEl) fillWinnerSelect(winEl, m.groupMatch || '', m.winner || '');
+        if (grpEl && !po && document.activeElement !== grpEl) fillGroupSelect(grpEl, m.groupMatch || '');
+        if (winEl && document.activeElement !== winEl) fillWinnerSelect(winEl, m.groupMatch || '', m.winner || '', rowPo(key, m));
       });
     }
   }
@@ -1042,6 +1141,7 @@
   })();
 
   loadGroupSheets();
+  loadPlayoffs();
 
   /* ── PANEL TABS ── */
   (function () {
@@ -1053,6 +1153,7 @@
           document.getElementById('tab-content-' + x).style.display = (x === t) ? '' : 'none';
         });
         if (t === 'today' || t === 'tomorrow') loadGroupSheets();
+        if (t === 'today') loadPlayoffs(); /* lobbies may have been edited in the PLAYOFFS tab */
         if (t === 'today')    renderMapsSection('today');
         if (t === 'tomorrow') renderMapsSection('tomorrow');
       });
