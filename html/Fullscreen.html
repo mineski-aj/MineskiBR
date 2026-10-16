@@ -6383,7 +6383,7 @@
 
       const num = document.createElement('div');
       num.className = 'wtvc-map-num';
-      num.textContent = 'MAP ' + mapNumber;
+      num.textContent = 'MAP ' + ((map && map.label) || mapNumber); /* Playoffs rows carry the sheet label ("2.1") */
       card.appendChild(num);
 
       const name = document.createElement('div');
@@ -6489,6 +6489,12 @@
        a lone card. */
     function wtvcMapPageSizes(n) {
       if (n === 6) return [4, 2];
+      /* Playoffs lists 11 rows (incl. 2.1/2.2 ...) — 5+5+1 would strand a
+         lone card, so split evenly: 4+4+3. */
+      if (n > 10) {
+        const pages = Math.ceil(n / WTVC_MAPS_PER_PAGE), base = Math.floor(n / pages), extra = n % pages;
+        return Array.from({ length: pages }, (_, i) => base + (i < extra ? 1 : 0));
+      }
       const sizes = [];
       for (let left = n; left > 0; left -= WTVC_MAPS_PER_PAGE) sizes.push(Math.min(WTVC_MAPS_PER_PAGE, left));
       return sizes;
@@ -6571,7 +6577,9 @@
     function wtvcApplyMatchState(ms) {
       document.getElementById('wtvc-stage').textContent = wtvcStageLabel(ms && ms.stage);
       const daymapEl = document.getElementById('wtvc-daymap');
-      let daymapText = 'DAY ' + ((ms && ms.day) || 1) + ' | MAP ' + ((ms && ms.match) || 1);
+      /* Playoffs: the Match Board row's sheet label ("2.1") instead of the plain match number. */
+      const wtvcPoRow = (ms && /playoffs/i.test(ms.stage || '') && ms.todayMaps) ? ms.todayMaps[(ms.match || 1) - 1] : null;
+      let daymapText = 'DAY ' + ((ms && ms.day) || 1) + ' | MAP ' + ((wtvcPoRow && wtvcPoRow.label) || (ms && ms.match) || 1);
       let daymapGroup = '';
       // Groupstage only: append the live tally tab's own name (e.g. "A + B")
       // as the group label — reuses wtvcStandings.sheet, the SAME
@@ -7242,13 +7250,28 @@
     let _rnkLiveTallyTab = '';
 
     /* Playoffs: Match Board lists one row per sheet map block (Map 1, 2.1,
-       2.2, 3 ...). Every per-MAP lineup (Waiting TVC's map pages, Map
-       Rotation, the header's "Map N/M") folds the lobby-B (.2) rows back
-       into their .1 so a split map is still ONE map. */
+       2.2, 3 ...), each stamped with its sheet `label` ("2.1") and `lobby`.
+       brMapRows = every row, as Match Board lists them (Waiting TVC's map
+       pages). Any other stage drops the Playoffs-only label/lobby so a
+       stale stamp can't leak into a normal "Map N". */
     function brMapRows(ms) {
-      let maps = ((ms && ms.todayMaps) || []).slice(0, (ms && ms.todayMapsCount) || 0);
-      if (/playoffs/i.test((ms && ms.stage) || '')) maps = maps.filter(m => m.lobby !== 'B');
-      return maps;
+      const maps = ((ms && ms.todayMaps) || []).slice(0, (ms && ms.todayMapsCount) || 0);
+      if (/playoffs/i.test((ms && ms.stage) || '')) return maps;
+      return maps.map(m => { const c = Object.assign({}, m); delete c.label; delete c.lobby; return c; });
+    }
+    /* Map Rotation: in Playoffs the rotation is split by broadcast day —
+       Day 1 = maps 1 to 4.2, Day 2 = maps 5 to 8 (by each row's whole-map
+       number, so 2.1/2.2 and 4.1/4.2 stay in Day 1). Any other Playoffs day
+       or stage shows every row. */
+    function brMapRotationRows(ms) {
+      const maps = brMapRows(ms);
+      if (!/playoffs/i.test((ms && ms.stage) || '')) return maps;
+      const day = parseInt(ms && ms.day, 10) || 1;
+      if (day !== 1 && day !== 2) return maps;
+      return maps.filter(m => {
+        const base = parseInt(m.label, 10);
+        return isNaN(base) || (day === 1 ? base <= 4 : base >= 5);
+      });
     }
 
     function rnkIsQualifiers() {
@@ -7269,7 +7292,7 @@
              real maps (the .1/.2 pair counts once) — not match/rows. */
           const poRow = /playoffs/i.test(_rnkStage) ? _rnkTodayMaps[_rnkMatch - 1] : null;
           mapEl.textContent = (poRow && poRow.label)
-            ? 'Map ' + poRow.label + '/' + brMapRows({ stage: _rnkStage, todayMaps: _rnkTodayMaps, todayMapsCount: _rnkTodayMapsCount }).length
+            ? 'Map ' + poRow.label + '/' + brMapRows({ stage: _rnkStage, todayMaps: _rnkTodayMaps, todayMapsCount: _rnkTodayMapsCount }).filter(m => m.lobby !== 'B').length
             : 'Map ' + _rnkMatch + '/' + _rnkTodayMapsCount;
           /* Groupstage only: "| GROUP A + B" in bold, the live tally tab's
              own name (same source Waiting TVC's header and the in-game
@@ -8319,7 +8342,7 @@
         card.innerHTML =
           '<img class="mrr-card-bg" src="/maps/Map%20Rotation/' + asset + '_rotation.png" alt="">' +
           '<img class="mrr-card-label" src="/maps/Map%20Rotation/maplabel_rotation.png" alt="">' +
-          '<div class="mrr-card-number"><span>MAP ' + (i + 1) + '</span></div>' +
+          '<div class="mrr-card-number"><span>MAP ' + (m.label || (i + 1)) + '</span></div>' +
           '<div class="mrr-card-name"><span>' + (m.mapName || '') + '</span></div>';
         const gm = String(m.groupMatch || '').trim().replace(/\s*\+\s*/g, ' + ');
         if (gm) {
@@ -8350,7 +8373,7 @@
       try {
         const res = await fetch(buildUrl('/match/state'), { cache: 'no-store' });
         const ms = res.ok ? await res.json() : null;
-        return brMapRows(ms);
+        return brMapRotationRows(ms);
       } catch (e) { return []; }
     }
 

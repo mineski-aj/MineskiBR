@@ -12,7 +12,7 @@
     {
       "id": "fmv6rof9q",
       "name": "Rankings",
-      "open": true,
+      "open": false,
       "keys": [
         "overall_ranking",
         "overall_ranking_2",
