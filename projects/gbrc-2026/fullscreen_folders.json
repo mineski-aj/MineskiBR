@@ -3,7 +3,7 @@
     {
       "id": "fmv6rnuld",
       "name": "Waiting",
-      "open": true,
+      "open": false,
       "keys": [
         "waiting_tvc",
         "waiting_timer"
@@ -12,7 +12,7 @@
     {
       "id": "fmv6rof9q",
       "name": "Rankings",
-      "open": false,
+      "open": true,
       "keys": [
         "overall_ranking",
         "overall_ranking_2",
@@ -26,7 +26,7 @@
     {
       "id": "fmv6rqb0j",
       "name": "Stats",
-      "open": false,
+      "open": true,
       "keys": [
         "elim_leaders",
         "total_team_elims",

@@ -166,14 +166,14 @@
       "matchType": "regular"
     }
   ],
-  "countdownLabel": "SHOW STARTS IN",
+  "countdownLabel": "SHOW RESUMES IN",
   "goodbyeLabel": "SEE YOU TOMORROW",
-  "match": 1,
+  "match": 4,
   "countdownLabelAuto": true,
   "timer": {
     "running": true,
-    "endAt": 1791638343856,
-    "remaining": 360
+    "endAt": 1792239661351,
+    "remaining": 950
   },
   "map": "Blackout",
   "enCasters": [
@@ -185,9 +185,9 @@
   "todayMapsCount": 11,
   "todayMaps": [
     {
-      "time": "6:00PM",
-      "mapName": "Blackout",
-      "winner": "",
+      "time": " ",
+      "mapName": "Isolated",
+      "winner": "GNR ESPORTS LEGACY OMEN",
       "done": false,
       "groupMatch": "",
       "label": "1",
@@ -198,21 +198,21 @@
       "mapName": "Krai",
       "done": false,
       "groupMatch": "",
-      "winner": "",
+      "winner": "ADMT PYRITE",
       "label": "2.1",
       "lobby": "A"
     },
     {
-      "time": "",
+      "time": " ",
       "mapName": "Krai",
       "done": false,
       "groupMatch": "",
-      "winner": "",
+      "winner": "POISON IVY GIZY",
       "label": "2.2",
       "lobby": "B"
     },
     {
-      "time": "",
+      "time": " ",
       "mapName": "Blackout",
       "done": false,
       "groupMatch": "",
@@ -221,7 +221,7 @@
       "lobby": ""
     },
     {
-      "time": "",
+      "time": " ",
       "mapName": "Rebirth Island",
       "done": false,
       "groupMatch": "",
@@ -230,7 +230,7 @@
       "lobby": "A"
     },
     {
-      "time": "",
+      "time": " ",
       "mapName": "Rebirth Island",
       "done": false,
       "groupMatch": "",
@@ -239,7 +239,7 @@
       "lobby": "B"
     },
     {
-      "time": "",
+      "time": " ",
       "mapName": "Isolated",
       "groupMatch": "",
       "winner": "",
@@ -247,7 +247,7 @@
       "lobby": ""
     },
     {
-      "time": "",
+      "time": " ",
       "mapName": "Blackout",
       "groupMatch": "",
       "winner": "",
@@ -255,7 +255,7 @@
       "lobby": ""
     },
     {
-      "time": "",
+      "time": " ",
       "mapName": "Krai",
       "groupMatch": "",
       "winner": "",
@@ -263,7 +263,7 @@
       "lobby": "A"
     },
     {
-      "time": "",
+      "time": " ",
       "mapName": "Krai",
       "groupMatch": "",
       "winner": "",
@@ -271,7 +271,7 @@
       "lobby": "B"
     },
     {
-      "time": "",
+      "time": " ",
       "mapName": "Isolated",
       "groupMatch": "",
       "winner": "",
