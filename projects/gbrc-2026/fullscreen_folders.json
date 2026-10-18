@@ -14,13 +14,13 @@
       "name": "Rankings",
       "open": true,
       "keys": [
-        "overall_ranking",
         "overall_ranking_2",
         "map_ranking",
         "group_a",
         "group_b",
         "group_c",
-        "group_d"
+        "group_d",
+        "overall_ranking"
       ]
     },
     {
