@@ -444,12 +444,11 @@
       display: flex; align-items: center; justify-content: center;
       overflow: hidden;
     }
-    .wtvc-row-flag img { width: 100%; height: 100%; object-fit: contain; }
     /* Fallback initials (e.g. PH/TW/MY, from the live Tally sheet's own
        Region column) — deliberately smaller than the row's main text, per
        spec ("use a smaller font"). */
     .wtvc-row-flag span {
-      display: none;
+      display: block;
       font-family: 'Teko', sans-serif;
       font-weight: 700;
       font-size: 20px;
@@ -1234,15 +1233,10 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* Flag image + text-fallback, shared by Overall/Map/Group Ranking's
-       row flag cells (.ovr-rc-flag/.mrk-rc-flag/.grk-rc-flag) — same
-       img-with-fallback idiom as ingame.html's .ssr-flag-img/-text and
-       Waiting TVC's .wtvc-row-flag. Assets live in /flag/<REGION>_flag.png
-       (see lib/tallyRoster.js's `region` field, e.g. "PH"); .rnk-flag-img
-       starts hidden and only reveals itself (hiding the text) once it
-       actually loads, so a region with no matching flag asset just keeps
-       showing the plain text like before. */
-    .rnk-flag-img { display: none; width: 100%; height: 100%; object-fit: contain; }
+    /* Country code text, shared by Overall/Map/Group Ranking's row flag
+       cells (.ovr-rc-flag/.mrk-rc-flag/.grk-rc-flag). Flags are NOT allowed
+       in any overlay — every team's country shows as its code ("PH", "TW",
+       "HK"...; lib/tallyRoster.js's `region` field), never a flag image. */
     /* Team logo (Overall/Map/Group Ranking only) — sits just left of the
        flag, hidden until its image loads. A team with a logo gets
        .rnk-has-logo on its row, which shrinks the flag and tucks it right
@@ -1314,6 +1308,28 @@
       position: absolute; left: 0; width: 906px; height: 63px;
     }
     .ovr-row-bg { position: absolute; top: 0; left: 0; width: 906px; height: 63px; }
+    /* Grand Finals "In The Zone" — the row swaps to the yellow container, whose
+       art already has a dark tab on its left; the yellow "Z!" sits inside that
+       tab (no box of its own). */
+    .ovr-zone-badge {
+      position: absolute; left: 0; top: 0; width: 42px; height: 63px;
+      display: flex; align-items: center; justify-content: center;
+      color: #ffe800;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 34px; line-height: 1;
+      white-space: nowrap; z-index: 2;
+    }
+    /* Legend under the board — only shown while an In The Zone row is on screen
+       (Grand Finals). Chip + text are separate elements so each can be moved. */
+    #ovr-zone-chip, #ovr-zone-text {
+      position: absolute; top: 968px; height: 34px; z-index: 190;
+      display: none; align-items: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; white-space: nowrap;
+    }
+    #ovr-zone-chip { left: 802px; width: 46px; justify-content: center; background: #0a0a0a; color: #ffe800; font-size: 28px; }
+    #ovr-zone-text { left: 858px; width: 300px; justify-content: flex-start; color: #0a0a0a; font-size: 28px; }
+    #ovr-zone-chip span, #ovr-zone-text span { display: block; transform: translateY(0.12em); }
+    #overall-ranking-page.ovr-has-zone #ovr-zone-chip, #overall-ranking-page.ovr-has-zone #ovr-zone-text { display: flex; }
+    .ovr-zone-badge span { display: block; transform: translateY(0.1em); }
     .ovr-row-divider { position: absolute; top: 13px; width: 1px; height: 38px; background: #0a0a0a; z-index: 1; }
     .ovr-row-cell {
       position: absolute; top: 0; height: 63px;
@@ -1342,6 +1358,11 @@
     .ovr-rc-flag  { left: 117px; width: 56px; font-size: 20.87px; } /* no flag asset in the data model — falls back to the region/country-code text at a smaller size */
     .ovr-rc-name  { left: 192px; width: 208px; justify-content: flex-start; text-align: left; padding-left: 4px; white-space: nowrap; }
     .ovr-rc-group { left: 393px; width: 92px; }
+    /* Grand Finals: no Group column — its header/cells go away and the team
+       name takes the freed space (up to the divider at 487px); MW/EP/PP/TP
+       keep their usual spots. (.ovr-gf is set in ovrRenderPage.) */
+    #overall-ranking-page.ovr-gf .ovr-hc-group, #overall-ranking-page.ovr-gf .ovr-rc-group { display: none; }
+    #overall-ranking-page.ovr-gf .ovr-rc-name { width: 290px; }
     .ovr-rc-gw    { left: 497px; width: 92px; }
     .ovr-rc-kp    { left: 601px; width: 92px; }
     .ovr-rc-rp    { left: 701px; width: 92px; }
@@ -1821,7 +1842,10 @@
       background: #000; /* no logo file → stays a plain black square */
     }
     .ek-teamlogo img { width: 100%; height: 100%; object-fit: contain; display: block; }
-    .ek-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px; object-fit: contain; }
+    .ek-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 21.8px; line-height: 1; color: #000; }
+    .ek-flag span { display: block; transform: translateY(0.15em); }
     .ek-num, .ek-name, .ek-label, .ek-count {
       position: absolute;
       display: flex; align-items: center;
@@ -1885,7 +1909,10 @@
       background: #000; /* no logo file → stays a plain black square */
     }
     .tel-teamlogo img { width: 100%; height: 100%; object-fit: contain; display: block; }
-    .tel-flag { position: absolute; left: 15.4px; top: 431.2px; width: 36.3px; height: 25.3px; object-fit: contain; }
+    .tel-flag { position: absolute; left: 15.4px; top: 431.2px; width: 36.3px; height: 25.3px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 24px; line-height: 1; color: #000; }
+    .tel-flag span { display: block; transform: translateY(0.15em); }
     .tel-num, .tel-name, .tel-label, .tel-count {
       position: absolute;
       display: flex; align-items: center;
@@ -1947,7 +1974,10 @@
       background: #000; /* no logo file → stays a plain black square */
     }
     .gel-teamlogo img { width: 100%; height: 100%; object-fit: contain; display: block; }
-    .gel-flag { position: absolute; left: 15.4px; top: 431.2px; width: 36.3px; height: 25.3px; object-fit: contain; }
+    .gel-flag { position: absolute; left: 15.4px; top: 431.2px; width: 36.3px; height: 25.3px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 24px; line-height: 1; color: #000; }
+    .gel-flag span { display: block; transform: translateY(0.15em); }
     .gel-num, .gel-name, .gel-label, .gel-count {
       position: absolute;
       display: flex; align-items: center;
@@ -2016,7 +2046,10 @@
       background: #000; /* no logo file → stays a plain black square */
     }
     .pel-teamlogo img { width: 100%; height: 100%; object-fit: contain; display: block; }
-    .pel-flag { position: absolute; left: 15.4px; top: 431.2px; width: 36.3px; height: 25.3px; object-fit: contain; }
+    .pel-flag { position: absolute; left: 15.4px; top: 431.2px; width: 36.3px; height: 25.3px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 24px; line-height: 1; color: #000; }
+    .pel-flag span { display: block; transform: translateY(0.15em); }
     .pel-num, .pel-name, .pel-label, .pel-count {
       position: absolute;
       display: flex; align-items: center;
@@ -2099,7 +2132,10 @@
       position: absolute; left: 33.5px; top: 124px; width: 230px; height: 230px;
       object-fit: contain;
     }
-    .tme-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px; object-fit: contain; }
+    .tme-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 21.8px; line-height: 1; color: #000; }
+    .tme-flag span { display: block; transform: translateY(0.15em); }
     .tme-num, .tme-name, .tme-label, .tme-count {
       position: absolute;
       display: flex; align-items: center;
@@ -2113,6 +2149,332 @@
        Rotation note on this). */
     .tme-num span, .tme-name span, .tme-label span, .tme-count span,
     #tme-mapbox-title span, #tme-mapbox-name span { display: block; transform: translateY(0.15em); }
+
+    /* ── ZOWNED RATE PAGE — clone of Eliminations/Map showing the top 5
+       TEAMS (not players) by kills on the chosen map (GET /api/team-zowned-rate),
+       with its own map picker. Big team logo replaces the player photo; rank
+       number is yellow with a black glow. Own ids/classes (zr-*). ── */
+    #zowned-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #zowned-page.zr-on { display: block; }
+    #zowned-page.zr-visible { opacity: 1; }
+    #zr-mapbox { position: absolute; left: 159px; top: 267px; width: 607px; height: 136px; }
+    #zr-mapbox-bg, #zr-mapbox-label {
+      position: absolute; left: 0; top: 0; width: 607px; height: 136px; object-fit: cover;
+    }
+    #zr-mapbox-label { pointer-events: none; }
+    #zr-mapbox-title, #zr-mapbox-name {
+      position: absolute;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 40.3px; line-height: 1;
+      white-space: nowrap; overflow: hidden; text-transform: uppercase;
+    }
+    #zr-mapbox-title { left: 4px; top: 50px; width: 152px; height: 37px; font-size: 24.3px; color: #000; }
+    #zr-mapbox-name  { left: 4px; top: 86px; width: 268px; height: 45px; color: #fff; }
+    .zr-card {
+      position: absolute; top: 384px; width: 297px; height: 494px;
+      opacity: 0;
+      transform: perspective(1400px) rotateY(-90deg);
+      backface-visibility: hidden;
+    }
+    .zr-card.zr-empty { display: none; }
+    .zr-card.zr-dealt {
+      transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease;
+      transform: perspective(1400px) rotateY(0deg);
+      opacity: 1;
+    }
+    /* Leaving flip (map changed while on screen) — plays the old cards
+       out before the new map's cards flip in. Only present while leaving,
+       so removing it afterwards snaps back to the hidden base state. */
+    .zr-card.zr-leaving {
+      transition: transform 320ms cubic-bezier(0.55, 0, 0.8, 0.4), opacity 260ms ease;
+      transform: perspective(1400px) rotateY(90deg);
+      opacity: 0;
+    }
+    #zr-card-1 { left: 158px; }
+    #zr-card-2 { left: 484.5px; }
+    #zr-card-3 { left: 811px; }
+    #zr-card-4 { left: 1137.5px; }
+    #zr-card-5 { left: 1464px; }
+    .zr-card-bg { position: absolute; left: 0; top: 0; width: 297px; height: 494px; }
+    /* Big team logo in the photo's old slot (no feather), scaled down to
+       sit inside the container art above the name bar. */
+    .zr-photo {
+      position: absolute; left: 33.5px; top: 124px; width: 230px; height: 230px;
+      object-fit: contain;
+    }
+    .zr-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 21.8px; line-height: 1; color: #000; }
+    .zr-flag span { display: block; transform: translateY(0.15em); }
+    .zr-num, .zr-name, .zr-label, .zr-count {
+      position: absolute;
+      display: flex; align-items: center;
+      font-family: 'Teko', sans-serif; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    .zr-num   { left: 1px;   top: 289px; width: 59px;  height: 78px; justify-content: center; text-align: center; font-weight: 700; font-size: 90px;    color: #ffe600; text-shadow: 0 0 4px rgba(0,0,0,0.5), 0 0 9px rgba(0,0,0,0.5), 0 0 16px rgba(0,0,0,0.425); }
+    .zr-name  { left: 79px;  top: 387px; width: 214px; height: 32px; justify-content: center; text-align: center; font-weight: 700; font-size: 32.86px; color: #fff; }
+    .zr-label { left: 12px;  top: 450px; width: 180px; height: 37px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 34px;    color: #000; }
+    .zr-count { left: 214px; top: 441px; width: 79px;  height: 49px; justify-content: center; text-align: center; font-weight: 700; font-size: 50px;    color: #fff; }
+    /* Teko sits high in its line box — nudge the ink down (see the Map
+       Rotation note on this). */
+    .zr-num span, .zr-name span, .zr-label span, .zr-count span,
+    #zr-mapbox-title span, #zr-mapbox-name span { display: block; transform: translateY(0.15em); }
+
+    /* ── AVERAGE PLACEMENT PAGE — the Grand Finals teams' average map
+       placement (GET /api/average-placement), up to 10 cards in 2 rows of 5
+       (same card art as Team Map Elims, scaled down, no rank number, no map
+       box). Teams without a valued map are left out; a short last row is
+       centered in JS via margin-left. Own ids/classes (avp-*). ── */
+    #avgplace-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #avgplace-page.avp-on { display: block; }
+    #avgplace-page.avp-visible { opacity: 1; }
+    .avp-card {
+      position: absolute; width: 225.72px; height: 375.44px;
+      opacity: 0;
+      transform: perspective(1400px) rotateY(-90deg);
+      backface-visibility: hidden;
+    }
+    .avp-card.avp-empty { display: none; }
+    .avp-card.avp-dealt {
+      transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease;
+      transform: perspective(1400px) rotateY(0deg);
+      opacity: 1;
+    }
+    #avp-card-1 { left: 177px; top: 250px; }
+    #avp-card-2 { left: 512px; top: 250px; }
+    #avp-card-3 { left: 847px; top: 250px; }
+    #avp-card-4 { left: 1182px; top: 250px; }
+    #avp-card-5 { left: 1517px; top: 250px; }
+    #avp-card-6 { left: 177px; top: 622px; }
+    #avp-card-7 { left: 512px; top: 622px; }
+    #avp-card-8 { left: 847px; top: 622px; }
+    #avp-card-9 { left: 1182px; top: 622px; }
+    #avp-card-10 { left: 1517px; top: 622px; }
+    .avp-card-bg { position: absolute; left: 0; top: 0; width: 225.72px; height: 375.44px; }
+    .avp-photo {
+      position: absolute; left: 25.46px; top: 79.04px; width: 174.8px; height: 174.8px;
+      object-fit: contain;
+    }
+    .avp-flag { position: absolute; left: 10.64px; top: 297.92px; width: 25.08px; height: 17.48px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 16.6px; line-height: 1; color: #000; }
+    .avp-flag span { display: block; transform: translateY(0.15em); }
+    .avp-name, .avp-label, .avp-count {
+      position: absolute;
+      display: flex; align-items: center;
+      font-family: 'Teko', sans-serif; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    .avp-name  { left: 60.04px; top: 294.12px; width: 162.64px; height: 24.32px; justify-content: center; text-align: center; font-weight: 700; font-size: 24.97px; color: #fff; }
+    .avp-label { left: 9.12px; top: 342.0px; width: 136.8px; height: 28.12px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 25.84px; color: #000; }
+    .avp-count { left: 162.64px; top: 335.16px; width: 60.04px; height: 37.24px; justify-content: center; text-align: center; font-weight: 700; font-size: 38.0px; color: #fff; }
+    /* Teko sits high in its line box — nudge the ink down. */
+    .avp-name span, .avp-label span, .avp-count span { display: block; transform: translateY(0.15em); }
+
+    /* ── MAP PLACEMENT AVG PAGE — the Grand Finals teams' average map
+       placement (GET /api/map-placement-avg), up to 10 cards in 2 rows of 5
+       (same card art as Team Map Elims, scaled down, no rank number, no map
+       box). Teams without a valued map are left out; a short last row is
+       centered in JS via margin-left. Own ids/classes (mpa-*); own map picker. ── */
+    #mapplace-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #mapplace-page.mpa-on { display: block; }
+    #mapplace-page.mpa-visible { opacity: 1; }
+    .mpa-card {
+      position: absolute; width: 225.72px; height: 375.44px;
+      opacity: 0;
+      transform: perspective(1400px) rotateY(-90deg);
+      backface-visibility: hidden;
+    }
+    .mpa-card.mpa-empty { display: none; }
+    .mpa-card.mpa-dealt {
+      transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease;
+      transform: perspective(1400px) rotateY(0deg);
+      opacity: 1;
+    }
+    #mpa-card-1 { left: 177px; top: 250px; }
+    #mpa-card-2 { left: 512px; top: 250px; }
+    #mpa-card-3 { left: 847px; top: 250px; }
+    #mpa-card-4 { left: 1182px; top: 250px; }
+    #mpa-card-5 { left: 1517px; top: 250px; }
+    #mpa-card-6 { left: 177px; top: 622px; }
+    #mpa-card-7 { left: 512px; top: 622px; }
+    #mpa-card-8 { left: 847px; top: 622px; }
+    #mpa-card-9 { left: 1182px; top: 622px; }
+    #mpa-card-10 { left: 1517px; top: 622px; }
+    .mpa-card-bg { position: absolute; left: 0; top: 0; width: 225.72px; height: 375.44px; }
+    .mpa-photo {
+      position: absolute; left: 25.46px; top: 79.04px; width: 174.8px; height: 174.8px;
+      object-fit: contain;
+    }
+    .mpa-flag { position: absolute; left: 10.64px; top: 297.92px; width: 25.08px; height: 17.48px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 16.6px; line-height: 1; color: #000; }
+    .mpa-flag span { display: block; transform: translateY(0.15em); }
+    .mpa-name, .mpa-label, .mpa-count {
+      position: absolute;
+      display: flex; align-items: center;
+      font-family: 'Teko', sans-serif; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    .mpa-name  { left: 60.04px; top: 294.12px; width: 162.64px; height: 24.32px; justify-content: center; text-align: center; font-weight: 700; font-size: 24.97px; color: #fff; }
+    .mpa-label { left: 9.12px; top: 342.0px; width: 136.8px; height: 28.12px; justify-content: flex-start; text-align: left; font-weight: 400; font-size: 25.84px; color: #000; }
+    .mpa-count { left: 162.64px; top: 335.16px; width: 60.04px; height: 37.24px; justify-content: center; text-align: center; font-weight: 700; font-size: 38.0px; color: #fff; }
+    /* Teko sits high in its line box — nudge the ink down. */
+    .mpa-name span, .mpa-label span, .mpa-count span { display: block; transform: translateY(0.15em); }
+
+    #mpa-mapbox { position: absolute; left: 177px; top: 238px; width: 364px; height: 82px; }
+    #mpa-mapbox-bg, #mpa-mapbox-label {
+      position: absolute; left: 0; top: 0; width: 364px; height: 82px; object-fit: cover;
+    }
+    #mpa-mapbox-label { pointer-events: none; }
+    #mpa-mapbox-title, #mpa-mapbox-name {
+      position: absolute;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1;
+      white-space: nowrap; overflow: hidden; text-transform: uppercase;
+    }
+    #mpa-mapbox-title { left: 2.4px; top: 30px; width: 91px; height: 22px; font-size: 14.6px; color: #000; }
+    #mpa-mapbox-name  { left: 2.4px; top: 51.6px; width: 161px; height: 27px; font-size: 24.2px; color: #fff; }
+    .mpa-card.mpa-leaving {
+      transition: transform 320ms cubic-bezier(0.55, 0, 0.8, 0.4), opacity 260ms ease;
+      transform: perspective(1400px) rotateY(90deg);
+      opacity: 0;
+    }
+    #mpa-mapbox-title span, #mpa-mapbox-name span { display: block; transform: translateY(0.15em); }
+
+    /* ── PLAYER H2H PAGE — two players compared head-to-head: photo on each
+       side, team logo + name above a stat table (value | label | value) in
+       the middle (GET /api/player-h2h; the pair is picked in the dashboard's
+       Control tab).
+       Own ids/classes (hh-*). ── */
+    #h2h-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #h2h-page.hh-on { display: block; }
+    #h2h-page.hh-visible { opacity: 1; }
+    .hh-anim { opacity: 0; transition: opacity 450ms ease, transform 600ms cubic-bezier(0.16, 1, 0.3, 1); }
+    .hh-anim.hh-in { opacity: 1; transform: none !important; }
+    #hh-photo-a, #hh-photo-b { position: absolute; top: 150px; width: 930px; height: 930px; object-fit: contain; }
+    #hh-photo-a { left: -141px; transform: translateX(-80px); } /* centered on the left gutter (x 0-648) */
+    #hh-photo-b { left: 1131px; transform: translateX(80px); } /* centered on the right gutter (x 1272-1920) */
+    #hh-logo-a, #hh-logo-b { position: absolute; top: 215px; width: 130px; height: 130px; object-fit: contain; transform: translateY(-20px); }
+    #hh-logo-a { left: 700px; }
+    #hh-logo-b { left: 1090px; }
+    #hh-vs, #hh-name-a, #hh-name-b {
+      position: absolute;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1;
+      white-space: nowrap; overflow: hidden; text-transform: uppercase;
+    }
+    #hh-vs { left: 860px; top: 240px; width: 200px; height: 80px; font-size: 76px; color: #000; }
+    #hh-name-a { left: 648px; top: 352px; width: 300px; height: 70px; font-size: 52px; color: #000; }
+    #hh-name-b { left: 972px; top: 352px; width: 300px; height: 70px; font-size: 52px; color: #000; }
+    .hh-row { position: absolute; width: 624px; height: 62px; transform: translateY(24px); }
+    #hh-row-1 { left: 648px; top: 455px; }
+    #hh-row-2 { left: 648px; top: 527px; }
+    #hh-row-3 { left: 648px; top: 599px; }
+    #hh-row-4 { left: 648px; top: 671px; }
+    #hh-row-5 { left: 648px; top: 743px; }
+    #hh-row-6 { left: 648px; top: 815px; }
+    #hh-row-7 { left: 648px; top: 887px; }
+    .hh-lval, .hh-label, .hh-rval {
+      position: absolute; top: 0; height: 62px;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    .hh-lval  { left: 0px;   width: 130px; font-size: 42px; color: #000; background: #ffe600; }
+    .hh-label { left: 142px; width: 340px; font-size: 30px; color: #fff; background: #0a0a0a; }
+    .hh-rval  { left: 494px; width: 130px; font-size: 42px; color: #000; background: #ffe600; }
+    /* Teko sits high in its line box — nudge the ink down. */
+    #hh-vs span, #hh-name-a span, #hh-name-b span,
+    .hh-lval span, .hh-label span, .hh-rval span { display: block; transform: translateY(0.12em); }
+
+    /* ── TEAM H2H PAGE — two players compared head-to-head: photo on each
+       side, team logo + name above a stat table (value | label | value) in
+       the middle (GET /api/team-h2h; the pair is picked in the dashboard's
+       Control tab).
+       Own ids/classes (tmh-*). ── */
+    #teamh2h-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      overflow: hidden;
+      background: transparent;
+      opacity: 0;
+      transition: opacity 400ms ease;
+    }
+    #teamh2h-page.tmh-on { display: block; }
+    #teamh2h-page.tmh-visible { opacity: 1; }
+    .tmh-anim { opacity: 0; transition: opacity 450ms ease, transform 600ms cubic-bezier(0.16, 1, 0.3, 1); }
+    .tmh-anim.tmh-in { opacity: 1; transform: none !important; }
+    #tmh-logo-a, #tmh-logo-b { position: absolute; top: 360px; width: 560px; height: 560px; object-fit: contain; }
+    #tmh-logo-a { left: 44px; transform: translateX(-80px); } /* centered on the left gutter (x 0-648) */
+    #tmh-logo-b { left: 1316px; transform: translateX(80px); } /* centered on the right gutter (x 1272-1920) */
+    #tmh-flag-a, #tmh-flag-b { position: absolute; top: 250px; width: 150px; height: 100px; transform: translateY(-20px); }
+    #tmh-flag-a { left: 723px; }
+    #tmh-flag-b { left: 1047px; }
+    #tmh-vs, #tmh-name-a, #tmh-name-b, #tmh-flag-a, #tmh-flag-b {
+      position: absolute;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1;
+      white-space: nowrap; overflow: hidden; text-transform: uppercase;
+    }
+    #tmh-flag-a, #tmh-flag-b { font-size: 80px; color: #000; }
+    #tmh-vs { left: 860px; top: 240px; width: 200px; height: 80px; font-size: 76px; color: #000; }
+    #tmh-name-a { left: 648px; top: 352px; width: 300px; height: 70px; font-size: 52px; color: #000; }
+    #tmh-name-b { left: 972px; top: 352px; width: 300px; height: 70px; font-size: 52px; color: #000; }
+    .tmh-row { position: absolute; width: 624px; height: 62px; transform: translateY(24px); }
+    #tmh-row-1 { left: 648px; top: 455px; }
+    #tmh-row-2 { left: 648px; top: 527px; }
+    #tmh-row-3 { left: 648px; top: 599px; }
+    #tmh-row-4 { left: 648px; top: 671px; }
+    #tmh-row-5 { left: 648px; top: 743px; }
+    #tmh-row-6 { left: 648px; top: 815px; }
+    #tmh-row-7 { left: 648px; top: 887px; }
+    .tmh-lval, .tmh-label, .tmh-rval {
+      position: absolute; top: 0; height: 62px;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    .tmh-lval  { left: 0px;   width: 130px; font-size: 42px; color: #000; background: #ffe600; }
+    .tmh-label { left: 142px; width: 340px; font-size: 30px; color: #fff; background: #0a0a0a; }
+    .tmh-rval  { left: 494px; width: 130px; font-size: 42px; color: #000; background: #ffe600; }
+    /* Teko sits high in its line box — nudge the ink down. */
+    #tmh-vs span, #tmh-flag-a span, #tmh-flag-b span, #tmh-name-a span, #tmh-name-b span,
+    .tmh-lval span, .tmh-label span, .tmh-rval span { display: block; transform: translateY(0.12em); }
 
     /* ── TEAM POINT PERCENT PAGE — top 5 teams by total points (Overall
        scope, GET /api/team-point-percent), 5 rows stacked down the page,
@@ -2319,7 +2681,10 @@
       background: #000; /* no logo file → stays a plain black square */
     }
     .qel-teamlogo img { width: 100%; height: 100%; object-fit: contain; display: block; }
-    .qel-flag { position: absolute; left: 15.4px; top: 431.2px; width: 36.3px; height: 25.3px; object-fit: contain; }
+    .qel-flag { position: absolute; left: 15.4px; top: 431.2px; width: 36.3px; height: 25.3px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 24px; line-height: 1; color: #000; }
+    .qel-flag span { display: block; transform: translateY(0.15em); }
     .qel-num, .qel-name, .qel-label, .qel-count {
       position: absolute;
       display: flex; align-items: center;
@@ -2373,7 +2738,10 @@
       position: absolute; left: 33.5px; top: 124px; width: 230px; height: 230px;
       object-fit: contain;
     }
-    .tte-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px; object-fit: contain; }
+    .tte-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 21.8px; line-height: 1; color: #000; }
+    .tte-flag span { display: block; transform: translateY(0.15em); }
     .tte-num, .tte-name, .tte-label, .tte-count {
       position: absolute;
       display: flex; align-items: center;
@@ -2428,7 +2796,10 @@
       position: absolute; left: 33.5px; top: 124px; width: 230px; height: 230px;
       object-fit: contain;
     }
-    .gte-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px; object-fit: contain; }
+    .gte-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 21.8px; line-height: 1; color: #000; }
+    .gte-flag span { display: block; transform: translateY(0.15em); }
     .gte-num, .gte-name, .gte-label, .gte-count {
       position: absolute;
       display: flex; align-items: center;
@@ -2490,7 +2861,10 @@
       position: absolute; left: 33.5px; top: 124px; width: 230px; height: 230px;
       object-fit: contain;
     }
-    .pte-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px; object-fit: contain; }
+    .pte-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 21.8px; line-height: 1; color: #000; }
+    .pte-flag span { display: block; transform: translateY(0.15em); }
     .pte-num, .pte-name, .pte-label, .pte-count {
       position: absolute;
       display: flex; align-items: center;
@@ -2553,7 +2927,10 @@
       position: absolute; left: 33.5px; top: 124px; width: 230px; height: 230px;
       object-fit: contain;
     }
-    .qte-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px; object-fit: contain; }
+    .qte-flag { position: absolute; left: 14px; top: 392px; width: 33px; height: 23px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; font-size: 21.8px; line-height: 1; color: #000; }
+    .qte-flag span { display: block; transform: translateY(0.15em); }
     .qte-num, .qte-name, .qte-label, .qte-count {
       position: absolute;
       display: flex; align-items: center;
@@ -2634,8 +3011,14 @@
     #mwn-flag {
       position: absolute;
       left: 13px; top: 32px; width: 58px; height: 29px;
-      display: none; object-fit: contain;
+      display: none; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; color: #fff; font-size: 28px;
     }
+    #mwn-logo-flag {
+      width: 100%; height: 100%; display: none; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; color: #fff; font-size: 120px;
+    }
+    #mwn-flag span, #mwn-logo-flag span, #mmvp-flag span, #mhl-winner-flag span, #mhl-winner-logo-flag span { display: block; transform: translateY(0.12em); }
     #mwn-name {
       position: absolute;
       left: 491px; top: 25px; width: 861px; height: 223px;
@@ -2756,7 +3139,8 @@
     #mmvp-flag {
       position: absolute;
       left: 322px; top: 391px; width: 96px; height: 48px;
-      object-fit: contain; display: none;
+      display: none; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; color: #fff; font-size: 46px;
     }
     #mmvp-name, #mmvp-elims-label, #mmvp-elims-value, #mmvp-kp-label, #mmvp-kp-value {
       position: absolute;
@@ -3591,7 +3975,12 @@
     #mhl-winner-logo img { display: none; width: 100%; height: 100%; object-fit: contain; }
     #mhl-winner-flag {
       position: absolute; left: 182px; top: 371px; width: 58px; height: 29px;
-      object-fit: contain; display: none;
+      display: none; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; color: #fff; font-size: 28px;
+    }
+    #mhl-winner-logo-flag {
+      width: 100%; height: 100%; display: none; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
+      font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; color: #fff; font-size: 100px;
     }
     #mhl-winner-name {
       position: absolute; left: 5px; top: 403px; width: 404px; height: 148px;
@@ -3797,6 +4186,54 @@
       text-align: center; margin: 0 0 10px 0;
     }
     .cr-space { width: 100%; }
+  
+    /* ── Team Lineup — 3 pages (4 teams / 4 teams / 2 teams) of player photos
+       + names, under the shared rank header. Teams come from the live tally
+       tab (/api/team-lineup). Each team block is its own editable container. ── */
+    #team-lineup-page {
+      position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+      display: none; overflow: hidden; background: transparent;
+      opacity: 0; transition: opacity 400ms ease;
+    }
+    #team-lineup-page.tl-on { display: block; }
+    #team-lineup-page.tl-visible { opacity: 1; }
+    .tl-team { position: absolute; width: 905px; height: 348px; z-index: 190; transition: transform 300ms ease; }
+    #tl-team-0 { left: 40px;  top: 275px; }
+    #tl-team-1 { left: 975px; top: 275px; }
+    #tl-team-2 { left: 40px;  top: 640px; }
+    #tl-team-3 { left: 975px; top: 640px; }
+    /* a 3-team page (pages 2 and 3): the third team sits centered on the second
+       row — margin (not left) so an Edit-tab position for #tl-team-2 still applies */
+    #team-lineup-page.tl-three #tl-team-2 { margin-left: 467.5px; } /* (1920 - 905) / 2 - 40 */
+    .tl-card {
+      position: absolute; top: 0; width: 168px; height: 290px; overflow: hidden;
+      background: linear-gradient(180deg, #262626 0%, #0d0d0d 100%);
+      opacity: 0; transform: translateY(26px);
+      transition: opacity 350ms ease, transform 350ms cubic-bezier(.2,.8,.2,1);
+    }
+    .tl-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: #ffe800; z-index: 2; }
+    .tl-card.tl-show { opacity: 1; transform: translateY(0); }
+    /* Photos are 1000x1000 cutouts, subject ~720px wide / 840px tall, feet at the bottom edge. Scaled so the
+       subject fills the card height; sides crop. The name plate overlays the lower body. */
+    .tl-photo { position: absolute; left: 50%; bottom: 0; width: 332px; height: 332px; transform: translateX(-50%); max-width: none; }
+    .tl-name {
+      z-index: 1; position: absolute; left: 0; bottom: 0; width: 100%; height: 46px; background: #ffe800; color: #0a0a0a;
+      font-family: 'Anton', sans-serif; font-size: 28px; text-transform: uppercase; white-space: nowrap; overflow: hidden;
+      display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 6px;
+    }
+    .tl-banner {
+      position: absolute; left: 0; top: 296px; width: 905px; height: 52px; background: #121212; color: #fff;
+      font-family: 'Anton', sans-serif; font-size: 32px; text-transform: uppercase; white-space: nowrap; overflow: hidden;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      opacity: 0; transition: opacity 350ms ease 250ms;
+    }
+    .tl-banner::before { content: ''; position: absolute; left: 0; top: 0; width: 8px; height: 100%; background: #ffe800; }
+    .tl-banner.tl-show { opacity: 1; }
+    .tl-banner-name { position: absolute; left: 90px; top: 0; width: 725px; height: 52px; display: flex; align-items: center;
+                      justify-content: center; white-space: nowrap; overflow: hidden; }
+    .tl-logo { position: absolute; left: 6px; top: 0; width: 78px; height: 52px; object-fit: contain; background: #fff; }
+    .tl-flag-text { position: absolute; right: 18px; top: 0; width: 60px; height: 52px; display: flex; align-items: center;
+                    justify-content: center; color: #fff; font-family: 'Anton', sans-serif; font-size: 30px; }
   </style>
 </head>
 <body>
@@ -4003,6 +4440,56 @@
       </div>
     </div>
 
+    <!-- AVERAGE PLACEMENT -->
+    <div class="feature-card">
+      <div class="feature-card-label">Average Placement</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showAveragePlacementScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideAveragePlacementScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-averageplacement" onclick="toggleLocalPreview('averageplacement', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- MAP PLACEMENT AVG -->
+    <div class="feature-card">
+      <div class="feature-card-label">Map Placement AVG</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showMapPlacementAvgScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideMapPlacementAvgScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-mapplacementavg" onclick="toggleLocalPreview('mapplacementavg', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- TEAM H2H -->
+    <div class="feature-card">
+      <div class="feature-card-label">Team H2H</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showTeamH2HScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideTeamH2HScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-teamh2h" onclick="toggleLocalPreview('teamh2h', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- PLAYER H2H -->
+    <div class="feature-card">
+      <div class="feature-card-label">Player H2H</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showPlayerH2HScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hidePlayerH2HScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-playerh2h" onclick="toggleLocalPreview('playerh2h', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <!-- ZOWNED RATE -->
+    <div class="feature-card">
+      <div class="feature-card-label">Zowned Rate</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showZownedRateScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideZownedRateScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-zownedrate" onclick="toggleLocalPreview('zownedrate', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
     <!-- TEAM POINT PERCENT -->
     <div class="feature-card">
       <div class="feature-card-label">Team Point Percent</div>
@@ -4083,6 +4570,18 @@
     </div>
 
     <!-- PRIZE POOL -->
+    <div class="feature-card">
+      <div class="feature-card-label">Team Lineup</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showTeamLineupScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideTeamLineupScene()">■ HIDE</button>
+        <button class="dbg-btn" onclick="tlSwapPage(1)">1</button>
+        <button class="dbg-btn" onclick="tlSwapPage(2)">2</button>
+        <button class="dbg-btn" onclick="tlSwapPage(3)">3</button>
+        <button class="dbg-btn preview" id="preview-teamlineup" onclick="toggleLocalPreview('teamlineup', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
     <div class="feature-card">
       <div class="feature-card-label">Prize Pool</div>
       <div class="feature-card-btns">
@@ -4372,9 +4871,9 @@
           <div class="ovr-col-header-cell ovr-hc-rank">Rank</div>
           <div class="ovr-col-header-cell ovr-hc-team">Team</div>
           <div class="ovr-col-header-cell ovr-hc-group ovr-hc-black">Group</div>
-          <div class="ovr-col-header-cell ovr-hc-gw ovr-hc-black">GW</div>
-          <div class="ovr-col-header-cell ovr-hc-kp ovr-hc-black">KP</div>
-          <div class="ovr-col-header-cell ovr-hc-rp ovr-hc-black">RP</div>
+          <div class="ovr-col-header-cell ovr-hc-gw ovr-hc-black">MW</div>
+          <div class="ovr-col-header-cell ovr-hc-kp ovr-hc-black">EP</div>
+          <div class="ovr-col-header-cell ovr-hc-rp ovr-hc-black">PP</div>
           <div class="ovr-col-header-cell ovr-hc-tp ovr-hc-black">TP</div>
         </div>
         <div class="ovr-col-rows"></div>
@@ -4385,13 +4884,15 @@
           <div class="ovr-col-header-cell ovr-hc-rank">Rank</div>
           <div class="ovr-col-header-cell ovr-hc-team">Team</div>
           <div class="ovr-col-header-cell ovr-hc-group ovr-hc-black">Group</div>
-          <div class="ovr-col-header-cell ovr-hc-gw ovr-hc-black">GW</div>
-          <div class="ovr-col-header-cell ovr-hc-kp ovr-hc-black">KP</div>
-          <div class="ovr-col-header-cell ovr-hc-rp ovr-hc-black">RP</div>
+          <div class="ovr-col-header-cell ovr-hc-gw ovr-hc-black">MW</div>
+          <div class="ovr-col-header-cell ovr-hc-kp ovr-hc-black">EP</div>
+          <div class="ovr-col-header-cell ovr-hc-rp ovr-hc-black">PP</div>
           <div class="ovr-col-header-cell ovr-hc-tp ovr-hc-black">TP</div>
         </div>
         <div class="ovr-col-rows"></div>
       </div>
+      <div id="ovr-zone-chip"><span>Z!</span></div>
+      <div id="ovr-zone-text"><span>TEAM IS IN THE ZONE!</span></div>
     </div>
     <div id="map-ranking-page">
       <div class="mrk-col" id="mrk-col-left">
@@ -4420,9 +4921,9 @@
           <div class="grk-col-header-cell grk-hc-rank">Rank</div>
           <div class="grk-col-header-cell grk-hc-team">Team</div>
           <div class="grk-col-header-cell grk-hc-group grk-hc-black">Group</div>
-          <div class="grk-col-header-cell grk-hc-gw grk-hc-black">GW</div>
-          <div class="grk-col-header-cell grk-hc-kp grk-hc-black">KP</div>
-          <div class="grk-col-header-cell grk-hc-rp grk-hc-black">RP</div>
+          <div class="grk-col-header-cell grk-hc-gw grk-hc-black">MW</div>
+          <div class="grk-col-header-cell grk-hc-kp grk-hc-black">EP</div>
+          <div class="grk-col-header-cell grk-hc-rp grk-hc-black">PP</div>
           <div class="grk-col-header-cell grk-hc-tp grk-hc-black">TP</div>
         </div>
         <div class="grk-col-rows"></div>
@@ -4433,13 +4934,20 @@
           <div class="grk-col-header-cell grk-hc-rank">Rank</div>
           <div class="grk-col-header-cell grk-hc-team">Team</div>
           <div class="grk-col-header-cell grk-hc-group grk-hc-black">Group</div>
-          <div class="grk-col-header-cell grk-hc-gw grk-hc-black">GW</div>
-          <div class="grk-col-header-cell grk-hc-kp grk-hc-black">KP</div>
-          <div class="grk-col-header-cell grk-hc-rp grk-hc-black">RP</div>
+          <div class="grk-col-header-cell grk-hc-gw grk-hc-black">MW</div>
+          <div class="grk-col-header-cell grk-hc-kp grk-hc-black">EP</div>
+          <div class="grk-col-header-cell grk-hc-rp grk-hc-black">PP</div>
           <div class="grk-col-header-cell grk-hc-tp grk-hc-black">TP</div>
         </div>
         <div class="grk-col-rows"></div>
       </div>
+    </div>
+
+    <div id="team-lineup-page">
+      <div class="tl-team" id="tl-team-0"></div>
+      <div class="tl-team" id="tl-team-1"></div>
+      <div class="tl-team" id="tl-team-2"></div>
+      <div class="tl-team" id="tl-team-3"></div>
     </div>
 
     <div id="qualified-teams-1-page">
@@ -4499,7 +5007,7 @@
         <img class="ek-photo" src="" alt="">
         <div class="ek-num"><span>1</span></div>
         <div class="ek-teamlogo"><img src="" alt=""></div>
-        <img class="ek-flag" src="" alt="">
+        <div class="ek-flag"><span></span></div>
         <div class="ek-name"><span></span></div>
         <div class="ek-label"><span>ELIMINATIONS</span></div>
         <div class="ek-count"><span></span></div>
@@ -4509,7 +5017,7 @@
         <img class="ek-photo" src="" alt="">
         <div class="ek-num"><span>2</span></div>
         <div class="ek-teamlogo"><img src="" alt=""></div>
-        <img class="ek-flag" src="" alt="">
+        <div class="ek-flag"><span></span></div>
         <div class="ek-name"><span></span></div>
         <div class="ek-label"><span>ELIMINATIONS</span></div>
         <div class="ek-count"><span></span></div>
@@ -4519,7 +5027,7 @@
         <img class="ek-photo" src="" alt="">
         <div class="ek-num"><span>3</span></div>
         <div class="ek-teamlogo"><img src="" alt=""></div>
-        <img class="ek-flag" src="" alt="">
+        <div class="ek-flag"><span></span></div>
         <div class="ek-name"><span></span></div>
         <div class="ek-label"><span>ELIMINATIONS</span></div>
         <div class="ek-count"><span></span></div>
@@ -4529,7 +5037,7 @@
         <img class="ek-photo" src="" alt="">
         <div class="ek-num"><span>4</span></div>
         <div class="ek-teamlogo"><img src="" alt=""></div>
-        <img class="ek-flag" src="" alt="">
+        <div class="ek-flag"><span></span></div>
         <div class="ek-name"><span></span></div>
         <div class="ek-label"><span>ELIMINATIONS</span></div>
         <div class="ek-count"><span></span></div>
@@ -4539,7 +5047,7 @@
         <img class="ek-photo" src="" alt="">
         <div class="ek-num"><span>5</span></div>
         <div class="ek-teamlogo"><img src="" alt=""></div>
-        <img class="ek-flag" src="" alt="">
+        <div class="ek-flag"><span></span></div>
         <div class="ek-name"><span></span></div>
         <div class="ek-label"><span>ELIMINATIONS</span></div>
         <div class="ek-count"><span></span></div>
@@ -4551,7 +5059,7 @@
         <img class="tel-photo" src="" alt="">
         <div class="tel-num"><span>1</span></div>
         <div class="tel-teamlogo"><img src="" alt=""></div>
-        <img class="tel-flag" src="" alt="">
+        <div class="tel-flag"><span></span></div>
         <div class="tel-name"><span></span></div>
         <div class="tel-label"><span>ELIMINATIONS</span></div>
         <div class="tel-count"><span></span></div>
@@ -4561,7 +5069,7 @@
         <img class="tel-photo" src="" alt="">
         <div class="tel-num"><span>2</span></div>
         <div class="tel-teamlogo"><img src="" alt=""></div>
-        <img class="tel-flag" src="" alt="">
+        <div class="tel-flag"><span></span></div>
         <div class="tel-name"><span></span></div>
         <div class="tel-label"><span>ELIMINATIONS</span></div>
         <div class="tel-count"><span></span></div>
@@ -4571,7 +5079,7 @@
         <img class="tel-photo" src="" alt="">
         <div class="tel-num"><span>3</span></div>
         <div class="tel-teamlogo"><img src="" alt=""></div>
-        <img class="tel-flag" src="" alt="">
+        <div class="tel-flag"><span></span></div>
         <div class="tel-name"><span></span></div>
         <div class="tel-label"><span>ELIMINATIONS</span></div>
         <div class="tel-count"><span></span></div>
@@ -4581,7 +5089,7 @@
         <img class="tel-photo" src="" alt="">
         <div class="tel-num"><span>4</span></div>
         <div class="tel-teamlogo"><img src="" alt=""></div>
-        <img class="tel-flag" src="" alt="">
+        <div class="tel-flag"><span></span></div>
         <div class="tel-name"><span></span></div>
         <div class="tel-label"><span>ELIMINATIONS</span></div>
         <div class="tel-count"><span></span></div>
@@ -4591,7 +5099,7 @@
         <img class="tel-photo" src="" alt="">
         <div class="tel-num"><span>5</span></div>
         <div class="tel-teamlogo"><img src="" alt=""></div>
-        <img class="tel-flag" src="" alt="">
+        <div class="tel-flag"><span></span></div>
         <div class="tel-name"><span></span></div>
         <div class="tel-label"><span>ELIMINATIONS</span></div>
         <div class="tel-count"><span></span></div>
@@ -4603,7 +5111,7 @@
         <img class="gel-photo" src="" alt="">
         <div class="gel-num"><span>1</span></div>
         <div class="gel-teamlogo"><img src="" alt=""></div>
-        <img class="gel-flag" src="" alt="">
+        <div class="gel-flag"><span></span></div>
         <div class="gel-name"><span></span></div>
         <div class="gel-label"><span>ELIMINATIONS</span></div>
         <div class="gel-count"><span></span></div>
@@ -4614,7 +5122,7 @@
         <img class="gel-photo" src="" alt="">
         <div class="gel-num"><span>2</span></div>
         <div class="gel-teamlogo"><img src="" alt=""></div>
-        <img class="gel-flag" src="" alt="">
+        <div class="gel-flag"><span></span></div>
         <div class="gel-name"><span></span></div>
         <div class="gel-label"><span>ELIMINATIONS</span></div>
         <div class="gel-count"><span></span></div>
@@ -4625,7 +5133,7 @@
         <img class="gel-photo" src="" alt="">
         <div class="gel-num"><span>3</span></div>
         <div class="gel-teamlogo"><img src="" alt=""></div>
-        <img class="gel-flag" src="" alt="">
+        <div class="gel-flag"><span></span></div>
         <div class="gel-name"><span></span></div>
         <div class="gel-label"><span>ELIMINATIONS</span></div>
         <div class="gel-count"><span></span></div>
@@ -4636,7 +5144,7 @@
         <img class="gel-photo" src="" alt="">
         <div class="gel-num"><span>4</span></div>
         <div class="gel-teamlogo"><img src="" alt=""></div>
-        <img class="gel-flag" src="" alt="">
+        <div class="gel-flag"><span></span></div>
         <div class="gel-name"><span></span></div>
         <div class="gel-label"><span>ELIMINATIONS</span></div>
         <div class="gel-count"><span></span></div>
@@ -4647,7 +5155,7 @@
         <img class="gel-photo" src="" alt="">
         <div class="gel-num"><span>5</span></div>
         <div class="gel-teamlogo"><img src="" alt=""></div>
-        <img class="gel-flag" src="" alt="">
+        <div class="gel-flag"><span></span></div>
         <div class="gel-name"><span></span></div>
         <div class="gel-label"><span>ELIMINATIONS</span></div>
         <div class="gel-count"><span></span></div>
@@ -4661,7 +5169,7 @@
         <img class="pel-photo" src="" alt="">
         <div class="pel-num"><span>1</span></div>
         <div class="pel-teamlogo"><img src="" alt=""></div>
-        <img class="pel-flag" src="" alt="">
+        <div class="pel-flag"><span></span></div>
         <div class="pel-name"><span></span></div>
         <div class="pel-label"><span>ELIMINATIONS</span></div>
         <div class="pel-count"><span></span></div>
@@ -4672,7 +5180,7 @@
         <img class="pel-photo" src="" alt="">
         <div class="pel-num"><span>2</span></div>
         <div class="pel-teamlogo"><img src="" alt=""></div>
-        <img class="pel-flag" src="" alt="">
+        <div class="pel-flag"><span></span></div>
         <div class="pel-name"><span></span></div>
         <div class="pel-label"><span>ELIMINATIONS</span></div>
         <div class="pel-count"><span></span></div>
@@ -4683,7 +5191,7 @@
         <img class="pel-photo" src="" alt="">
         <div class="pel-num"><span>3</span></div>
         <div class="pel-teamlogo"><img src="" alt=""></div>
-        <img class="pel-flag" src="" alt="">
+        <div class="pel-flag"><span></span></div>
         <div class="pel-name"><span></span></div>
         <div class="pel-label"><span>ELIMINATIONS</span></div>
         <div class="pel-count"><span></span></div>
@@ -4694,7 +5202,7 @@
         <img class="pel-photo" src="" alt="">
         <div class="pel-num"><span>4</span></div>
         <div class="pel-teamlogo"><img src="" alt=""></div>
-        <img class="pel-flag" src="" alt="">
+        <div class="pel-flag"><span></span></div>
         <div class="pel-name"><span></span></div>
         <div class="pel-label"><span>ELIMINATIONS</span></div>
         <div class="pel-count"><span></span></div>
@@ -4705,7 +5213,7 @@
         <img class="pel-photo" src="" alt="">
         <div class="pel-num"><span>5</span></div>
         <div class="pel-teamlogo"><img src="" alt=""></div>
-        <img class="pel-flag" src="" alt="">
+        <div class="pel-flag"><span></span></div>
         <div class="pel-name"><span></span></div>
         <div class="pel-label"><span>ELIMINATIONS</span></div>
         <div class="pel-count"><span></span></div>
@@ -4723,7 +5231,7 @@
         <img class="tme-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="tme-photo" src="" alt="">
         <div class="tme-num"><span>1</span></div>
-        <img class="tme-flag" src="" alt="">
+        <div class="tme-flag"><span></span></div>
         <div class="tme-name"><span></span></div>
         <div class="tme-label"><span>ELIMINATIONS</span></div>
         <div class="tme-count"><span></span></div>
@@ -4732,7 +5240,7 @@
         <img class="tme-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="tme-photo" src="" alt="">
         <div class="tme-num"><span>2</span></div>
-        <img class="tme-flag" src="" alt="">
+        <div class="tme-flag"><span></span></div>
         <div class="tme-name"><span></span></div>
         <div class="tme-label"><span>ELIMINATIONS</span></div>
         <div class="tme-count"><span></span></div>
@@ -4741,7 +5249,7 @@
         <img class="tme-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="tme-photo" src="" alt="">
         <div class="tme-num"><span>3</span></div>
-        <img class="tme-flag" src="" alt="">
+        <div class="tme-flag"><span></span></div>
         <div class="tme-name"><span></span></div>
         <div class="tme-label"><span>ELIMINATIONS</span></div>
         <div class="tme-count"><span></span></div>
@@ -4750,7 +5258,7 @@
         <img class="tme-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="tme-photo" src="" alt="">
         <div class="tme-num"><span>4</span></div>
-        <img class="tme-flag" src="" alt="">
+        <div class="tme-flag"><span></span></div>
         <div class="tme-name"><span></span></div>
         <div class="tme-label"><span>ELIMINATIONS</span></div>
         <div class="tme-count"><span></span></div>
@@ -4759,10 +5267,321 @@
         <img class="tme-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="tme-photo" src="" alt="">
         <div class="tme-num"><span>5</span></div>
-        <img class="tme-flag" src="" alt="">
+        <div class="tme-flag"><span></span></div>
         <div class="tme-name"><span></span></div>
         <div class="tme-label"><span>ELIMINATIONS</span></div>
         <div class="tme-count"><span></span></div>
+      </div>
+    </div>
+    <div id="avgplace-page">
+      <div class="avp-card avp-empty" id="avp-card-1">
+        <img class="avp-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="avp-photo" src="" alt="">
+        <div class="avp-flag"><span></span></div>
+        <div class="avp-name"><span></span></div>
+        <div class="avp-label"><span>AVG PLACEMENT</span></div>
+        <div class="avp-count"><span></span></div>
+      </div>
+      <div class="avp-card avp-empty" id="avp-card-2">
+        <img class="avp-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="avp-photo" src="" alt="">
+        <div class="avp-flag"><span></span></div>
+        <div class="avp-name"><span></span></div>
+        <div class="avp-label"><span>AVG PLACEMENT</span></div>
+        <div class="avp-count"><span></span></div>
+      </div>
+      <div class="avp-card avp-empty" id="avp-card-3">
+        <img class="avp-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="avp-photo" src="" alt="">
+        <div class="avp-flag"><span></span></div>
+        <div class="avp-name"><span></span></div>
+        <div class="avp-label"><span>AVG PLACEMENT</span></div>
+        <div class="avp-count"><span></span></div>
+      </div>
+      <div class="avp-card avp-empty" id="avp-card-4">
+        <img class="avp-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="avp-photo" src="" alt="">
+        <div class="avp-flag"><span></span></div>
+        <div class="avp-name"><span></span></div>
+        <div class="avp-label"><span>AVG PLACEMENT</span></div>
+        <div class="avp-count"><span></span></div>
+      </div>
+      <div class="avp-card avp-empty" id="avp-card-5">
+        <img class="avp-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="avp-photo" src="" alt="">
+        <div class="avp-flag"><span></span></div>
+        <div class="avp-name"><span></span></div>
+        <div class="avp-label"><span>AVG PLACEMENT</span></div>
+        <div class="avp-count"><span></span></div>
+      </div>
+      <div class="avp-card avp-empty" id="avp-card-6">
+        <img class="avp-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="avp-photo" src="" alt="">
+        <div class="avp-flag"><span></span></div>
+        <div class="avp-name"><span></span></div>
+        <div class="avp-label"><span>AVG PLACEMENT</span></div>
+        <div class="avp-count"><span></span></div>
+      </div>
+      <div class="avp-card avp-empty" id="avp-card-7">
+        <img class="avp-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="avp-photo" src="" alt="">
+        <div class="avp-flag"><span></span></div>
+        <div class="avp-name"><span></span></div>
+        <div class="avp-label"><span>AVG PLACEMENT</span></div>
+        <div class="avp-count"><span></span></div>
+      </div>
+      <div class="avp-card avp-empty" id="avp-card-8">
+        <img class="avp-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="avp-photo" src="" alt="">
+        <div class="avp-flag"><span></span></div>
+        <div class="avp-name"><span></span></div>
+        <div class="avp-label"><span>AVG PLACEMENT</span></div>
+        <div class="avp-count"><span></span></div>
+      </div>
+      <div class="avp-card avp-empty" id="avp-card-9">
+        <img class="avp-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="avp-photo" src="" alt="">
+        <div class="avp-flag"><span></span></div>
+        <div class="avp-name"><span></span></div>
+        <div class="avp-label"><span>AVG PLACEMENT</span></div>
+        <div class="avp-count"><span></span></div>
+      </div>
+      <div class="avp-card avp-empty" id="avp-card-10">
+        <img class="avp-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="avp-photo" src="" alt="">
+        <div class="avp-flag"><span></span></div>
+        <div class="avp-name"><span></span></div>
+        <div class="avp-label"><span>AVG PLACEMENT</span></div>
+        <div class="avp-count"><span></span></div>
+      </div>
+    </div>
+    <div id="mapplace-page">
+      <div id="mpa-mapbox">
+        <img id="mpa-mapbox-bg" src="" alt="">
+        <img id="mpa-mapbox-label" src="/maps/maplabel_waiting.png" alt="">
+        <div id="mpa-mapbox-title"><span>AVG PLACEMENT</span></div>
+        <div id="mpa-mapbox-name"><span></span></div>
+      </div>
+      <div class="mpa-card mpa-empty" id="mpa-card-1">
+        <img class="mpa-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="mpa-photo" src="" alt="">
+        <div class="mpa-flag"><span></span></div>
+        <div class="mpa-name"><span></span></div>
+        <div class="mpa-label"><span>AVG PLACEMENT</span></div>
+        <div class="mpa-count"><span></span></div>
+      </div>
+      <div class="mpa-card mpa-empty" id="mpa-card-2">
+        <img class="mpa-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="mpa-photo" src="" alt="">
+        <div class="mpa-flag"><span></span></div>
+        <div class="mpa-name"><span></span></div>
+        <div class="mpa-label"><span>AVG PLACEMENT</span></div>
+        <div class="mpa-count"><span></span></div>
+      </div>
+      <div class="mpa-card mpa-empty" id="mpa-card-3">
+        <img class="mpa-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="mpa-photo" src="" alt="">
+        <div class="mpa-flag"><span></span></div>
+        <div class="mpa-name"><span></span></div>
+        <div class="mpa-label"><span>AVG PLACEMENT</span></div>
+        <div class="mpa-count"><span></span></div>
+      </div>
+      <div class="mpa-card mpa-empty" id="mpa-card-4">
+        <img class="mpa-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="mpa-photo" src="" alt="">
+        <div class="mpa-flag"><span></span></div>
+        <div class="mpa-name"><span></span></div>
+        <div class="mpa-label"><span>AVG PLACEMENT</span></div>
+        <div class="mpa-count"><span></span></div>
+      </div>
+      <div class="mpa-card mpa-empty" id="mpa-card-5">
+        <img class="mpa-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="mpa-photo" src="" alt="">
+        <div class="mpa-flag"><span></span></div>
+        <div class="mpa-name"><span></span></div>
+        <div class="mpa-label"><span>AVG PLACEMENT</span></div>
+        <div class="mpa-count"><span></span></div>
+      </div>
+      <div class="mpa-card mpa-empty" id="mpa-card-6">
+        <img class="mpa-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="mpa-photo" src="" alt="">
+        <div class="mpa-flag"><span></span></div>
+        <div class="mpa-name"><span></span></div>
+        <div class="mpa-label"><span>AVG PLACEMENT</span></div>
+        <div class="mpa-count"><span></span></div>
+      </div>
+      <div class="mpa-card mpa-empty" id="mpa-card-7">
+        <img class="mpa-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="mpa-photo" src="" alt="">
+        <div class="mpa-flag"><span></span></div>
+        <div class="mpa-name"><span></span></div>
+        <div class="mpa-label"><span>AVG PLACEMENT</span></div>
+        <div class="mpa-count"><span></span></div>
+      </div>
+      <div class="mpa-card mpa-empty" id="mpa-card-8">
+        <img class="mpa-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="mpa-photo" src="" alt="">
+        <div class="mpa-flag"><span></span></div>
+        <div class="mpa-name"><span></span></div>
+        <div class="mpa-label"><span>AVG PLACEMENT</span></div>
+        <div class="mpa-count"><span></span></div>
+      </div>
+      <div class="mpa-card mpa-empty" id="mpa-card-9">
+        <img class="mpa-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="mpa-photo" src="" alt="">
+        <div class="mpa-flag"><span></span></div>
+        <div class="mpa-name"><span></span></div>
+        <div class="mpa-label"><span>AVG PLACEMENT</span></div>
+        <div class="mpa-count"><span></span></div>
+      </div>
+      <div class="mpa-card mpa-empty" id="mpa-card-10">
+        <img class="mpa-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="mpa-photo" src="" alt="">
+        <div class="mpa-flag"><span></span></div>
+        <div class="mpa-name"><span></span></div>
+        <div class="mpa-label"><span>AVG PLACEMENT</span></div>
+        <div class="mpa-count"><span></span></div>
+      </div>
+    </div>
+    <div id="h2h-page">
+      <img class="hh-anim" id="hh-photo-a" src="" alt="">
+      <img class="hh-anim" id="hh-photo-b" src="" alt="">
+      <img class="hh-anim" id="hh-logo-a" src="" alt="">
+      <img class="hh-anim" id="hh-logo-b" src="" alt="">
+      <div class="hh-anim" id="hh-vs"><span>VS</span></div>
+      <div class="hh-anim" id="hh-name-a"><span></span></div>
+      <div class="hh-anim" id="hh-name-b"><span></span></div>
+      <div class="hh-row hh-anim" id="hh-row-1">
+        <div class="hh-lval"><span></span></div>
+        <div class="hh-label"><span></span></div>
+        <div class="hh-rval"><span></span></div>
+      </div>
+      <div class="hh-row hh-anim" id="hh-row-2">
+        <div class="hh-lval"><span></span></div>
+        <div class="hh-label"><span></span></div>
+        <div class="hh-rval"><span></span></div>
+      </div>
+      <div class="hh-row hh-anim" id="hh-row-3">
+        <div class="hh-lval"><span></span></div>
+        <div class="hh-label"><span></span></div>
+        <div class="hh-rval"><span></span></div>
+      </div>
+      <div class="hh-row hh-anim" id="hh-row-4">
+        <div class="hh-lval"><span></span></div>
+        <div class="hh-label"><span></span></div>
+        <div class="hh-rval"><span></span></div>
+      </div>
+      <div class="hh-row hh-anim" id="hh-row-5">
+        <div class="hh-lval"><span></span></div>
+        <div class="hh-label"><span></span></div>
+        <div class="hh-rval"><span></span></div>
+      </div>
+      <div class="hh-row hh-anim" id="hh-row-6">
+        <div class="hh-lval"><span></span></div>
+        <div class="hh-label"><span></span></div>
+        <div class="hh-rval"><span></span></div>
+      </div>
+      <div class="hh-row hh-anim" id="hh-row-7">
+        <div class="hh-lval"><span></span></div>
+        <div class="hh-label"><span></span></div>
+        <div class="hh-rval"><span></span></div>
+      </div>
+    </div>
+    <div id="teamh2h-page">
+      <img class="tmh-anim" id="tmh-logo-a" src="" alt="">
+      <img class="tmh-anim" id="tmh-logo-b" src="" alt="">
+      <div class="tmh-anim" id="tmh-flag-a"><span></span></div>
+      <div class="tmh-anim" id="tmh-flag-b"><span></span></div>
+      <div class="tmh-anim" id="tmh-vs"><span>VS</span></div>
+      <div class="tmh-anim" id="tmh-name-a"><span></span></div>
+      <div class="tmh-anim" id="tmh-name-b"><span></span></div>
+      <div class="tmh-row tmh-anim" id="tmh-row-1">
+        <div class="tmh-lval"><span></span></div>
+        <div class="tmh-label"><span></span></div>
+        <div class="tmh-rval"><span></span></div>
+      </div>
+      <div class="tmh-row tmh-anim" id="tmh-row-2">
+        <div class="tmh-lval"><span></span></div>
+        <div class="tmh-label"><span></span></div>
+        <div class="tmh-rval"><span></span></div>
+      </div>
+      <div class="tmh-row tmh-anim" id="tmh-row-3">
+        <div class="tmh-lval"><span></span></div>
+        <div class="tmh-label"><span></span></div>
+        <div class="tmh-rval"><span></span></div>
+      </div>
+      <div class="tmh-row tmh-anim" id="tmh-row-4">
+        <div class="tmh-lval"><span></span></div>
+        <div class="tmh-label"><span></span></div>
+        <div class="tmh-rval"><span></span></div>
+      </div>
+      <div class="tmh-row tmh-anim" id="tmh-row-5">
+        <div class="tmh-lval"><span></span></div>
+        <div class="tmh-label"><span></span></div>
+        <div class="tmh-rval"><span></span></div>
+      </div>
+      <div class="tmh-row tmh-anim" id="tmh-row-6">
+        <div class="tmh-lval"><span></span></div>
+        <div class="tmh-label"><span></span></div>
+        <div class="tmh-rval"><span></span></div>
+      </div>
+      <div class="tmh-row tmh-anim" id="tmh-row-7">
+        <div class="tmh-lval"><span></span></div>
+        <div class="tmh-label"><span></span></div>
+        <div class="tmh-rval"><span></span></div>
+      </div>
+    </div>
+    <div id="zowned-page">
+      <div id="zr-mapbox">
+        <img id="zr-mapbox-bg" src="" alt="">
+        <img id="zr-mapbox-label" src="/maps/maplabel_waiting.png" alt="">
+        <div id="zr-mapbox-title"><span>ZOWNED RATE</span></div>
+        <div id="zr-mapbox-name"><span></span></div>
+      </div>
+      <div class="zr-card zr-empty" id="zr-card-1">
+        <img class="zr-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="zr-photo" src="" alt="">
+        <div class="zr-num"><span>1</span></div>
+        <div class="zr-flag"><span></span></div>
+        <div class="zr-name"><span></span></div>
+        <div class="zr-label"><span>WIN RATE</span></div>
+        <div class="zr-count"><span></span></div>
+      </div>
+      <div class="zr-card zr-empty" id="zr-card-2">
+        <img class="zr-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="zr-photo" src="" alt="">
+        <div class="zr-num"><span>2</span></div>
+        <div class="zr-flag"><span></span></div>
+        <div class="zr-name"><span></span></div>
+        <div class="zr-label"><span>WIN RATE</span></div>
+        <div class="zr-count"><span></span></div>
+      </div>
+      <div class="zr-card zr-empty" id="zr-card-3">
+        <img class="zr-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="zr-photo" src="" alt="">
+        <div class="zr-num"><span>3</span></div>
+        <div class="zr-flag"><span></span></div>
+        <div class="zr-name"><span></span></div>
+        <div class="zr-label"><span>WIN RATE</span></div>
+        <div class="zr-count"><span></span></div>
+      </div>
+      <div class="zr-card zr-empty" id="zr-card-4">
+        <img class="zr-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="zr-photo" src="" alt="">
+        <div class="zr-num"><span>4</span></div>
+        <div class="zr-flag"><span></span></div>
+        <div class="zr-name"><span></span></div>
+        <div class="zr-label"><span>WIN RATE</span></div>
+        <div class="zr-count"><span></span></div>
+      </div>
+      <div class="zr-card zr-empty" id="zr-card-5">
+        <img class="zr-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
+        <img class="zr-photo" src="" alt="">
+        <div class="zr-num"><span>5</span></div>
+        <div class="zr-flag"><span></span></div>
+        <div class="zr-name"><span></span></div>
+        <div class="zr-label"><span>WIN RATE</span></div>
+        <div class="zr-count"><span></span></div>
       </div>
     </div>
     <div id="teampoint-page">
@@ -4910,7 +5729,7 @@
         <img class="qel-photo" src="" alt="">
         <div class="qel-num"><span>1</span></div>
         <div class="qel-teamlogo"><img src="" alt=""></div>
-        <img class="qel-flag" src="" alt="">
+        <div class="qel-flag"><span></span></div>
         <div class="qel-name"><span></span></div>
         <div class="qel-label"><span>ELIMINATIONS</span></div>
         <div class="qel-count"><span></span></div>
@@ -4920,7 +5739,7 @@
         <img class="qel-photo" src="" alt="">
         <div class="qel-num"><span>2</span></div>
         <div class="qel-teamlogo"><img src="" alt=""></div>
-        <img class="qel-flag" src="" alt="">
+        <div class="qel-flag"><span></span></div>
         <div class="qel-name"><span></span></div>
         <div class="qel-label"><span>ELIMINATIONS</span></div>
         <div class="qel-count"><span></span></div>
@@ -4930,7 +5749,7 @@
         <img class="qel-photo" src="" alt="">
         <div class="qel-num"><span>3</span></div>
         <div class="qel-teamlogo"><img src="" alt=""></div>
-        <img class="qel-flag" src="" alt="">
+        <div class="qel-flag"><span></span></div>
         <div class="qel-name"><span></span></div>
         <div class="qel-label"><span>ELIMINATIONS</span></div>
         <div class="qel-count"><span></span></div>
@@ -4940,7 +5759,7 @@
         <img class="qel-photo" src="" alt="">
         <div class="qel-num"><span>4</span></div>
         <div class="qel-teamlogo"><img src="" alt=""></div>
-        <img class="qel-flag" src="" alt="">
+        <div class="qel-flag"><span></span></div>
         <div class="qel-name"><span></span></div>
         <div class="qel-label"><span>ELIMINATIONS</span></div>
         <div class="qel-count"><span></span></div>
@@ -4950,7 +5769,7 @@
         <img class="qel-photo" src="" alt="">
         <div class="qel-num"><span>5</span></div>
         <div class="qel-teamlogo"><img src="" alt=""></div>
-        <img class="qel-flag" src="" alt="">
+        <div class="qel-flag"><span></span></div>
         <div class="qel-name"><span></span></div>
         <div class="qel-label"><span>ELIMINATIONS</span></div>
         <div class="qel-count"><span></span></div>
@@ -4961,7 +5780,7 @@
         <img class="tte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="tte-photo" src="" alt="">
         <div class="tte-num"><span>1</span></div>
-        <img class="tte-flag" src="" alt="">
+        <div class="tte-flag"><span></span></div>
         <div class="tte-name"><span></span></div>
         <div class="tte-label"><span>ELIMINATIONS</span></div>
         <div class="tte-count"><span></span></div>
@@ -4970,7 +5789,7 @@
         <img class="tte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="tte-photo" src="" alt="">
         <div class="tte-num"><span>2</span></div>
-        <img class="tte-flag" src="" alt="">
+        <div class="tte-flag"><span></span></div>
         <div class="tte-name"><span></span></div>
         <div class="tte-label"><span>ELIMINATIONS</span></div>
         <div class="tte-count"><span></span></div>
@@ -4979,7 +5798,7 @@
         <img class="tte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="tte-photo" src="" alt="">
         <div class="tte-num"><span>3</span></div>
-        <img class="tte-flag" src="" alt="">
+        <div class="tte-flag"><span></span></div>
         <div class="tte-name"><span></span></div>
         <div class="tte-label"><span>ELIMINATIONS</span></div>
         <div class="tte-count"><span></span></div>
@@ -4988,7 +5807,7 @@
         <img class="tte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="tte-photo" src="" alt="">
         <div class="tte-num"><span>4</span></div>
-        <img class="tte-flag" src="" alt="">
+        <div class="tte-flag"><span></span></div>
         <div class="tte-name"><span></span></div>
         <div class="tte-label"><span>ELIMINATIONS</span></div>
         <div class="tte-count"><span></span></div>
@@ -4997,7 +5816,7 @@
         <img class="tte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="tte-photo" src="" alt="">
         <div class="tte-num"><span>5</span></div>
-        <img class="tte-flag" src="" alt="">
+        <div class="tte-flag"><span></span></div>
         <div class="tte-name"><span></span></div>
         <div class="tte-label"><span>ELIMINATIONS</span></div>
         <div class="tte-count"><span></span></div>
@@ -5008,7 +5827,7 @@
         <img class="gte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="gte-photo" src="" alt="">
         <div class="gte-num"><span>1</span></div>
-        <img class="gte-flag" src="" alt="">
+        <div class="gte-flag"><span></span></div>
         <div class="gte-name"><span></span></div>
         <div class="gte-label"><span>ELIMINATIONS</span></div>
         <div class="gte-count"><span></span></div>
@@ -5018,7 +5837,7 @@
         <img class="gte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="gte-photo" src="" alt="">
         <div class="gte-num"><span>2</span></div>
-        <img class="gte-flag" src="" alt="">
+        <div class="gte-flag"><span></span></div>
         <div class="gte-name"><span></span></div>
         <div class="gte-label"><span>ELIMINATIONS</span></div>
         <div class="gte-count"><span></span></div>
@@ -5028,7 +5847,7 @@
         <img class="gte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="gte-photo" src="" alt="">
         <div class="gte-num"><span>3</span></div>
-        <img class="gte-flag" src="" alt="">
+        <div class="gte-flag"><span></span></div>
         <div class="gte-name"><span></span></div>
         <div class="gte-label"><span>ELIMINATIONS</span></div>
         <div class="gte-count"><span></span></div>
@@ -5038,7 +5857,7 @@
         <img class="gte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="gte-photo" src="" alt="">
         <div class="gte-num"><span>4</span></div>
-        <img class="gte-flag" src="" alt="">
+        <div class="gte-flag"><span></span></div>
         <div class="gte-name"><span></span></div>
         <div class="gte-label"><span>ELIMINATIONS</span></div>
         <div class="gte-count"><span></span></div>
@@ -5048,7 +5867,7 @@
         <img class="gte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="gte-photo" src="" alt="">
         <div class="gte-num"><span>5</span></div>
-        <img class="gte-flag" src="" alt="">
+        <div class="gte-flag"><span></span></div>
         <div class="gte-name"><span></span></div>
         <div class="gte-label"><span>ELIMINATIONS</span></div>
         <div class="gte-count"><span></span></div>
@@ -5061,7 +5880,7 @@
         <img class="pte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="pte-photo" src="" alt="">
         <div class="pte-num"><span>1</span></div>
-        <img class="pte-flag" src="" alt="">
+        <div class="pte-flag"><span></span></div>
         <div class="pte-name"><span></span></div>
         <div class="pte-label"><span>ELIMINATIONS</span></div>
         <div class="pte-count"><span></span></div>
@@ -5071,7 +5890,7 @@
         <img class="pte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="pte-photo" src="" alt="">
         <div class="pte-num"><span>2</span></div>
-        <img class="pte-flag" src="" alt="">
+        <div class="pte-flag"><span></span></div>
         <div class="pte-name"><span></span></div>
         <div class="pte-label"><span>ELIMINATIONS</span></div>
         <div class="pte-count"><span></span></div>
@@ -5081,7 +5900,7 @@
         <img class="pte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="pte-photo" src="" alt="">
         <div class="pte-num"><span>3</span></div>
-        <img class="pte-flag" src="" alt="">
+        <div class="pte-flag"><span></span></div>
         <div class="pte-name"><span></span></div>
         <div class="pte-label"><span>ELIMINATIONS</span></div>
         <div class="pte-count"><span></span></div>
@@ -5091,7 +5910,7 @@
         <img class="pte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="pte-photo" src="" alt="">
         <div class="pte-num"><span>4</span></div>
-        <img class="pte-flag" src="" alt="">
+        <div class="pte-flag"><span></span></div>
         <div class="pte-name"><span></span></div>
         <div class="pte-label"><span>ELIMINATIONS</span></div>
         <div class="pte-count"><span></span></div>
@@ -5101,7 +5920,7 @@
         <img class="pte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="pte-photo" src="" alt="">
         <div class="pte-num"><span>5</span></div>
-        <img class="pte-flag" src="" alt="">
+        <div class="pte-flag"><span></span></div>
         <div class="pte-name"><span></span></div>
         <div class="pte-label"><span>ELIMINATIONS</span></div>
         <div class="pte-count"><span></span></div>
@@ -5113,7 +5932,7 @@
         <img class="qte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="qte-photo" src="" alt="">
         <div class="qte-num"><span>1</span></div>
-        <img class="qte-flag" src="" alt="">
+        <div class="qte-flag"><span></span></div>
         <div class="qte-name"><span></span></div>
         <div class="qte-label"><span>ELIMINATIONS</span></div>
         <div class="qte-count"><span></span></div>
@@ -5122,7 +5941,7 @@
         <img class="qte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="qte-photo" src="" alt="">
         <div class="qte-num"><span>2</span></div>
-        <img class="qte-flag" src="" alt="">
+        <div class="qte-flag"><span></span></div>
         <div class="qte-name"><span></span></div>
         <div class="qte-label"><span>ELIMINATIONS</span></div>
         <div class="qte-count"><span></span></div>
@@ -5131,7 +5950,7 @@
         <img class="qte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="qte-photo" src="" alt="">
         <div class="qte-num"><span>3</span></div>
-        <img class="qte-flag" src="" alt="">
+        <div class="qte-flag"><span></span></div>
         <div class="qte-name"><span></span></div>
         <div class="qte-label"><span>ELIMINATIONS</span></div>
         <div class="qte-count"><span></span></div>
@@ -5140,7 +5959,7 @@
         <img class="qte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="qte-photo" src="" alt="">
         <div class="qte-num"><span>4</span></div>
-        <img class="qte-flag" src="" alt="">
+        <div class="qte-flag"><span></span></div>
         <div class="qte-name"><span></span></div>
         <div class="qte-label"><span>ELIMINATIONS</span></div>
         <div class="qte-count"><span></span></div>
@@ -5149,7 +5968,7 @@
         <img class="qte-card-bg" src="/assets/mapkills/mapkill_container.png" alt="">
         <img class="qte-photo" src="" alt="">
         <div class="qte-num"><span>5</span></div>
-        <img class="qte-flag" src="" alt="">
+        <div class="qte-flag"><span></span></div>
         <div class="qte-name"><span></span></div>
         <div class="qte-label"><span>ELIMINATIONS</span></div>
         <div class="qte-count"><span></span></div>
@@ -5172,9 +5991,9 @@
       <div id="mwn-team-back">
         <div id="mwn-logo-box">
           <img id="mwn-logo-img" alt="">
-          <img id="mwn-logo-flag" alt="">
+          <div id="mwn-logo-flag"><span></span></div>
         </div>
-        <img id="mwn-flag" alt="">
+        <div id="mwn-flag"><span></span></div>
         <div id="mwn-name"><span class="mwn-name-text"></span></div>
       </div>
       <div id="mwn-stats-back">
@@ -5190,7 +6009,7 @@
       <img class="mmvp-el" id="mmvp-photo" alt="">
       <div class="mmvp-el" id="mmvp-logo-box"><img id="mmvp-logo-img" alt=""></div>
       <div class="mmvp-el" id="mmvp-namebar"></div>
-      <img class="mmvp-el" id="mmvp-flag" alt="">
+      <div class="mmvp-el" id="mmvp-flag"><span></span></div>
       <div class="mmvp-el" id="mmvp-name"><span class="mmvp-fit"></span></div>
       <div class="mmvp-el" id="mmvp-elims-label"><span class="mmvp-fit">ELIMINATIONS</span></div>
       <div class="mmvp-el" id="mmvp-elims-value"><span class="mmvp-fit"></span></div>
@@ -5440,8 +6259,8 @@
       <div id="mhl-sponsor" data-sponsorbox></div>
       <div id="mhl-winner-back">
         <div id="mhl-winner-title"><span class="mhl-fit">MAP WINNER</span></div>
-        <div id="mhl-winner-logo"><img id="mhl-winner-logo-img" alt=""><img id="mhl-winner-logo-flag" alt=""></div>
-        <img id="mhl-winner-flag" alt="">
+        <div id="mhl-winner-logo"><img id="mhl-winner-logo-img" alt=""><div id="mhl-winner-logo-flag"><span></span></div></div>
+        <div id="mhl-winner-flag"><span></span></div>
         <div id="mhl-winner-name"><span class="mhl-name-text"></span></div>
       </div>
     </div>
@@ -5719,6 +6538,50 @@
         else if (msg.action === 'refresh') tmeRefresh(); /* purely local re-render, safe in the preview frame too */
       });
 
+      sseSource.addEventListener('team_h2h', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showTeamH2HScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+        else if (msg.action === 'refresh') tmhRefresh();
+      });
+
+      sseSource.addEventListener('player_h2h', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showPlayerH2HScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+        else if (msg.action === 'refresh') hhRefresh();
+      });
+
+      sseSource.addEventListener('map_placement_avg', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showMapPlacementAvgScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+        else if (msg.action === 'refresh') mpaRefresh();
+      });
+
+      sseSource.addEventListener('average_placement', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showAveragePlacementScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('zowned_rate', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showZownedRateScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+        else if (msg.action === 'refresh') zrRefresh();
+      });
+
       sseSource.addEventListener('team_point_percent', (e) => {
         const msg = JSON.parse(e.data);
         if (msg.action === 'show') {
@@ -5781,6 +6644,15 @@
           document.getElementById('config-bar').classList.remove('debug-open');
           setTimeout(showTournamentScheduleScene, 100);
         } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('team_lineup', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showTeamLineupScene, 100);
+        } else if (msg.action === 'page') tlSwapPage(msg.page);
+        else if (msg.action === 'hide') hideActiveFeature();
       });
 
       sseSource.addEventListener('prize_pool', (e) => {
@@ -6118,6 +6990,15 @@
 
     /* Tomorrow's Schedule — Day 1/2/3 preview same week's next day; Day 4
        previews next week's Day 1 (no play the following calendar day). */
+    /* The schedule scenes' "WEEK n DAY n" chip. Grand Finals is a 2-day
+       event with no weeks (Match Board hides its Week counter), so it reads
+       just "DAY n". */
+    function tsWeekText(ms) {
+      return /grand\s*finals/i.test((ms && ms.stage) || '') ? 'DAY ' + ms.day : 'WEEK ' + ms.week + ' DAY ' + ms.day;
+    }
+    function twWeekText(ms, wd) {
+      return /grand\s*finals/i.test((ms && ms.stage) || '') ? 'DAY ' + wd.day : 'WEEK ' + wd.week + ' - DAY ' + wd.day;
+    }
     function computeTomorrowWeekDay(state) {
       const week = state.week || 1, day = state.day || 1;
       return day === 4 ? { week: week + 1, day: 1 } : { week, day: day + 1 };
@@ -6215,6 +7096,7 @@
       groupstage: 'GROUP STAGE',
       playoffs: 'PLAYOFFS',
       'grand finals': 'GRAND FINALS',
+      showmatch: 'SHOWMATCH',
     };
     function wtvcStageLabel(stage) {
       const key = String(stage || '').trim().toLowerCase();
@@ -6276,17 +7158,9 @@
 
       const flag = document.createElement('div');
       flag.className = 'wtvc-row-flag';
-      const flagImg = document.createElement('img');
-      flagImg.alt = '';
       const flagTxt = document.createElement('span');
       const region = ((team && team.region) || '').toUpperCase();
       flagTxt.textContent = region;
-      flagImg.style.display = 'none';
-      flagImg.onload  = () => { flagImg.style.display = ''; flagTxt.style.display = 'none'; };
-      flagImg.onerror = () => { flagImg.style.display = 'none'; flagTxt.style.display = 'block'; };
-      if (region) flagImg.src = '/flag/' + encodeURIComponent(region) + '_flag.png';
-      else flagTxt.style.display = 'block';
-      flag.appendChild(flagImg);
       flag.appendChild(flagTxt);
       row.appendChild(flag);
 
@@ -7265,8 +8139,17 @@
        or stage shows every row. */
     function brMapRotationRows(ms) {
       const maps = brMapRows(ms);
-      if (!/playoffs/i.test((ms && ms.stage) || '')) return maps;
       const day = parseInt(ms && ms.day, 10) || 1;
+      /* Grand Finals: 12 maps over 2 days — Day 1 = maps 1-6, Day 2 = 7-12
+         (by position; its rows are plain numbers, no sheet labels). */
+      if (/grand\s*finals/i.test((ms && ms.stage) || '')) {
+        /* stamp the real map number so Day 2's cards read MAP 7-12, not 1-6 */
+        const numbered = maps.map((m, i) => Object.assign({}, m, { label: String(i + 1) }));
+        if (day === 1) return numbered.slice(0, 6);
+        if (day === 2) return numbered.slice(6, 12);
+        return numbered;
+      }
+      if (!/playoffs/i.test((ms && ms.stage) || '')) return maps;
       if (day !== 1 && day !== 2) return maps;
       return maps.filter(m => {
         const base = parseInt(m.label, 10);
@@ -7440,6 +8323,17 @@
     ════════════════════════════════════════════════ */
     const ovrPage = document.getElementById('overall-ranking-page');
 
+    /* Team country shown as its CODE in text ("PH", "TW", "HK"...) — flags are
+       not allowed in any overlay, so every former flag element is a box with
+       a <span> that gets the code here, shrink-to-fit. Call after the scene
+       is display:block (same rule as every other fit). */
+    function setFlagCode(el, code, maxSize) {
+      if (!el) return;
+      const span = el.querySelector('span');
+      if (span) span.textContent = String(code || '').trim().toUpperCase();
+      if (maxSize) ovrFitText(el, maxSize, Math.max(8, Math.round(maxSize / 2)));
+    }
+
     function ovrFitTextMeasure(el, maxSize, minSize) {
       let size = maxSize;
       el.style.fontSize = size + 'px';
@@ -7513,12 +8407,7 @@
           ' onload="this.parentNode.style.display=\'flex\';this.parentNode.parentNode.classList.add(\'rnk-has-logo\')"' +
           ' onerror="this.parentNode.style.display=\'none\'"></div>'
         : '';
-      const img = region
-        ? '<img class="rnk-flag-img" src="/flag/' + encodeURIComponent(region) + '_flag.png" alt=""' +
-          ' onload="this.style.display=\'block\';this.nextElementSibling.style.display=\'none\'"' +
-          ' onerror="this.style.display=\'none\'">'
-        : '';
-      return logo + '<div class="' + cellClass + '">' + img + '<span>' + (region || '') + '</span></div>';
+      return logo + '<div class="' + cellClass + '"><span>' + (region || '').toUpperCase() + '</span></div>';
     }
     /* Rank change vs the previous map (q.rankChange from
        /api/live-sheet-overall-standings: > 0 up, < 0 down, 0 same) — "+3" in
@@ -7534,15 +8423,19 @@
     function ovrBuildRow(q) {
       const row = document.createElement('div');
       row.className = 'ovr-row rnk-anim-item';
+      /* In The Zone (Grand Finals only, flagged in the IN THE ZONE tab) forces
+         the yellow container + the black Z! box. */
+      const bgSrc = q.inZone ? '/assets/Overall%20Ranking/teamscoreboard_rank1.png' : rnkRowBgSrc(q.rank, q.totalScore, q.yellowMax);
       row.innerHTML =
-        '<img class="ovr-row-bg" src="' + rnkRowBgSrc(q.rank, q.totalScore, q.yellowMax) + '" alt="">' +
+        '<img class="ovr-row-bg" src="' + bgSrc + '" alt="">' +
+        (q.inZone ? '<div class="ovr-zone-badge"><span>Z!</span></div>' : '') +
         '<div class="ovr-row-divider" style="left:182px"></div>' +
         '<div class="ovr-row-divider" style="left:487px"></div>' +
         '<div class="ovr-row-divider" style="left:591px"></div>' +
         '<div class="ovr-row-divider" style="left:691px"></div>' +
         '<div class="ovr-row-divider" style="left:789px"></div>' +
         '<div class="ovr-row-cell ovr-rc-rank">' + (q.rank || '') + '</div>' +
-        ovrChangeCell(q, rnkRowBgSrc(q.rank, q.totalScore, q.yellowMax).indexOf('rank1') !== -1) +
+        ovrChangeCell(q, bgSrc.indexOf('rank1') !== -1) +
         rnkFlagCellHtml('ovr-row-cell ovr-rc-flag', q.region, q.name) +
         '<div class="ovr-row-cell ovr-rc-name">' + (q.name || '') + '</div>' +
         '<div class="ovr-row-cell ovr-rc-group">' + (q.group || '') + '</div>' +
@@ -7576,6 +8469,15 @@
         /* Playoffs: the yellow container covers ranks 1-7, not just #1
            (rnkRowBgSrc's maxRank). Any other stage keeps rank 1 only. */
         if (/playoffs/i.test((ms && ms.stage) || '')) teams.forEach(t => { t.yellowMax = 7; });
+        /* Grand Finals: squads ticked in the IN THE ZONE tab get the yellow
+           container + Z! box (rows are tagged here so a tick changes the poll
+           key and re-renders the board). */
+        if (/grand\s*finals/i.test((ms && ms.stage) || '')) {
+          teams.forEach(t => { t.gf = true; });
+          const zd = await fetch(buildUrl('/api/in-the-zone'), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null);
+          const zone = new Set(((zd && zd.zone) || []).map(n => String(n).trim().toLowerCase()));
+          teams.forEach(t => { if (zone.has(String(t.name).trim().toLowerCase())) t.inZone = true; });
+        }
         return teams;
       } catch (e) { return []; }
     }
@@ -7583,6 +8485,8 @@
     /* Page 1 = teams 1-20, page 2 = teams 21-40 (same scene/header; each
        page is its own activeFeature: 'overallranking' / 'overallranking2'). */
     function ovrRenderPage(teams, offset) {
+      document.getElementById('overall-ranking-page').classList.toggle('ovr-gf', teams.some(t => t.gf));
+      document.getElementById('overall-ranking-page').classList.toggle('ovr-has-zone', teams.slice(offset, offset + 20).some(t => t.inZone));
       const pageTeams = teams.slice(offset, offset + 20);
       const ovrSolo = pageTeams.length <= 10;
       document.getElementById('ovr-col-left').classList.toggle('rnk-col-solo', ovrSolo);
@@ -7668,8 +8572,8 @@
           { key: 'rank',  label: 'Rank',  left: 31,  width: 92 },
           { key: 'team',  label: 'Team',  left: 150, width: 92 },
           { key: 'group', label: 'Group', left: zoneStart,                  width: zoneWidth, black: true },
-          { key: 'kp',    label: 'KP',    left: zoneStart + zoneWidth,      width: zoneWidth, black: true },
-          { key: 'rp',    label: 'RP',    left: zoneStart + zoneWidth * 2,  width: zoneWidth, black: true },
+          { key: 'kp',    label: 'EP',    left: zoneStart + zoneWidth,      width: zoneWidth, black: true },
+          { key: 'rp',    label: 'PP',    left: zoneStart + zoneWidth * 2,  width: zoneWidth, black: true },
           { key: 'tp',    label: 'TP',    left: zoneStart + zoneWidth * 3,  width: zoneWidth, black: true },
         ];
       }
@@ -7682,8 +8586,8 @@
       return [
         { key: 'rank', label: 'Rank', left: 31,  width: 92 },
         { key: 'team', label: 'Team', left: 150, width: 92 },
-        { key: 'kp',   label: 'KP',   left: zoneStart,                  width: zoneWidth, black: true },
-        { key: 'rp',   label: 'RP',   left: zoneStart + zoneWidth,      width: zoneWidth, black: true },
+        { key: 'kp',   label: 'EP',   left: zoneStart,                  width: zoneWidth, black: true },
+        { key: 'rp',   label: 'PP',   left: zoneStart + zoneWidth,      width: zoneWidth, black: true },
         { key: 'tp',   label: 'TP',   left: zoneStart + zoneWidth * 2,  width: zoneWidth, black: true },
       ];
     }
@@ -8106,6 +9010,135 @@
     }
 
     /* ════════════════════════════════════════════════
+       TEAM LINEUP — 3 pages of the live tally tab's squads (4 / 4 / 2 teams),
+       player photos from /photos/FRONT/<team>/<IGN>.png. One scene; the page
+       is set by /overlay/team_lineup/page/N (server state.fullscreenScene.
+       teamLineupPage) and swaps live without re-showing the header.
+    ════════════════════════════════════════════════ */
+    const tlPageEl = document.getElementById('team-lineup-page');
+    let tlTeams = [];
+    let tlCurrent = 1;
+    let tlSwapTimer = null;
+
+    async function tlFetchData() {
+      try {
+        const [lu, sc] = await Promise.all([
+          fetch(buildUrl('/api/team-lineup'), { cache: 'no-store' }).then(r => r.json()),
+          fetch(buildUrl('/overlay/fullscreen-scene'), { cache: 'no-store' }).then(r => r.json()),
+        ]);
+        return { teams: (lu && lu.teams) || [], page: Math.min(3, Math.max(1, (sc && sc.teamLineupPage) || 1)) };
+      } catch (e) { return { teams: [], page: 1 }; }
+    }
+
+    function tlBuildTeam(container, team) {
+      container.innerHTML = '';
+      if (!team) return;
+      team.players.slice(0, 5).forEach((name, i) => {
+        const card = document.createElement('div');
+        card.className = 'tl-card';
+        card.style.left = (i * 184) + 'px';
+        card.style.transitionDelay = (i * 70) + 'ms';
+        const img = document.createElement('img');
+        img.className = 'tl-photo';
+        img.alt = '';
+        img.onerror = function () { this.onerror = null; this.src = '/photos/placeholder.png'; };
+        img.src = '/photos/FRONT/' + encodeURIComponent(team.name) + '/' + encodeURIComponent(name) + '.png';
+        const nm = document.createElement('div');
+        nm.className = 'tl-name';
+        nm.textContent = name;
+        card.appendChild(img);
+        card.appendChild(nm);
+        container.appendChild(card);
+      });
+      const banner = document.createElement('div');
+      banner.className = 'tl-banner';
+      const bn = document.createElement('div');
+      bn.className = 'tl-banner-name';
+      bn.textContent = team.name;
+      banner.appendChild(bn);
+      const logo = document.createElement('img');
+      logo.className = 'tl-logo'; logo.alt = '';
+      logo.onerror = function () { this.style.display = 'none'; };
+      logo.src = '/logos/' + encodeURIComponent(team.name) + '.png';
+      banner.appendChild(logo);
+      if (team.region) {
+        const rt = document.createElement('div');
+        rt.className = 'tl-flag-text';
+        rt.textContent = team.region.toUpperCase();
+        banner.appendChild(rt);
+      }
+      container.appendChild(banner);
+    }
+
+    /* Needs real layout (page already .tl-on) — fit runs after render. */
+    /* Page 3 is always these three squads; the rest fill page 1 (first 4) and
+       page 2 (the remaining 3). With none of the three on the tab it falls
+       back to plain order (4 / 4 / rest). */
+    const TL_LAST_PAGE = ['REVENANT ECLIPSE', 'ASC', 'CHANGE WORLD'];
+    function tlPages() {
+      const last = TL_LAST_PAGE.map(n => tlTeams.find(t => String(t.name).trim().toUpperCase() === n)).filter(Boolean);
+      if (!last.length) return [tlTeams.slice(0, 4), tlTeams.slice(4, 8), tlTeams.slice(8, 12)];
+      const rest = tlTeams.filter(t => last.indexOf(t) === -1);
+      return [rest.slice(0, 4), rest.slice(4, 8), last];
+    }
+
+    function tlRender(page) {
+      tlCurrent = page;
+      const teams = tlPages()[page - 1] || [];
+      tlPageEl.classList.toggle('tl-three', teams.length === 3);
+      for (let i = 0; i < 4; i++) {
+        const container = document.getElementById('tl-team-' + i);
+        tlBuildTeam(container, teams[i]);
+        container.querySelectorAll('.tl-name').forEach(el => ovrFitText(el, 28, 14));
+        container.querySelectorAll('.tl-banner-name').forEach(el => ovrFitText(el, 32, 16));
+      }
+      void tlPageEl.offsetWidth;
+      tlPageEl.querySelectorAll('.tl-card, .tl-banner').forEach(el => el.classList.add('tl-show'));
+    }
+
+    function tlSwapPage(n) {
+      n = Math.min(3, Math.max(1, parseInt(n, 10) || 1));
+      if (activeFeature !== 'teamlineup') { tlCurrent = n; return; }
+      if (n === tlCurrent) return;
+      clearTimeout(tlSwapTimer);
+      tlPageEl.querySelectorAll('.tl-card, .tl-banner').forEach(el => el.classList.remove('tl-show'));
+      tlSwapTimer = setTimeout(() => { if (activeFeature === 'teamlineup') tlRender(n); }, 420);
+    }
+
+    async function showTeamLineupScene() {
+      const dataPromise = tlFetchData();
+      await transitionTo('teamlineup');
+      if (activeFeature !== 'teamlineup') return; /* superseded mid-await */
+      rnkShowHeader('Team Lineup');
+      rnkShowBgVideo();
+      tlPageEl.classList.add('tl-on');
+      void tlPageEl.offsetWidth;
+      tlPageEl.classList.add('tl-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'teamlineup') return; /* superseded while awaiting data */
+      tlTeams = data.teams;
+      tlRender(data.page);
+    }
+
+    function hideTeamLineupScene() {
+      activeFeature = null;
+      clearTimeout(tlSwapTimer);
+      tlPageEl.classList.remove('tl-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            tlPageEl.classList.remove('tl-on');
+            tlPageEl.querySelectorAll('.tl-card, .tl-banner').forEach(el => el.classList.remove('tl-show'));
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
        QUALIFIED TEAMS 1 — rank 1 & 2 of EACH Qualifier 1-10 tab, fed by
        /api/qualified-teams-standings?from=1&to=10 (a Qualifier tab with
        no P/K data entered yet contributes no rows at all — see
@@ -8462,7 +9495,7 @@
         if (!p) continue;
         ekSetImg(card.querySelector('.ek-photo'), '/photos/FRONT/' + encodeURIComponent(p.team) + '/' + encodeURIComponent(p.name) + '.png', '/photos/placeholder.png');
         ekSetImg(card.querySelector('.ek-teamlogo img'), '/logos/' + encodeURIComponent(p.team) + '.png');
-        ekSetImg(card.querySelector('.ek-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        setFlagCode(card.querySelector('.ek-flag'), p.country, 21.8);
         card.querySelector('.ek-name span').textContent = p.name;
         card.querySelector('.ek-count span').textContent = p.kills;
         ovrFitText(card.querySelector('.ek-name'), 32.86, 16);
@@ -8572,7 +9605,7 @@
         if (!p) continue;
         telSetImg(card.querySelector('.tel-photo'), '/photos/FRONT/' + encodeURIComponent(p.team) + '/' + encodeURIComponent(p.name) + '.png', '/photos/placeholder.png');
         telSetImg(card.querySelector('.tel-teamlogo img'), '/logos/' + encodeURIComponent(p.team) + '.png');
-        telSetImg(card.querySelector('.tel-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        setFlagCode(card.querySelector('.tel-flag'), p.country, 24);
         card.querySelector('.tel-name span').textContent = p.name;
         card.querySelector('.tel-count span').textContent = p.kills;
         ovrFitText(card.querySelector('.tel-name'), 36.15, 17.6);
@@ -8665,7 +9698,7 @@
         if (!p) continue;
         gelSetImg(card.querySelector('.gel-photo'), '/photos/FRONT/' + encodeURIComponent(p.team) + '/' + encodeURIComponent(p.name) + '.png', '/photos/placeholder.png');
         gelSetImg(card.querySelector('.gel-teamlogo img'), '/logos/' + encodeURIComponent(p.team) + '.png');
-        gelSetImg(card.querySelector('.gel-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        setFlagCode(card.querySelector('.gel-flag'), p.country, 24);
         card.querySelector('.gel-name span').textContent = p.name;
         card.querySelector('.gel-count span').textContent = p.kills;
         const grp = card.querySelector('.gel-group');
@@ -8761,7 +9794,7 @@
         if (!p) continue;
         pelSetImg(card.querySelector('.pel-photo'), '/photos/FRONT/' + encodeURIComponent(p.team) + '/' + encodeURIComponent(p.name) + '.png', '/photos/placeholder.png');
         pelSetImg(card.querySelector('.pel-teamlogo img'), '/logos/' + encodeURIComponent(p.team) + '.png');
-        pelSetImg(card.querySelector('.pel-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        setFlagCode(card.querySelector('.pel-flag'), p.country, 24);
         card.querySelector('.pel-name span').textContent = p.name;
         card.querySelector('.pel-count span').textContent = p.kills;
         const grp = card.querySelector('.pel-group');
@@ -8870,7 +9903,7 @@
         card.classList.toggle('tme-empty', !p);
         if (!p) continue;
         tmeSetImg(card.querySelector('.tme-photo'), '/logos/' + encodeURIComponent(p.team) + '.png');
-        tmeSetImg(card.querySelector('.tme-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        setFlagCode(card.querySelector('.tme-flag'), p.country, 21.8);
         card.querySelector('.tme-name span').textContent = p.team;
         card.querySelector('.tme-count span').textContent = p.kills;
         ovrFitText(card.querySelector('.tme-name'), 32.86, 16);
@@ -8933,6 +9966,579 @@
           setTimeout(() => {
             tmePage.classList.remove('tme-on');
             tmePage.querySelectorAll('.tme-card').forEach(c => c.classList.remove('tme-dealt'));
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       ZOWNED RATE — top 5 TEAMS by kills on the map chosen in the
+       dashboard's Control tab (/api/team-zowned-rate: Tally sheet, Overall
+       scope, ranked by kills on that map). Part of the RANK_FEATURES
+       family — shares #rnk-header, labeled "Zowned Rate". The
+       'zowned_rate' SSE event also carries action:'refresh' (sent when the
+       map pick changes) which re-ranks and re-flips a scene already on
+       screen.
+    ════════════════════════════════════════════════ */
+    const zrPage = document.getElementById('zowned-page');
+    const ZR_MAP_ASSET = {
+      'Isolated': 'isolated', 'Blackout': 'blackout', 'Alcatraz': 'alcatraz',
+      'Krai': 'krai', 'Rebirth Island': 'rebirth', 'Rebirth': 'rebirth',
+    };
+    const ZR_FLIP_STAGGER_MS = 130;
+
+    async function zrFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/team-zowned-rate'), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch (e) { return null; }
+    }
+
+    /* An <img> that hides itself when its file is missing (and un-hides
+       when a later src does load), instead of showing a broken icon. */
+    function zrSetImg(img, src, fallback) {
+      img.style.display = '';
+      img.onerror = () => {
+        if (fallback && img.getAttribute('src') !== fallback) { img.src = fallback; return; }
+        img.style.display = 'none';
+      };
+      img.src = src;
+    }
+
+    /* Must run AFTER #zowned-page has .zr-on (real layout) — the fit calls
+       measure against it. */
+    function zrApply(data) {
+      const mapName = (data && data.map) || '';
+      const slug = ZR_MAP_ASSET[mapName] || mapName.toLowerCase().replace(/\s+/g, '_');
+      zrSetImg(document.getElementById('zr-mapbox-bg'), '/maps/' + slug + '_waiting.png');
+      const nameSpan = document.querySelector('#zr-mapbox-name span');
+      nameSpan.textContent = mapName;
+      ovrFitText(document.getElementById('zr-mapbox-title'), 24.3, 14);
+      ovrFitText(document.getElementById('zr-mapbox-name'), 40.3, 20);
+
+      const players = (data && data.teams) || [];
+      for (let i = 0; i < 5; i++) {
+        const card = document.getElementById('zr-card-' + (i + 1));
+        card.classList.remove('zr-dealt');
+        const p = players[i];
+        card.classList.toggle('zr-empty', !p);
+        if (!p) continue;
+        zrSetImg(card.querySelector('.zr-photo'), '/logos/' + encodeURIComponent(p.team) + '.png');
+        setFlagCode(card.querySelector('.zr-flag'), p.country, 21.8);
+        card.querySelector('.zr-name span').textContent = p.team;
+        card.querySelector('.zr-count span').textContent = Math.round(p.rate * 100) + '%';
+        ovrFitText(card.querySelector('.zr-name'), 32.86, 16);
+        ovrFitText(card.querySelector('.zr-label'), 34, 18);
+        ovrFitText(card.querySelector('.zr-count'), 50, 22);
+      }
+      return players.length;
+    }
+
+    async function zrRender(data) {
+      const count = zrApply(data);
+      await preloadMedia(zrPage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'zownedrate') return;
+      void zrPage.offsetWidth; /* snap the reset (no transition on the base class) before flipping */
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          if (activeFeature !== 'zownedrate') return;
+          document.getElementById('zr-card-' + (i + 1)).classList.add('zr-dealt');
+        }, i * ZR_FLIP_STAGGER_MS);
+      }
+    }
+
+    let zrRefreshSeq = 0;
+    async function zrRefresh() {
+      if (activeFeature !== 'zownedrate') return;
+      const seq = ++zrRefreshSeq; /* a newer map pick supersedes this one */
+      const dataPromise = zrFetchData();
+      const cards = Array.from(zrPage.querySelectorAll('.zr-card.zr-dealt'));
+      cards.forEach((c, i) => setTimeout(() => {
+        c.classList.remove('zr-dealt');
+        c.classList.add('zr-leaving');
+      }, i * 60));
+      await new Promise(r => setTimeout(r, cards.length ? cards.length * 60 + 380 : 0));
+      const data = await dataPromise;
+      if (activeFeature !== 'zownedrate' || seq !== zrRefreshSeq) return;
+      zrPage.querySelectorAll('.zr-card').forEach(c => c.classList.remove('zr-leaving'));
+      zrRender(data);
+    }
+
+    async function showZownedRateScene() {
+      const dataPromise = zrFetchData();
+      await transitionTo('zownedrate');
+      if (activeFeature !== 'zownedrate') return; /* superseded mid-await */
+      rnkShowHeader('Zowned Rate');
+      rnkShowBgVideo();
+      zrPage.classList.add('zr-on');
+      void zrPage.offsetWidth; /* force reflow so the opacity transition runs */
+      zrPage.classList.add('zr-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'zownedrate') return; /* superseded while awaiting data */
+      zrRender(data);
+    }
+
+    function hideZownedRateScene() {
+      activeFeature = null;
+      zrPage.classList.remove('zr-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            zrPage.classList.remove('zr-on');
+            zrPage.querySelectorAll('.zr-card').forEach(c => c.classList.remove('zr-dealt'));
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       AVERAGE PLACEMENT — the Grand Finals teams' average map placement
+       across every valued map in the Tally sheet (/api/average-placement,
+       best first). Up to 10 cards, 2 rows of 5. Part of the RANK_FEATURES
+       family — shares #rnk-header, labeled "Average Placement". Data is
+       fetched on show (hide/show to refresh).
+    ════════════════════════════════════════════════ */
+    const avpPage = document.getElementById('avgplace-page');
+    const AVP_FLIP_STAGGER_MS = 110;
+    const AVP_PITCH = 335; /* card-to-card spacing; a short row is centered with it */
+
+    async function avpFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/average-placement'), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch (e) { return null; }
+    }
+
+    function avpSetImg(img, src) {
+      img.style.display = '';
+      img.onerror = () => { img.style.display = 'none'; };
+      img.src = src;
+    }
+
+    /* Must run AFTER #avgplace-page has .avp-on (real layout) — the fit
+       calls measure against it. */
+    function avpApply(data) {
+      const teams = (data && data.teams) || [];
+      for (let i = 0; i < 10; i++) {
+        const card = document.getElementById('avp-card-' + (i + 1));
+        card.classList.remove('avp-dealt');
+        const t = teams[i];
+        card.classList.toggle('avp-empty', !t);
+        /* center a short row (row 1 = cards 1-5, row 2 = cards 6-10) */
+        const rowStart = i < 5 ? 0 : 5;
+        const inRow = Math.max(0, Math.min(5, teams.length - rowStart));
+        card.style.marginLeft = inRow && inRow < 5 ? ((5 - inRow) * AVP_PITCH / 2) + 'px' : '';
+        if (!t) continue;
+        avpSetImg(card.querySelector('.avp-photo'), '/logos/' + encodeURIComponent(t.team) + '.png');
+        setFlagCode(card.querySelector('.avp-flag'), t.country, 16.6);
+        card.querySelector('.avp-name span').textContent = t.team;
+        card.querySelector('.avp-count span').textContent = (Math.round(t.avg * 10) / 10).toFixed(1);
+        ovrFitText(card.querySelector('.avp-name'), 24.3, 12);
+        ovrFitText(card.querySelector('.avp-label'), 25.8, 14);
+        ovrFitText(card.querySelector('.avp-count'), 37, 18);
+      }
+      return teams.length;
+    }
+
+    async function avpRender(data) {
+      const count = avpApply(data);
+      await preloadMedia(avpPage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'averageplacement') return;
+      void avpPage.offsetWidth; /* snap the reset (no transition on the base class) before flipping */
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          if (activeFeature !== 'averageplacement') return;
+          document.getElementById('avp-card-' + (i + 1)).classList.add('avp-dealt');
+        }, i * AVP_FLIP_STAGGER_MS);
+      }
+    }
+
+    async function showAveragePlacementScene() {
+      const dataPromise = avpFetchData();
+      await transitionTo('averageplacement');
+      if (activeFeature !== 'averageplacement') return; /* superseded mid-await */
+      rnkShowHeader('Average Placement');
+      rnkShowBgVideo();
+      avpPage.classList.add('avp-on');
+      void avpPage.offsetWidth; /* force reflow so the opacity transition runs */
+      avpPage.classList.add('avp-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'averageplacement') return; /* superseded while awaiting data */
+      avpRender(data);
+    }
+
+    function hideAveragePlacementScene() {
+      activeFeature = null;
+      avpPage.classList.remove('avp-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            avpPage.classList.remove('avp-on');
+            avpPage.querySelectorAll('.avp-card').forEach(c => c.classList.remove('avp-dealt'));
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       MAP PLACEMENT AVG — the Grand Finals teams' average placement
+       on ONE map (every valued result on it) in the Tally sheet (/api/map-placement-avg,
+       best first) on the map chosen in the dashboard's Control tab. Up to
+       10 cards, 2 rows of 5. 'map_placement_avg' also carries
+       action:'refresh' (map pick changed) which re-flips a live scene. Part of the RANK_FEATURES
+       family — shares #rnk-header, labeled "Average Placement". Data is
+       fetched on show (hide/show to refresh).
+    ════════════════════════════════════════════════ */
+    const mpaPage = document.getElementById('mapplace-page');
+    const MPA_FLIP_STAGGER_MS = 110;
+    const MPA_PITCH = 335; /* card-to-card spacing; a short row is centered with it */
+
+    async function mpaFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/map-placement-avg'), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch (e) { return null; }
+    }
+
+    const MPA_MAP_ASSET = {
+      'Isolated': 'isolated', 'Blackout': 'blackout', 'Alcatraz': 'alcatraz',
+      'Krai': 'krai', 'Rebirth Island': 'rebirth', 'Rebirth': 'rebirth',
+    };
+
+    function mpaSetImg(img, src) {
+      img.style.display = '';
+      img.onerror = () => { img.style.display = 'none'; };
+      img.src = src;
+    }
+
+    /* Must run AFTER #mapplace-page has .mpa-on (real layout) — the fit
+       calls measure against it. */
+    function mpaApply(data) {
+      const mapName = (data && data.map) || '';
+      const slug = MPA_MAP_ASSET[mapName] || mapName.toLowerCase().replace(/\s+/g, '_');
+      mpaSetImg(document.getElementById('mpa-mapbox-bg'), '/maps/' + slug + '_waiting.png');
+      document.querySelector('#mpa-mapbox-name span').textContent = mapName;
+      ovrFitText(document.getElementById('mpa-mapbox-title'), 14.6, 8);
+      ovrFitText(document.getElementById('mpa-mapbox-name'), 24.2, 12);
+      const teams = (data && data.teams) || [];
+      for (let i = 0; i < 10; i++) {
+        const card = document.getElementById('mpa-card-' + (i + 1));
+        card.classList.remove('mpa-dealt');
+        const t = teams[i];
+        card.classList.toggle('mpa-empty', !t);
+        /* center a short row (row 1 = cards 1-5, row 2 = cards 6-10) */
+        const rowStart = i < 5 ? 0 : 5;
+        const inRow = Math.max(0, Math.min(5, teams.length - rowStart));
+        card.style.marginLeft = inRow && inRow < 5 ? ((5 - inRow) * MPA_PITCH / 2) + 'px' : '';
+        if (!t) continue;
+        mpaSetImg(card.querySelector('.mpa-photo'), '/logos/' + encodeURIComponent(t.team) + '.png');
+        setFlagCode(card.querySelector('.mpa-flag'), t.country, 16.6);
+        card.querySelector('.mpa-name span').textContent = t.team;
+        card.querySelector('.mpa-count span').textContent = (Math.round(t.avg * 10) / 10).toFixed(1);
+        ovrFitText(card.querySelector('.mpa-name'), 24.3, 12);
+        ovrFitText(card.querySelector('.mpa-label'), 25.8, 14);
+        ovrFitText(card.querySelector('.mpa-count'), 37, 18);
+      }
+      return teams.length;
+    }
+
+    async function mpaRender(data) {
+      const count = mpaApply(data);
+      await preloadMedia(mpaPage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'mapplacementavg') return;
+      void mpaPage.offsetWidth; /* snap the reset (no transition on the base class) before flipping */
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          if (activeFeature !== 'mapplacementavg') return;
+          document.getElementById('mpa-card-' + (i + 1)).classList.add('mpa-dealt');
+        }, i * MPA_FLIP_STAGGER_MS);
+      }
+    }
+
+    let mpaRefreshSeq = 0;
+    async function mpaRefresh() {
+      if (activeFeature !== 'mapplacementavg') return;
+      const seq = ++mpaRefreshSeq; /* a newer map pick supersedes this one */
+      const dataPromise = mpaFetchData();
+      const cards = Array.from(mpaPage.querySelectorAll('.mpa-card.mpa-dealt'));
+      cards.forEach((c, i) => setTimeout(() => {
+        c.classList.remove('mpa-dealt');
+        c.classList.add('mpa-leaving');
+      }, i * 60));
+      await new Promise(r => setTimeout(r, cards.length ? cards.length * 60 + 380 : 0));
+      const data = await dataPromise;
+      if (activeFeature !== 'mapplacementavg' || seq !== mpaRefreshSeq) return;
+      mpaPage.querySelectorAll('.mpa-card').forEach(c => c.classList.remove('mpa-leaving'));
+      mpaRender(data);
+    }
+
+    async function showMapPlacementAvgScene() {
+      const dataPromise = mpaFetchData();
+      await transitionTo('mapplacementavg');
+      if (activeFeature !== 'mapplacementavg') return; /* superseded mid-await */
+      rnkShowHeader('Map Placement AVG');
+      rnkShowBgVideo();
+      mpaPage.classList.add('mpa-on');
+      void mpaPage.offsetWidth; /* force reflow so the opacity transition runs */
+      mpaPage.classList.add('mpa-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'mapplacementavg') return; /* superseded while awaiting data */
+      mpaRender(data);
+    }
+
+    function hideMapPlacementAvgScene() {
+      activeFeature = null;
+      mpaPage.classList.remove('mpa-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            mpaPage.classList.remove('mpa-on');
+            mpaPage.querySelectorAll('.mpa-card').forEach(c => c.classList.remove('mpa-dealt'));
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       PLAYER H2H — two players compared head-to-head (/api/player-h2h, from
+       the Tally sheet; the pair is picked in the Control tab). Part of the
+       RANK_FEATURES family — shares #rnk-header, labeled "Player H2H". The
+       'player_h2h' SSE event also carries action:'refresh' (pair changed)
+       which swaps a live scene to the new matchup.
+    ════════════════════════════════════════════════ */
+    const hhPage = document.getElementById('h2h-page');
+    const HH_ROWS = [
+      { key: 'kills', label: 'TOTAL ELIMS', fmt: v => String(Math.round(v)) },
+      { key: 'perMap', label: 'ELIMS / MAP', fmt: v => v.toFixed(1) },
+      { key: 'best', label: 'BEST MAP ELIMS', fmt: v => String(Math.round(v)) },
+      { key: 'share', label: 'TEAM KILL SHARE', fmt: v => Math.round(v) + '%' },
+      { key: 'maps', label: 'MAPS PLAYED', fmt: v => String(Math.round(v)) },
+      { key: 'avgPlace', label: 'TEAM AVG PLACEMENT', fmt: v => v.toFixed(1), lowerBetter: true },
+      { key: 'wins', label: 'TEAM WINS', fmt: v => String(Math.round(v)) },
+    ];
+
+    async function hhFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/player-h2h'), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch (e) { return null; }
+    }
+
+    function hhSetImg(img, src, fallback) {
+      img.style.display = '';
+      img.onerror = () => {
+        if (fallback && img.getAttribute('src') !== fallback) { img.src = fallback; return; }
+        img.style.display = 'none';
+      };
+      img.src = src;
+    }
+
+    /* Must run AFTER #h2h-page has .hh-on (real layout) — the fit calls
+       measure against it. */
+    function hhApply(data) {
+      const a = data && data.a, b = data && data.b;
+      [['a', a], ['b', b]].forEach(([side, p]) => {
+        hhSetImg(document.getElementById('hh-photo-' + side), p ? '/photos/FRONT/' + encodeURIComponent(p.team) + '/' + encodeURIComponent(p.name) + '.png' : '', '/photos/placeholder.png');
+        hhSetImg(document.getElementById('hh-logo-' + side), p ? '/logos/' + encodeURIComponent(p.team) + '.png' : '');
+        const nameEl = document.getElementById('hh-name-' + side);
+        nameEl.querySelector('span').textContent = p ? p.name : '';
+        ovrFitText(nameEl, 52, 22);
+      });
+      HH_ROWS.forEach((r, i) => {
+        const row = document.getElementById('hh-row-' + (i + 1));
+        const l = row.querySelector('.hh-lval'), c = row.querySelector('.hh-label'), rt = row.querySelector('.hh-rval');
+        const av = a ? a[r.key] : null, bv = b ? b[r.key] : null;
+        l.querySelector('span').textContent = av == null ? '-' : r.fmt(av);
+        rt.querySelector('span').textContent = bv == null ? '-' : r.fmt(bv);
+        c.querySelector('span').textContent = r.label;
+        ovrFitText(c, 30, 16);
+      });
+    }
+
+    function hhIn() {
+      const els = Array.from(hhPage.querySelectorAll('.hh-anim'));
+      els.forEach(e => e.classList.remove('hh-in'));
+      void hhPage.offsetWidth; /* snap the reset before animating in */
+      els.forEach((e, i) => setTimeout(() => {
+        if (activeFeature !== 'playerh2h') return;
+        e.classList.add('hh-in');
+      }, i * 55));
+    }
+
+    async function hhRender(data) {
+      hhApply(data);
+      await preloadMedia(hhPage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'playerh2h') return;
+      hhIn();
+    }
+
+    let hhRefreshSeq = 0;
+    async function hhRefresh() {
+      if (activeFeature !== 'playerh2h') return;
+      const seq = ++hhRefreshSeq; /* a newer pick supersedes this one */
+      const dataPromise = hhFetchData();
+      hhPage.querySelectorAll('.hh-anim').forEach(e => e.classList.remove('hh-in'));
+      await new Promise(r => setTimeout(r, 500));
+      const data = await dataPromise;
+      if (activeFeature !== 'playerh2h' || seq !== hhRefreshSeq) return;
+      hhRender(data);
+    }
+
+    async function showPlayerH2HScene() {
+      const dataPromise = hhFetchData();
+      await transitionTo('playerh2h');
+      if (activeFeature !== 'playerh2h') return; /* superseded mid-await */
+      rnkShowHeader('Player H2H');
+      rnkShowBgVideo();
+      hhPage.classList.add('hh-on');
+      void hhPage.offsetWidth; /* force reflow so the opacity transition runs */
+      hhPage.classList.add('hh-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'playerh2h') return; /* superseded while awaiting data */
+      hhRender(data);
+    }
+
+    function hidePlayerH2HScene() {
+      activeFeature = null;
+      hhPage.classList.remove('hh-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            hhPage.classList.remove('hh-on');
+            hhPage.querySelectorAll('.hh-anim').forEach(e => e.classList.remove('hh-in'));
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       TEAM H2H — two teams compared head-to-head (/api/team-h2h). Stats
+       come from the WHOLE Tally sheet; the pair is picked in the Control tab
+       from the chosen tally page's teams. Part of the RANK_FEATURES family —
+       shares #rnk-header, labeled "Team H2H". The 'team_h2h' SSE event also
+       carries action:'refresh' (pair changed) which swaps a live scene.
+    ════════════════════════════════════════════════ */
+    const tmhPage = document.getElementById('teamh2h-page');
+    const TMH_ROWS = [
+      { key: 'maps', label: 'MAPS PLAYED', fmt: v => String(Math.round(v)) },
+      { key: 'kills', label: 'TOTAL ELIMS', fmt: v => String(Math.round(v)) },
+      { key: 'perMap', label: 'ELIMS / MAP', fmt: v => v.toFixed(1) },
+      { key: 'avgPlace', label: 'AVG PLACEMENT', fmt: v => v.toFixed(1) },
+      { key: 'wins', label: 'WINS (1ST PLACE)', fmt: v => String(Math.round(v)) },
+      { key: 'winRate', label: 'WIN RATE', fmt: v => Math.round(v) + '%' },
+      { key: 'top3', label: 'TOP 3 FINISHES', fmt: v => String(Math.round(v)) },
+    ];
+
+
+    async function tmhFetchData() {
+      try {
+        const res = await fetch(buildUrl('/api/team-h2h'), { cache: 'no-store' });
+        return res.ok ? await res.json() : null;
+      } catch (e) { return null; }
+    }
+
+    function tmhSetImg(img, src, fallback) {
+      img.style.display = '';
+      img.onerror = () => {
+        if (fallback && img.getAttribute('src') !== fallback) { img.src = fallback; return; }
+        img.style.display = 'none';
+      };
+      img.src = src;
+    }
+
+    /* Must run AFTER #teamh2h-page has .tmh-on (real layout) — the fit calls
+       measure against it. */
+    function tmhApply(data) {
+      const a = data && data.a, b = data && data.b;
+      [['a', a], ['b', b]].forEach(([side, t]) => {
+        tmhSetImg(document.getElementById('tmh-logo-' + side), t ? '/logos/' + encodeURIComponent(t.name) + '.png' : '');
+        setFlagCode(document.getElementById('tmh-flag-' + side), t ? t.country : '', 80);
+        const nameEl = document.getElementById('tmh-name-' + side);
+        nameEl.querySelector('span').textContent = t ? t.name : '';
+        ovrFitText(nameEl, 52, 18);
+      });
+      TMH_ROWS.forEach((r, i) => {
+        const row = document.getElementById('tmh-row-' + (i + 1));
+        const l = row.querySelector('.tmh-lval'), c = row.querySelector('.tmh-label'), rt = row.querySelector('.tmh-rval');
+        const av = a ? a[r.key] : null, bv = b ? b[r.key] : null;
+        l.querySelector('span').textContent = av == null ? '-' : r.fmt(av);
+        rt.querySelector('span').textContent = bv == null ? '-' : r.fmt(bv);
+        c.querySelector('span').textContent = r.label;
+        ovrFitText(c, 30, 16);
+      });
+    }
+
+    function tmhIn() {
+      const els = Array.from(tmhPage.querySelectorAll('.tmh-anim'));
+      els.forEach(e => e.classList.remove('tmh-in'));
+      void tmhPage.offsetWidth; /* snap the reset before animating in */
+      els.forEach((e, i) => setTimeout(() => {
+        if (activeFeature !== 'teamh2h') return;
+        e.classList.add('tmh-in');
+      }, i * 55));
+    }
+
+    async function tmhRender(data) {
+      tmhApply(data);
+      await preloadMedia(tmhPage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'teamh2h') return;
+      tmhIn();
+    }
+
+    let tmhRefreshSeq = 0;
+    async function tmhRefresh() {
+      if (activeFeature !== 'teamh2h') return;
+      const seq = ++tmhRefreshSeq; /* a newer pick supersedes this one */
+      const dataPromise = tmhFetchData();
+      tmhPage.querySelectorAll('.tmh-anim').forEach(e => e.classList.remove('tmh-in'));
+      await new Promise(r => setTimeout(r, 500));
+      const data = await dataPromise;
+      if (activeFeature !== 'teamh2h' || seq !== tmhRefreshSeq) return;
+      tmhRender(data);
+    }
+
+    async function showTeamH2HScene() {
+      const dataPromise = tmhFetchData();
+      await transitionTo('teamh2h');
+      if (activeFeature !== 'teamh2h') return; /* superseded mid-await */
+      rnkShowHeader('Team H2H');
+      rnkShowBgVideo();
+      tmhPage.classList.add('tmh-on');
+      void tmhPage.offsetWidth; /* force reflow so the opacity transition runs */
+      tmhPage.classList.add('tmh-visible');
+      const data = await dataPromise;
+      if (activeFeature !== 'teamh2h') return; /* superseded while awaiting data */
+      tmhRender(data);
+    }
+
+    function hideTeamH2HScene() {
+      activeFeature = null;
+      tmhPage.classList.remove('tmh-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            tmhPage.classList.remove('tmh-on');
+            tmhPage.querySelectorAll('.tmh-anim').forEach(e => e.classList.remove('tmh-in'));
             rnkHideBgVideo();
             resolve();
           }, 420);
@@ -9217,7 +10823,7 @@
         if (!p) continue;
         qelSetImg(card.querySelector('.qel-photo'), '/photos/FRONT/' + encodeURIComponent(p.team) + '/' + encodeURIComponent(p.name) + '.png', '/photos/placeholder.png');
         qelSetImg(card.querySelector('.qel-teamlogo img'), '/logos/' + encodeURIComponent(p.team) + '.png');
-        qelSetImg(card.querySelector('.qel-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        setFlagCode(card.querySelector('.qel-flag'), p.country, 24);
         card.querySelector('.qel-name span').textContent = p.name;
         card.querySelector('.qel-count span').textContent = p.kills;
         ovrFitText(card.querySelector('.qel-name'), 36.15, 17.6);
@@ -9305,7 +10911,7 @@
         card.classList.toggle('tte-empty', !p);
         if (!p) continue;
         tteSetImg(card.querySelector('.tte-photo'), '/logos/' + encodeURIComponent(p.team) + '.png');
-        tteSetImg(card.querySelector('.tte-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        setFlagCode(card.querySelector('.tte-flag'), p.country, 21.8);
         card.querySelector('.tte-name span').textContent = p.team;
         card.querySelector('.tte-count span').textContent = p.kills;
         ovrFitText(card.querySelector('.tte-name'), 32.86, 16);
@@ -9393,7 +10999,7 @@
         card.classList.toggle('gte-empty', !p);
         if (!p) continue;
         gteSetImg(card.querySelector('.gte-photo'), '/logos/' + encodeURIComponent(p.team) + '.png');
-        gteSetImg(card.querySelector('.gte-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        setFlagCode(card.querySelector('.gte-flag'), p.country, 21.8);
         card.querySelector('.gte-name span').textContent = p.team;
         card.querySelector('.gte-count span').textContent = p.kills;
         const grp = card.querySelector('.gte-group');
@@ -9484,7 +11090,7 @@
         card.classList.toggle('pte-empty', !p);
         if (!p) continue;
         pteSetImg(card.querySelector('.pte-photo'), '/logos/' + encodeURIComponent(p.team) + '.png');
-        pteSetImg(card.querySelector('.pte-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        setFlagCode(card.querySelector('.pte-flag'), p.country, 21.8);
         card.querySelector('.pte-name span').textContent = p.team;
         card.querySelector('.pte-count span').textContent = p.kills;
         const grp = card.querySelector('.pte-group');
@@ -9575,7 +11181,7 @@
         card.classList.toggle('qte-empty', !p);
         if (!p) continue;
         qteSetImg(card.querySelector('.qte-photo'), '/logos/' + encodeURIComponent(p.team) + '.png');
-        qteSetImg(card.querySelector('.qte-flag'), p.country ? '/flag/' + encodeURIComponent(p.country) + '_flag.png' : '');
+        setFlagCode(card.querySelector('.qte-flag'), p.country, 21.8);
         card.querySelector('.qte-name span').textContent = p.team;
         card.querySelector('.qte-count span').textContent = p.kills;
         ovrFitText(card.querySelector('.qte-name'), 32.86, 16);
@@ -9955,11 +11561,9 @@
       const d = data && data.winner;
       mwnRenderPhotos(d ? d.players : null, d ? d.name : '', animate);
       if (!d) { mwnCard.style.display = 'none'; return; }
-      const flagUrl = d.region ? '/flag/' + encodeURIComponent(d.region) + '_flag.png' : '';
-      const [hasLogo, hasFlag] = await Promise.all([
-        mwnProbe('/logos/' + encodeURIComponent(d.name) + '.png'),
-        flagUrl ? mwnProbe(flagUrl) : Promise.resolve(false),
-      ]);
+      const flagCode = String(d.region || '').toUpperCase();
+      const hasFlag = !!flagCode;
+      const hasLogo = await mwnProbe('/logos/' + encodeURIComponent(d.name) + '.png');
       if (activeFeature !== 'mapwinner') return;
       const logoImg = document.getElementById('mwn-logo-img');
       const logoFlag = document.getElementById('mwn-logo-flag');
@@ -9968,11 +11572,11 @@
       if (hasLogo) {
         logoImg.src = '/logos/' + encodeURIComponent(d.name) + '.png';
         logoImg.style.display = 'block';
-        if (hasFlag) { flag.src = flagUrl; flag.style.display = 'block'; }
+        if (hasFlag) { flag.querySelector('span').textContent = flagCode; flag.style.display = 'flex'; }
       } else if (hasFlag) {
-        /* No logo: the flag takes the logo square instead. */
-        logoFlag.src = flagUrl;
-        logoFlag.style.display = 'block';
+        /* No logo: the country code takes the logo square instead. */
+        logoFlag.querySelector('span').textContent = flagCode;
+        logoFlag.style.display = 'flex';
       }
       const nameEl = document.getElementById('mwn-name');
       nameEl.querySelector('.mwn-name-text').textContent = d.name;
@@ -10127,11 +11731,11 @@
       mmvpAnimPending = false;
       const p = data && data.player;
       if (!p) { mmvpPage.classList.add('mmvp-empty'); mmvpPhotoKey = ''; return; }
-      const flagUrl = p.region ? '/flag/' + encodeURIComponent(p.region) + '_flag.png' : '';
+      const flagCode = String(p.region || '').toUpperCase();
+      const hasFlag = !!flagCode;
       const logoUrl = '/logos/' + encodeURIComponent(p.team) + '.png';
-      const [hasLogo, hasFlag] = await Promise.all([
+      const [hasLogo] = await Promise.all([
         mwnProbe(logoUrl),
-        flagUrl ? mwnProbe(flagUrl) : Promise.resolve(false),
         mmvpLoadPhoto(p.team, p.name),
       ]);
       if (activeFeature !== 'mapmvp') return; /* superseded mid-await */
@@ -10139,7 +11743,7 @@
       logo.style.display = 'none';
       if (hasLogo) { logo.src = logoUrl; logo.style.display = 'block'; }
       flag.style.display = 'none';
-      if (hasFlag) { flag.src = flagUrl; flag.style.display = 'block'; }
+      if (hasFlag) { flag.querySelector('span').textContent = flagCode; flag.style.display = 'flex'; }
       mmvpSpan('mmvp-name').textContent = p.name;
       const vals = [
         { id: 'mmvp-elims-value', v: p.kills, suffix: '' },
@@ -11499,7 +13103,7 @@
       if (activeFeature !== 'schedule') return; /* superseded while awaiting match state */
       if (ms) {
         if (ms.week != null && ms.day != null) {
-          document.getElementById('ts-week').textContent = 'WEEK ' + ms.week + ' DAY ' + ms.day;
+          document.getElementById('ts-week').textContent = tsWeekText(ms);
         }
         buildTsMatches(ms);
       }
@@ -11584,7 +13188,7 @@
       if (ms) {
         if (ms.week != null && ms.day != null) {
           const wd = computeTomorrowWeekDay(ms);
-          document.getElementById('tw-week').textContent = 'WEEK ' + wd.week + ' - DAY ' + wd.day;
+          document.getElementById('tw-week').textContent = twWeekText(ms, wd);
         }
         buildTwMatches(ms);
       }
@@ -11646,7 +13250,7 @@
       /* Today's Schedule rows + week/day chip */
       if (activeFeature === 'schedule') {
         if (ms.week != null && ms.day != null) {
-          document.getElementById('ts-week').textContent = 'WEEK ' + ms.week + ' DAY ' + ms.day;
+          document.getElementById('ts-week').textContent = tsWeekText(ms);
         }
         buildTsMatches(ms);
       }
@@ -11655,7 +13259,7 @@
         applyTwTitle(ms);
         if (ms.week != null && ms.day != null) {
           const wd = computeTomorrowWeekDay(ms);
-          document.getElementById('tw-week').textContent = 'WEEK ' + wd.week + ' - DAY ' + wd.day;
+          document.getElementById('tw-week').textContent = twWeekText(ms, wd);
         }
         buildTwMatches(ms);
       }
@@ -11701,7 +13305,7 @@
        header, only its own scoreboard content. Same precedent as
        cpDuringPostTransition above. */
     let duringRankTransition = false;
-    const RANK_FEATURES = new Set(['overallranking', 'overallranking2', 'mapranking', 'slotteams', 'groupa', 'groupb', 'groupc', 'groupd', 'dangerzone', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'playoffselimleaders', 'playoffsteamelims', 'elimsmap', 'elimleaders', 'groupelimleaders', 'teammapelims', 'teampointpct', 'pointcontribution', 'qualelimleaders', 'totalteamelims', 'groupteamelims', 'qualteamelims', 'tournamentschedule', 'prizepool', 'mapwinner', 'mapmvp', 'postqualified']);
+    const RANK_FEATURES = new Set(['overallranking', 'overallranking2', 'mapranking', 'slotteams', 'groupa', 'groupb', 'groupc', 'groupd', 'dangerzone', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'playoffselimleaders', 'playoffsteamelims', 'elimsmap', 'elimleaders', 'groupelimleaders', 'teammapelims', 'teampointpct', 'pointcontribution', 'qualelimleaders', 'totalteamelims', 'groupteamelims', 'qualteamelims', 'tournamentschedule', 'prizepool', 'mapwinner', 'mapmvp', 'postqualified', 'teamlineup', 'zownedrate', 'averageplacement', 'mapplacementavg', 'playerh2h', 'teamh2h']);
 
     /* Keeps server-side state.fullscreenScene.<key> (and thus the dashboard's
        Control-tab board toggles/live indicator) in sync with board
@@ -11794,6 +13398,11 @@
       if (prev === 'groupelimleaders') return hideGroupElimLeadersScene();
       if (prev === 'playoffselimleaders') return hidePlayoffsElimLeadersScene();
       if (prev === 'teammapelims') return hideTeamMapElimsScene();
+      if (prev === 'zownedrate') return hideZownedRateScene();
+      if (prev === 'averageplacement') return hideAveragePlacementScene();
+      if (prev === 'mapplacementavg') return hideMapPlacementAvgScene();
+      if (prev === 'playerh2h') return hidePlayerH2HScene();
+      if (prev === 'teamh2h') return hideTeamH2HScene();
       if (prev === 'teampointpct') return hideTeamPointPercentScene();
       if (prev === 'pointcontribution') return hidePointContributionScene();
       if (prev === 'qualelimleaders') return hideQualElimLeadersScene();
@@ -11803,6 +13412,7 @@
       if (prev === 'qualteamelims') return hideQualTeamElimsScene();
       if (prev === 'tournamentschedule') return hideTournamentScheduleScene();
       if (prev === 'prizepool') return hidePrizePoolScene();
+      if (prev === 'teamlineup') return hideTeamLineupScene();
       if (prev === 'mapwinner') return hideMapWinnerScene();
       if (prev === 'mapmvp') return hideMapMvpScene();
       if (prev === 'highlights') return hideHighlights();
@@ -12168,9 +13778,10 @@
     async function mhlRenderWinner(w) {
       const card = document.getElementById('mhl-winner-back');
       if (!w) { card.style.display = 'none'; return; }
-      const flagUrl = w.region ? '/flag/' + encodeURIComponent(w.region) + '_flag.png' : '';
+      const flagCode = String(w.region || '').toUpperCase();
+      const hasFlag = !!flagCode;
       const logoUrl = '/logos/' + encodeURIComponent(w.name) + '.png';
-      const [hasLogo, hasFlag] = await Promise.all([mhlProbe(logoUrl), flagUrl ? mhlProbe(flagUrl) : Promise.resolve(false)]);
+      const hasLogo = await mhlProbe(logoUrl);
       if (activeFeature !== 'maphighlights') return;
       const logoImg = document.getElementById('mhl-winner-logo-img');
       const logoFlag = document.getElementById('mhl-winner-logo-flag');
@@ -12178,10 +13789,10 @@
       logoImg.style.display = logoFlag.style.display = flag.style.display = 'none';
       if (hasLogo) {
         logoImg.src = logoUrl; logoImg.style.display = 'block';
-        if (hasFlag) { flag.src = flagUrl; flag.style.display = 'block'; }
+        if (hasFlag) { flag.querySelector('span').textContent = flagCode; flag.style.display = 'flex'; }
       } else if (hasFlag) {
-        /* No logo: the flag takes the logo square instead. */
-        logoFlag.src = flagUrl; logoFlag.style.display = 'block';
+        /* No logo: the country code takes the logo square instead. */
+        logoFlag.querySelector('span').textContent = flagCode; logoFlag.style.display = 'flex';
       }
       const nameEl = document.getElementById('mhl-winner-name');
       nameEl.querySelector('.mhl-name-text').textContent = w.name;
@@ -12643,6 +14254,11 @@
           else if (scene.activeFeature === 'groupelimleaders') showGroupElimLeadersScene();
           else if (scene.activeFeature === 'playoffselimleaders') showPlayoffsElimLeadersScene();
           else if (scene.activeFeature === 'teammapelims') showTeamMapElimsScene();
+          else if (scene.activeFeature === 'zownedrate') showZownedRateScene();
+          else if (scene.activeFeature === 'averageplacement') showAveragePlacementScene();
+          else if (scene.activeFeature === 'mapplacementavg') showMapPlacementAvgScene();
+          else if (scene.activeFeature === 'playerh2h') showPlayerH2HScene();
+          else if (scene.activeFeature === 'teamh2h') showTeamH2HScene();
           else if (scene.activeFeature === 'teampointpct') showTeamPointPercentScene();
           else if (scene.activeFeature === 'pointcontribution') showPointContributionScene();
           else if (scene.activeFeature === 'qualelimleaders') showQualElimLeadersScene();
@@ -12652,6 +14268,7 @@
           else if (scene.activeFeature === 'qualteamelims') showQualTeamElimsScene();
           else if (scene.activeFeature === 'tournamentschedule') showTournamentScheduleScene();
           else if (scene.activeFeature === 'prizepool') showPrizePoolScene();
+          else if (scene.activeFeature === 'teamlineup') showTeamLineupScene();
           else if (scene.activeFeature === 'mapwinner') showMapWinnerScene();
           else if (scene.activeFeature === 'mapmvp') showMapMvpScene();
           else if (scene.activeFeature === 'highlights') showHighlights();
@@ -12701,6 +14318,11 @@
         if (feature === 'groupelimleaders') showGroupElimLeadersScene();
         if (feature === 'playoffselimleaders') showPlayoffsElimLeadersScene();
         if (feature === 'teammapelims') showTeamMapElimsScene();
+        if (feature === 'zownedrate') showZownedRateScene();
+        if (feature === 'averageplacement') showAveragePlacementScene();
+        if (feature === 'mapplacementavg') showMapPlacementAvgScene();
+        if (feature === 'playerh2h') showPlayerH2HScene();
+        if (feature === 'teamh2h') showTeamH2HScene();
         if (feature === 'teampointpct') showTeamPointPercentScene();
         if (feature === 'pointcontribution') showPointContributionScene();
         if (feature === 'qualelimleaders') showQualElimLeadersScene();
@@ -12710,6 +14332,7 @@
         if (feature === 'qualteamelims') showQualTeamElimsScene();
         if (feature === 'tournamentschedule') showTournamentScheduleScene();
         if (feature === 'prizepool') showPrizePoolScene();
+        if (feature === 'teamlineup') showTeamLineupScene();
         if (feature === 'mapwinner') showMapWinnerScene();
         if (feature === 'mapmvp') showMapMvpScene();
         if (feature === 'highlights') showHighlights();
@@ -12729,7 +14352,7 @@
     window.previewTrigger = function(event, action) {
       document.querySelectorAll('.dbg-btn.preview').forEach(b => b.classList.remove('active'));
       if (action === 'show') {
-        const btnMap = { post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', overall_ranking_2: 'preview-overallranking2', map_ranking: 'preview-mapranking', slot_teams: 'preview-slotteams', group_a: 'preview-groupa', group_b: 'preview-groupb', group_c: 'preview-groupc', group_d: 'preview-groupd', danger_zone: 'preview-dangerzone', qualified_teams_1: 'preview-qualifiedteams1', qualified_teams_2: 'preview-qualifiedteams2', map_rotation: 'preview-maprotation', elims_map: 'preview-elimsmap', elim_leaders: 'preview-elimleaders', group_elim_leaders: 'preview-groupelimleaders', team_map_elims: 'preview-teammapelims', team_point_percent: 'preview-teampointpct', point_contribution: 'preview-pointcontribution', qual_elim_leaders: 'preview-qualelimleaders', total_team_elims: 'preview-totalteamelims', group_team_elims: 'preview-groupteamelims', qual_team_elims: 'preview-qualteamelims', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool', map_winner: 'preview-mapwinner', map_mvp: 'preview-mapmvp' };
+        const btnMap = { team_h2h: 'preview-teamh2h', player_h2h: 'preview-playerh2h', map_placement_avg: 'preview-mapplacementavg', average_placement: 'preview-averageplacement', zowned_rate: 'preview-zownedrate', team_lineup: 'preview-teamlineup', post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', overall_ranking_2: 'preview-overallranking2', map_ranking: 'preview-mapranking', slot_teams: 'preview-slotteams', group_a: 'preview-groupa', group_b: 'preview-groupb', group_c: 'preview-groupc', group_d: 'preview-groupd', danger_zone: 'preview-dangerzone', qualified_teams_1: 'preview-qualifiedteams1', qualified_teams_2: 'preview-qualifiedteams2', map_rotation: 'preview-maprotation', elims_map: 'preview-elimsmap', elim_leaders: 'preview-elimleaders', group_elim_leaders: 'preview-groupelimleaders', team_map_elims: 'preview-teammapelims', team_point_percent: 'preview-teampointpct', point_contribution: 'preview-pointcontribution', qual_elim_leaders: 'preview-qualelimleaders', total_team_elims: 'preview-totalteamelims', group_team_elims: 'preview-groupteamelims', qual_team_elims: 'preview-qualteamelims', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool', map_winner: 'preview-mapwinner', map_mvp: 'preview-mapmvp' };
         const btn = document.getElementById(btnMap[event]);
         if (btn) btn.classList.add('active');
       }
@@ -12751,6 +14374,11 @@
         if (event === 'group_elim_leaders') showGroupElimLeadersScene();
         if (event === 'playoffs_elim_leaders') showPlayoffsElimLeadersScene();
         if (event === 'team_map_elims') showTeamMapElimsScene();
+        if (event === 'zowned_rate') showZownedRateScene();
+        if (event === 'average_placement') showAveragePlacementScene();
+        if (event === 'map_placement_avg') showMapPlacementAvgScene();
+        if (event === 'player_h2h') showPlayerH2HScene();
+        if (event === 'team_h2h') showTeamH2HScene();
         if (event === 'team_point_percent') showTeamPointPercentScene();
         if (event === 'point_contribution') showPointContributionScene();
         if (event === 'qual_elim_leaders') showQualElimLeadersScene();
@@ -12760,6 +14388,7 @@
         if (event === 'qual_team_elims') showQualTeamElimsScene();
         if (event === 'tournament_schedule') showTournamentScheduleScene();
         if (event === 'prize_pool') showPrizePoolScene();
+        if (event === 'team_lineup') showTeamLineupScene();
         if (event === 'map_winner') showMapWinnerScene();
         if (event === 'map_mvp') showMapMvpScene();
         if (event === 'highlights') showHighlights();

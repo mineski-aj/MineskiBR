@@ -156,6 +156,21 @@
   .mvp-row { display: flex; align-items: center; gap: 8px; }
   .mvp-current { font-size: 12px; color: #888; }
   .mvp-current b { color: #ffe800; font-weight: 700; }
+
+  /* ── Comment picker ── */
+  .badge-cmt { background: #1a3a2a; color: #3ddc97; border: 1px solid #2a5a40; }
+  .cmt-preview { font-size: 13px; line-height: 1.5; color: #ccc; background: rgba(255,255,255,0.03);
+                 border: 1px solid #1e1e2c; border-radius: 6px; padding: 10px 12px; white-space: pre-wrap; min-height: 40px; }
+  .cmt-preview .cmt-meta { font-size: 11px; color: #888; margin-bottom: 4px; }
+  .cmt-preview .cmt-meta b { color: #3ddc97; }
+  .cmt-platform { display: inline-block; margin-left: 6px; padding: 1px 9px; border-radius: 10px; font-size: 11px;
+                  font-weight: 700; color: #fff; background: #555; }
+  .cmt-platform.facebook  { background: #1f4fa8; }
+  .cmt-platform.youtube   { background: #a82219; }
+  .cmt-platform.tiktok    { background: #111; border: 1px solid #444; }
+  .cmt-platform.instagram { background: #a02a78; }
+  .cmt-platform.twitch    { background: #6a3fc4; }
+  .cmt-platform.x, .cmt-platform.twitter { background: #222; border: 1px solid #444; }
 </style>
 </head>
 <body>
@@ -199,6 +214,22 @@
       <select id="mvp-select"></select>
     </div>
     <div class="mvp-current" id="mvp-current">—</div>
+  </div>
+
+  <!-- Comment Panel — pick from the tally sheet's "Dynamic Comments" tab -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-badge badge-cmt">COMMENT</span>
+      <button id="cmt-apply-btn" class="panel-save-btn" onclick="applyComment()">Apply</button>
+      <button class="panel-save-btn" onclick="clearComment()">Clear</button>
+      <span id="cmt-status" class="panel-save-status">—</span>
+      <span class="panel-label-sub" id="cmt-count">Loading comments…</span>
+    </div>
+    <div class="field">
+      <label class="field-label" for="cmt-select">Comment (from the tally sheet's Dynamic Comments tab)</label>
+      <select id="cmt-select"></select>
+    </div>
+    <div class="cmt-preview" id="cmt-preview">—</div>
   </div>
 
 </div>
@@ -362,6 +393,84 @@
     saveMvp(team, player);
   }
   function clearMvp() { mvpTouched = false; saveMvp('', ''); }
+
+  /* ── Comment picker ──
+     Options are keyed by sheet row order. Refreshes every 5s without
+     clobbering an unapplied dropdown choice. */
+  const cmtSel = document.getElementById('cmt-select');
+  let cmtList = [];
+  let cmtSaved = { name: '', comment: '', platform: '' };
+  let cmtTouched = false;
+  const cmtSame = (a, b) => a.name === b.name && a.comment === b.comment && a.platform === b.platform;
+  const cmtShort = c => (c.name || '—') + (c.platform ? ' [' + c.platform + ']' : '') + ' — '
+    + (c.comment.length > 70 ? c.comment.slice(0, 70) + '…' : c.comment);
+
+  function setCmtStatus(s) {
+    const el = document.getElementById('cmt-status');
+    el.className = 'panel-save-status ' + s;
+    el.textContent = s === 'saving' ? 'Saving…' : s === 'saved' ? 'Saved' : s === 'error' ? 'Error' : s === 'dirty' ? 'Not applied' : '—';
+  }
+  function showCmtPreview(c) {
+    const box = document.getElementById('cmt-preview');
+    if (!c || !c.comment) { box.textContent = 'No comment picked.'; return; }
+    const pcls = (c.platform || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    box.innerHTML = '<div class="cmt-meta"><b>' + esc(c.name || '—') + '</b>'
+      + (c.platform ? '<span class="cmt-platform ' + pcls + '">' + esc(c.platform) + '</span>' : '') + '</div>' + esc(c.comment);
+  }
+  function renderCmtList() {
+    const keep = cmtTouched ? cmtSel.value : String(cmtList.findIndex(c => cmtSame(c, cmtSaved)));
+    cmtSel.innerHTML = '';
+    const none = document.createElement('option');
+    none.value = ''; none.textContent = '— Select a comment —';
+    cmtSel.appendChild(none);
+    cmtList.forEach((c, i) => {
+      const o = document.createElement('option');
+      o.value = String(i); o.textContent = (i + 1) + '. ' + cmtShort(c);
+      cmtSel.appendChild(o);
+    });
+    cmtSel.value = Array.from(cmtSel.options).some(o => o.value === keep) ? keep : '';
+    showCmtPreview(cmtSel.value === '' ? (cmtSaved.comment ? cmtSaved : null) : cmtList[Number(cmtSel.value)]);
+  }
+  async function refreshComments() {
+    try {
+      const [d, sel] = await Promise.all([
+        fetch('/api/dynamic-comments', { cache: 'no-store' }).then(r => r.json()),
+        fetch('/api/dynamic-comment-selection', { cache: 'no-store' }).then(r => r.json()),
+      ]);
+      cmtList = d.comments || [];
+      cmtSaved = { name: sel.name || '', comment: sel.comment || '', platform: sel.platform || '' };
+      document.getElementById('cmt-count').textContent = d.found
+        ? cmtList.length + ' comment' + (cmtList.length === 1 ? '' : 's')
+        : 'No "Dynamic Comments" tab found';
+      renderCmtList();
+    } catch (e) {
+      document.getElementById('cmt-count').textContent = 'Could not load comments';
+    }
+  }
+  async function saveComment(c) {
+    setCmtStatus('saving');
+    try {
+      const r = await fetch('/api/dynamic-comment-selection', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(c),
+      });
+      if (!r.ok) throw new Error();
+      cmtTouched = false;
+      setCmtStatus('saved');
+      setTimeout(() => setCmtStatus(''), 2000);
+      await refreshComments();
+    } catch (e) { setCmtStatus('error'); }
+  }
+  function applyComment() {
+    if (cmtSel.value === '') return clearComment();
+    saveComment(cmtList[Number(cmtSel.value)]);
+  }
+  function clearComment() { cmtTouched = false; saveComment({ name: '', comment: '', platform: '' }); }
+  cmtSel.addEventListener('change', () => {
+    cmtTouched = true; setCmtStatus('dirty');
+    showCmtPreview(cmtSel.value === '' ? null : cmtList[Number(cmtSel.value)]);
+  });
+  refreshComments();
+  setInterval(refreshComments, 5000);
 
   mvpSel.addEventListener('change', () => { mvpTouched = true; setMvpStatus('dirty'); });
   refreshMvp();

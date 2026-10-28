@@ -242,6 +242,46 @@ router.post('/api/mvp-selection', (req, res) => {
   res.json({ ok: true, roleid });
 });
 
+// Dynamic Comments — the tally sheet's "Dynamic Comments" tab (Name /
+// Comments / Platform, header in row 1). The Dynamic tab's picker lists
+// them (/api/dynamic-comments) and the caster's pick is stored whole
+// ({ name, comment, platform }) so it survives the sheet being edited.
+const DYNAMIC_COMMENT_SELECTION_FILE = path.join(__dirname, '..', 'dynamic_comment_selection.json');
+
+router.get('/api/dynamic-comments', (req, res) => {
+  const t = require('../lib/externalTally').get();
+  // Columns are found by their header text (Name / Comments / Platform), not
+  // position — the tab can have a leading row-number column.
+  const all = t.commentRows || [];
+  const header = (all[0] || []).map(function (h) { return String(h == null ? '' : h).trim().toLowerCase(); });
+  const col = function (re, fallback) { const i = header.findIndex(function (h) { return re.test(h); }); return i === -1 ? fallback : i; };
+  const nameCol = col(/^name$/, 0), commentCol = col(/^comments?$/, 1), platformCol = col(/^platform$/, 2);
+  const cell = function (r, i) { return String(r[i] == null ? '' : r[i]).trim(); };
+  const comments = [];
+  all.slice(1).forEach(function (r) {
+    const name = cell(r, nameCol), comment = cell(r, commentCol), platform = cell(r, platformCol);
+    if (comment) comments.push({ name, comment, platform });
+  });
+  res.set('Cache-Control', 'no-store').json({ comments, found: !!t.commentRows, error: t.error || null });
+});
+
+router.get('/api/dynamic-comment-selection', (req, res) => {
+  let sel = { name: '', comment: '', platform: '' };
+  try { sel = Object.assign(sel, JSON.parse(fs.readFileSync(DYNAMIC_COMMENT_SELECTION_FILE, 'utf8'))); } catch (e) {}
+  res.set('Cache-Control', 'no-store').json(sel);
+});
+
+router.post('/api/dynamic-comment-selection', (req, res) => {
+  const b = req.body || {};
+  const sel = { name: String(b.name || '').trim(), comment: String(b.comment || '').trim(), platform: String(b.platform || '').trim() };
+  fs.writeFileSync(DYNAMIC_COMMENT_SELECTION_FILE, JSON.stringify(sel));
+  // Tell any on-air comment tag to animate to the new pick (LowerThirds.html
+  // ignores this unless the tag is currently showing).
+  const msg = 'event: lowerthird\ndata: ' + JSON.stringify(Object.assign({ action: 'update', type: 'comment' }, sel)) + '\n\n';
+  state.overlayClients.forEach(c => { try { c.write(msg); } catch {} });
+  res.json({ ok: true, ...sel });
+});
+
 // Map MVP (Fullscreen.html's mapmvp scene) — the caster picks the player
 // from the Dynamic tab's picker, which lists every player on the live tally
 // sheet's current map (/api/map-mvp-players). The pick is stored as

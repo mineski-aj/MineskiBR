@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Lower Thirds</title>
+<style>
+  @font-face { font-family: 'Anton'; src: url('/fonts/Anton-Regular.ttf'); font-display: block; }
+  @font-face { font-family: 'Teko'; src: url('/fonts/Teko-SemiBold.ttf'); font-weight: 600; font-display: block; }
+  @font-face { font-family: 'General Sans'; src: url('/fonts/GeneralSans-Bold.otf'); font-weight: 700; font-display: block; }
+  @font-face { font-family: 'General Sans'; src: url('/fonts/GeneralSans-Semibold.otf'); font-weight: 600; font-display: block; }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; }
+  #stage { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; overflow: hidden; background: transparent; }
+
+  /* Shared text-box treatment: center-center, shrink-to-fit (see lowerThirdFit) */
+  .lt-text { display: flex; align-items: center; justify-content: center; text-align: center;
+             white-space: nowrap; overflow: hidden; text-transform: uppercase; }
+
+  /* Every tag: hidden by default, .lt-on = display:block, .lt-visible = animated in */
+  .lt-tag { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; display: none;
+            pointer-events: none; }
+  .lt-tag.lt-on { display: block; }
+
+  /* ───────── NAME TAG ───────── */
+  #nt-tab    { position: absolute; left: 120px; top: 842px; width: 520px; height: 64px; background: #e8e8e8;
+               color: #121212; font-family: 'Teko', sans-serif; font-weight: 600; font-size: 52px; }
+  #nt-bar    { position: absolute; left: 120px; top: 906px; width: 760px; height: 78px; background: #121212; }
+  #nt-accent { position: absolute; left: 120px; top: 906px; width: 10px; height: 78px; background: #ffe800; }
+  #nt-title  { position: absolute; left: 140px; top: 906px; width: 720px; height: 78px; color: #ffe800;
+               font-family: 'Anton', sans-serif; font-size: 44px; }
+  #nt-tab, #nt-bar, #nt-accent, #nt-title {
+    opacity: 0; transition: opacity 400ms ease, transform 400ms cubic-bezier(.2,.8,.2,1); transform: translateX(-80px);
+  }
+  #nt-tag.lt-visible #nt-tab, #nt-tag.lt-visible #nt-bar, #nt-tag.lt-visible #nt-accent, #nt-tag.lt-visible #nt-title {
+    opacity: 1; transform: translateX(0);
+  }
+  #nt-tag.lt-visible #nt-bar    { transition-delay: 60ms; }
+  #nt-tag.lt-visible #nt-accent { transition-delay: 60ms; }
+  #nt-tag.lt-visible #nt-title  { transition-delay: 140ms; }
+
+  /* ───────── SUPER (centered caption) ───────── */
+  #sp-tab   { position: absolute; left: 460px; top: 826px; width: 1000px; height: 56px; background: #e8e8e8;
+              color: #121212; font-family: 'Teko', sans-serif; font-weight: 600; font-size: 44px; }
+  #sp-bar   { position: absolute; left: 460px; top: 882px; width: 1000px; height: 110px; background: #121212; }
+  #sp-line1 { position: absolute; left: 480px; top: 882px; width: 960px; height: 110px; color: #ffe800;
+              font-family: 'Anton', sans-serif; font-size: 72px; }
+  #sp-tab, #sp-bar, #sp-line1 { opacity: 0; transition: opacity 400ms ease, transform 400ms cubic-bezier(.2,.8,.2,1); transform: translateY(40px); }
+  #sp-tag.lt-visible #sp-tab, #sp-tag.lt-visible #sp-bar, #sp-tag.lt-visible #sp-line1 { opacity: 1; transform: translateY(0); }
+  #sp-tag.lt-visible #sp-bar   { transition-delay: 60ms; }
+  #sp-tag.lt-visible #sp-line1 { transition-delay: 140ms; }
+
+  /* ───────── RUNNER (scrolling ticker) ───────── */
+  #rn-bar   { position: absolute; left: 0; top: 996px; width: 1920px; height: 68px; background: #121212; }
+  #rn-label { position: absolute; left: 0; top: 996px; width: 220px; height: 68px; background: #ffe800; color: #121212;
+              font-family: 'Anton', sans-serif; font-size: 36px; }
+  #rn-clip  { position: absolute; left: 240px; top: 996px; width: 1660px; height: 68px; overflow: hidden; }
+  #rn-track { position: absolute; left: 0; top: 0; height: 68px; display: flex; align-items: center; white-space: nowrap;
+              color: #fff; font-family: 'General Sans', sans-serif; font-weight: 700; font-size: 34px; text-transform: uppercase;
+              will-change: transform; }
+  #rn-track.lt-scrolling { animation: rn-scroll var(--rn-dur, 20s) linear infinite; }
+  @keyframes rn-scroll { from { transform: translateX(1660px); } to { transform: translateX(-100%); } }
+  #rn-bar, #rn-label, #rn-clip { opacity: 0; transition: opacity 400ms ease, transform 400ms cubic-bezier(.2,.8,.2,1); transform: translateY(80px); }
+  #rn-tag.lt-visible #rn-bar, #rn-tag.lt-visible #rn-label, #rn-tag.lt-visible #rn-clip { opacity: 1; transform: translateY(0); }
+
+
+  /* ───────── COMMENT (viewer comment: name + platform + text) ─────────
+     Dark slanted bar, white slanted emblem panel on the left (same look as the
+     Grand Finals header), big Anton name, comment text under it. */
+  #cm-bar     { position: absolute; left: 120px; top: 770px; width: 1680px; height: 240px; background: #121212;
+                clip-path: polygon(0 0, 100% 0, 97.6% 100%, 0 100%); }
+  #cm-panel   { position: absolute; left: 120px; top: 770px; width: 340px; height: 240px; background: #f2f2f2;
+                clip-path: polygon(0 0, 100% 0, 83% 100%, 0 100%); }
+  #cm-emblem  { position: absolute; left: 160px; top: 790px; width: 190px; height: 200px;
+                background: url('/assets/lowerthirds/brc_emblem.png') center / contain no-repeat; }
+  #cm-name    { position: absolute; left: 500px; top: 792px; width: 1080px; height: 76px; color: #fff;
+                justify-content: flex-start; text-align: left;
+                font-family: 'Anton', sans-serif; font-size: 64px; }
+  #cm-platform { position: absolute; left: 1600px; top: 805px; width: 150px; height: 50px; background: #555; color: #fff;
+                font-family: 'Teko', sans-serif; font-weight: 600; font-size: 34px; border-radius: 4px; }
+  #cm-platform.facebook  { background: #1f4fa8; }
+  #cm-platform.youtube   { background: #c4281c; }
+  #cm-platform.tiktok    { background: #000; }
+  #cm-platform.instagram { background: #b3317f; }
+  #cm-platform.twitch    { background: #6a3fc4; }
+  #cm-platform.x, #cm-platform.twitter { background: #1a1a1a; }
+  #cm-text    { position: absolute; left: 500px; top: 876px; width: 1230px; height: 120px; overflow: hidden; color: #fff;
+                display: flex; align-items: center; justify-content: flex-start; text-align: left; white-space: normal;
+                font-family: 'General Sans', sans-serif; font-weight: 700; font-size: 38px; line-height: 1.2; }
+  #cm-bar, #cm-panel, #cm-emblem, #cm-name, #cm-platform, #cm-text {
+    opacity: 0; transition: opacity 400ms ease, transform 400ms cubic-bezier(.2,.8,.2,1); transform: translateY(40px);
+  }
+  #cm-tag.lt-visible #cm-bar, #cm-tag.lt-visible #cm-panel, #cm-tag.lt-visible #cm-emblem, #cm-tag.lt-visible #cm-name,
+  #cm-tag.lt-visible #cm-platform, #cm-tag.lt-visible #cm-text { opacity: 1; transform: translateY(0); }
+  #cm-tag.lt-visible #cm-panel, #cm-tag.lt-visible #cm-emblem { transition-delay: 60ms; }
+  #cm-tag.lt-visible #cm-name, #cm-tag.lt-visible #cm-platform { transition-delay: 120ms; }
+  #cm-tag.lt-visible #cm-text { transition-delay: 180ms; }
+
+  /* Comment-to-comment swap: only the name, platform and text animate; the bar/emblem stay put. */
+  #cm-tag.lt-visible.cm-swapping #cm-name, #cm-tag.lt-visible.cm-swapping #cm-platform, #cm-tag.lt-visible.cm-swapping #cm-text {
+    opacity: 0; transform: translateY(14px); transition-delay: 0s;
+  }
+
+  /* ───────── PLAYER H2H L3 (two players, 3 stat bars) ─────────
+     Looping webm container, photos popping out of it on each side, a title tab
+     on top, three black-vs-yellow split bars in the middle and a team plate +
+     name plate under each photo. Every piece has its own id/class (pl-*). */
+  .pl-anim { opacity: 0; transition: opacity 450ms ease, transform 600ms cubic-bezier(.16,1,.3,1); }
+  .pl-from-b { transform: translateY(70px); }
+  .pl-from-l { transform: translateX(-90px); }
+  .pl-from-r { transform: translateX(90px); }
+  #pl-tag.lt-visible .pl-anim { opacity: 1; transform: none; }
+  #pl-tag.lt-visible .pl-d1 { transition-delay: 80ms; }
+  #pl-tag.lt-visible .pl-d2 { transition-delay: 160ms; }
+  #pl-tag.lt-visible .pl-d3 { transition-delay: 240ms; }
+  #pl-tag.lt-visible .pl-d4 { transition-delay: 320ms; }
+  #pl-tag.pl-refresh .pl-anim { opacity: 0; transition-duration: 300ms; transition-delay: 0s; }
+
+  #pl-box   { position: absolute; left: 330px; top: 770px; width: 1260px; height: 270px; background: #e9e9e9;
+              border: 6px solid #0a0a0a; border-top: 10px solid #ffe600; overflow: hidden; }
+  #pl-bg    { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+  #pl-title { position: absolute; left: 690px; top: 718px; width: 540px; height: 58px; background: #0a0a0a; color: #ffe600;
+              font-family: 'Anton', sans-serif; font-size: 38px; }
+  #pl-photo-a, #pl-photo-b { position: absolute; top: 470px; width: 570px; height: 570px; object-fit: contain; object-position: bottom; }
+  #pl-photo-a { left: 210px; }
+  #pl-photo-b { left: 1140px; }
+  #pl-plate-a, #pl-plate-b { position: absolute; top: 928px; width: 250px; height: 44px; background: #ffe600; }
+  #pl-plate-a { left: 350px; }
+  #pl-plate-b { left: 1320px; }
+  #pl-logo-a, #pl-logo-b { position: absolute; top: 920px; width: 60px; height: 60px; object-fit: contain; }
+  #pl-logo-a { left: 358px; }
+  #pl-logo-b { left: 1502px; }
+  #pl-code-a, #pl-code-b { position: absolute; top: 928px; width: 170px; height: 44px; color: #0a0a0a;
+              font-family: 'Teko', sans-serif; font-weight: 600; font-size: 34px; }
+  #pl-code-a { left: 424px; }
+  #pl-code-b { left: 1326px; }
+  #pl-name-a, #pl-name-b { position: absolute; top: 974px; width: 330px; height: 56px; background: #0a0a0a; color: #fff;
+              font-family: 'Anton', sans-serif; font-size: 34px; }
+  #pl-name-a { left: 350px; }
+  #pl-name-b { left: 1240px; }
+  #pl-row-1, #pl-row-2, #pl-row-3 { position: absolute; left: 710px; width: 500px; height: 74px; }
+  #pl-row-1 { top: 790px; }
+  #pl-row-2 { top: 870px; }
+  #pl-row-3 { top: 950px; }
+  .pl-label { position: absolute; left: 155px; top: 0; width: 190px; height: 26px; background: #fff; color: #0a0a0a;
+              border: 2px solid #0a0a0a; font-family: 'Teko', sans-serif; font-weight: 600; font-size: 22px; z-index: 2; }
+  .pl-bar   { position: absolute; left: 106px; top: 24px; width: 288px; height: 48px; background: #ffe600; overflow: hidden; border: 2px solid #0a0a0a; }
+  .pl-fill  { position: absolute; left: 0; top: 0; height: 100%; width: 50%; background: #0a0a0a; transition: width 700ms cubic-bezier(.16,1,.3,1); }
+  /* Higher side = yellow, lower side = black (fill = left/A segment, bar bg = right/B segment). */
+  .pl-bar.pl-a-win { background: #0a0a0a; } .pl-bar.pl-a-win .pl-fill { background: #ffe600; }
+  .pl-bar.pl-b-win { background: #ffe600; } .pl-bar.pl-b-win .pl-fill { background: #0a0a0a; }
+  .pl-bar.pl-tie   { background: #ffe600; } .pl-bar.pl-tie .pl-fill { background: #ffe600; box-sizing: border-box; border-right: 4px solid #0a0a0a; }
+  .pl-lval, .pl-rval { position: absolute; top: 24px; width: 100px; height: 48px; color: #0a0a0a; font-family: 'Teko', sans-serif; font-weight: 700; font-size: 42px; }
+  .pl-lval { left: 0; justify-content: flex-end; padding-right: 8px; }
+  .pl-rval { left: 400px; justify-content: flex-start; padding-left: 8px; }
+  #pl-code-a span, #pl-code-b span, .pl-label span, .pl-lval span, .pl-rval span { display: block; transform: translateY(0.1em); }
+
+  /* ───────── TEAM H2H L3 (two teams, 3 stat bars) — logos + country code tags, tm-* ───────── */
+  .tm-anim { opacity: 0; transition: opacity 450ms ease, transform 600ms cubic-bezier(.16,1,.3,1); }
+  .tm-from-b { transform: translateY(70px); }
+  .tm-from-l { transform: translateX(-90px); }
+  .tm-from-r { transform: translateX(90px); }
+  #tm-tag.lt-visible .tm-anim { opacity: 1; transform: none; }
+  #tm-tag.lt-visible .tm-d1 { transition-delay: 80ms; }
+  #tm-tag.lt-visible .tm-d2 { transition-delay: 160ms; }
+  #tm-tag.lt-visible .tm-d3 { transition-delay: 240ms; }
+  #tm-tag.lt-visible .tm-d4 { transition-delay: 320ms; }
+  #tm-tag.tm-refresh .tm-anim { opacity: 0; transition-duration: 300ms; transition-delay: 0s; }
+
+  #tm-box   { position: absolute; left: 330px; top: 770px; width: 1260px; height: 270px; background: #e9e9e9;
+              border: 6px solid #0a0a0a; border-top: 10px solid #ffe600; overflow: hidden; }
+  #tm-bg    { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+  #tm-title { position: absolute; left: 690px; top: 718px; width: 540px; height: 58px; background: #0a0a0a; color: #ffe600;
+              font-family: 'Anton', sans-serif; font-size: 38px; }
+  #tm-logo-a, #tm-logo-b { position: absolute; top: 790px; width: 190px; height: 190px; object-fit: contain; }
+  #tm-logo-a { left: 480px; }
+  #tm-logo-b { left: 1250px; }
+  #tm-tag-a, #tm-tag-b { position: absolute; top: 988px; width: 190px; height: 44px; background: #0a0a0a; color: #ffe600;
+              font-family: 'Teko', sans-serif; font-weight: 600; font-size: 38px; line-height: 0.95;
+              white-space: normal; padding: 0 6px; }
+  #tm-tag-a .tm-cc, #tm-tag-b .tm-cc { white-space: nowrap; }
+  #tm-tag-a { left: 480px; }
+  #tm-tag-b { left: 1250px; }
+  #tm-row-1, #tm-row-2, #tm-row-3 { position: absolute; left: 710px; width: 500px; height: 74px; }
+  #tm-row-1 { top: 790px; }
+  #tm-row-2 { top: 870px; }
+  #tm-row-3 { top: 950px; }
+  .tm-label { position: absolute; left: 155px; top: 0; width: 190px; height: 26px; background: #fff; color: #0a0a0a;
+              border: 2px solid #0a0a0a; font-family: 'Teko', sans-serif; font-weight: 600; font-size: 22px; z-index: 2; }
+  .tm-bar   { position: absolute; left: 106px; top: 24px; width: 288px; height: 48px; background: #ffe600; overflow: hidden; border: 2px solid #0a0a0a; }
+  .tm-fill  { position: absolute; left: 0; top: 0; height: 100%; width: 50%; background: #0a0a0a; transition: width 700ms cubic-bezier(.16,1,.3,1); }
+  /* Higher side = yellow, lower side = black (fill = left/A segment, bar bg = right/B segment). */
+  .tm-bar.tm-a-win { background: #0a0a0a; } .tm-bar.tm-a-win .tm-fill { background: #ffe600; }
+  .tm-bar.tm-b-win { background: #ffe600; } .tm-bar.tm-b-win .tm-fill { background: #0a0a0a; }
+  .tm-bar.tm-tie   { background: #ffe600; } .tm-bar.tm-tie .tm-fill { background: #ffe600; box-sizing: border-box; border-right: 4px solid #0a0a0a; }
+  .tm-lval, .tm-rval { position: absolute; top: 24px; width: 100px; height: 48px; color: #0a0a0a; font-family: 'Teko', sans-serif; font-weight: 700; font-size: 42px; }
+  .tm-lval { left: 0; justify-content: flex-end; padding-right: 8px; }
+  .tm-rval { left: 400px; justify-content: flex-start; padding-left: 8px; }
+  #tm-tag-a > span, #tm-tag-b > span, .tm-label span, .tm-lval span, .tm-rval span { display: block; transform: translateY(0.1em); }
+
+  /* ───────── Local debug bar (toggle with `) ───────── */
+  #lt-debug { position: absolute; left: 0; top: 0; width: 1920px; display: none; gap: 8px; padding: 8px;
+              background: rgba(0,0,0,.85); color: #fff; font: 13px 'General Sans', sans-serif; z-index: 99; align-items: center; pointer-events: auto; }
+  #lt-debug.open { display: flex; }
+  #lt-debug input { background: #222; color: #fff; border: 1px solid #444; padding: 4px 6px; width: 220px; }
+  #lt-debug button { padding: 4px 10px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- Name tag -->
+  <div id="nt-tag" class="lt-tag">
+    <div id="nt-tab" class="lt-text"><span id="nt-name"></span></div>
+    <div id="nt-bar"></div>
+    <div id="nt-accent"></div>
+    <div id="nt-title" class="lt-text"><span id="nt-title-text"></span></div>
+  </div>
+
+  <!-- Super -->
+  <div id="sp-tag" class="lt-tag">
+    <div id="sp-tab" class="lt-text"><span id="sp-label"></span></div>
+    <div id="sp-bar"></div>
+    <div id="sp-line1" class="lt-text"><span id="sp-line1-text"></span></div>
+  </div>
+
+  <!-- Runner -->
+  <div id="rn-tag" class="lt-tag">
+    <div id="rn-bar"></div>
+    <div id="rn-label" class="lt-text"><span id="rn-label-text"></span></div>
+    <div id="rn-clip"><div id="rn-track"></div></div>
+  </div>
+
+  <!-- Comment -->
+  <div id="cm-tag" class="lt-tag">
+    <div id="cm-bar"></div>
+    <div id="cm-panel"></div>
+    <div id="cm-emblem"></div>
+    <div id="cm-name" class="lt-text"><span id="cm-name-text"></span></div>
+    <div id="cm-platform" class="lt-text"><span id="cm-platform-text"></span></div>
+    <div id="cm-text"><span id="cm-text-span"></span></div>
+  </div>
+
+  <!-- Player H2H L3 -->
+  <div id="pl-tag" class="lt-tag">
+    <div id="pl-box" class="pl-anim pl-from-b"><video id="pl-bg" src="/assets/gbrc_loopbg.webm" muted loop playsinline preload="auto"></video></div>
+    <div id="pl-title" class="lt-text pl-anim pl-from-b pl-d1"><span>PLAYER HEAD TO HEAD</span></div>
+    <img id="pl-photo-a" class="pl-anim pl-from-l pl-d1" src="" alt="">
+    <img id="pl-photo-b" class="pl-anim pl-from-r pl-d1" src="" alt="">
+    <div id="pl-plate-a" class="pl-anim pl-from-b pl-d3"></div>
+    <img id="pl-logo-a" class="pl-anim pl-from-b pl-d3" src="" alt="">
+    <div id="pl-code-a" class="lt-text pl-anim pl-from-b pl-d3"><span></span></div>
+    <div id="pl-name-a" class="lt-text pl-anim pl-from-b pl-d4"><span></span></div>
+    <div id="pl-plate-b" class="pl-anim pl-from-b pl-d3"></div>
+    <img id="pl-logo-b" class="pl-anim pl-from-b pl-d3" src="" alt="">
+    <div id="pl-code-b" class="lt-text pl-anim pl-from-b pl-d3"><span></span></div>
+    <div id="pl-name-b" class="lt-text pl-anim pl-from-b pl-d4"><span></span></div>
+    <div id="pl-row-1" class="pl-anim pl-from-b pl-d2"><div class="pl-bar"><div class="pl-fill"></div></div><div class="pl-lval lt-text"><span></span></div><div class="pl-rval lt-text"><span></span></div><div class="pl-label lt-text"><span></span></div></div>
+    <div id="pl-row-2" class="pl-anim pl-from-b pl-d3"><div class="pl-bar"><div class="pl-fill"></div></div><div class="pl-lval lt-text"><span></span></div><div class="pl-rval lt-text"><span></span></div><div class="pl-label lt-text"><span></span></div></div>
+    <div id="pl-row-3" class="pl-anim pl-from-b pl-d4"><div class="pl-bar"><div class="pl-fill"></div></div><div class="pl-lval lt-text"><span></span></div><div class="pl-rval lt-text"><span></span></div><div class="pl-label lt-text"><span></span></div></div>
+  </div>
+
+  <!-- Team H2H L3 -->
+  <div id="tm-tag" class="lt-tag">
+    <div id="tm-box" class="tm-anim tm-from-b"><video id="tm-bg" src="/assets/gbrc_loopbg.webm" muted loop playsinline preload="auto"></video></div>
+    <div id="tm-title" class="lt-text tm-anim tm-from-b tm-d1"><span>TEAM HEAD TO HEAD</span></div>
+    <img id="tm-logo-a" class="tm-anim tm-from-l tm-d1" src="" alt="">
+    <img id="tm-logo-b" class="tm-anim tm-from-r tm-d1" src="" alt="">
+    <div id="tm-tag-a" class="lt-text tm-anim tm-from-b tm-d3"><span></span></div>
+    <div id="tm-tag-b" class="lt-text tm-anim tm-from-b tm-d3"><span></span></div>
+    <div id="tm-row-1" class="tm-anim tm-from-b tm-d2"><div class="tm-bar"><div class="tm-fill"></div></div><div class="tm-lval lt-text"><span></span></div><div class="tm-rval lt-text"><span></span></div><div class="tm-label lt-text"><span></span></div></div>
+    <div id="tm-row-2" class="tm-anim tm-from-b tm-d3"><div class="tm-bar"><div class="tm-fill"></div></div><div class="tm-lval lt-text"><span></span></div><div class="tm-rval lt-text"><span></span></div><div class="tm-label lt-text"><span></span></div></div>
+    <div id="tm-row-3" class="tm-anim tm-from-b tm-d4"><div class="tm-bar"><div class="tm-fill"></div></div><div class="tm-lval lt-text"><span></span></div><div class="tm-rval lt-text"><span></span></div><div class="tm-label lt-text"><span></span></div></div>
+  </div>
+
+  <div id="lt-debug">
+    <input id="dbg-l1" placeholder="Name / headline / runner text" value="JUAN DELA CRUZ">
+    <input id="dbg-l2" placeholder="Title / label" value="SHOUTCASTER">
+    <button onclick="dbgShow('nametag')">▶ Name Tag</button><button onclick="hideLowerThird('nametag')">■</button>
+    <button onclick="dbgShow('super')">▶ Super</button><button onclick="hideLowerThird('super')">■</button>
+    <button onclick="dbgShow('runner')">▶ Runner</button><button onclick="hideLowerThird('runner')">■</button>
+    <button onclick="showLowerThird('comment')">▶ Comment (live pick)</button><button onclick="hideLowerThird('comment')">■</button>
+    <button onclick="showLowerThird('playerh2h')">▶ Player H2H</button><button onclick="hideLowerThird('playerh2h')">■</button>
+    <button onclick="showLowerThird('teamh2h')">▶ Team H2H</button><button onclick="hideLowerThird('teamh2h')">■</button>
+  </div>
+</div>
+
+<script src="/html/js/overlay-sse-shim.js"></script>
+<script>
+const isPreviewFrame = new URLSearchParams(location.search).get('preview') === '1';
+
+/* type -> { page, text fields }. line1 = main text, line2 = secondary text. */
+const LT = {
+  nametag: { page: 'nt-tag', fields: [['nt-name', 'line2'], ['nt-title-text', 'line1']].map(([id, k]) => [id, k]),
+             fit: [['nt-tab', 'nt-name', 52, 26], ['nt-title', 'nt-title-text', 44, 22]] },
+  super:   { page: 'sp-tag', fields: [['sp-label', 'line2'], ['sp-line1-text', 'line1']],
+             fit: [['sp-tab', 'sp-label', 44, 22], ['sp-line1', 'sp-line1-text', 72, 36]] },
+  comment: { page: 'cm-tag', fields: [['cm-name-text', 'name'], ['cm-platform-text', 'platform'], ['cm-text-span', 'comment']],
+             fit: [['cm-name', 'cm-name-text', 64, 30], ['cm-platform', 'cm-platform-text', 34, 18]], fitMulti: [['cm-text', 38, 20]] },
+  playerh2h: { page: 'pl-tag', fields: [], fit: [] },
+  teamh2h: { page: 'tm-tag', fields: [], fit: [] },
+  runner:  { page: 'rn-tag', fields: [['rn-label-text', 'line2']], fit: [['rn-label', 'rn-label-text', 36, 20]] },
+};
+const ltTimers = {};
+
+function lowerThirdFitMeasure(box, span, maxSize, minSize) {
+  let size = maxSize;
+  box.style.fontSize = size + 'px';
+  while (span.scrollWidth > box.clientWidth - 24 && size > minSize) box.style.fontSize = (--size) + 'px';
+}
+function lowerThirdFit(box, span, maxSize, minSize) {
+  lowerThirdFitMeasure(box, span, maxSize, minSize);
+  if (document.fonts && document.fonts.status !== 'loaded') {
+    document.fonts.ready.then(() => lowerThirdFitMeasure(box, span, maxSize, minSize));
+  }
+}
+
+/* Multi-line variant: shrink until the wrapped text fits the box's height. */
+function lowerThirdFitMulti(box, maxSize, minSize) {
+  const run = () => { let size = maxSize; box.style.fontSize = size + 'px';
+    while (box.scrollHeight > box.clientHeight && size > minSize) box.style.fontSize = (--size) + 'px'; };
+  run();
+  if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(run);
+}
+
+
+/* ── Player H2H L3 — same data + same picked pair as the Player H2H scene (/api/player-h2h). ── */
+const PL_ROWS = [
+  { key: 'perMap', label: 'ELIMS / MAP', fmt: v => v.toFixed(1) },
+  { key: 'share',  label: 'TEAM KILL SHARE', fmt: v => Math.round(v) + '%' },
+  { key: 'best',   label: 'BEST MAP ELIMS', fmt: v => String(Math.round(v)) },
+];
+async function plFetch() {
+  try { const r = await fetch('/api/player-h2h', { cache: 'no-store' }); return r.ok ? await r.json() : null; }
+  catch (e) { return null; }
+}
+function plSetImg(img, src, fallback) {
+  img.style.display = '';
+  img.onerror = () => { if (fallback && img.getAttribute('src') !== fallback) { img.src = fallback; return; } img.style.display = 'none'; };
+  img.src = src;
+}
+function plSet(id, text) { const el = document.getElementById(id); el.querySelector('span').textContent = text; return el; }
+/* Must run once #pl-tag is display:block — the fits measure real layout. */
+function plApply(data) {
+  const a = data && data.a, b = data && data.b;
+  [['a', a], ['b', b]].forEach(([side, p]) => {
+    plSetImg(document.getElementById('pl-photo-' + side), p ? '/photos/FRONT/' + encodeURIComponent(p.team) + '/' + encodeURIComponent(p.name) + '.png' : '', '/photos/placeholder.png');
+    plSetImg(document.getElementById('pl-logo-' + side), p ? '/logos/' + encodeURIComponent(p.team) + '.png' : '');
+    const code = plSet('pl-code-' + side, p ? (p.country || '') : '');
+    const name = plSet('pl-name-' + side, p ? p.name : '');
+    lowerThirdFit(code, code.querySelector('span'), 34, 16);
+    lowerThirdFit(name, name.querySelector('span'), 34, 16);
+  });
+  ltFillRows('pl', PL_ROWS, a, b);
+}
+/* Shared by the H2H L3 tags: value text, label, and the split bar (higher side yellow, lower black;
+   lowerBetter rows invert that). */
+function ltFillRows(prefix, rows, a, b) {
+  rows.forEach((r, i) => {
+    const row = document.getElementById(prefix + '-row-' + (i + 1));
+    const av = a ? a[r.key] : null, bv = b ? b[r.key] : null;
+    row.querySelector('.' + prefix + '-lval span').textContent = av == null ? '-' : r.fmt(av);
+    row.querySelector('.' + prefix + '-rval span').textContent = bv == null ? '-' : r.fmt(bv);
+    const lab = row.querySelector('.' + prefix + '-label');
+    lab.querySelector('span').textContent = r.label;
+    lowerThirdFit(lab, lab.querySelector('span'), 22, 12);
+    const tot = (av || 0) + (bv || 0);
+    const bar = row.querySelector('.' + prefix + '-bar');
+    /* Equal as DISPLAYED (e.g. 25.9% vs 26.1% both read 26%) counts as a tie. */
+    const x = av || 0, y = bv || 0, same = r.fmt(x) === r.fmt(y);
+    const aWins = !same && (r.lowerBetter && x > 0 && y > 0 ? x < y : x > y), bWins = !same && (r.lowerBetter && x > 0 && y > 0 ? y < x : y > x);
+    bar.classList.toggle(prefix + '-a-win', aWins);
+    bar.classList.toggle(prefix + '-b-win', bWins);
+    bar.classList.toggle(prefix + '-tie', !aWins && !bWins);
+    row.querySelector('.' + prefix + '-fill').style.width = same ? '50%' : (tot > 0 ? Math.max(18, Math.min(82, (av || 0) / tot * 100)) : 50) + '%';
+  });
+}
+async function showPlayerH2HL3() {
+  const page = document.getElementById('pl-tag'), vid = document.getElementById('pl-bg');
+  clearTimeout(ltTimers.playerh2h);
+  const data = await plFetch();
+  page.classList.add('lt-on');
+  void page.offsetWidth;
+  plApply(data);
+  try { vid.play(); } catch (e) {}
+  page.classList.remove('pl-refresh');
+  page.classList.add('lt-visible');
+}
+/* Pair changed in the Control tab: swap the contents while on air. */
+let plSeq = 0;
+async function refreshPlayerH2HL3() {
+  const page = document.getElementById('pl-tag');
+  if (!page.classList.contains('lt-visible')) return;
+  const seq = ++plSeq;
+  const dataP = plFetch();
+  page.classList.add('pl-refresh');
+  await new Promise(r => setTimeout(r, 450));
+  const data = await dataP;
+  if (seq !== plSeq || !page.classList.contains('lt-visible')) return;
+  plApply(data);
+  page.classList.remove('pl-refresh');
+}
+
+/* ── Team H2H L3 — same data + picked pair as the Team H2H scene (/api/team-h2h). ── */
+const TM_ROWS = [
+  { key: 'perMap',   label: 'ELIMS / MAP',    fmt: v => v.toFixed(1) },
+  { key: 'avgPlace', label: 'AVG PLACEMENT',  fmt: v => v.toFixed(1), lowerBetter: true },
+  { key: 'winRate',  label: 'WIN RATE',       fmt: v => Math.round(v) + '%' },
+];
+async function tmFetch() {
+  try { const r = await fetch('/api/team-h2h', { cache: 'no-store' }); return r.ok ? await r.json() : null; }
+  catch (e) { return null; }
+}
+function tmApply(data) {
+  const a = data && data.a, b = data && data.b;
+  [['a', a], ['b', b]].forEach(([side, t]) => {
+    plSetImg(document.getElementById('tm-logo-' + side), t ? '/logos/' + encodeURIComponent(t.name) + '.png' : '');
+    /* "PH - TEAM NAME": the code stays on one line, the name may wrap to a 2nd row; shrink until it fits the bar. */
+    const tag = document.getElementById('tm-tag-' + side), sp = tag.querySelector('span');
+    sp.textContent = '';
+    if (t) {
+      if (t.country) { const cc = document.createElement('span'); cc.className = 'tm-cc'; cc.textContent = t.country + ' - '; sp.appendChild(cc); }
+      sp.appendChild(document.createTextNode(t.name || ''));
+    }
+    lowerThirdFitMulti(tag, 34, 12);
+  });
+  ltFillRows('tm', TM_ROWS, a, b);
+}
+async function showTeamH2HL3() {
+  const page = document.getElementById('tm-tag'), vid = document.getElementById('tm-bg');
+  clearTimeout(ltTimers.teamh2h);
+  const data = await tmFetch();
+  page.classList.add('lt-on');
+  void page.offsetWidth;
+  tmApply(data);
+  try { vid.play(); } catch (e) {}
+  page.classList.remove('tm-refresh');
+  page.classList.add('lt-visible');
+}
+let tmSeq = 0;
+async function refreshTeamH2HL3() {
+  const page = document.getElementById('tm-tag');
+  if (!page.classList.contains('lt-visible')) return;
+  const seq = ++tmSeq;
+  const dataP = tmFetch();
+  page.classList.add('tm-refresh');
+  await new Promise(r => setTimeout(r, 450));
+  const data = await dataP;
+  if (seq !== tmSeq || !page.classList.contains('lt-visible')) return;
+  tmApply(data);
+  page.classList.remove('tm-refresh');
+}
+
+/* Comment data = the Dynamic tab's current pick (fresh, no-store). */
+async function fetchCurrentComment() {
+  try { return await (await fetch('/api/dynamic-comment-selection', { cache: 'no-store' })).json(); }
+  catch (e) { return {}; }
+}
+
+/* Nametag: line1 = title/role, line2 = name. Super: line1 = headline, line2 = label.
+   Runner: line1 = scrolling text, line2 = label (e.g. "UPDATE"). */
+function applyLowerThird(type, d) {
+  const cfg = LT[type];
+  cfg.fields.forEach(([id, k]) => { document.getElementById(id).textContent = (d[k] || '').toString(); });
+  if (type === 'comment') {
+    const plat = document.getElementById('cm-platform');
+    plat.className = 'lt-text ' + (d.platform || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    plat.style.display = d.platform ? '' : 'none';
+  }
+  if (type === 'runner') document.getElementById('rn-track').textContent = d.line1 || '';
+}
+
+async function showLowerThird(type, d) {
+  const cfg = LT[type]; if (!cfg) return;
+  if (type === 'playerh2h') return showPlayerH2HL3();
+  if (type === 'teamh2h') return showTeamH2HL3();
+  if (type === 'comment' && !(d && d.comment)) d = await fetchCurrentComment();
+  if (type === 'comment' && !(d && d.comment)) return;      // nothing picked — nothing to show
+  d = d || {};
+  clearTimeout(ltTimers[type]);
+  const page = document.getElementById(cfg.page);
+  const wasOn = page.classList.contains('lt-on');
+  const go = () => {
+    applyLowerThird(type, d);
+    page.classList.add('lt-on');
+    void page.offsetWidth;                          // real layout before measuring/animating
+    cfg.fit.forEach(([b, s, mx, mn]) => lowerThirdFit(document.getElementById(b), document.getElementById(s), mx, mn));
+    (cfg.fitMulti || []).forEach(([b, mx, mn]) => lowerThirdFitMulti(document.getElementById(b), mx, mn));
+    if (type === 'runner') startRunner(d.speed);
+    page.classList.add('lt-visible');
+  };
+  if (wasOn && page.classList.contains('lt-visible')) {   // already up: animate out, swap text, animate in
+    page.classList.remove('lt-visible');
+    ltTimers[type] = setTimeout(go, 440);
+  } else go();
+}
+
+function hideLowerThird(type) {
+  const cfg = LT[type]; if (!cfg) return;
+  const page = document.getElementById(cfg.page);
+  clearTimeout(ltTimers[type]);
+  if (type === 'comment') { clearTimeout(cmSwapTimer); page.classList.remove('cm-swapping'); }
+  page.classList.remove('lt-visible');
+  ltTimers[type] = setTimeout(() => {
+    page.classList.remove('lt-on');
+    if (type === 'runner') document.getElementById('rn-track').classList.remove('lt-scrolling');
+    if (type === 'playerh2h') { page.classList.remove('pl-refresh'); try { document.getElementById('pl-bg').pause(); } catch (e) {} }
+    if (type === 'teamh2h') { page.classList.remove('tm-refresh'); try { document.getElementById('tm-bg').pause(); } catch (e) {} }
+  }, 420);
+}
+let cmSwapTimer = null;
+function swapComment(d) {
+  const page = document.getElementById('cm-tag'), cfg = LT.comment;
+  clearTimeout(cmSwapTimer);
+  page.classList.add('cm-swapping');
+  cmSwapTimer = setTimeout(() => {
+    applyLowerThird('comment', d);
+    cfg.fit.forEach(([b, s, mx, mn]) => lowerThirdFit(document.getElementById(b), document.getElementById(s), mx, mn));
+    cfg.fitMulti.forEach(([b, mx, mn]) => lowerThirdFitMulti(document.getElementById(b), mx, mn));
+    page.classList.remove('cm-swapping');
+  }, 380);
+}
+function hideAllLowerThirds() { Object.keys(LT).forEach(hideLowerThird); }
+
+function startRunner(pxPerSec) {
+  const track = document.getElementById('rn-track');
+  track.classList.remove('lt-scrolling');
+  void track.offsetWidth;
+  const speed = Number(pxPerSec) > 0 ? Number(pxPerSec) : 160;
+  track.style.setProperty('--rn-dur', ((track.scrollWidth + 1660) / speed).toFixed(2) + 's');
+  track.classList.add('lt-scrolling');
+}
+
+/* ── Live control: SSE event 'lowerthird'
+      { action:'show'|'hide'|'hideall', type:'nametag'|'super'|'runner', line1, line2, speed } ── */
+function handleLowerThirdEvent(msg) {
+  if (msg.action === 'show') showLowerThird(msg.type, msg);
+  else if (msg.action === 'update') {
+    /* Dynamic tab applied a new comment: if the tag is on air, animate out and
+       back in with it; if hidden, do nothing (it re-reads the pick on Show). */
+    if (msg.type === 'comment' && msg.comment && document.getElementById('cm-tag').classList.contains('lt-visible')
+        && msg.comment !== document.getElementById('cm-text-span').textContent) swapComment(msg);
+  }
+  else if (msg.action === 'hide') hideLowerThird(msg.type);
+  else if (msg.action === 'hideall') hideAllLowerThirds();
+}
+if (!isPreviewFrame) {
+  const sse = createOverlaySSE();
+  sse.addEventListener('lowerthird', (e) => { try { handleLowerThirdEvent(JSON.parse(e.data)); } catch (err) {} });
+  /* Player H2H L3 shares the scene's picker: only 'refresh' matters here (show/hide go via 'lowerthird'). */
+  sse.addEventListener('player_h2h', (e) => { try { if (JSON.parse(e.data).action === 'refresh') refreshPlayerH2HL3(); } catch (err) {} });
+  sse.addEventListener('team_h2h', (e) => { try { if (JSON.parse(e.data).action === 'refresh') refreshTeamH2HL3(); } catch (err) {} });
+  sse.addEventListener('reload', () => window.location.reload());
+}
+
+/* Control-tab preview contract: purely local, no network. */
+window.previewTrigger = function (event, action) {
+  const sample = {
+    nametag: { line1: 'SHOUTCASTER', line2: 'JUAN DELA CRUZ' },
+    super:   { line1: 'ONLINE PLAYOFFS — DAY 2', line2: 'NOW PLAYING' },
+    comment: { name: 'Namer One', platform: 'Facebook', comment: 'Lorem ipsum dolor sit amet consectetur adipiscing elit vero eu quod quo in nulla maxime esse aut iusto atque ducimus laborum proident.' },
+    playerh2h: {},
+    teamh2h: {},
+    runner:  { line1: 'WELCOME TO THE MINESKI BROADCAST  •  FOLLOW US ON SOCIALS  •  GRAND FINALS IN MANILA, NOVEMBER 2026', line2: 'UPDATE' },
+  };
+  const map = { lowerthird_nametag: 'nametag', lowerthird_super: 'super', lowerthird_runner: 'runner', lowerthird_comment: 'comment', player_h2h: 'playerh2h', lowerthird_playerh2h: 'playerh2h', team_h2h: 'teamh2h', lowerthird_teamh2h: 'teamh2h' };
+  const type = map[event] || (LT[event] ? event : null);
+  if (!type) return;
+  if (action !== 'show') return hideLowerThird(type);
+  /* Comment preview = whatever is picked in the Dynamic tab (sample text only if nothing is picked yet). */
+  if (type === 'comment') {
+    fetchCurrentComment().then(c => showLowerThird(type, c && c.comment ? c : sample.comment));
+    return;
+  }
+  showLowerThird(type, sample[type]);
+};
+
+/* Local debug bar (toggle with `) — bypasses SSE entirely */
+function dbgShow(type) {
+  showLowerThird(type, { line1: document.getElementById('dbg-l1').value, line2: document.getElementById('dbg-l2').value });
+}
+window.addEventListener('keydown', (e) => {
+  if (e.key === '`') document.getElementById('lt-debug').classList.toggle('open');
+});
+window.showPlayerH2HL3 = showPlayerH2HL3; window.showTeamH2HL3 = showTeamH2HL3; // Edit-tab showFn
+
+/* Per-element position/size overrides saved from the dashboard Edit tab. */
+fetch('/api/overlay-styles?file=lowerthirds', { cache: 'no-store' }).then(r => r.json()).then(styles => {
+  if (!styles || !Object.keys(styles).length) return;
+  const css = Object.keys(styles).map(sel => sel + '{' + Object.keys(styles[sel]).filter(p => p !== 'asset')
+    .map(p => (p === 'fontSize' ? 'font-size' : p) + ':' + styles[sel][p] + ' !important').join(';') + '}').join('\n');
+  const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+}).catch(() => {});
+window.lowerThirds = { show: showLowerThird, hide: hideLowerThird, hideAll: hideAllLowerThirds };
+</script>
+</body>
+</html>

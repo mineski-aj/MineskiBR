@@ -35,7 +35,7 @@ const KNOWN_EVENTS = [
   'apitoggle', 'credits', 'debugoff',
   'featuretoggle', 'fights', 'final_team', 'fs_debugoff', 'fs_hide',
   'herolineup', 'highlights', 'hrm', 'led_draftpred',
-  'led_fight', 'led_health', 'led_side', 'led_win',
+  'led_fight', 'led_health', 'led_side', 'led_win', 'lowerthird', 'team_lineup', 'zowned_rate', 'average_placement', 'map_placement_avg', 'player_h2h', 'team_h2h',
   'playoffs_elim_leaders', 'playoffs_team_elims', 'group_a', 'group_b', 'group_c', 'group_d', 'danger_zone', 'map_highlights', 'map_winner', 'map_mvp', 'map_ranking', 'map_rotation', 'elims_map', 'elim_leaders', 'group_elim_leaders', 'team_map_elims', 'team_point_percent', 'point_contribution', 'qual_elim_leaders', 'total_team_elims', 'group_team_elims', 'qual_team_elims', 'overall_ranking', 'overall_ranking_2', 'match', 'matchboard', 'middleboard', 'mvp',
   'post_items', 'post_qualified', 'prize_pool', 'qualified_teams_1', 'qualified_teams_2', 'reload',
   'scoreboard', 'seat_arrangement', 'slot_teams', 'sponsorboxes', 'stylepatch', 'tally', 'team_hexagon', 'team_lineup_blue',

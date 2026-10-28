@@ -6,6 +6,8 @@ const router  = express.Router();
 const state   = require('../lib/state');
 const matchState = require('../lib/matchState');
 const elimsMap = require('../lib/elimsMap');
+const playerH2H = require('../lib/playerH2H');
+const teamH2H = require('../lib/teamH2H');
 
 // GET /api/player-photos — basenames with both FRONT and VICTORY photos available
 const PHOTOS_DIR = path.join(__dirname, '..', 'photos');
@@ -393,6 +395,108 @@ router.get('/overlay/team_map_elims/show', (req, res) => {
 router.get('/overlay/team_map_elims/hide', (req, res) => {
   state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: team_map_elims\ndata: {"action":"hide"}\n\n'); } catch {} });
+
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// Zowned Rate — own map pick (independent of the other map scenes'), same
+// GET/POST + 'refresh' push pattern as /overlay/elims_map/selection.
+router.get('/overlay/zowned_rate/selection', (req, res) => {
+  res.set({ "Cache-Control": "no-store" }).json({ map: elimsMap.get('zowned_rate'), maps: elimsMap.ELIMS_MAPS });
+});
+router.post('/overlay/zowned_rate/selection', (req, res) => {
+  const map = elimsMap.set(String((req.body || {}).map || ''), 'zowned_rate');
+  if (!map) return res.status(400).json({ ok: false, error: 'unknown map' });
+  state.overlayClients.forEach(c => { try { c.write('event: zowned_rate\ndata: {"action":"refresh"}\n\n'); } catch {} });
+  res.json({ ok: true, map });
+});
+
+// Team H2H — the two teams being compared; same pattern as Player H2H below.
+router.get('/overlay/team_h2h/selection', (req, res) => {
+  res.set({ "Cache-Control": "no-store" }).json(teamH2H.get());
+});
+router.post('/overlay/team_h2h/selection', (req, res) => {
+  const sel = teamH2H.set(req.body || {});
+  state.overlayClients.forEach(c => { try { c.write('event: team_h2h\ndata: {"action":"refresh"}\n\n'); } catch {} });
+  res.json({ ok: true, selection: sel });
+});
+router.get('/overlay/team_h2h/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'teamh2h';
+  state.overlayClients.forEach(c => { try { c.write('event: team_h2h\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+router.get('/overlay/team_h2h/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: team_h2h\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// Player H2H — the two players being compared (GET/POST selection, POST
+// pushes a 'refresh' so a live scene swaps), plus show/hide.
+router.get('/overlay/player_h2h/selection', (req, res) => {
+  res.set({ "Cache-Control": "no-store" }).json(playerH2H.get());
+});
+router.post('/overlay/player_h2h/selection', (req, res) => {
+  const sel = playerH2H.set(req.body || {});
+  state.overlayClients.forEach(c => { try { c.write('event: player_h2h\ndata: {"action":"refresh"}\n\n'); } catch {} });
+  res.json({ ok: true, selection: sel });
+});
+router.get('/overlay/player_h2h/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'playerh2h';
+  state.overlayClients.forEach(c => { try { c.write('event: player_h2h\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+router.get('/overlay/player_h2h/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: player_h2h\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// Map Placement AVG — own map pick, same pattern as Zowned Rate above.
+router.get('/overlay/map_placement_avg/selection', (req, res) => {
+  res.set({ "Cache-Control": "no-store" }).json({ map: elimsMap.get('map_placement_avg'), maps: elimsMap.ELIMS_MAPS });
+});
+router.post('/overlay/map_placement_avg/selection', (req, res) => {
+  const map = elimsMap.set(String((req.body || {}).map || ''), 'map_placement_avg');
+  if (!map) return res.status(400).json({ ok: false, error: 'unknown map' });
+  state.overlayClients.forEach(c => { try { c.write('event: map_placement_avg\ndata: {"action":"refresh"}\n\n'); } catch {} });
+  res.json({ ok: true, map });
+});
+router.get('/overlay/map_placement_avg/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'mapplacementavg';
+  state.overlayClients.forEach(c => { try { c.write('event: map_placement_avg\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+router.get('/overlay/map_placement_avg/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: map_placement_avg\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/average_placement/show|hide — Average Placement (rank-header
+// family; activeFeature is 'averageplacement').
+router.get('/overlay/average_placement/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'averageplacement';
+  state.overlayClients.forEach(c => { try { c.write('event: average_placement\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+router.get('/overlay/average_placement/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: average_placement\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/zowned_rate/show
+router.get('/overlay/zowned_rate/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'zownedrate';
+  state.overlayClients.forEach(c => { try { c.write('event: zowned_rate\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/zowned_rate/hide
+router.get('/overlay/zowned_rate/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: zowned_rate\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
@@ -506,6 +610,25 @@ router.get('/overlay/tournament_schedule/hide', (req, res) => {
   state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: tournament_schedule\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// Team Lineup — one scene, 3 pages. page route also works while hidden (stores
+// the page for the next Show) and broadcasts so a live scene swaps pages.
+router.get('/overlay/team_lineup/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'teamlineup';
+  state.overlayClients.forEach(c => { try { c.write('event: team_lineup\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+router.get('/overlay/team_lineup/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: team_lineup\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+router.get('/overlay/team_lineup/page/:n', (req, res) => {
+  const n = Math.min(3, Math.max(1, parseInt(req.params.n, 10) || 1));
+  state.fullscreenScene.teamLineupPage = n;
+  state.overlayClients.forEach(c => { try { c.write('event: team_lineup\ndata: {"action":"page","page":' + n + '}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "page", page: n });
 });
 
 // GET /overlay/prize_pool/show
@@ -832,6 +955,53 @@ router.all('/overlay/:slot', (req, res) => {
     state.overlayClients.forEach(c => { try { c.write(msg); } catch {} });
   }
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: slot === "hide" ? "hide" : "show", slot });
+});
+
+// Lower Thirds (LowerThirds.html) — independent tags, no activeFeature slot.
+// One SSE event, 'lowerthird', { action, type }; the page itself fetches the
+// current Dynamic-tab comment when a 'comment' show arrives with no text.
+function lowerThirdBroadcast(payload) {
+  const msg = 'event: lowerthird\ndata: ' + JSON.stringify(payload) + '\n\n';
+  state.overlayClients.forEach(c => { try { c.write(msg); } catch {} });
+}
+router.get('/overlay/lowerthird/comment/show', (req, res) => {
+  state.checkOverlays.lowerthird_comment = true;
+  lowerThirdBroadcast({ action: 'show', type: 'comment' }); // state restored via /overlay/check-overlays
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+router.get('/overlay/lowerthird/comment/hide', (req, res) => {
+  state.checkOverlays.lowerthird_comment = false;
+  lowerThirdBroadcast({ action: 'hide', type: 'comment' });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+// Player H2H L3 — same picked pair as the Player H2H scene (player_h2h.json);
+// a 'player_h2h' refresh event (pair changed) swaps it while on air.
+router.get('/overlay/lowerthird/player_h2h/show', (req, res) => {
+  state.checkOverlays.lowerthird_player_h2h = true;
+  lowerThirdBroadcast({ action: 'show', type: 'playerh2h' });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+router.get('/overlay/lowerthird/player_h2h/hide', (req, res) => {
+  state.checkOverlays.lowerthird_player_h2h = false;
+  lowerThirdBroadcast({ action: 'hide', type: 'playerh2h' });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+router.get('/overlay/lowerthird/team_h2h/show', (req, res) => {
+  state.checkOverlays.lowerthird_team_h2h = true;
+  lowerThirdBroadcast({ action: 'show', type: 'teamh2h' });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+router.get('/overlay/lowerthird/team_h2h/hide', (req, res) => {
+  state.checkOverlays.lowerthird_team_h2h = false;
+  lowerThirdBroadcast({ action: 'hide', type: 'teamh2h' });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+router.get('/overlay/lowerthird/hideall', (req, res) => {
+  state.checkOverlays.lowerthird_comment = false;
+  state.checkOverlays.lowerthird_player_h2h = false;
+  state.checkOverlays.lowerthird_team_h2h = false;
+  lowerThirdBroadcast({ action: 'hideall' });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hideall" });
 });
 
 module.exports = router;

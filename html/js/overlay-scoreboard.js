@@ -196,7 +196,8 @@ function sbUpdateMh1Tally() {
      Stage line above it), so lead with the current map's NAME instead —
      "Isolated | Map 1". Falls back to the tab name when Match Board has
      no map picked for this match number yet. */
-  var playoffMap = /playoffs/i.test(_sbStage) ? sbCurrentMapName() : '';
+  /* Showmatch behaves the same: its one live tab is just "Showmatch" again. */
+  var playoffMap = /playoffs|show\s*match/i.test(_sbStage) ? sbCurrentMapName() : '';
   if (playoffMap) parts.push(playoffMap);
   else if (_sbLiveTallyTab) parts.push(_sbLiveTallyTab);
   /* Qualifiers: the live tally tab (e.g. "Qualifier 1") already IS the
@@ -290,18 +291,10 @@ function sbBuildScoreRow() {
 
   var flag = document.createElement('div');
   flag.className = 'ssr-flag';
-  var flagImg = document.createElement('img');
-  flagImg.className = 'ssr-flag-img';
-  flagImg.alt = '';
-  flagImg.style.display = 'none';
+  /* Country code as plain text ("PH", "TW"...) from the live Tally sheet's
+     Region column — flags are not allowed in any overlay. */
   var flagTxt = document.createElement('span');
   flagTxt.className = 'ssr-flag-text';
-  /* Same fallback idiom as the old team-logo containers: try the image
-     (assets/flag/<REGION>_flag.png), fall back to the region text (from
-     the live Tally sheet, e.g. "PH") if it 404s. */
-  flagImg.onload  = function() { flagImg.style.display = 'block'; flagTxt.style.display = 'none'; };
-  flagImg.onerror = function() { flagImg.style.display = 'none';  flagTxt.style.display = ''; };
-  flag.appendChild(flagImg);
   flag.appendChild(flagTxt);
   row.appendChild(flag);
 
@@ -338,6 +331,13 @@ function sbBuildScoreRow() {
   elimSolo.className = 'ssr-elim-solo';
   row.appendChild(elimSolo);
 
+  /* Grand Finals "In The Zone" badge — only displayed on .ssr-zone rows
+     (see ingame.css / sbApplyZone). */
+  var zoneBadge = document.createElement('div');
+  zoneBadge.className = 'ssr-zone-badge';
+  zoneBadge.innerHTML = '<span>Z!</span>';
+  row.appendChild(zoneBadge);
+
   return row;
 }
 
@@ -353,22 +353,8 @@ function sbSetRank(row, rank) {
 
 function sbFillScoreRow(row, team, qualifiers) {
   var region = ((team && team.region) || '').toUpperCase();
-  var flagImg = row.querySelector('.ssr-flag-img');
   var flagTxt = row.querySelector('.ssr-flag-text');
   if (flagTxt) flagTxt.textContent = region;
-  if (flagImg) {
-    if (region) {
-      if (flagImg.dataset.region !== region) {
-        flagImg.dataset.region  = region;
-        flagImg.style.display   = 'none';
-        if (flagTxt) flagTxt.style.display = '';
-        flagImg.src = '/flag/' + encodeURIComponent(region) + '_flag.png';
-      }
-    } else {
-      flagImg.style.display = 'none';
-      flagImg.removeAttribute('src');
-    }
-  }
 
   var teamName = (team && team.name) || '';
   var teamLogo = row.querySelector('.ssr-team-logo');
@@ -461,6 +447,34 @@ function sbAnimateRowMove(row, newTop, newHeight, newRank) {
 
 var _sbRowsByTeam = {}; /* team name -> row element, so a reorder moves the SAME element instead of just swapping text between fixed slots */
 
+/* ── Grand Finals "In The Zone" ──
+   Squads ticked in the dashboard's IN THE ZONE tab (/api/in-the-zone) get the
+   yellow row container. Grand Finals only — it's a Grand-Finals-specific
+   state, so a leftover tick can't tint rows in any other stage. Re-applied
+   on every render AND whenever the zone list itself changes, so ticking a
+   box shows up within one poll without waiting on a standings change. */
+var _sbZone = {}; /* lower-cased squad name -> true */
+function sbIsGrandFinals() { return /grand\s*finals/i.test(_sbStage); }
+function sbApplyZone() {
+  var on = sbIsGrandFinals();
+  Object.keys(_sbRowsByTeam).forEach(function(name) {
+    _sbRowsByTeam[name].classList.toggle('ssr-zone', on && !!_sbZone[String(name).trim().toLowerCase()]);
+  });
+}
+function sbPollZone() {
+  fetch('/api/in-the-zone', { cache: 'no-store' })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var z = {};
+      ((d && d.zone) || []).forEach(function(n) { z[String(n).trim().toLowerCase()] = true; });
+      _sbZone = z;
+      sbApplyZone();
+    })
+    .catch(function() {});
+}
+sbPollZone();
+setInterval(sbPollZone, 3500);
+
 function sbRenderScoreboard() {
   var back = document.getElementById('sb-scoreboard-back');
   if (!back) return;
@@ -484,6 +498,7 @@ function sbRenderScoreboard() {
     }
 
     sbFillScoreRow(row, team, qualifiers);
+    row.style.setProperty('--ssr-h', rowH + 'px'); /* sizes the Z! badge glyph */
 
     var newTop = SB_SCORE_ROW_TOP + i * rowH;
     var prevRank = row.dataset.rank ? parseInt(row.dataset.rank, 10) : null;
@@ -528,6 +543,7 @@ function sbRenderScoreboard() {
   });
 
   sbUpdateScoreHeaderLabels(qualifiers);
+  sbApplyZone();
 }
 
 function sbPollTeamScores() {

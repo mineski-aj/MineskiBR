@@ -267,6 +267,17 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    #control-search-wrap { padding: 8px 16px 0; }
+    #control-search {
+      width: 100%; box-sizing: border-box; padding: 7px 10px;
+      background: #0f0f18; border: 1px solid #222232; border-radius: 6px;
+      color: #e8e8f0; font-size: 13px; outline: none;
+    }
+    #control-search:focus { border-color: #6677cc; }
+    .search-hidden { display: none !important; }
+    /* Collapsed folders still render their rows (hidden) so search can reach them. */
+    .fs-folder-body.fs-collapsed { display: none; }
+    #control-panel-body.fs-searching .fs-folder-body.fs-collapsed { display: block; }
     #control-panel-body {
       flex: 1;
       overflow-y: auto;
@@ -877,6 +888,7 @@
   <button class="tab-btn" data-page="ssanimator">SS Animator</button>
   <button class="tab-btn active" data-page="control">Control</button>
   <button class="tab-btn" data-page="dynamic">Dynamic</button>
+  <button class="tab-btn" data-page="inthezone">In The Zone</button>
   <button class="tab-btn" data-page="playoffs">Playoffs</button>
   <button class="tab-btn" data-page="sponsors">Sponsors</button>
   <button class="tab-btn" data-page="edit">Edit</button>
@@ -915,6 +927,11 @@
   <iframe src="/html/dynamic.html" style="width:100%;flex:1;border:none;min-height:0;"></iframe>
 </div>
 
+<!-- Page: In The Zone — Grand Finals "In The Zone" team flags + score threshold (fetch-only, no SSE) -->
+<div id="page-inthezone" class="page">
+  <iframe src="/html/in-the-zone-dashboard.html" style="width:100%;flex:1;border:none;min-height:0;"></iframe>
+</div>
+
 <!-- Page: Playoffs — Lobby A / Lobby B squad lists (fetch-only, no SSE) -->
 <div id="page-playoffs" class="page">
   <iframe src="/html/playoffs-dashboard.html" style="width:100%;flex:1;border:none;min-height:0;"></iframe>
@@ -941,6 +958,7 @@
         <a id="control-panel-open" class="btn btn-open" target="_blank" style="display:none">Open ↗</a>
         <button id="control-panel-archive-btn" class="btn btn-open" type="button" style="display:none">🗄 Archive</button>
       </div>
+      <div id="control-search-wrap"><input id="control-search" type="search" placeholder="Search scenes…" autocomplete="off" spellcheck="false"></div>
       <div id="control-panel-body"></div>
     </div>
     <div id="preview-panel">
@@ -1639,6 +1657,11 @@
     group_elim_leaders: 'groupelimleaders',
     playoffs_elim_leaders: 'playoffselimleaders',
     team_map_elims:    'teammapelims',
+    zowned_rate:       'zownedrate',
+    average_placement: 'averageplacement',
+    map_placement_avg: 'mapplacementavg',
+    player_h2h:        'playerh2h',
+    team_h2h:          'teamh2h',
     team_point_percent: 'teampointpct',
     point_contribution: 'pointcontribution',
     qual_elim_leaders: 'qualelimleaders',
@@ -1648,6 +1671,7 @@
     qual_team_elims:   'qualteamelims',
     tournament_schedule: 'tournamentschedule',
     prize_pool:        'prizepool',
+    team_lineup:       'teamlineup',
     map_winner:        'mapwinner',
     map_mvp:           'mapmvp',
     post_qualified:   'postqualified',
@@ -1668,8 +1692,8 @@
     slotteams: 'Slot Teams',
     groupa: 'Group A', groupb: 'Group B', groupc: 'Group C', groupd: 'Group D', dangerzone: 'Danger Zone',
     qualifiedteams1: 'Qualified Teams 1', qualifiedteams2: 'Qualified Teams 2',
-    maprotation: 'Map Rotation', elimsmap: 'Eliminations/Map', elimleaders: 'Total Elim Leaders', groupelimleaders: 'Group Elim Leaders', teammapelims: 'Team Map Elims', pointcontribution: 'Point Contribution', teampointpct: 'Team Point Percent', qualelimleaders: 'Qualifier Elim Leaders', totalteamelims: 'Total Team Elims', groupteamelims: 'Group Team Elims', qualteamelims: 'Qualifier Team Elims', playoffselimleaders: 'Playoffs Elim Leaders', playoffsteamelims: 'Playoffs Team Elims',
-    tournamentschedule: 'Tournament Schedule', prizepool: 'Prize Pool', mapwinner: 'Map Winner', mapmvp: 'Map MVP',
+    averageplacement: 'Average Placement', mapplacementavg: 'Map Placement AVG', playerh2h: 'Player H2H', teamh2h: 'Team H2H', zownedrate: 'Zowned Rate', maprotation: 'Map Rotation', elimsmap: 'Eliminations/Map', elimleaders: 'Total Elim Leaders', groupelimleaders: 'Group Elim Leaders', teammapelims: 'Team Map Elims', pointcontribution: 'Point Contribution', teampointpct: 'Team Point Percent', qualelimleaders: 'Qualifier Elim Leaders', totalteamelims: 'Total Team Elims', groupteamelims: 'Group Team Elims', qualteamelims: 'Qualifier Team Elims', playoffselimleaders: 'Playoffs Elim Leaders', playoffsteamelims: 'Playoffs Team Elims',
+    tournamentschedule: 'Tournament Schedule', prizepool: 'Prize Pool', teamlineup: 'Team Lineup', mapwinner: 'Map Winner', mapmvp: 'Map MVP',
     postqualified: 'Post Qualified', maphighlights: 'Map Highlights',
   };
 
@@ -1832,6 +1856,18 @@
     try {
       var d = JSON.parse(e.data);
       applyApiToggleBtn(d.api, !!d.enabled);
+    } catch (err) {}
+  });
+
+  var LT_CHECK_KEYS = { comment: 'lowerthird_comment', playerh2h: 'lowerthird_player_h2h', teamh2h: 'lowerthird_team_h2h' };
+  dashboardSSE.addEventListener('lowerthird', function (e) {
+    try {
+      var d = JSON.parse(e.data);
+      if (d.action === 'update') return;
+      var keys = d.action === 'hideall' ? Object.keys(LT_CHECK_KEYS).map(function (k) { return LT_CHECK_KEYS[k]; })
+               : (LT_CHECK_KEYS[d.type] ? [LT_CHECK_KEYS[d.type]] : []);
+      var shown = d.action === 'show';
+      keys.forEach(function (k) { checkOverlayStates[k] = shown; applyCheckToggleBtn(k, shown); });
     } catch (err) {}
   });
 
@@ -2010,6 +2046,11 @@
         { name: 'Group Elim Leaders', show: '/overlay/group_elim_leaders/show', hide: '/overlay/group_elim_leaders/hide' },
         { name: 'Playoffs Elim Leaders', show: '/overlay/playoffs_elim_leaders/show', hide: '/overlay/playoffs_elim_leaders/hide' },
         { name: 'Team Map Elims', show: '/overlay/team_map_elims/show', hide: '/overlay/team_map_elims/hide', elimsMapSelect: 'team_map_elims' },
+        { name: 'Team H2H', show: '/overlay/team_h2h/show', hide: '/overlay/team_h2h/hide', teamH2hSelect: true },
+        { name: 'Player H2H', show: '/overlay/player_h2h/show', hide: '/overlay/player_h2h/hide', h2hSelect: true },
+        { name: 'Map Placement AVG', show: '/overlay/map_placement_avg/show', hide: '/overlay/map_placement_avg/hide', elimsMapSelect: 'map_placement_avg' },
+        { name: 'Average Placement', show: '/overlay/average_placement/show', hide: '/overlay/average_placement/hide' },
+        { name: 'Zowned Rate', show: '/overlay/zowned_rate/show', hide: '/overlay/zowned_rate/hide', elimsMapSelect: 'zowned_rate' },
         { name: 'Team Point Percent', show: '/overlay/team_point_percent/show', hide: '/overlay/team_point_percent/hide' },
         { name: 'Point Contribution', show: '/overlay/point_contribution/show', hide: '/overlay/point_contribution/hide' },
         { name: 'Qualifier Elim Leaders', show: '/overlay/qual_elim_leaders/show', hide: '/overlay/qual_elim_leaders/hide' },
@@ -2019,12 +2060,31 @@
         { name: 'Qualifier Team Elims', show: '/overlay/qual_team_elims/show', hide: '/overlay/qual_team_elims/hide' },
         { name: 'Tournament Schedule', show: '/overlay/tournament_schedule/show', hide: '/overlay/tournament_schedule/hide' },
         { name: 'Prize Pool', show: '/overlay/prize_pool/show', hide: '/overlay/prize_pool/hide' },
+        { name: 'Team Lineup', show: '/overlay/team_lineup/show', hide: '/overlay/team_lineup/hide', extraButtons: [
+          { label: 'Page 1', action: '/overlay/team_lineup/page/1' },
+          { label: 'Page 2', action: '/overlay/team_lineup/page/2' },
+          { label: 'Page 3', action: '/overlay/team_lineup/page/3' },
+        ] },
         { name: 'Map Winner', show: '/overlay/map_winner/show', hide: '/overlay/map_winner/hide' },
         { name: 'Map MVP', show: '/overlay/map_mvp/show', hide: '/overlay/map_mvp/hide' },
         { name: 'Post Qualified', show: '/overlay/post_qualified/show', hide: '/overlay/post_qualified/hide' },
         { name: 'Map Highlights', show: '/overlay/map_highlights/show', hide: '/overlay/map_highlights/hide' },
       ],
       debugPhotosToggle: true,
+    },
+    {
+      id: 'lowerthirds',
+      name: 'Lower Thirds',
+      file: 'LowerThirds.html',
+      features: [
+        /* checkKey: Showing/Hidden state lives in state.checkOverlays (not
+           Fullscreen's activeFeature slot) — see renderFeatureRow. The
+           preview event name is the route's 2nd-to-last segment, 'comment'. */
+        { name: 'Dynamic Comments', show: '/overlay/lowerthird/comment/show', hide: '/overlay/lowerthird/comment/hide', checkKey: 'lowerthird_comment' },
+        /* Same picked pair as Player H2H (the pickers below write the shared selection). */
+        { name: 'Player H2H L3', show: '/overlay/lowerthird/player_h2h/show', hide: '/overlay/lowerthird/player_h2h/hide', checkKey: 'lowerthird_player_h2h', h2hSelect: true },
+        { name: 'Team H2H L3', show: '/overlay/lowerthird/team_h2h/show', hide: '/overlay/lowerthird/team_h2h/hide', checkKey: 'lowerthird_team_h2h', teamH2hSelect: true },
+      ],
     },
     {
       id: 'ingame_scoreboard',
@@ -2208,6 +2268,31 @@
     previewIframe.style.left = Math.round((wrap.clientWidth  - scaledW) / 2) + 'px';
     previewIframe.style.top  = Math.round((wrap.clientHeight - scaledH) / 2) + 'px';
   }
+
+  /* Live search: hides .feature-row elements whose name doesn't match.
+     A MutationObserver re-applies it after every buildControlBody() wipe. */
+  var controlSearchInput = document.getElementById('control-search');
+  function applyControlSearch() {
+    var q = controlSearchInput.value.trim().toLowerCase();
+    controlPanelBody.querySelectorAll('.feature-row').forEach(function (row) {
+      var n = row.querySelector('.feature-name');
+      var hit = !q || (n && n.textContent.toLowerCase().indexOf(q) !== -1);
+      row.classList.toggle('search-hidden', !hit);
+    });
+    /* While searching, collapsed folders open up to show matches; folders
+       with no match disappear. */
+    controlPanelBody.classList.toggle('fs-searching', !!q);
+    controlPanelBody.querySelectorAll('.fs-folder').forEach(function (f) {
+      var any = f.querySelector('.feature-row:not(.search-hidden)');
+      f.classList.toggle('search-hidden', !!q && !any);
+    });
+  }
+  controlSearchInput.addEventListener('input', applyControlSearch);
+  controlSearchInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { controlSearchInput.value = ''; applyControlSearch(); }
+  });
+  new MutationObserver(function () { applyControlSearch(); })
+    .observe(controlPanelBody, { childList: true, subtree: true });
 
   function selectOverlay(ov, item) {
     if (activeItem === item) return;
@@ -2715,6 +2800,106 @@
        server-side (/overlay/elims_map/selection); changing it also makes
        the server push a 'refresh' so a scene already on screen re-ranks
        and re-flips on its own. */
+    /* Player H2H — two player pickers (Grand Finals squads, grouped by team,
+       from /api/player-h2h/players). Changing either one saves the pair and
+       pushes a 'refresh' so a live scene swaps. */
+    function buildH2HSelect() {
+      var wrap = el('div', 'mvp-select-row');
+      wrap.style.flexWrap = 'wrap';
+      var selA = document.createElement('select'), selB = document.createElement('select');
+      selA.className = selB.className = 'edit-ctrl-input';
+      wrap.appendChild(el('span', 'edit-ctrl-label', 'Player A'));
+      wrap.appendChild(selA);
+      wrap.appendChild(el('span', 'edit-ctrl-label', 'Player B'));
+      wrap.appendChild(selB);
+
+      function val(p) { return p && p.name ? p.team + '||' + p.name : ''; }
+      function pair(v) { var i = v.indexOf('||'); return { team: v.slice(0, i), name: v.slice(i + 2) }; }
+      function save() {
+        if (!selA.value || !selB.value) return;
+        fetch('/overlay/player_h2h/selection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ a: pair(selA.value), b: pair(selB.value) }),
+        }).catch(function () {});
+      }
+
+      Promise.all([
+        fetch('/api/player-h2h/players', { cache: 'no-store' }).then(function (r) { return r.json(); }),
+        fetch('/overlay/player_h2h/selection', { cache: 'no-store' }).then(function (r) { return r.json(); }),
+      ]).then(function (res) {
+        var teams = res[0].teams || [], sel = res[1] || {};
+        [selA, selB].forEach(function (s) {
+          teams.forEach(function (t) {
+            var g = document.createElement('optgroup');
+            g.label = t.team;
+            t.players.forEach(function (p) {
+              var o = document.createElement('option');
+              o.value = t.team + '||' + p; o.textContent = p;
+              g.appendChild(o);
+            });
+            s.appendChild(g);
+          });
+        });
+        var first = teams[0] && teams[0].players[0] ? teams[0].team + '||' + teams[0].players[0] : '';
+        var second = teams[1] && teams[1].players[0] ? teams[1].team + '||' + teams[1].players[0] : first;
+        selA.value = val(sel.a) || first;
+        selB.value = val(sel.b) || second;
+        if (!selA.value) selA.value = first;
+        if (!selB.value) selB.value = second;
+      }).catch(function () {});
+
+      selA.addEventListener('change', save);
+      selB.addEventListener('change', save);
+      return wrap;
+    }
+
+    /* Team H2H — two team pickers, limited to the squads on the CHOSEN tally
+       page (/api/team-h2h/teams). Changing either saves the pair and pushes
+       a 'refresh' so a live scene swaps. */
+    function buildTeamH2HSelect() {
+      var wrap = el('div', 'mvp-select-row');
+      wrap.style.flexWrap = 'wrap';
+      var selA = document.createElement('select'), selB = document.createElement('select');
+      selA.className = selB.className = 'edit-ctrl-input';
+      wrap.appendChild(el('span', 'edit-ctrl-label', 'Team A'));
+      wrap.appendChild(selA);
+      wrap.appendChild(el('span', 'edit-ctrl-label', 'Team B'));
+      wrap.appendChild(selB);
+
+      function save() {
+        if (!selA.value || !selB.value) return;
+        fetch('/overlay/team_h2h/selection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ a: selA.value, b: selB.value }),
+        }).catch(function () {});
+      }
+
+      Promise.all([
+        fetch('/api/team-h2h/teams', { cache: 'no-store' }).then(function (r) { return r.json(); }),
+        fetch('/overlay/team_h2h/selection', { cache: 'no-store' }).then(function (r) { return r.json(); }),
+      ]).then(function (res) {
+        var teams = res[0].teams || [], sel = res[1] || {};
+        var names = teams.map(function (t) { return t.name; });
+        [selA, selB].forEach(function (s) {
+          teams.forEach(function (t) {
+            var o = document.createElement('option');
+            o.value = t.name; o.textContent = t.name;
+            s.appendChild(o);
+          });
+        });
+        /* A saved pick from a different tally page isn't in the list — fall
+           back to the first two teams of the chosen page. */
+        selA.value = names.indexOf(sel.a) !== -1 ? sel.a : (names[0] || '');
+        selB.value = names.indexOf(sel.b) !== -1 ? sel.b : (names[1] || names[0] || '');
+      }).catch(function () {});
+
+      selA.addEventListener('change', save);
+      selB.addEventListener('change', save);
+      return wrap;
+    }
+
     function buildElimsMapSelect(base) {
       var wrap = el('div', 'mvp-select-row');
       wrap.appendChild(el('span', 'edit-ctrl-label', 'Map'));
@@ -2803,7 +2988,15 @@
       }
       fr.appendChild(header);
       var fb = el('div', 'feature-btns');
-      if (feat.show && feat.hide && !feat.realButtons) {
+      if (feat.checkKey) {
+        var ctb = el('button', 'btn btn-toggle btn-toggle-off', '○ Hidden');
+        ctb.addEventListener('click', (function (f) { return function () {
+          fetch(checkOverlayStates[f.checkKey] ? f.hide : f.show).catch(function () {});
+        }; })(feat));
+        checkToggleBtns[feat.checkKey] = ctb;
+        applyCheckToggleBtn(feat.checkKey, !!checkOverlayStates[feat.checkKey]);
+        fb.appendChild(ctb);
+      } else if (feat.show && feat.hide && !feat.realButtons) {
         var key = feat.show.split('/')[2];
         var tb = el('button', 'btn btn-toggle btn-toggle-off', '○ Hidden');
         tb.addEventListener('click', (function (f, k) { return function () { toggleFullscreenFeature(f, k, body); }; })(feat, key));
@@ -2855,6 +3048,8 @@
       fr.appendChild(fb);
       if (feat.mvpPlayerSelect) fr.appendChild(buildMvpPlayerSelect());
       if (feat.wtvcPageSpeed) fr.appendChild(buildWtvcPageSpeedControl());
+      if (feat.h2hSelect) fr.appendChild(buildH2HSelect());
+      if (feat.teamH2hSelect) fr.appendChild(buildTeamH2HSelect());
       if (feat.elimsMapSelect) fr.appendChild(buildElimsMapSelect(feat.elimsMapSelect === true ? 'elims_map' : feat.elimsMapSelect));
       return fr;
     }
@@ -3166,12 +3361,10 @@
         buildControlBody(lastOverlay);
       });
 
-      if (folder.open) {
-        var fbody = el('div', 'fs-folder-body');
-        if (!visibleKeys.length) fbody.appendChild(el('div', 'fs-empty-hint', 'Drag scenes here'));
-        visibleKeys.forEach(function (k) { fbody.appendChild(makeRow(byKey[k])); });
-        box.appendChild(fbody);
-      }
+      var fbody = el('div', 'fs-folder-body' + (folder.open ? '' : ' fs-collapsed'));
+      if (!visibleKeys.length) fbody.appendChild(el('div', 'fs-empty-hint', 'Drag scenes here'));
+      visibleKeys.forEach(function (k) { fbody.appendChild(makeRow(byKey[k])); });
+      box.appendChild(fbody);
       makeDropZone(box, folder.id);
       body.appendChild(box);
       if (fsFolderPendingRename === folder.id) { fsFolderPendingRename = null; startRename(); }
@@ -3692,7 +3885,7 @@
     '#mhl-winner-back':  { left: 43,  top: 448, width: 415, height: 557 },
     '#mhl-winner-title': { left: 0,   top: 0,   width: 415, height: 45,  fontSize: 43.33 },
     '#mhl-winner-logo':  { left: 68,  top: 62,  width: 281, height: 281 },
-    '#mhl-winner-flag':  { left: 182, top: 371, width: 58,  height: 29 },
+    '#mhl-winner-flag':  { left: 182, top: 371, width: 58,  height: 29, fontSize: 28 },
     '#mhl-winner-name':  { left: 5,   top: 403, width: 404, height: 148, fontSize: 50 },
   };
   var MHL_ELEMENTS = [
@@ -3702,7 +3895,7 @@
     { group: 'Map Highlights Winner Card',  id: '#mhl-winner-back',  name: 'Winner Card' },
     { group: 'Map Highlights Winner Title', id: '#mhl-winner-title', name: 'MAP WINNER Label' },
     { group: 'Map Highlights Winner Logo',  id: '#mhl-winner-logo',  name: 'Winner Logo Box' },
-    { group: 'Map Highlights Winner Flag',  id: '#mhl-winner-flag',  name: 'Winner Flag' },
+    { group: 'Map Highlights Winner Flag',  id: '#mhl-winner-flag',  name: 'Winner Country Code' },
     { group: 'Map Highlights Winner Name',  id: '#mhl-winner-name',  name: 'Winner Name' },
   ];
 
@@ -3710,10 +3903,14 @@
   var OVR_DEFAULTS = {
     '#ovr-col-left':  { left: 40,  top: 282, width: 905, height: 672 },
     '#ovr-col-right': { left: 973, top: 282, width: 905, height: 672 },
+    '#ovr-zone-chip': { left: 802, top: 968, width: 46, height: 34, fontSize: 28 },
+    '#ovr-zone-text': { left: 858, top: 968, width: 300, height: 34, fontSize: 28 },
   };
   var OVR_ELEMENTS = [
     { group: 'Overall Ranking Column 1-10',  id: '#ovr-col-left',  name: 'Scoreboard Column (Teams 1-10)' },
     { group: 'Overall Ranking Column 11-20', id: '#ovr-col-right', name: 'Scoreboard Column (Teams 11-20)' },
+    { group: 'Overall Ranking Zone Chip', id: '#ovr-zone-chip', name: 'In The Zone Legend — Z! Chip' },
+    { group: 'Overall Ranking Zone Text', id: '#ovr-zone-text', name: 'In The Zone Legend — Text' },
   ];
 
   /* ── Map Ranking (Fullscreen.html) element defaults ── */
@@ -3745,6 +3942,21 @@
   var GRK_ELEMENTS = [
     { group: 'Group Ranking Column 1-10',  id: '#grk-col-left',  name: 'Scoreboard Column (Teams 1-10)' },
     { group: 'Group Ranking Column 11-20', id: '#grk-col-right', name: 'Scoreboard Column (Teams 11-20)' },
+  ];
+
+  /* ── Team Lineup (Fullscreen.html) element defaults — one block per team
+     slot (5 player cards + team banner, generated at runtime) ── */
+  var TL_DEFAULTS = {
+    '#tl-team-0': { left: 40,  top: 275, width: 905, height: 348 },
+    '#tl-team-1': { left: 975, top: 275, width: 905, height: 348 },
+    '#tl-team-2': { left: 40,  top: 640, width: 905, height: 348 },
+    '#tl-team-3': { left: 975, top: 640, width: 905, height: 348 },
+  };
+  var TL_ELEMENTS = [
+    { group: 'Team Lineup Slot 1', id: '#tl-team-0', name: 'Team Block 1 (top-left)' },
+    { group: 'Team Lineup Slot 2', id: '#tl-team-1', name: 'Team Block 2 (top-right)' },
+    { group: 'Team Lineup Slot 3', id: '#tl-team-2', name: 'Team Block 3 (bottom-left)' },
+    { group: 'Team Lineup Slot 4', id: '#tl-team-3', name: 'Team Block 4 (bottom-right)' },
   ];
 
   /* ── Qualified Teams 1 (Fullscreen.html) element defaults — rank 1 & 2
@@ -3801,7 +4013,7 @@
     '.ek-photo':     { left: -35, top: 14,  width: 364, height: 364 },
     '.ek-num':       { left: 1,   top: 289, width: 59,  height: 78,  fontSize: 90 },
     '.ek-teamlogo':  { left: 223, top: 297, width: 69,  height: 69 },
-    '.ek-flag':      { left: 14,  top: 392, width: 33,  height: 23 },
+    '.ek-flag':      { left: 14,  top: 392, width: 33,  height: 23, fontSize: 21.8 },
     '.ek-name':      { left: 79,  top: 387, width: 214, height: 32,  fontSize: 32.86 },
     '.ek-label':     { left: 12,  top: 450, width: 180, height: 37,  fontSize: 34 },
     '.ek-count':     { left: 214, top: 441, width: 79,  height: 49,  fontSize: 50 },
@@ -3821,7 +4033,7 @@
     { group: 'Card Photo',      id: '.ek-photo',    name: 'Player Photo (all cards)' },
     { group: 'Card Number',     id: '.ek-num',      name: 'Rank Number (all cards)' },
     { group: 'Card Team Logo',  id: '.ek-teamlogo', name: 'Team Logo (all cards)' },
-    { group: 'Card Flag',       id: '.ek-flag',     name: 'Country Flag (all cards)' },
+    { group: 'Card Flag',       id: '.ek-flag',     name: 'Country Code (all cards)' },
     { group: 'Card Name',       id: '.ek-name',     name: 'Player Name (all cards)' },
     { group: 'Card Label',      id: '.ek-label',    name: 'ELIMINATIONS Label (all cards)' },
     { group: 'Card Count',      id: '.ek-count',    name: 'Elimination Count (all cards)' },
@@ -3842,7 +4054,7 @@
     '.tme-card-bg':   { left: 0,   top: 0,   width: 297, height: 494 },
     '.tme-photo':     { left: 33.5, top: 124, width: 230, height: 230 },
     '.tme-num':       { left: 1,   top: 289, width: 59,  height: 78,  fontSize: 90 },
-    '.tme-flag':      { left: 14,  top: 392, width: 33,  height: 23 },
+    '.tme-flag':      { left: 14,  top: 392, width: 33,  height: 23, fontSize: 21.8 },
     '.tme-name':      { left: 79,  top: 387, width: 214, height: 32,  fontSize: 32.86 },
     '.tme-label':     { left: 12,  top: 450, width: 180, height: 37,  fontSize: 34 },
     '.tme-count':     { left: 214, top: 441, width: 79,  height: 49,  fontSize: 50 },
@@ -3861,10 +4073,292 @@
     { group: 'Card Background', id: '.tme-card-bg',  name: 'Card Background (all cards)' },
     { group: 'Card Photo',      id: '.tme-photo',    name: 'Team Logo — big (all cards)' },
     { group: 'Card Number',     id: '.tme-num',      name: 'Rank Number (all cards)' },
-    { group: 'Card Flag',       id: '.tme-flag',     name: 'Country Flag (all cards)' },
+    { group: 'Card Flag',       id: '.tme-flag',     name: 'Country Code (all cards)' },
     { group: 'Card Name',       id: '.tme-name',     name: 'Team Name (all cards)' },
     { group: 'Card Label',      id: '.tme-label',    name: 'ELIMINATIONS Label (all cards)' },
     { group: 'Card Count',      id: '.tme-count',    name: 'Elimination Count (all cards)' },
+  ];
+
+  /* ── Zowned Rate (Fullscreen.html) — clone of Team Map Elims (zr-* selectors): win rate per team on the picked map. ── */
+  var ZR_DEFAULTS = {
+    '#zr-mapbox':        { left: 159, top: 267, width: 607, height: 136 },
+    '#zr-mapbox-bg':     { left: 0, top: 0, width: 607, height: 136 },
+    '#zr-mapbox-label':  { left: 0, top: 0, width: 607, height: 136 },
+    '#zr-mapbox-title':  { left: 4, top: 50, width: 152, height: 37, fontSize: 24.3 },
+    '#zr-mapbox-name':   { left: 4, top: 86, width: 268, height: 45, fontSize: 40.3 },
+    '#zr-card-1': { left: 158,    top: 384, width: 297, height: 494 },
+    '#zr-card-2': { left: 484.5,  top: 384, width: 297, height: 494 },
+    '#zr-card-3': { left: 811,    top: 384, width: 297, height: 494 },
+    '#zr-card-4': { left: 1137.5, top: 384, width: 297, height: 494 },
+    '#zr-card-5': { left: 1464,   top: 384, width: 297, height: 494 },
+    '.zr-card-bg':   { left: 0,   top: 0,   width: 297, height: 494 },
+    '.zr-photo':     { left: 33.5, top: 124, width: 230, height: 230 },
+    '.zr-num':       { left: 1,   top: 289, width: 59,  height: 78,  fontSize: 90 },
+    '.zr-flag':      { left: 14,  top: 392, width: 33,  height: 23, fontSize: 21.8 },
+    '.zr-name':      { left: 79,  top: 387, width: 214, height: 32,  fontSize: 32.86 },
+    '.zr-label':     { left: 12,  top: 450, width: 180, height: 37,  fontSize: 34 },
+    '.zr-count':     { left: 214, top: 441, width: 79,  height: 49,  fontSize: 50 },
+  };
+  var ZR_ELEMENTS = [
+    { group: 'Map Box',            id: '#zr-mapbox',       name: 'Map Box (container)' },
+    { group: 'Map Box Background', id: '#zr-mapbox-bg',    name: 'Map Box Background' },
+    { group: 'Map Box Label',      id: '#zr-mapbox-label', name: 'Map Box Label Plate' },
+    { group: 'Map Box Title',      id: '#zr-mapbox-title', name: 'ZOWNED RATE Text' },
+    { group: 'Map Box Name',       id: '#zr-mapbox-name',  name: 'Map Name' },
+    { group: 'Card 1', id: '#zr-card-1', name: 'Player Card 1' },
+    { group: 'Card 2', id: '#zr-card-2', name: 'Player Card 2' },
+    { group: 'Card 3', id: '#zr-card-3', name: 'Player Card 3' },
+    { group: 'Card 4', id: '#zr-card-4', name: 'Player Card 4' },
+    { group: 'Card 5', id: '#zr-card-5', name: 'Player Card 5' },
+    { group: 'Card Background', id: '.zr-card-bg',  name: 'Card Background (all cards)' },
+    { group: 'Card Photo',      id: '.zr-photo',    name: 'Team Logo — big (all cards)' },
+    { group: 'Card Number',     id: '.zr-num',      name: 'Rank Number (all cards)' },
+    { group: 'Card Flag',       id: '.zr-flag',     name: 'Country Code (all cards)' },
+    { group: 'Card Name',       id: '.zr-name',     name: 'Team Name (all cards)' },
+    { group: 'Card Label',      id: '.zr-label',    name: 'WIN RATE Label (all cards)' },
+    { group: 'Card Count',      id: '.zr-count',    name: 'Win Rate Value (all cards)' },
+  ];
+
+  /* ── Average Placement (Fullscreen.html) — Grand Finals teams' avg map placement, 10 cards (avp-* selectors), no rank number / map box. ── */
+  var AVP_DEFAULTS = {
+    '#avp-card-1': { left: 177, top: 250, width: 225.72, height: 375.44 },
+    '#avp-card-2': { left: 512, top: 250, width: 225.72, height: 375.44 },
+    '#avp-card-3': { left: 847, top: 250, width: 225.72, height: 375.44 },
+    '#avp-card-4': { left: 1182, top: 250, width: 225.72, height: 375.44 },
+    '#avp-card-5': { left: 1517, top: 250, width: 225.72, height: 375.44 },
+    '#avp-card-6': { left: 177, top: 622, width: 225.72, height: 375.44 },
+    '#avp-card-7': { left: 512, top: 622, width: 225.72, height: 375.44 },
+    '#avp-card-8': { left: 847, top: 622, width: 225.72, height: 375.44 },
+    '#avp-card-9': { left: 1182, top: 622, width: 225.72, height: 375.44 },
+    '#avp-card-10': { left: 1517, top: 622, width: 225.72, height: 375.44 },
+    '.avp-card-bg': { left: 0, top: 0, width: 225.72, height: 375.44 },
+    '.avp-photo':   { left: 25.46, top: 79.04, width: 174.8, height: 174.8 },
+    '.avp-flag':    { left: 10.64, top: 297.92, width: 25.08, height: 17.48, fontSize: 16.6 },
+    '.avp-name':    { left: 60.04, top: 294.12, width: 162.64, height: 24.32, fontSize: 24.97 },
+    '.avp-label':   { left: 9.12, top: 342.0, width: 136.8, height: 28.12, fontSize: 25.84 },
+    '.avp-count':   { left: 162.64, top: 335.16, width: 60.04, height: 37.24, fontSize: 38.0 },
+  };
+  var AVP_ELEMENTS = [
+    { group: 'Card 1', id: '#avp-card-1', name: 'Team Card 1' },
+    { group: 'Card 2', id: '#avp-card-2', name: 'Team Card 2' },
+    { group: 'Card 3', id: '#avp-card-3', name: 'Team Card 3' },
+    { group: 'Card 4', id: '#avp-card-4', name: 'Team Card 4' },
+    { group: 'Card 5', id: '#avp-card-5', name: 'Team Card 5' },
+    { group: 'Card 6', id: '#avp-card-6', name: 'Team Card 6' },
+    { group: 'Card 7', id: '#avp-card-7', name: 'Team Card 7' },
+    { group: 'Card 8', id: '#avp-card-8', name: 'Team Card 8' },
+    { group: 'Card 9', id: '#avp-card-9', name: 'Team Card 9' },
+    { group: 'Card 10', id: '#avp-card-10', name: 'Team Card 10' },
+    { group: 'Card Background', id: '.avp-card-bg', name: 'Card Background (all cards)' },
+    { group: 'Card Photo',      id: '.avp-photo',   name: 'Team Logo — big (all cards)' },
+    { group: 'Card Flag',       id: '.avp-flag',    name: 'Country Code (all cards)' },
+    { group: 'Card Name',       id: '.avp-name',    name: 'Team Name (all cards)' },
+    { group: 'Card Label',      id: '.avp-label',   name: 'AVG PLACEMENT Label (all cards)' },
+    { group: 'Card Count',      id: '.avp-count',   name: 'Average Placement Value (all cards)' },
+  ];
+
+  /* ── Average Placement (Fullscreen.html) — Grand Finals teams' avg placement on the picked map, 10 cards (mpa-* selectors), no rank number / map box. ── */
+  var MPA_DEFAULTS = {
+    '#mpa-mapbox':       { left: 177, top: 238, width: 364, height: 82 },
+    '#mpa-mapbox-bg':    { left: 0, top: 0, width: 364, height: 82 },
+    '#mpa-mapbox-label': { left: 0, top: 0, width: 364, height: 82 },
+    '#mpa-mapbox-title': { left: 2.4, top: 30, width: 91, height: 22, fontSize: 14.6 },
+    '#mpa-mapbox-name':  { left: 2.4, top: 51.6, width: 161, height: 27, fontSize: 24.2 },
+    '#mpa-card-1': { left: 177, top: 250, width: 225.72, height: 375.44 },
+    '#mpa-card-2': { left: 512, top: 250, width: 225.72, height: 375.44 },
+    '#mpa-card-3': { left: 847, top: 250, width: 225.72, height: 375.44 },
+    '#mpa-card-4': { left: 1182, top: 250, width: 225.72, height: 375.44 },
+    '#mpa-card-5': { left: 1517, top: 250, width: 225.72, height: 375.44 },
+    '#mpa-card-6': { left: 177, top: 622, width: 225.72, height: 375.44 },
+    '#mpa-card-7': { left: 512, top: 622, width: 225.72, height: 375.44 },
+    '#mpa-card-8': { left: 847, top: 622, width: 225.72, height: 375.44 },
+    '#mpa-card-9': { left: 1182, top: 622, width: 225.72, height: 375.44 },
+    '#mpa-card-10': { left: 1517, top: 622, width: 225.72, height: 375.44 },
+    '.mpa-card-bg': { left: 0, top: 0, width: 225.72, height: 375.44 },
+    '.mpa-photo':   { left: 25.46, top: 79.04, width: 174.8, height: 174.8 },
+    '.mpa-flag':    { left: 10.64, top: 297.92, width: 25.08, height: 17.48, fontSize: 16.6 },
+    '.mpa-name':    { left: 60.04, top: 294.12, width: 162.64, height: 24.32, fontSize: 24.97 },
+    '.mpa-label':   { left: 9.12, top: 342.0, width: 136.8, height: 28.12, fontSize: 25.84 },
+    '.mpa-count':   { left: 162.64, top: 335.16, width: 60.04, height: 37.24, fontSize: 38.0 },
+  };
+  var MPA_ELEMENTS = [
+    { group: 'Map Box',            id: '#mpa-mapbox',       name: 'Map Box (container)' },
+    { group: 'Map Box Background', id: '#mpa-mapbox-bg',    name: 'Map Box Background' },
+    { group: 'Map Box Label',      id: '#mpa-mapbox-label', name: 'Map Box Label Plate' },
+    { group: 'Map Box Title',      id: '#mpa-mapbox-title', name: 'AVG PLACEMENT Text' },
+    { group: 'Map Box Name',       id: '#mpa-mapbox-name',  name: 'Map Name' },
+    { group: 'Card 1', id: '#mpa-card-1', name: 'Team Card 1' },
+    { group: 'Card 2', id: '#mpa-card-2', name: 'Team Card 2' },
+    { group: 'Card 3', id: '#mpa-card-3', name: 'Team Card 3' },
+    { group: 'Card 4', id: '#mpa-card-4', name: 'Team Card 4' },
+    { group: 'Card 5', id: '#mpa-card-5', name: 'Team Card 5' },
+    { group: 'Card 6', id: '#mpa-card-6', name: 'Team Card 6' },
+    { group: 'Card 7', id: '#mpa-card-7', name: 'Team Card 7' },
+    { group: 'Card 8', id: '#mpa-card-8', name: 'Team Card 8' },
+    { group: 'Card 9', id: '#mpa-card-9', name: 'Team Card 9' },
+    { group: 'Card 10', id: '#mpa-card-10', name: 'Team Card 10' },
+    { group: 'Card Background', id: '.mpa-card-bg', name: 'Card Background (all cards)' },
+    { group: 'Card Photo',      id: '.mpa-photo',   name: 'Team Logo — big (all cards)' },
+    { group: 'Card Flag',       id: '.mpa-flag',    name: 'Country Code (all cards)' },
+    { group: 'Card Name',       id: '.mpa-name',    name: 'Team Name (all cards)' },
+    { group: 'Card Label',      id: '.mpa-label',   name: 'AVG PLACEMENT Label (all cards)' },
+    { group: 'Card Count',      id: '.mpa-count',   name: 'Average Placement Value (all cards)' },
+  ];
+
+  /* ── Player H2H L3 (LowerThirds.html) — pl-* selectors. ── */
+  var PL_DEFAULTS = {
+    '#pl-box': { left: 330, top: 770, width: 1260, height: 270 },
+    '#pl-title': { left: 690, top: 718, width: 540, height: 58, fontSize: 38 },
+    '#pl-photo-a': { left: 210, top: 470, width: 570, height: 570 },
+    '#pl-photo-b': { left: 1140, top: 470, width: 570, height: 570 },
+    '#pl-plate-a': { left: 350, top: 928, width: 250, height: 44 },
+    '#pl-plate-b': { left: 1320, top: 928, width: 250, height: 44 },
+    '#pl-logo-a': { left: 358, top: 920, width: 60, height: 60 },
+    '#pl-logo-b': { left: 1502, top: 920, width: 60, height: 60 },
+    '#pl-code-a': { left: 424, top: 928, width: 170, height: 44, fontSize: 34 },
+    '#pl-code-b': { left: 1326, top: 928, width: 170, height: 44, fontSize: 34 },
+    '#pl-name-a': { left: 350, top: 974, width: 330, height: 56, fontSize: 34 },
+    '#pl-name-b': { left: 1240, top: 974, width: 330, height: 56, fontSize: 34 },
+    '#pl-row-1': { left: 710, top: 790, width: 500, height: 74 },
+    '#pl-row-2': { left: 710, top: 870, width: 500, height: 74 },
+    '#pl-row-3': { left: 710, top: 950, width: 500, height: 74 },
+    '.pl-label': { left: 155, top: 0, width: 190, height: 26, fontSize: 22 },
+    '.pl-bar': { left: 106, top: 24, width: 288, height: 48 },
+    '.pl-lval': { left: 0, top: 24, width: 100, height: 48, fontSize: 42 },
+    '.pl-rval': { left: 400, top: 24, width: 100, height: 48, fontSize: 42 },
+  };
+  var PL_ELEMENTS = [
+    { group: 'PL Box', id: '#pl-box', name: 'Container (looping webm)' },
+    { group: 'PL Title', id: '#pl-title', name: 'Title Tab' },
+    { group: 'PL Photo A', id: '#pl-photo-a', name: 'Player A Photo (left)' },
+    { group: 'PL Photo B', id: '#pl-photo-b', name: 'Player B Photo (right)' },
+    { group: 'PL Plate A', id: '#pl-plate-a', name: 'Team Plate A (yellow)' },
+    { group: 'PL Plate B', id: '#pl-plate-b', name: 'Team Plate B (yellow)' },
+    { group: 'PL Logo A', id: '#pl-logo-a', name: 'Team Logo A' },
+    { group: 'PL Logo B', id: '#pl-logo-b', name: 'Team Logo B' },
+    { group: 'PL Code A', id: '#pl-code-a', name: 'Country Code A' },
+    { group: 'PL Code B', id: '#pl-code-b', name: 'Country Code B' },
+    { group: 'PL Name A', id: '#pl-name-a', name: 'Player A Name' },
+    { group: 'PL Name B', id: '#pl-name-b', name: 'Player B Name' },
+    { group: 'PL Row 1', id: '#pl-row-1', name: 'Stat Row 1 — Elims / Map' },
+    { group: 'PL Row 2', id: '#pl-row-2', name: 'Stat Row 2 — Team Kill Share' },
+    { group: 'PL Row 3', id: '#pl-row-3', name: 'Stat Row 3 — Best Map Elims' },
+    { group: 'PL Label', id: '.pl-label', name: 'Stat Label chip (all rows)' },
+    { group: 'PL Bar', id: '.pl-bar', name: 'Stat Bar (all rows)' },
+    { group: 'PL Left Val', id: '.pl-lval', name: 'Left Value (all rows)' },
+    { group: 'PL Right Val', id: '.pl-rval', name: 'Right Value (all rows)' },
+  ];
+
+  /* ── Team H2H L3 (LowerThirds.html) — tm-* selectors. ── */
+  var TM_DEFAULTS = {
+    '#tm-box': { left: 330, top: 770, width: 1260, height: 270 },
+    '#tm-title': { left: 690, top: 718, width: 540, height: 58, fontSize: 38 },
+    '#tm-logo-a': { left: 480, top: 790, width: 190, height: 190 },
+    '#tm-logo-b': { left: 1250, top: 790, width: 190, height: 190 },
+    '#tm-tag-a': { left: 480, top: 988, width: 190, height: 44, fontSize: 38 },
+    '#tm-tag-b': { left: 1250, top: 988, width: 190, height: 44, fontSize: 38 },
+    '#tm-row-1': { left: 710, top: 790, width: 500, height: 74 },
+    '#tm-row-2': { left: 710, top: 870, width: 500, height: 74 },
+    '#tm-row-3': { left: 710, top: 950, width: 500, height: 74 },
+    '.tm-label': { left: 155, top: 0, width: 190, height: 26, fontSize: 22 },
+    '.tm-bar': { left: 106, top: 24, width: 288, height: 48 },
+    '.tm-lval': { left: 0, top: 24, width: 100, height: 48, fontSize: 42 },
+    '.tm-rval': { left: 400, top: 24, width: 100, height: 48, fontSize: 42 },
+  };
+  var TM_ELEMENTS = [
+    { group: 'TM Box', id: '#tm-box', name: 'Container (looping webm)' },
+    { group: 'TM Title', id: '#tm-title', name: 'Title Tab' },
+    { group: 'TM Logo A', id: '#tm-logo-a', name: 'Team A Logo (left)' },
+    { group: 'TM Logo B', id: '#tm-logo-b', name: 'Team B Logo (right)' },
+    { group: 'TM Tag A', id: '#tm-tag-a', name: 'Country Code A' },
+    { group: 'TM Tag B', id: '#tm-tag-b', name: 'Country Code B' },
+    { group: 'TM Row 1', id: '#tm-row-1', name: 'Stat Row 1 — Elims / Map' },
+    { group: 'TM Row 2', id: '#tm-row-2', name: 'Stat Row 2 — Avg Placement' },
+    { group: 'TM Row 3', id: '#tm-row-3', name: 'Stat Row 3 — Win Rate' },
+    { group: 'TM Label', id: '.tm-label', name: 'Stat Label chip (all rows)' },
+    { group: 'TM Bar', id: '.tm-bar', name: 'Stat Bar (all rows)' },
+    { group: 'TM Left Val', id: '.tm-lval', name: 'Left Value (all rows)' },
+    { group: 'TM Right Val', id: '.tm-rval', name: 'Right Value (all rows)' },
+  ];
+
+  /* ── Player H2H (Fullscreen.html) — 2 players compared: photos, logos, names, stat rows (hh-* selectors). ── */
+  var HH_DEFAULTS = {
+    '#hh-photo-a': { left: -141, top: 150, width: 930, height: 930 },
+    '#hh-photo-b': { left: 1131, top: 150, width: 930, height: 930 },
+    '#hh-logo-a': { left: 700, top: 215, width: 130, height: 130 },
+    '#hh-logo-b': { left: 1090, top: 215, width: 130, height: 130 },
+    '#hh-vs': { left: 860, top: 240, width: 200, height: 80, fontSize: 76 },
+    '#hh-name-a': { left: 648, top: 352, width: 300, height: 70, fontSize: 52 },
+    '#hh-name-b': { left: 972, top: 352, width: 300, height: 70, fontSize: 52 },
+    '#hh-row-1': { left: 648, top: 455, width: 624, height: 62 },
+    '#hh-row-2': { left: 648, top: 527, width: 624, height: 62 },
+    '#hh-row-3': { left: 648, top: 599, width: 624, height: 62 },
+    '#hh-row-4': { left: 648, top: 671, width: 624, height: 62 },
+    '#hh-row-5': { left: 648, top: 743, width: 624, height: 62 },
+    '#hh-row-6': { left: 648, top: 815, width: 624, height: 62 },
+    '#hh-row-7': { left: 648, top: 887, width: 624, height: 62 },
+    '.hh-lval':  { left: 0, top: 0, width: 130, height: 62, fontSize: 42 },
+    '.hh-label': { left: 142, top: 0, width: 340, height: 62, fontSize: 30 },
+    '.hh-rval':  { left: 494, top: 0, width: 130, height: 62, fontSize: 42 },
+  };
+  var HH_ELEMENTS = [
+    { group: 'Photo A', id: '#hh-photo-a', name: 'Player A Photo (left)' },
+    { group: 'Photo B', id: '#hh-photo-b', name: 'Player B Photo (right)' },
+    { group: 'Logo A',  id: '#hh-logo-a',  name: 'Team A Logo' },
+    { group: 'Logo B',  id: '#hh-logo-b',  name: 'Team B Logo' },
+    { group: 'VS',      id: '#hh-vs',      name: 'VS Text' },
+    { group: 'Name A',  id: '#hh-name-a',  name: 'Player A Name' },
+    { group: 'Name B',  id: '#hh-name-b',  name: 'Player B Name' },
+    { group: 'Row 1', id: '#hh-row-1', name: 'Stat Row 1 — Total Elims' },
+    { group: 'Row 2', id: '#hh-row-2', name: 'Stat Row 2 — Elims / Map' },
+    { group: 'Row 3', id: '#hh-row-3', name: 'Stat Row 3 — Best Map Elims' },
+    { group: 'Row 4', id: '#hh-row-4', name: 'Stat Row 4 — Team Kill Share' },
+    { group: 'Row 5', id: '#hh-row-5', name: 'Stat Row 5 — Maps Played' },
+    { group: 'Row 6', id: '#hh-row-6', name: 'Stat Row 6 — Team Avg Placement' },
+    { group: 'Row 7', id: '#hh-row-7', name: 'Stat Row 7 — Team Wins' },
+    { group: 'Left Value',  id: '.hh-lval',  name: 'Left Value Box (all rows)' },
+    { group: 'Stat Label',  id: '.hh-label', name: 'Stat Label (all rows)' },
+    { group: 'Right Value', id: '.hh-rval',  name: 'Right Value Box (all rows)' },
+  ];
+
+  /* ── Team H2H (Fullscreen.html) — 2 teams compared: big logos, flags, names, stat rows (tmh-* selectors). ── */
+  var TMH_DEFAULTS = {
+    '#tmh-logo-a': { left: 44, top: 360, width: 560, height: 560 },
+    '#tmh-logo-b': { left: 1316, top: 360, width: 560, height: 560 },
+    '#tmh-flag-a': { left: 723, top: 250, width: 150, height: 100, fontSize: 80 },
+    '#tmh-flag-b': { left: 1047, top: 250, width: 150, height: 100, fontSize: 80 },
+    '#tmh-vs': { left: 860, top: 240, width: 200, height: 80, fontSize: 76 },
+    '#tmh-name-a': { left: 648, top: 352, width: 300, height: 70, fontSize: 52 },
+    '#tmh-name-b': { left: 972, top: 352, width: 300, height: 70, fontSize: 52 },
+    '#tmh-row-1': { left: 648, top: 455, width: 624, height: 62 },
+    '#tmh-row-2': { left: 648, top: 527, width: 624, height: 62 },
+    '#tmh-row-3': { left: 648, top: 599, width: 624, height: 62 },
+    '#tmh-row-4': { left: 648, top: 671, width: 624, height: 62 },
+    '#tmh-row-5': { left: 648, top: 743, width: 624, height: 62 },
+    '#tmh-row-6': { left: 648, top: 815, width: 624, height: 62 },
+    '#tmh-row-7': { left: 648, top: 887, width: 624, height: 62 },
+    '.tmh-lval':  { left: 0, top: 0, width: 130, height: 62, fontSize: 42 },
+    '.tmh-label': { left: 142, top: 0, width: 340, height: 62, fontSize: 30 },
+    '.tmh-rval':  { left: 494, top: 0, width: 130, height: 62, fontSize: 42 },
+  };
+  var TMH_ELEMENTS = [
+    { group: 'Logo A', id: '#tmh-logo-a', name: 'Team A Logo (left, big)' },
+    { group: 'Logo B', id: '#tmh-logo-b', name: 'Team B Logo (right, big)' },
+    { group: 'Code A', id: '#tmh-flag-a', name: 'Team A Country Code' },
+    { group: 'Code B', id: '#tmh-flag-b', name: 'Team B Country Code' },
+    { group: 'VS',     id: '#tmh-vs',     name: 'VS Text' },
+    { group: 'Name A', id: '#tmh-name-a', name: 'Team A Name' },
+    { group: 'Name B', id: '#tmh-name-b', name: 'Team B Name' },
+    { group: 'Row 1', id: '#tmh-row-1', name: 'Stat Row 1 — Maps Played' },
+    { group: 'Row 2', id: '#tmh-row-2', name: 'Stat Row 2 — Total Elims' },
+    { group: 'Row 3', id: '#tmh-row-3', name: 'Stat Row 3 — Elims / Map' },
+    { group: 'Row 4', id: '#tmh-row-4', name: 'Stat Row 4 — Avg Placement' },
+    { group: 'Row 5', id: '#tmh-row-5', name: 'Stat Row 5 — Wins (1St Place)' },
+    { group: 'Row 6', id: '#tmh-row-6', name: 'Stat Row 6 — Win Rate' },
+    { group: 'Row 7', id: '#tmh-row-7', name: 'Stat Row 7 — Top 3 Finishes' },
+    { group: 'Left Value',  id: '.tmh-lval',  name: 'Left Value Box (all rows)' },
+    { group: 'Stat Label',  id: '.tmh-label', name: 'Stat Label (all rows)' },
+    { group: 'Right Value', id: '.tmh-rval',  name: 'Right Value Box (all rows)' },
   ];
 
   /* ── Total Elim Leaders (Fullscreen.html) — same 5 cards as Eliminations/Map, own selectors (tel-*), no map box. ── */
@@ -3878,7 +4372,7 @@
     '.tel-photo':     { left: -38.5, top: 15.4,  width: 400.4, height: 400.4 },
     '.tel-num':       { left: 1.1,   top: 317.9, width: 64.9,  height: 85.8,  fontSize: 99 },
     '.tel-teamlogo':  { left: 245.3, top: 326.7, width: 75.9,  height: 75.9 },
-    '.tel-flag':      { left: 15.4,  top: 431.2, width: 36.3,  height: 25.3 },
+    '.tel-flag':      { left: 15.4,  top: 431.2, width: 36.3,  height: 25.3, fontSize: 24 },
     '.tel-name':      { left: 86.9,  top: 425.7, width: 235.4, height: 35.2,  fontSize: 36.15 },
     '.tel-label':     { left: 13.2,  top: 495, width: 198, height: 40.7,  fontSize: 37.4 },
     '.tel-count':     { left: 235.4, top: 485.5, width: 86.9,  height: 53.9,  fontSize: 55 },
@@ -3893,7 +4387,7 @@
     { group: 'Card Photo',      id: '.tel-photo',    name: 'Player Photo (all cards)' },
     { group: 'Card Number',     id: '.tel-num',      name: 'Rank Number (all cards)' },
     { group: 'Card Team Logo',  id: '.tel-teamlogo', name: 'Team Logo (all cards)' },
-    { group: 'Card Flag',       id: '.tel-flag',     name: 'Country Flag (all cards)' },
+    { group: 'Card Flag',       id: '.tel-flag',     name: 'Country Code (all cards)' },
     { group: 'Card Name',       id: '.tel-name',     name: 'Player Name (all cards)' },
     { group: 'Card Label',      id: '.tel-label',    name: 'ELIMINATIONS Label (all cards)' },
     { group: 'Card Count',      id: '.tel-count',    name: 'Elimination Count (all cards)' },
@@ -3910,7 +4404,7 @@
     '.qel-photo':     { left: -38.5, top: 15.4,  width: 400.4, height: 400.4 },
     '.qel-num':       { left: 1.1,   top: 317.9, width: 64.9,  height: 85.8,  fontSize: 99 },
     '.qel-teamlogo':  { left: 245.3, top: 326.7, width: 75.9,  height: 75.9 },
-    '.qel-flag':      { left: 15.4,  top: 431.2, width: 36.3,  height: 25.3 },
+    '.qel-flag':      { left: 15.4,  top: 431.2, width: 36.3,  height: 25.3, fontSize: 24 },
     '.qel-name':      { left: 86.9,  top: 425.7, width: 235.4, height: 35.2,  fontSize: 36.15 },
     '.qel-label':     { left: 13.2,  top: 495, width: 198, height: 40.7,  fontSize: 37.4 },
     '.qel-count':     { left: 235.4, top: 485.5, width: 86.9,  height: 53.9,  fontSize: 55 },
@@ -3925,7 +4419,7 @@
     { group: 'Card Photo',      id: '.qel-photo',    name: 'Player Photo (all cards)' },
     { group: 'Card Number',     id: '.qel-num',      name: 'Rank Number (all cards)' },
     { group: 'Card Team Logo',  id: '.qel-teamlogo', name: 'Team Logo (all cards)' },
-    { group: 'Card Flag',       id: '.qel-flag',     name: 'Country Flag (all cards)' },
+    { group: 'Card Flag',       id: '.qel-flag',     name: 'Country Code (all cards)' },
     { group: 'Card Name',       id: '.qel-name',     name: 'Player Name (all cards)' },
     { group: 'Card Label',      id: '.qel-label',    name: 'ELIMINATIONS Label (all cards)' },
     { group: 'Card Count',      id: '.qel-count',    name: 'Elimination Count (all cards)' },
@@ -3942,7 +4436,7 @@
     '.gel-photo':     { left: -38.5, top: 15.4,  width: 400.4, height: 400.4 },
     '.gel-num':       { left: 1.1,   top: 317.9, width: 64.9,  height: 85.8,  fontSize: 99 },
     '.gel-teamlogo':  { left: 245.3, top: 326.7, width: 75.9,  height: 75.9 },
-    '.gel-flag':      { left: 15.4,  top: 431.2, width: 36.3,  height: 25.3 },
+    '.gel-flag':      { left: 15.4,  top: 431.2, width: 36.3,  height: 25.3, fontSize: 24 },
     '.gel-name':      { left: 86.9,  top: 425.7, width: 235.4, height: 35.2,  fontSize: 36.15 },
     '.gel-label':     { left: 13.2,  top: 495, width: 198, height: 40.7,  fontSize: 37.4 },
     '.gel-group':     { left: 0, top: 0, width: 55, height: 55, fontSize: 44 },
@@ -3958,7 +4452,7 @@
     { group: 'Card Photo',      id: '.gel-photo',    name: 'Player Photo (all cards)' },
     { group: 'Card Number',     id: '.gel-num',      name: 'Rank Number (all cards)' },
     { group: 'Card Team Logo',  id: '.gel-teamlogo', name: 'Team Logo (all cards)' },
-    { group: 'Card Flag',       id: '.gel-flag',     name: 'Country Flag (all cards)' },
+    { group: 'Card Flag',       id: '.gel-flag',     name: 'Country Code (all cards)' },
     { group: 'Card Name',       id: '.gel-name',     name: 'Player Name (all cards)' },
     { group: 'Card Label',      id: '.gel-label',    name: 'ELIMINATIONS Label (all cards)' },
     { group: 'Card Count',      id: '.gel-count',    name: 'Elimination Count (all cards)' },
@@ -3976,7 +4470,7 @@
     '.pel-photo':     { left: -38.5, top: 15.4,  width: 400.4, height: 400.4 },
     '.pel-num':       { left: 1.1,   top: 317.9, width: 64.9,  height: 85.8,  fontSize: 99 },
     '.pel-teamlogo':  { left: 245.3, top: 326.7, width: 75.9,  height: 75.9 },
-    '.pel-flag':      { left: 15.4,  top: 431.2, width: 36.3,  height: 25.3 },
+    '.pel-flag':      { left: 15.4,  top: 431.2, width: 36.3,  height: 25.3, fontSize: 24 },
     '.pel-name':      { left: 86.9,  top: 425.7, width: 235.4, height: 35.2,  fontSize: 36.15 },
     '.pel-label':     { left: 13.2,  top: 495, width: 198, height: 40.7,  fontSize: 37.4 },
     '.pel-group':     { left: 0, top: 0, width: 55, height: 55, fontSize: 44 },
@@ -3992,7 +4486,7 @@
     { group: 'Card Photo',      id: '.pel-photo',    name: 'Player Photo (all cards)' },
     { group: 'Card Number',     id: '.pel-num',      name: 'Rank Number (all cards)' },
     { group: 'Card Team Logo',  id: '.pel-teamlogo', name: 'Team Logo (all cards)' },
-    { group: 'Card Flag',       id: '.pel-flag',     name: 'Country Flag (all cards)' },
+    { group: 'Card Flag',       id: '.pel-flag',     name: 'Country Code (all cards)' },
     { group: 'Card Name',       id: '.pel-name',     name: 'Player Name (all cards)' },
     { group: 'Card Label',      id: '.pel-label',    name: 'ELIMINATIONS Label (all cards)' },
     { group: 'Card Count',      id: '.pel-count',    name: 'Elimination Count (all cards)' },
@@ -4088,7 +4582,7 @@
     '.tte-card-bg':   { left: 0,    top: 0,   width: 297, height: 494 },
     '.tte-photo':     { left: 33.5, top: 124, width: 230, height: 230 },
     '.tte-num':       { left: 1,    top: 289, width: 59,  height: 78,  fontSize: 90 },
-    '.tte-flag':      { left: 14,   top: 392, width: 33,  height: 23 },
+    '.tte-flag':      { left: 14,   top: 392, width: 33,  height: 23, fontSize: 21.8 },
     '.tte-name':      { left: 79,   top: 387, width: 214, height: 32,  fontSize: 32.86 },
     '.tte-label':     { left: 12,   top: 450, width: 180, height: 37,  fontSize: 34 },
     '.tte-count':     { left: 214,  top: 441, width: 79,  height: 49,  fontSize: 50 },
@@ -4102,7 +4596,7 @@
     { group: 'Card Background', id: '.tte-card-bg', name: 'Card Background (all cards)' },
     { group: 'Card Logo',       id: '.tte-photo',   name: 'Team Logo — big (all cards)' },
     { group: 'Card Number',     id: '.tte-num',     name: 'Rank Number (all cards)' },
-    { group: 'Card Flag',       id: '.tte-flag',    name: 'Country Flag (all cards)' },
+    { group: 'Card Flag',       id: '.tte-flag',    name: 'Country Code (all cards)' },
     { group: 'Card Name',       id: '.tte-name',    name: 'Team Name (all cards)' },
     { group: 'Card Label',      id: '.tte-label',   name: 'ELIMINATIONS Label (all cards)' },
     { group: 'Card Count',      id: '.tte-count',   name: 'Elimination Count (all cards)' },
@@ -4118,7 +4612,7 @@
     '.gte-card-bg':   { left: 0,    top: 0,   width: 297, height: 494 },
     '.gte-photo':     { left: 33.5, top: 124, width: 230, height: 230 },
     '.gte-num':       { left: 1,    top: 289, width: 59,  height: 78,  fontSize: 90 },
-    '.gte-flag':      { left: 14,   top: 392, width: 33,  height: 23 },
+    '.gte-flag':      { left: 14,   top: 392, width: 33,  height: 23, fontSize: 21.8 },
     '.gte-name':      { left: 79,   top: 387, width: 214, height: 32,  fontSize: 32.86 },
     '.gte-label':     { left: 12,   top: 450, width: 180, height: 37,  fontSize: 34 },
     '.gte-count':     { left: 214,  top: 441, width: 79,  height: 49,  fontSize: 50 },
@@ -4133,7 +4627,7 @@
     { group: 'Card Background', id: '.gte-card-bg', name: 'Card Background (all cards)' },
     { group: 'Card Logo',       id: '.gte-photo',   name: 'Team Logo — big (all cards)' },
     { group: 'Card Number',     id: '.gte-num',     name: 'Rank Number (all cards)' },
-    { group: 'Card Flag',       id: '.gte-flag',    name: 'Country Flag (all cards)' },
+    { group: 'Card Flag',       id: '.gte-flag',    name: 'Country Code (all cards)' },
     { group: 'Card Name',       id: '.gte-name',    name: 'Team Name (all cards)' },
     { group: 'Card Label',      id: '.gte-label',   name: 'ELIMINATIONS Label (all cards)' },
     { group: 'Card Count',      id: '.gte-count',   name: 'Elimination Count (all cards)' },
@@ -4150,7 +4644,7 @@
     '.pte-card-bg':   { left: 0,    top: 0,   width: 297, height: 494 },
     '.pte-photo':     { left: 33.5, top: 124, width: 230, height: 230 },
     '.pte-num':       { left: 1,    top: 289, width: 59,  height: 78,  fontSize: 90 },
-    '.pte-flag':      { left: 14,   top: 392, width: 33,  height: 23 },
+    '.pte-flag':      { left: 14,   top: 392, width: 33,  height: 23, fontSize: 21.8 },
     '.pte-name':      { left: 79,   top: 387, width: 214, height: 32,  fontSize: 32.86 },
     '.pte-label':     { left: 12,   top: 450, width: 180, height: 37,  fontSize: 34 },
     '.pte-count':     { left: 214,  top: 441, width: 79,  height: 49,  fontSize: 50 },
@@ -4165,7 +4659,7 @@
     { group: 'Card Background', id: '.pte-card-bg', name: 'Card Background (all cards)' },
     { group: 'Card Logo',       id: '.pte-photo',   name: 'Team Logo — big (all cards)' },
     { group: 'Card Number',     id: '.pte-num',     name: 'Rank Number (all cards)' },
-    { group: 'Card Flag',       id: '.pte-flag',    name: 'Country Flag (all cards)' },
+    { group: 'Card Flag',       id: '.pte-flag',    name: 'Country Code (all cards)' },
     { group: 'Card Name',       id: '.pte-name',    name: 'Team Name (all cards)' },
     { group: 'Card Label',      id: '.pte-label',   name: 'ELIMINATIONS Label (all cards)' },
     { group: 'Card Count',      id: '.pte-count',   name: 'Elimination Count (all cards)' },
@@ -4182,7 +4676,7 @@
     '.qte-card-bg':   { left: 0,    top: 0,   width: 297, height: 494 },
     '.qte-photo':     { left: 33.5, top: 124, width: 230, height: 230 },
     '.qte-num':       { left: 1,    top: 289, width: 59,  height: 78,  fontSize: 90 },
-    '.qte-flag':      { left: 14,   top: 392, width: 33,  height: 23 },
+    '.qte-flag':      { left: 14,   top: 392, width: 33,  height: 23, fontSize: 21.8 },
     '.qte-name':      { left: 79,   top: 387, width: 214, height: 32,  fontSize: 32.86 },
     '.qte-label':     { left: 12,   top: 450, width: 180, height: 37,  fontSize: 34 },
     '.qte-count':     { left: 214,  top: 441, width: 79,  height: 49,  fontSize: 50 },
@@ -4196,7 +4690,7 @@
     { group: 'Card Background', id: '.qte-card-bg', name: 'Card Background (all cards)' },
     { group: 'Card Logo',       id: '.qte-photo',   name: 'Team Logo — big (all cards)' },
     { group: 'Card Number',     id: '.qte-num',     name: 'Rank Number (all cards)' },
-    { group: 'Card Flag',       id: '.qte-flag',    name: 'Country Flag (all cards)' },
+    { group: 'Card Flag',       id: '.qte-flag',    name: 'Country Code (all cards)' },
     { group: 'Card Name',       id: '.qte-name',    name: 'Team Name (all cards)' },
     { group: 'Card Label',      id: '.qte-label',   name: 'ELIMINATIONS Label (all cards)' },
     { group: 'Card Count',      id: '.qte-count',   name: 'Elimination Count (all cards)' },
@@ -4208,7 +4702,7 @@
   var MWN_DEFAULTS = {
     '#mwn-team-back': { left: 40,  top: 719, width: 1378, height: 270 },
     '#mwn-logo-box':  { left: 81,  top: 30,  width: 213,  height: 213 },
-    '#mwn-flag':      { left: 13,  top: 32,  width: 58,   height: 29  },
+    '#mwn-flag':      { left: 13,  top: 32,  width: 58,   height: 29, fontSize: 28 },
     '#mwn-name':      { left: 491, top: 25,  width: 861,  height: 223, fontSize: 116.67 },
     '#mwn-photos-back': { left: 40,   top: 261, width: 1378, height: 458 },
     '#mwn-photo-1':     { left: 57,   top: -25, width: 340, height: 493 },
@@ -4227,7 +4721,7 @@
   var MWN_ELEMENTS = [
     { group: 'Map Winner Team Container', id: '#mwn-team-back', name: 'Team Container' },
     { group: 'Map Winner Logo',           id: '#mwn-logo-box',  name: 'Team Logo Box' },
-    { group: 'Map Winner Flag',           id: '#mwn-flag',      name: 'Team Flag' },
+    { group: 'Map Winner Flag',           id: '#mwn-flag',      name: 'Team Country Code' },
     { group: 'Map Winner Name',           id: '#mwn-name',      name: 'Team Name' },
     { group: 'Map Winner Photos Container', id: '#mwn-photos-back', name: 'Photos Container' },
     { group: 'Map Winner Photo 1', id: '#mwn-photo-1', name: 'Player Photo 1' },
@@ -4250,7 +4744,7 @@
     '#mmvp-photo':       { left: 880, top: 67,  width: 1100, height: 1100 },
     '#mmvp-logo-box':    { left: 80,  top: 320, width: 190, height: 190 },
     '#mmvp-namebar':     { left: 290, top: 320, width: 690, height: 190 },
-    '#mmvp-flag':        { left: 322, top: 391, width: 96,  height: 48  },
+    '#mmvp-flag':        { left: 322, top: 391, width: 96,  height: 48, fontSize: 46 },
     '#mmvp-name':        { left: 430, top: 320, width: 530, height: 190, fontSize: 120 },
     '#mmvp-elims-label': { left: 80,  top: 560, width: 560, height: 190, fontSize: 120 },
     '#mmvp-elims-value': { left: 660, top: 560, width: 320, height: 190, fontSize: 150 },
@@ -4261,7 +4755,7 @@
     { group: 'Map MVP Photo',       id: '#mmvp-photo',       name: 'Player Photo' },
     { group: 'Map MVP Logo',        id: '#mmvp-logo-box',    name: 'Team Logo Box' },
     { group: 'Map MVP Name Bar',    id: '#mmvp-namebar',     name: 'Name Bar' },
-    { group: 'Map MVP Flag',        id: '#mmvp-flag',        name: 'Flag' },
+    { group: 'Map MVP Flag',        id: '#mmvp-flag',        name: 'Country Code' },
     { group: 'Map MVP Name',        id: '#mmvp-name',        name: 'Player Name' },
     { group: 'Map MVP Elims Label', id: '#mmvp-elims-label', name: 'ELIMINATIONS Label' },
     { group: 'Map MVP Elims Value', id: '#mmvp-elims-value', name: 'Eliminations Value' },
@@ -4473,6 +4967,15 @@
       defaults:    GRK_DEFAULTS,
       showFn:      'showGroupAScene',
     },
+    fullscreen_teamlineup: {
+      label:       'Team Lineup · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_teamlineup',
+      elements:    TL_ELEMENTS,
+      defaults:    TL_DEFAULTS,
+      showFn:      'showTeamLineupScene',
+    },
     fullscreen_qualifiedteams1: {
       label:       'Qualified Teams 1 · Fullscreen',
       file:        'Fullscreen.html',
@@ -4536,6 +5039,69 @@
       elements:    PEL_ELEMENTS,
       defaults:    PEL_DEFAULTS,
       showFn:      'showPlayoffsElimLeadersScene',
+    },
+    fullscreen_teamh2h: {
+      label:       'Team H2H · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_teamh2h',
+      elements:    TMH_ELEMENTS,
+      defaults:    TMH_DEFAULTS,
+      showFn:      'showTeamH2HScene',
+    },
+    lowerthirds_playerh2h: {
+      label:       'Player H2H L3 · Lower Thirds',
+      file:        'LowerThirds.html',
+      styleFile:   'lowerthirds',
+      defaultsKey: 'sb_edit_defaults_lowerthirds_playerh2h',
+      elements:    PL_ELEMENTS,
+      defaults:    PL_DEFAULTS,
+      showFn:      'showPlayerH2HL3',
+    },
+    lowerthirds_teamh2h: {
+      label:       'Team H2H L3 · Lower Thirds',
+      file:        'LowerThirds.html',
+      styleFile:   'lowerthirds',
+      defaultsKey: 'sb_edit_defaults_lowerthirds_teamh2h',
+      elements:    TM_ELEMENTS,
+      defaults:    TM_DEFAULTS,
+      showFn:      'showTeamH2HL3',
+    },
+    fullscreen_playerh2h: {
+      label:       'Player H2H · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_playerh2h',
+      elements:    HH_ELEMENTS,
+      defaults:    HH_DEFAULTS,
+      showFn:      'showPlayerH2HScene',
+    },
+    fullscreen_mapplacementavg: {
+      label:       'Map Placement AVG · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_mapplacementavg',
+      elements:    MPA_ELEMENTS,
+      defaults:    MPA_DEFAULTS,
+      showFn:      'showMapPlacementAvgScene',
+    },
+    fullscreen_averageplacement: {
+      label:       'Average Placement · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_averageplacement',
+      elements:    AVP_ELEMENTS,
+      defaults:    AVP_DEFAULTS,
+      showFn:      'showAveragePlacementScene',
+    },
+    fullscreen_zownedrate: {
+      label:       'Zowned Rate · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_zownedrate',
+      elements:    ZR_ELEMENTS,
+      defaults:    ZR_DEFAULTS,
+      showFn:      'showZownedRateScene',
     },
     fullscreen_teammapelims: {
       label:       'Team Map Elims · Fullscreen',

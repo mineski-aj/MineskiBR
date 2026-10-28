@@ -977,6 +977,19 @@ toggle needing to know each box's id individually. Concretely:
   repoint all three `${WL_ASSET}Sponsor_Box.png` call sites) — but don't
   copy the broken pattern into a new scene while it's unfixed.
 
+## NO FLAGS — countries are always shown as the team's country CODE
+
+**Flags are not allowed in any overlay.** Wherever a team's country would
+show, render its code as plain text ("PH", "TW", "HK", "MAC", "TH"...) — the
+sheet's `Region` value (`team.region`, or `country` on the stats APIs),
+uppercased. Never load `/flag/<X>_flag.png` or any flag asset, and don't add
+an image-with-text-fallback (the old pattern) either — text only. For a new
+card/box: make the element a `<div class="x-flag"><span></span></div>`
+(Teko 700, flex-centered, `span` nudged `translateY(0.15em)`) and fill it
+with `setFlagCode(el, code, maxSize)` in `Fullscreen.html` (it shrinks to fit;
+call it once the scene is display:block). Give its Edit-tab default a
+`fontSize`. The `/assets/flag/` folder is now unused.
+
 ## Data & assets
 
 - Player/match data: `hlFetchMvp()` / `hlExtractPlayer()` hit the

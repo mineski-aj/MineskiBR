@@ -3,7 +3,7 @@
     {
       "id": "fmv6rnuld",
       "name": "Waiting",
-      "open": true,
+      "open": false,
       "keys": [
         "waiting_tvc",
         "waiting_timer"

@@ -191,6 +191,45 @@
     opacity: 0;
     transform: translateY(10px);
   }
+  /* Grand Finals "In The Zone" — the dashboard's IN THE ZONE tab flags a
+     team, and its row swaps to the yellow container (same art as above,
+     body recolored #ffe800; see sbApplyZone in overlay-scoreboard.js). */
+  .sb-score-row.ssr-zone {
+    background-image: url('/assets/ingame/ingame_scorecontainer_yellow.png');
+  }
+  /* "Z!" badge — a yellow square hanging off the row's left edge (outside
+     the plate), as tall as the row (aspect-ratio keeps it square at any team
+     count) with the same black bottom rule the row art has. --ssr-h (set per
+     row in sbRenderScoreboard) sizes the glyph. Because it sticks out past the
+     plate, it would peek into frame while the plate is slid out — so it only
+     appears AFTER the slide-in finishes and vanishes the moment the slide-out
+     starts. */
+  .ssr-zone-badge {
+    display: none;
+    position: absolute;
+    right: 100%;
+    top: 0;
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    box-sizing: border-box;
+    border-bottom: 2px solid #000;
+    background: #ffe800;
+    color: #000;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Teko', sans-serif;
+    font-weight: 700;
+    font-size: calc(var(--ssr-h, 66px) * 0.62);
+    line-height: 1;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .sb-score-row.ssr-zone .ssr-zone-badge { display: flex; }
+  #sb-scoreboard-back.sb-slide-in .ssr-zone-badge { opacity: 1; transition: opacity 0.2s ease 0.5s; }
+  #sb-scoreboard-back.sb-instant .ssr-zone-badge { transition: none; }
+  /* Teko sits high in its line box (see CLAUDE.md) — nudge the glyph down. */
+  .ssr-zone-badge span { display: block; transform: translateY(0.1em); }
   /* Overtake animation — see sbAnimateRowMove in overlay-scoreboard.js.
      `transition` only lives on this on/off class (not the base rule
      above), so a brand-new row's very first placement never itself
@@ -253,11 +292,6 @@
     justify-content: center;
     font-size: 22.92px; /* 5.5pt @ 300dpi — flag-not-available text fallback */
     overflow: visible; /* box is smaller than the fallback text's natural size, same tradeoff as #sb-mh1-text */
-  }
-  .ssr-flag-img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
   }
   .ssr-divider {
     left: 96px;

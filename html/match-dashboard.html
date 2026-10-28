@@ -249,6 +249,7 @@
           <option value="Groupstage">Groupstage</option>
           <option value="Playoffs">Playoffs</option>
           <option value="Grand Finals">Grand Finals</option>
+          <option value="Showmatch">Showmatch</option>
         </select>
       </div>
       <div class="meta-field">
@@ -272,7 +273,7 @@
 
     <!-- Row 2: Week / Day / Patch -->
     <div class="meta-row" style="margin-top:12px;">
-      <div class="meta-field">
+      <div class="meta-field" id="week-field">
         <div class="meta-label">Week</div>
         <div class="spinner-row">
           <button class="btn btn-spin" id="week-minus">−</button>
@@ -577,6 +578,8 @@
     document.getElementById('official-wrap').classList.toggle('on', !!s.official);
     document.getElementById('week-val').textContent   = s.week  || 1;
     document.getElementById('day-val').textContent    = s.day   || 1;
+    /* Grand Finals is a 2-day event with no weeks — no Week counter. */
+    document.getElementById('week-field').style.display = isGrandFinalsStage() ? 'none' : '';
     document.getElementById('patch-input').value      = s.patch || 'Decisive Battle 420';
     var hosts     = s.hosts     || ['None','None','None'];
     var casters   = s.casters   || ['None','None','None'];
@@ -605,13 +608,14 @@
      loaded yet. */
   function needsPlayoffsSync() {
     if (isPlayoffsStage()) return poBlocks.length > 0;
+    if (isGrandFinalsStage()) return true; /* applyPlayoffsLayout only pushes if the saved state is off */
     return parseInt(localState.todayMapsCount, 10) > BR_MAPS_MAX ||
            (localState.todayMaps || []).some(function (m) { return m && (m.label !== undefined || m.lobby !== undefined); });
   }
 
   function updatePreview() {
     var s = localState;
-    document.getElementById('pv-meta').textContent = (s.stage || 'Qualifiers') + ' · W' + (s.week||1) + ' D' + (s.day||1);
+    document.getElementById('pv-meta').textContent = (s.stage || 'Qualifiers') + (isGrandFinalsStage() ? ' · D' + (s.day||1) : ' · W' + (s.week||1) + ' D' + (s.day||1));
   }
 
   /* ── PUSH ── */
@@ -796,7 +800,7 @@
     push({ day: localState.day, goodbyeLabel: localState.goodbyeLabel });
   });
   document.getElementById('day-plus').addEventListener('click', function () {
-    localState.day = Math.min(10, (localState.day || 1) + 1);
+    localState.day = Math.min(isGrandFinalsStage() ? GF_MAX_DAY : 10, (localState.day || 1) + 1);
     document.getElementById('day-val').textContent = localState.day;
     updatePreview();
     localState.goodbyeLabel = computeGoodbye(localState.day);
@@ -840,6 +844,21 @@
   var poLobbies = { lobbyA: [], lobbyB: [], teams: [] };
   function isPlayoffsStage() { return /^playoffs$/i.test(String(localState.stage || '').trim()); }
   function playoffsActive(key) { return key === 'today' && isPlayoffsStage() && poBlocks.length > 0; }
+
+  /* ── GRAND FINALS STAGE ──
+     Same idea as Playoffs but simpler: TODAY's list is hardcoded to 12 maps
+     (the Grand Finals sheet's Map 1-12, plain numbers — no lobbies), over
+     exactly 2 days (6 per day, see Fullscreen.html's Map Rotation). The
+     count is locked, the Map picker is the 12 rows, the Week counter is
+     hidden (no weeks in a 2-day finale) and Day can only be 1 or 2. Winner
+     choices are the Grand Finals sheet's squads (gfTeams, read with the
+     group sheets in loadGroupSheets). Tomorrow's list is left alone. */
+  var GF_MAPS = 12, GF_MAX_DAY = 2;
+  var gfTeams = [];
+  function isGrandFinalsStage() { return /^grand\s*finals$/i.test(String(localState.stage || '').trim()); }
+  function gfActive(key) { return key === 'today' && isGrandFinalsStage(); }
+  /* Either stage that hardcodes Today's list (Playoffs/Grand Finals). */
+  function fixedLayout(key) { return playoffsActive(key) || gfActive(key); }
   function loadPlayoffs() {
     return Promise.all([
       fetch('/api/playoffs/maps',    { cache: 'no-store' }).then(function (r) { return r.json(); }),
@@ -860,6 +879,7 @@
   function getMapsCount(key) {
     var cfg = MAPS_CONFIG[key];
     if (playoffsActive(key)) return poBlocks.length;
+    if (gfActive(key)) return GF_MAPS;
     var n = parseInt(localState[cfg.countField], 10);
     if (!n || n < 1) n = cfg.defaultCount;
     return Math.min(BR_MAPS_MAX, Math.max(1, n));
@@ -894,6 +914,11 @@
       push({ todayMapsCount: n, todayMaps: maps });
     }
     if ((localState.match || 1) > n) { localState.match = n; push({ match: n }); }
+    /* Grand Finals is a 2-day event. */
+    if (isGrandFinalsStage() && (localState.day || 1) > GF_MAX_DAY) {
+      localState.day = GF_MAX_DAY; localState.goodbyeLabel = computeGoodbye(GF_MAX_DAY);
+      push({ day: GF_MAX_DAY, goodbyeLabel: localState.goodbyeLabel });
+    }
   }
   /* A row's label for display ("2.1"), falling back to its position. */
   function mapRowLabel(m, idx) { return (isPlayoffsStage() && m && m.label) ? m.label : String(idx + 1); }
@@ -932,6 +957,9 @@
         groupSheets = (d.sheets || [])
           .filter(function (sh) { return GROUP_SHEET_RE.test(String(sh.name).trim()); })
           .map(function (sh) { return { name: sh.name, teams: sheetTeams(sh) }; });
+        /* Grand Finals' own squads — the Winner list for its fixed 12 maps. */
+        var gfSheet = (d.sheets || []).filter(function (sh) { return /^grand\s*finals$/i.test(String(sh.name).trim()); })[0];
+        gfTeams = gfSheet ? sheetTeams(gfSheet) : [];
         refreshGroupSelects();
       })
       .catch(function () { console.warn('Could not load tally group sheets'); });
@@ -960,7 +988,7 @@
     sel.appendChild(none);
     var teams;
     if (po && po.on) {
-      teams = playoffsTeamsFor(po.lobby).slice();
+      teams = (po.teams || playoffsTeamsFor(po.lobby)).slice();
     } else {
       var g = groupSheets.filter(function (x) { return x.name === group; })[0];
       teams = g ? g.teams.slice() : [];
@@ -973,7 +1001,11 @@
     sel.disabled = !(po && po.on) && !group;
     sel.value = current || '';
   }
-  function rowPo(key, m) { return { on: playoffsActive(key), lobby: (m && m.lobby) || '' }; }
+  /* "po" for a fixed-layout row: winners come from that lobby (Playoffs) or
+     the Grand Finals sheet's squads, not from a Group Match pick. */
+  function rowPo(key, m) {
+    return { on: fixedLayout(key), lobby: (m && m.lobby) || '', teams: gfActive(key) ? gfTeams : null };
+  }
   function refreshGroupSelects() {
     ['today', 'tomorrow'].forEach(function (key) {
       var cfg = MAPS_CONFIG[key];
@@ -1026,10 +1058,10 @@
     groupField.style.flex = '0 0 96px';
     var groupSel = document.createElement('select');
     groupSel.className = 'br-map-group';
-    if (playoffsActive(key)) {
-      /* Playoffs: no group sheet to pick — show which lobby plays this map. */
+    if (fixedLayout(key)) {
+      /* Playoffs/Grand Finals: no group sheet to pick — show which lobby plays this map. */
       groupField.innerHTML = '<div class="meta-label">Lobby</div><div class="game-display br-map-lobby" style="padding:7px 0;">' +
-        (m.lobby ? 'Lobby ' + m.lobby : 'All 20') + '</div>';
+        (m.lobby ? 'Lobby ' + m.lobby : gfActive(key) ? 'All ' + (gfTeams.length || 10) : 'All 20') + '</div>';
       groupSel.style.display = 'none';
     } else {
       groupField.innerHTML = '<div class="meta-label">Group Match</div>';
@@ -1079,15 +1111,16 @@
     var countSel  = document.getElementById(cfg.countSelId);
     if (!container || !countSel) return;
     var n = getMapsCount(key);
-    var po = playoffsActive(key);
-    /* Playoffs: the count is the sheet's, not the operator's — show it
-       (adding an option for it if it's past the 1-8 choices) but lock it. */
+    var po = fixedLayout(key); /* Playoffs or Grand Finals */
+    /* Playoffs/Grand Finals: the count is fixed, not the operator's — show
+       it (adding an option for it if it's past the 1-8 choices) but lock it. */
     if (n > BR_MAPS_MAX && !Array.prototype.some.call(countSel.options, function (o) { return o.value === String(n); })) {
       var extra = document.createElement('option'); extra.value = String(n); extra.textContent = String(n);
       countSel.appendChild(extra);
     }
     countSel.disabled = po;
-    countSel.title = po ? 'Hardcoded to the Playoffs tally sheet’s map list' : '';
+    countSel.title = playoffsActive(key) ? 'Hardcoded to the Playoffs tally sheet’s map list'
+                   : gfActive(key) ? 'Grand Finals is hardcoded to 12 maps' : '';
     if (document.activeElement !== countSel) countSel.value = String(n);
     var maps = getMapsList(key);
     // Only rebuild the DOM when the row count actually changed — an
@@ -1095,7 +1128,8 @@
     // (e.g. an SSE echo of this tab's own edit), and rebuilding on every
     // keystroke's round-trip would steal focus mid-type. Switching in/out
     // of Playoffs changes the row layout too, so that also forces a rebuild.
-    var layoutKey = po ? 'po:' + maps.map(function (m) { return m.label; }).join(',') : 'std';
+    var layoutKey = playoffsActive(key) ? 'po:' + maps.map(function (m) { return m.label; }).join(',')
+                  : gfActive(key) ? 'gf' : 'std';
     if (container.dataset.layout !== layoutKey) { container.dataset.layout = layoutKey; container.innerHTML = ''; }
     if (container.children.length !== n) {
       container.innerHTML = '';
