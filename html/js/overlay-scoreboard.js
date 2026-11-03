@@ -277,7 +277,8 @@ function sbFitTeamName(row) {
   if (!nameEl) return;
   var logo = row.querySelector('.ssr-team-logo');
   var hasLogo = logo && logo.style.display !== 'none';
-  var maxWidth = SB_SCORE_TEAM_WIDTH - (hasLogo ? SB_SCORE_LOGO_SPACE : 0);
+  /* Showmatch drops the country tag, so the name box is wider (see .sb-no-country in ingame.css). */
+  var maxWidth = SB_SCORE_TEAM_WIDTH + (sbIsShowmatch() ? 34 : 0) - (hasLogo ? SB_SCORE_LOGO_SPACE : 0);
   sbFitText(nameEl, maxWidth, 27.42);
 }
 
@@ -449,12 +450,13 @@ var _sbRowsByTeam = {}; /* team name -> row element, so a reorder moves the SAME
 
 /* ── Grand Finals "In The Zone" ──
    Squads ticked in the dashboard's IN THE ZONE tab (/api/in-the-zone) get the
-   yellow row container. Grand Finals only — it's a Grand-Finals-specific
-   state, so a leftover tick can't tint rows in any other stage. Re-applied
+   yellow row container. Grand Finals and Showmatch only — a leftover tick
+   can't tint rows in any other stage. Re-applied
    on every render AND whenever the zone list itself changes, so ticking a
    box shows up within one poll without waiting on a standings change. */
 var _sbZone = {}; /* lower-cased squad name -> true */
-function sbIsGrandFinals() { return /grand\s*finals/i.test(_sbStage); }
+function sbIsShowmatch() { return /^show\s*match$/i.test(String(_sbStage).trim()); }
+function sbIsGrandFinals() { return /grand\s*finals/i.test(_sbStage) || /^show\s*match$/i.test(String(_sbStage).trim()); } /* + Showmatch */
 function sbApplyZone() {
   var on = sbIsGrandFinals();
   Object.keys(_sbRowsByTeam).forEach(function(name) {
@@ -478,6 +480,7 @@ setInterval(sbPollZone, 3500);
 function sbRenderScoreboard() {
   var back = document.getElementById('sb-scoreboard-back');
   if (!back) return;
+  back.classList.toggle('sb-no-country', sbIsShowmatch()); /* Showmatch: no country tag */
   var teams = _sbTeams.slice(0, SB_SCORE_MAX_ROWS);
   var n = teams.length;
   var qualifiers = sbIsQualifiers();

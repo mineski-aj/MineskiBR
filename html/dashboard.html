@@ -2090,16 +2090,25 @@
       id: 'ingame_scoreboard',
       name: 'Ingame',
       file: 'ingame.html',
-      extraActions: [
-        { label: 'Recap Show', action: '/overlay/fights/show' },
-        { label: 'Recap Hide', action: '/overlay/fights/hide' },
-      ],
       checkToggles: [
         { name: 'Scoreboard', key: 'scoreboard' },
       ],
+      featureToggleLabel: 'Ingame Events',
       featureToggles: [
-        { name: 'Fight Recap', feature: 'fights' },
+        /* Kill Events: popup at 5 kills (MERCENARY!) / 10 kills (ULTIMATE MERCENARY!).
+           'preview' tests run only inside the Control preview iframe; 'on air' ones
+           broadcast to every open ingame.html. */
+        { name: 'Kill Events', feature: 'killevents', tests: [
+          { label: '◈ Preview MERCENARY!', tier: 1 }, { label: '◈ Preview ULTIMATE', tier: 2 },
+          { label: '▶ On air MERCENARY!', tier: 1, live: true }, { label: '▶ On air ULTIMATE', tier: 2, live: true },
+        ] },
       ],
+    },
+    {
+      id: 'ledoverlay',
+      name: 'LED Overlay',
+      file: 'ledoverlay.html',
+      /* Skeleton only for now — no show/hide wiring yet; link + live preview. */
     },
   ];
 
@@ -3095,7 +3104,7 @@
     /* Feature toggles */
     if (ov.featureToggles && ov.featureToggles.length) {
       if (body.children.length) body.appendChild(el('div', 'divider'));
-      body.appendChild(el('div', 'features-label', 'Feature Toggles'));
+      body.appendChild(el('div', 'features-label', ov.featureToggleLabel || 'Feature Toggles'));
       ov.featureToggles.forEach(function (ft) {
         var fr = el('div', 'feature-row');
         fr.appendChild(el('div', 'feature-name', ft.name));
@@ -3104,6 +3113,19 @@
         toggleBtns[ft.feature] = tb;
         applyToggleBtn(ft.feature, featureStates[ft.feature] !== false);
         fr.appendChild(tb);
+        if (ft.tests) {
+          var tr = el('div', 'feature-btns');
+          ft.tests.forEach(function (t) {
+            var b = el('button', 'btn btn-preview-live', t.label);
+            b.addEventListener('click', function () {
+              if (t.live) { fetch('/overlay/ingame_event/kill/test?tier=' + t.tier, { cache: 'no-store' }).catch(function () {}); return; }
+              var iw = previewIframe && previewIframe.contentWindow;
+              if (iw && typeof iw.keTest === 'function') iw.keTest(t.tier);
+            });
+            tr.appendChild(b);
+          });
+          fr.appendChild(tr);
+        }
         body.appendChild(fr);
       });
     }
@@ -3903,14 +3925,18 @@
   var OVR_DEFAULTS = {
     '#ovr-col-left':  { left: 40,  top: 282, width: 905, height: 672 },
     '#ovr-col-right': { left: 973, top: 282, width: 905, height: 672 },
-    '#ovr-zone-chip': { left: 802, top: 968, width: 46, height: 34, fontSize: 28 },
-    '#ovr-zone-text': { left: 858, top: 968, width: 300, height: 34, fontSize: 28 },
+    '#ovr-zone-chip': { left: 630, top: 968, width: 46, height: 34, fontSize: 28 },
+    '#ovr-zone-text': { left: 686, top: 968, width: 235, height: 34, fontSize: 28 },
+    '#ovr-won-chip':  { left: 961, top: 968, width: 46, height: 34 },
+    '#ovr-won-text':  { left: 1017, top: 968, width: 273, height: 34, fontSize: 28 },
   };
   var OVR_ELEMENTS = [
     { group: 'Overall Ranking Column 1-10',  id: '#ovr-col-left',  name: 'Scoreboard Column (Teams 1-10)' },
     { group: 'Overall Ranking Column 11-20', id: '#ovr-col-right', name: 'Scoreboard Column (Teams 11-20)' },
     { group: 'Overall Ranking Zone Chip', id: '#ovr-zone-chip', name: 'In The Zone Legend — Z! Chip' },
     { group: 'Overall Ranking Zone Text', id: '#ovr-zone-text', name: 'In The Zone Legend — Text' },
+    { group: 'Overall Ranking Won Chip', id: '#ovr-won-chip', name: 'Won Legend — Crown Chip' },
+    { group: 'Overall Ranking Won Text', id: '#ovr-won-text', name: 'Won Legend — Text' },
   ];
 
   /* ── Map Ranking (Fullscreen.html) element defaults ── */
@@ -4203,6 +4229,36 @@
     { group: 'Card Name',       id: '.mpa-name',    name: 'Team Name (all cards)' },
     { group: 'Card Label',      id: '.mpa-label',   name: 'AVG PLACEMENT Label (all cards)' },
     { group: 'Card Count',      id: '.mpa-count',   name: 'Average Placement Value (all cards)' },
+  ];
+
+  /* ── Kill Events popup (ingame.html) — ke-* selectors. ── */
+  var KE_DEFAULTS = {
+    '#ke-glow': { left: 460, top: 700, width: 1000, height: 400 },
+    '#ke-bar': { left: 560, top: 820, width: 798, height: 180 },
+    '#ke-accent': { left: 560, top: 810, width: 798, height: 12 },
+    '#ke-shine': { left: 560, top: 820, width: 798, height: 180 },
+    '#ke-photo': { left: 470, top: 590, width: 390, height: 410 },
+    '#ke-title': { left: 790, top: 828, width: 445, height: 96, fontSize: 78 },
+    '#ke-name': { left: 790, top: 924, width: 445, height: 50, fontSize: 36 },
+    '#ke-team': { left: 790, top: 966, width: 445, height: 30, fontSize: 26 },
+    '#ke-kills-num': { left: 1240, top: 836, width: 100, height: 112, fontSize: 100 },
+    '#ke-kills-label': { left: 1240, top: 948, width: 100, height: 40, fontSize: 34 },
+    '#ke-flash': { left: 540, top: 760, width: 838, height: 300 },
+    '#ke-sparks': { left: 1010, top: 876 },
+  };
+  var KE_ELEMENTS = [
+    { group: 'KE Glow', id: '#ke-glow', name: 'Back Glow' },
+    { group: 'KE Bar', id: '#ke-bar', name: 'Black Bar' },
+    { group: 'KE Accent', id: '#ke-accent', name: 'Top Accent Stripe' },
+    { group: 'KE Shine', id: '#ke-shine', name: 'Shine Sweep Area' },
+    { group: 'KE Photo', id: '#ke-photo', name: 'Player Photo' },
+    { group: 'KE Title', id: '#ke-title', name: 'Milestone Title (MERCENARY!)' },
+    { group: 'KE Name', id: '#ke-name', name: 'Player Name' },
+    { group: 'KE Team', id: '#ke-team', name: 'Country Code - Team' },
+    { group: 'KE Kills', id: '#ke-kills-num', name: 'Kill Count Number' },
+    { group: 'KE Kills Label', id: '#ke-kills-label', name: 'Kill Count Label' },
+    { group: 'KE Flash', id: '#ke-flash', name: 'Impact Flash' },
+    { group: 'KE Sparks', id: '#ke-sparks', name: 'Spark Burst Origin' },
   ];
 
   /* ── Player H2H L3 (LowerThirds.html) — pl-* selectors. ── */
@@ -4867,6 +4923,15 @@
       defaultsKey: 'sb_edit_defaults_ingame_scoreboard',
       elements:    SB_ELEMENTS,
       defaults:    SB_DEFAULTS,
+    },
+    ingame_killevents: {
+      label:       'Kill Events · Ingame',
+      file:        'ingame.html',
+      styleFile:   'ingame_events',
+      defaultsKey: 'sb_edit_defaults_ingame_killevents',
+      elements:    KE_ELEMENTS,
+      defaults:    KE_DEFAULTS,
+      showFn:      'keShowDemo',
     },
     fullscreen_timer: {
       label:       'Waiting Timer · Fullscreen',

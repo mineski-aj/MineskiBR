@@ -34,7 +34,7 @@
 
   .teams { display: flex; flex-direction: column; gap: 6px; }
   .team {
-    display: grid; grid-template-columns: 28px 36px 1fr 60px 80px 120px; align-items: center; gap: 12px;
+    display: grid; grid-template-columns: 28px 36px 1fr 60px 80px 120px 112px; align-items: center; gap: 12px;
     padding: 8px 12px; border: 1px solid #1e1e2c; border-radius: 8px; background: #0f0f16; cursor: pointer;
     transition: background 0.12s, border-color 0.12s;
   }
@@ -47,15 +47,20 @@
   .team .score { font-size: 15px; font-weight: 800; color: #aaa; text-align: right; font-variant-numeric: tabular-nums; }
   .team .chip { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: #0d0d12; background: #ffe800; padding: 3px 8px; border-radius: 4px; text-align: center; visibility: hidden; }
   .team.on .chip { visibility: visible; }
+  .team .won { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: #666; cursor: pointer; }
+  .team .won input { width: 20px; height: 20px; accent-color: #e0141e; cursor: pointer; }
+  .team.won-on { background: #2a0a0c; border-color: #e0141e; }
+  .team.won-on .chip { background: #e0141e; color: #fff; }
+  .team.won-on .won { color: #ff6b73; }
   .empty { color: #666; font-size: 13px; padding: 12px 0; }
-  .cols { display: grid; grid-template-columns: 28px 36px 1fr 60px 80px 120px; gap: 12px; padding: 0 12px 6px; font-size: 10px; font-weight: 700; color: #555; letter-spacing: 0.1em; text-transform: uppercase; }
+  .cols { display: grid; grid-template-columns: 28px 36px 1fr 60px 80px 120px 112px; gap: 12px; padding: 0 12px 6px; font-size: 10px; font-weight: 700; color: #555; letter-spacing: 0.1em; text-transform: uppercase; }
   .cols span:nth-child(5) { text-align: right; }
 </style>
 </head>
 <body>
 
 <div class="page-header">
-  <span class="page-title">In The Zone · Grand Finals</span>
+  <span class="page-title">In The Zone · <span id="stage-label">Grand Finals</span></span>
   <span id="status" class="status">—</span>
 </div>
 
@@ -70,12 +75,13 @@
 
 <div class="panel">
   <div class="panel-title">Teams · tick the ones who are In The Zone</div>
-  <div class="cols"><span></span><span></span><span>Team</span><span>Region</span><span>Total</span><span></span></div>
-  <div class="teams" id="teams"><div class="empty">Loading the Grand Finals sheet…</div></div>
+  <div class="cols"><span></span><span></span><span>Team</span><span>Region</span><span>Total</span><span></span><span>Won</span></div>
+  <div class="teams" id="teams"><div class="empty">Loading the tally sheet…</div></div>
 </div>
 
 <script>
   var zone = {};          /* squad name -> true while ticked */
+  var won = {};           /* squad name -> true while ticked as WON via ZOWNED! (only ever with zone) */
   var saveTimer = null;
 
   function el(id) { return document.getElementById(id); }
@@ -87,7 +93,7 @@
 
   function payload() {
     var v = el('threshold').value.trim();
-    return { zone: Object.keys(zone).filter(function (n) { return zone[n]; }), threshold: v === '' ? null : Number(v) };
+    return { zone: Object.keys(zone).filter(function (n) { return zone[n]; }), won: Object.keys(won).filter(function (n) { return won[n] && zone[n]; }), threshold: v === '' ? null : Number(v) };
   }
   /* Autosave: any change (tick or threshold) saves the whole state shortly after. */
   function queueSave() {
@@ -104,10 +110,10 @@
 
   function buildRows(teams) {
     var box = el('teams'); box.innerHTML = '';
-    if (!teams.length) { box.innerHTML = '<div class="empty">No teams found on the Grand Finals tally sheet.</div>'; return; }
+    if (!teams.length) { box.innerHTML = '<div class="empty">No teams found on the tally sheet for this stage.</div>'; return; }
     teams.forEach(function (t) {
       var row = document.createElement('label');
-      row.className = 'team' + (zone[t.name] ? ' on' : '');
+      row.className = 'team' + (zone[t.name] ? ' on' : '') + (zone[t.name] && won[t.name] ? ' won-on' : '');
       row.dataset.name = t.name;
       var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!zone[t.name];
       var logo = document.createElement('img'); logo.className = 'logo'; logo.alt = '';
@@ -116,9 +122,22 @@
       var region = document.createElement('span'); region.className = 'region'; region.textContent = t.region || '';
       var score = document.createElement('span'); score.className = 'score'; score.textContent = fmt(t.totalScore || 0);
       var chip = document.createElement('span'); chip.className = 'chip'; chip.textContent = 'IN THE ZONE';
-      [cb, logo, name, region, score, chip].forEach(function (c) { row.appendChild(c); });
+      /* Won checkbox — its own label so a click here never toggles the zone tick. Winning needs the zone tick, so ticking it ticks zone too. */
+      var wonLbl = document.createElement('label'); wonLbl.className = 'won'; wonLbl.title = 'Won via ZOWNED! — red row with a crown';
+      var wcb = document.createElement('input'); wcb.type = 'checkbox'; wcb.checked = !!(zone[t.name] && won[t.name]);
+      wonLbl.appendChild(wcb); wonLbl.appendChild(document.createTextNode('WON'));
+      wonLbl.addEventListener('click', function (e) { e.stopPropagation(); });
+      [cb, logo, name, region, score, chip, wonLbl].forEach(function (c) { row.appendChild(c); });
+      function paint() { row.classList.toggle('on', cb.checked); row.classList.toggle('won-on', cb.checked && wcb.checked); }
       cb.addEventListener('change', function () {
-        zone[t.name] = cb.checked; row.classList.toggle('on', cb.checked); queueSave();
+        zone[t.name] = cb.checked;
+        if (!cb.checked) { won[t.name] = false; wcb.checked = false; }
+        paint(); queueSave();
+      });
+      wcb.addEventListener('change', function () {
+        won[t.name] = wcb.checked;
+        if (wcb.checked) { zone[t.name] = true; cb.checked = true; }
+        paint(); queueSave();
       });
       box.appendChild(row);
     });
@@ -132,16 +151,25 @@
     });
   }
 
+  var shownKey = '';
+  function teamsKey(d) { return (d.stage || '') + '|' + d.teams.map(function (t) { return t.name; }).join('|'); }
+
   function load(first) {
     return fetch('/api/in-the-zone', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
       if (first) {
         zone = {}; d.zone.forEach(function (n) { zone[n] = true; });
+        won = {}; (d.won || []).forEach(function (n) { won[n] = true; });
         if (document.activeElement !== el('threshold')) el('threshold').value = d.threshold === null ? '' : d.threshold;
         buildRows(d.teams);
+      } else if (teamsKey(d) !== shownKey) {
+        buildRows(d.teams); // stage switched (e.g. to Showmatch) — show that tab's squads
       } else {
         updateScores(d.teams);
       }
-    }).catch(function () { if (first) el('teams').innerHTML = '<div class="empty">Could not load the Grand Finals sheet.</div>'; });
+      shownKey = teamsKey(d);
+      el('stage-label').textContent = d.stage || 'Grand Finals';
+      document.title = 'In The Zone · ' + (d.stage || 'Grand Finals');
+    }).catch(function () { if (first) el('teams').innerHTML = '<div class="empty">Could not load the tally sheet.</div>'; });
   }
 
   el('threshold').addEventListener('input', queueSave);

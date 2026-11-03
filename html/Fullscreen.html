@@ -1325,11 +1325,25 @@
       display: none; align-items: center;
       font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; white-space: nowrap;
     }
-    #ovr-zone-chip { left: 802px; width: 46px; justify-content: center; background: #0a0a0a; color: #ffe800; font-size: 28px; }
-    #ovr-zone-text { left: 858px; width: 300px; justify-content: flex-start; color: #0a0a0a; font-size: 28px; }
+    #ovr-zone-chip { left: 630px; width: 46px; justify-content: center; background: #0a0a0a; color: #ffe800; font-size: 28px; }
+    #ovr-zone-text { left: 686px; width: 235px; justify-content: flex-start; color: #0a0a0a; font-size: 28px; }
     #ovr-zone-chip span, #ovr-zone-text span { display: block; transform: translateY(0.12em); }
     #overall-ranking-page.ovr-has-zone #ovr-zone-chip, #overall-ranking-page.ovr-has-zone #ovr-zone-text { display: flex; }
     .ovr-zone-badge span { display: block; transform: translateY(0.1em); }
+    /* Won via ZOWNED! — red container, white text, crown in the dark tab instead
+       of Z!. Dividers stay black (they read fine on the red). */
+    .ovr-row.ovr-won .ovr-row-cell { color: #fff; }
+    .ovr-zone-badge.ovr-crown svg { display: block; width: 26px; height: 20px; fill: #fff; }
+    #ovr-won-chip, #ovr-won-text {
+      position: absolute; top: 968px; height: 34px; z-index: 190;
+      display: none; align-items: center;
+      font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; white-space: nowrap;
+    }
+    #ovr-won-chip { left: 961px; width: 46px; justify-content: center; background: #e0141e; }
+    #ovr-won-chip svg { display: block; width: 28px; height: 22px; fill: #fff; }
+    #ovr-won-text { left: 1017px; width: 273px; justify-content: flex-start; color: #0a0a0a; font-size: 28px; }
+    #ovr-won-text span { display: block; transform: translateY(0.12em); }
+    #overall-ranking-page.ovr-has-won #ovr-won-chip, #overall-ranking-page.ovr-has-won #ovr-won-text { display: flex; }
     .ovr-row-divider { position: absolute; top: 13px; width: 1px; height: 38px; background: #0a0a0a; z-index: 1; }
     .ovr-row-cell {
       position: absolute; top: 0; height: 63px;
@@ -1363,6 +1377,17 @@
        keep their usual spots. (.ovr-gf is set in ovrRenderPage.) */
     #overall-ranking-page.ovr-gf .ovr-hc-group, #overall-ranking-page.ovr-gf .ovr-rc-group { display: none; }
     #overall-ranking-page.ovr-gf .ovr-rc-name { width: 290px; }
+
+    /* Showmatch: no country tag, region or Group on Overall/Map/Group Ranking —
+       the flag-code cell, the Group column and the divider that followed the flag
+       go away and the team name takes the space (.rnk-sm is set from the stage in
+       rnkApplyMapStage; Map Ranking additionally uses its compact layout). */
+    .rnk-sm .ovr-rc-flag, .rnk-sm .mrk-rc-flag, .rnk-sm .grk-rc-flag,
+    .rnk-sm .ovr-hc-group, .rnk-sm .ovr-rc-group, .rnk-sm .grk-hc-group, .rnk-sm .grk-rc-group,
+    .rnk-sm .ovr-row-divider[style*="left:182px"], .rnk-sm .grk-row-divider[style*="left:182px"],
+    .rnk-sm .mrk-row-divider[style*="left:182px"] { display: none; }
+    .rnk-sm .ovr-rc-name, .rnk-sm .grk-rc-name { left: 144px; width: 338px; }
+    .rnk-sm .mrk-rc-name { left: 144px; width: 240px; }
     .ovr-rc-gw    { left: 497px; width: 92px; }
     .ovr-rc-kp    { left: 601px; width: 92px; }
     .ovr-rc-rp    { left: 701px; width: 92px; }
@@ -4893,6 +4918,8 @@
       </div>
       <div id="ovr-zone-chip"><span>Z!</span></div>
       <div id="ovr-zone-text"><span>TEAM IS IN THE ZONE!</span></div>
+      <div id="ovr-won-chip"><svg viewBox="0 0 26 20"><path d="M1 4l6 5 6-8 6 8 6-5-2.5 14h-19z"/><rect x="3.5" y="16" width="19" height="3"/></svg></div>
+      <div id="ovr-won-text"><span>TEAM WON VIA ZOWNED!</span></div>
     </div>
     <div id="map-ranking-page">
       <div class="mrk-col" id="mrk-col-left">
@@ -8160,12 +8187,20 @@
     function rnkIsQualifiers() {
       return /qualifier/i.test(_rnkStage);
     }
+    function rnkIsShowmatch() {
+      return /^show\s*match$/i.test(String(_rnkStage).trim());
+    }
 
     function rnkApplyMapStage() {
       const mapEl = document.getElementById('rnk-header-mapname');
       const stageEl = document.querySelector('#rnk-header-stageday .rnk-stage');
       const dayEl = document.querySelector('#rnk-header-stageday .rnk-day');
       if (stageEl) stageEl.textContent = _rnkStage;
+      /* Showmatch: no country tag / region / group on any ranking (see .rnk-sm CSS). */
+      ['overall-ranking-page', 'map-ranking-page', 'group-ranking-page'].forEach(id => {
+        const pg = document.getElementById(id);
+        if (pg) pg.classList.toggle('rnk-sm', rnkIsShowmatch());
+      });
       if (dayEl) dayEl.textContent = 'Day ' + _rnkDay;
       if (mapEl) {
         if (rnkIsQualifiers()) {
@@ -8422,13 +8457,13 @@
     }
     function ovrBuildRow(q) {
       const row = document.createElement('div');
-      row.className = 'ovr-row rnk-anim-item';
+      row.className = 'ovr-row rnk-anim-item' + (q.inZone && q.won ? ' ovr-won' : '');
       /* In The Zone (Grand Finals only, flagged in the IN THE ZONE tab) forces
          the yellow container + the black Z! box. */
-      const bgSrc = q.inZone ? '/assets/Overall%20Ranking/teamscoreboard_rank1.png' : rnkRowBgSrc(q.rank, q.totalScore, q.yellowMax);
+      const bgSrc = q.inZone ? (q.won ? '/assets/Overall%20Ranking/teamscoreboard_rank1_red.png' : '/assets/Overall%20Ranking/teamscoreboard_rank1.png') : rnkRowBgSrc(q.rank, q.totalScore, q.yellowMax);
       row.innerHTML =
         '<img class="ovr-row-bg" src="' + bgSrc + '" alt="">' +
-        (q.inZone ? '<div class="ovr-zone-badge"><span>Z!</span></div>' : '') +
+        (q.inZone ? (q.won ? '<div class="ovr-zone-badge ovr-crown"><svg viewBox="0 0 26 20"><path d="M1 4l6 5 6-8 6 8 6-5-2.5 14h-19z"/><rect x="3.5" y="16" width="19" height="3"/></svg></div>' : '<div class="ovr-zone-badge"><span>Z!</span></div>') : '') +
         '<div class="ovr-row-divider" style="left:182px"></div>' +
         '<div class="ovr-row-divider" style="left:487px"></div>' +
         '<div class="ovr-row-divider" style="left:591px"></div>' +
@@ -8469,14 +8504,21 @@
         /* Playoffs: the yellow container covers ranks 1-7, not just #1
            (rnkRowBgSrc's maxRank). Any other stage keeps rank 1 only. */
         if (/playoffs/i.test((ms && ms.stage) || '')) teams.forEach(t => { t.yellowMax = 7; });
-        /* Grand Finals: squads ticked in the IN THE ZONE tab get the yellow
+        /* Grand Finals / Showmatch: squads ticked in the IN THE ZONE tab get the yellow
            container + Z! box (rows are tagged here so a tick changes the poll
            key and re-renders the board). */
-        if (/grand\s*finals/i.test((ms && ms.stage) || '')) {
-          teams.forEach(t => { t.gf = true; });
+        /* Showmatch gets the same marker (its own squads, see routes/inTheZone.js)
+           but isn't Grand Finals, so no .gf layout changes. */
+        const ovrStage = (ms && ms.stage) || '';
+        if (/grand\s*finals/i.test(ovrStage) || /^show\s*match$/i.test(ovrStage.trim())) {
+          if (/grand\s*finals/i.test(ovrStage)) teams.forEach(t => { t.gf = true; });
           const zd = await fetch(buildUrl('/api/in-the-zone'), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null);
           const zone = new Set(((zd && zd.zone) || []).map(n => String(n).trim().toLowerCase()));
-          teams.forEach(t => { if (zone.has(String(t.name).trim().toLowerCase())) t.inZone = true; });
+          const wonSet = new Set(((zd && zd.won) || []).map(n => String(n).trim().toLowerCase()));
+          teams.forEach(t => {
+            const k = String(t.name).trim().toLowerCase();
+            if (zone.has(k)) { t.inZone = true; if (wonSet.has(k)) t.won = true; }
+          });
         }
         return teams;
       } catch (e) { return []; }
@@ -8487,6 +8529,7 @@
     function ovrRenderPage(teams, offset) {
       document.getElementById('overall-ranking-page').classList.toggle('ovr-gf', teams.some(t => t.gf));
       document.getElementById('overall-ranking-page').classList.toggle('ovr-has-zone', teams.slice(offset, offset + 20).some(t => t.inZone));
+      document.getElementById('overall-ranking-page').classList.toggle('ovr-has-won', teams.slice(offset, offset + 20).some(t => t.inZone && t.won));
       const pageTeams = teams.slice(offset, offset + 20);
       const ovrSolo = pageTeams.length <= 10;
       document.getElementById('ovr-col-left').classList.toggle('rnk-col-solo', ovrSolo);
@@ -8557,7 +8600,8 @@
     function mrkIsCompactStage() {
       const stageEl = document.querySelector('#rnk-header-stageday .rnk-stage');
       const stage = ((stageEl && stageEl.textContent) || '').trim().toUpperCase();
-      return stage === 'QUALIFIERS';
+      /* Showmatch also drops Group (and the country tag), so it uses the compact column layout. */
+      return stage === 'QUALIFIERS' || stage === 'SHOWMATCH';
     }
     // Non-compact keeps Group but drops GW entirely (removed by request —
     // this map's own game-win count wasn't wanted here), re-centering

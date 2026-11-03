@@ -181,8 +181,8 @@
     "Naisou",
     "Wolf"
   ],
-  "stage": "Grand Finals",
-  "todayMapsCount": 12,
+  "stage": "Showmatch",
+  "todayMapsCount": 8,
   "todayMaps": [
     {
       "time": " ",
@@ -237,30 +237,6 @@
       "mapName": "Blackout",
       "groupMatch": "",
       "winner": "POISON IVY GIZY"
-    },
-    {
-      "time": " ",
-      "mapName": "Krai",
-      "groupMatch": "",
-      "winner": "UNBOTHERED TZY"
-    },
-    {
-      "time": " ",
-      "mapName": "Krai",
-      "groupMatch": "",
-      "winner": "POISON IVY GIZY"
-    },
-    {
-      "time": " ",
-      "mapName": "Isolated",
-      "groupMatch": "",
-      "winner": ""
-    },
-    {
-      "time": "",
-      "mapName": "Isolated",
-      "groupMatch": "",
-      "winner": ""
     }
   ],
   "tomorrowMapsCount": 6,
