@@ -72,7 +72,7 @@
   "swapped": false,
   "official": true,
   "week": 1,
-  "day": 2,
+  "day": 1,
   "patch": " ",
   "hosts": [
     "Denisse",
@@ -181,13 +181,13 @@
     "Naisou",
     "Wolf"
   ],
-  "stage": "Showmatch",
-  "todayMapsCount": 8,
+  "stage": "Grand Finals",
+  "todayMapsCount": 12,
   "todayMaps": [
     {
       "time": " ",
       "mapName": "Isolated",
-      "winner": "GNR ESPORTS LEGACY OMEN",
+      "winner": "",
       "done": false,
       "groupMatch": ""
     },
@@ -196,47 +196,71 @@
       "mapName": "Krai",
       "done": false,
       "groupMatch": "",
-      "winner": "ADMT PYRITE"
+      "winner": ""
+    },
+    {
+      "time": " ",
+      "mapName": "Isolated",
+      "done": false,
+      "groupMatch": "",
+      "winner": ""
+    },
+    {
+      "time": " ",
+      "mapName": "Rebirth Island",
+      "done": false,
+      "groupMatch": "",
+      "winner": ""
+    },
+    {
+      "time": " ",
+      "mapName": "Isolated",
+      "done": false,
+      "groupMatch": "",
+      "winner": ""
     },
     {
       "time": " ",
       "mapName": "Krai",
       "done": false,
       "groupMatch": "",
-      "winner": "POISON IVY GIZY"
-    },
-    {
-      "time": " ",
-      "mapName": "Blackout",
-      "done": false,
-      "groupMatch": "",
-      "winner": "4K JOKER"
-    },
-    {
-      "time": " ",
-      "mapName": "Rebirth Island",
-      "done": false,
-      "groupMatch": "",
-      "winner": "LEAP MAIN"
-    },
-    {
-      "time": " ",
-      "mapName": "Rebirth Island",
-      "done": false,
-      "groupMatch": "",
-      "winner": "POISON IVY GIZY"
+      "winner": ""
     },
     {
       "time": " ",
       "mapName": "Isolated",
       "groupMatch": "",
-      "winner": "LEAP UNBOUND"
+      "winner": ""
     },
     {
       "time": " ",
       "mapName": "Blackout",
       "groupMatch": "",
-      "winner": "POISON IVY GIZY"
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "groupMatch": "",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "groupMatch": "",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "groupMatch": "",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "groupMatch": "",
+      "winner": ""
     }
   ],
   "tomorrowMapsCount": 6,
