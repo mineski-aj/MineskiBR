@@ -44,6 +44,16 @@
   h1.id = 'sb-header1';
   scene.appendChild(h1);
 
+  /* Sponsor bar (white strip under the ID card) — data-sponsorbox so the
+     Settings "Sponsor Boxes" switch hides it (see CLAUDE.md). */
+  var sbar = document.createElement('div');
+  sbar.id = 'sb-sponsorbar';
+  sbar.setAttribute('data-sponsorbox', '');
+  sbar.innerHTML =
+    '<div id="sb-sponsor-label"></div>' +
+    '<div id="sb-sponsor-viewport"><canvas id="sb-sponsor-img"></canvas></div>';
+  scene.appendChild(sbar);
+
   /* Team scoreboard plate (right side) — column header + rows are filled
      in by sbRenderScoreboard/sbPollTeamScores below. */
   var scoreBack = document.createElement('div');
@@ -70,6 +80,8 @@ function sbHandleToggle(shown) {
     var mh1    = document.getElementById('sb-mainheader1');
     var h1     = document.getElementById('sb-header1');
     var sbBack = document.getElementById('sb-scoreboard-back');
+    var sbar   = document.getElementById('sb-sponsorbar');
+    if (sbar)   sbar.classList.remove('sb-slide-in');
     if (mh1)    mh1.classList.remove('sb-slide-in');
     if (h1)     h1.classList.remove('sb-slide-in');
     if (sbBack) sbBack.classList.remove('sb-slide-in');
@@ -88,6 +100,7 @@ function sbAnimateHeaders() {
   var mh1    = document.getElementById('sb-mainheader1');
   var h1     = document.getElementById('sb-header1');
   var sbBack = document.getElementById('sb-scoreboard-back');
+  var sbar   = document.getElementById('sb-sponsorbar');
   /* .sb-instant suppresses the transition (now living on the base rule so
      sbHandleToggle's hide path can glide out — see ingame.css) just for
      this reset-before-replay snap, so it doesn't itself visibly animate
@@ -95,11 +108,14 @@ function sbAnimateHeaders() {
   if (mh1)    { mh1.classList.add('sb-instant');    mh1.classList.remove('sb-slide-in'); }
   if (h1)     { h1.classList.add('sb-instant');     h1.classList.remove('sb-slide-in'); }
   if (sbBack) { sbBack.classList.add('sb-instant'); sbBack.classList.remove('sb-slide-in'); }
+  if (sbar)   { sbar.classList.add('sb-instant');   sbar.classList.remove('sb-slide-in'); }
   void document.body.offsetWidth; /* force reflow so the removal above actually takes effect before re-adding */
   if (mh1)    mh1.classList.remove('sb-instant');
   if (h1)     h1.classList.remove('sb-instant');
   if (sbBack) sbBack.classList.remove('sb-instant');
+  if (sbar)   sbar.classList.remove('sb-instant');
   if (mh1)    mh1.classList.add('sb-slide-in');
+  if (sbar)   sbar.classList.add('sb-slide-in');
   if (sbBack) sbBack.classList.add('sb-slide-in');
   setTimeout(function() { if (h1) h1.classList.add('sb-slide-in'); }, 120);
   sbAnimateRowsIn();
@@ -573,3 +589,142 @@ function sbPollTeamScores() {
 
 sbPollTeamScores();
 setInterval(sbPollTeamScores, 3500);
+
+
+/* ── Sponsor bar — logos loop right to left. Source: /api/sponsors?ingame=1
+   (same ordered list as before, minus logos hidden for in-game). Gated by
+   the global Sponsor Boxes setting (/api/sponsor-boxes-enabled + the
+   `sponsorboxes` SSE event): off hides the bar (data-sponsorbox CSS) and
+   the ID card drops back to the bottom edge. ── */
+var SB_SPONSOR_SLIDE_MS = 550; /* matches .sb-spon-in/out transition + a little slack */
+var sbSponsorsEnabled = true;
+var sbSponsorSig = '';
+var sbSponsorList = [], sbSponsorIdx = 0, sbSponsorTimer = null, sbSponsorRun = 0;
+
+function sbApplySponsorsEnabled(enabled) {
+  sbSponsorsEnabled = enabled;
+  document.body.classList.toggle('sponsorboxes-off', !enabled);
+  if (enabled) { sbLoadSponsors(); }
+  else {
+    sbStopSponsors(); sbSponsorSig = '';
+    sbSponsorTagCur = null;
+    var lb = document.getElementById('sb-sponsor-label'); if (lb) lb.innerHTML = '';
+  }
+}
+
+/* Category tag: push the old one down/out, new one in from the top.
+   Only transitions when the category actually changes. */
+var sbSponsorTagCur = null;
+function sbSetSponsorTag(text) {
+  text = String(text || '');
+  if (text === sbSponsorTagCur) return;
+  sbSponsorTagCur = text;
+  var box = document.getElementById('sb-sponsor-label');
+  if (!box) return;
+  var old = box.querySelectorAll('.sb-tag');
+  var tag = document.createElement('div');
+  tag.className = 'sb-tag sb-tag-above';
+  var span = document.createElement('span');
+  span.textContent = text;
+  tag.appendChild(span);
+  box.appendChild(tag);
+  /* shrink-to-fit (box is visible by now; font floor 14px) */
+  var size = 27;
+  while (span.offsetWidth > 195 && size > 14) { size--; tag.style.fontSize = size + 'px'; }
+  void tag.offsetWidth;
+  tag.classList.remove('sb-tag-above');
+  old.forEach(function(o) {
+    o.classList.add('sb-tag-below');
+    setTimeout(function() { o.remove(); }, 600);
+  });
+}
+
+function sbStopSponsors() {
+  sbSponsorRun++;
+  clearTimeout(sbSponsorTimer);
+  var img = document.getElementById('sb-sponsor-img');
+  if (img) img.className = '';
+}
+
+/* Sponsor logo files are full 1920x1080 canvases with the artwork in the
+   middle, so drawing them as-is would shrink the artwork to nothing —
+   crop to the opaque bounding box and draw that into the canvas. */
+function sbDrawTrimmed(canvas, im) {
+  var w = im.naturalWidth, h = im.naturalHeight, x0 = 0, y0 = 0, x1 = w, y1 = h;
+  try {
+    var t = document.createElement('canvas'); t.width = w; t.height = h;
+    var tc = t.getContext('2d'); tc.drawImage(im, 0, 0);
+    var d = tc.getImageData(0, 0, w, h).data;
+    var minX = w, minY = h, maxX = -1, maxY = -1;
+    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) {
+      if (d[(y * w + x) * 4 + 3] > 8) {
+        if (x < minX) minX = x; if (x > maxX) maxX = x;
+        if (y < minY) minY = y; if (y > maxY) maxY = y;
+      }
+    }
+    if (maxX >= 0) { x0 = minX; y0 = minY; x1 = maxX + 1; y1 = maxY + 1; }
+  } catch (e) {}
+  canvas.width = x1 - x0; canvas.height = y1 - y0;
+  canvas.getContext('2d').drawImage(im, x0, y0, x1 - x0, y1 - y0, 0, 0, x1 - x0, y1 - y0);
+}
+
+/* Logo per logo: slide in from the right, hold for that logo's own dur,
+   slide out to the left, then the next one. */
+function sbStartSponsors(list) {
+  sbStopSponsors();
+  sbSponsorList = list;
+  sbSponsorIdx = 0;
+  if (!list.length) return;
+  var run = sbSponsorRun;
+  var img = document.getElementById('sb-sponsor-img');
+  function step() {
+    if (run !== sbSponsorRun) return;
+    var s = sbSponsorList[sbSponsorIdx % sbSponsorList.length];
+    img.className = '';
+    var src = new Image();
+    src.onload = function() {
+      if (run !== sbSponsorRun) return;
+      sbDrawTrimmed(img, src);
+      sbSetSponsorTag(s.category);
+      void img.offsetWidth;
+      img.classList.add('sb-spon-in');
+      sbSponsorTimer = setTimeout(function() {
+        if (run !== sbSponsorRun) return;
+        img.classList.remove('sb-spon-in');
+        img.classList.add('sb-spon-out');
+        sbSponsorTimer = setTimeout(function() {
+          sbSponsorIdx = (sbSponsorIdx + 1) % sbSponsorList.length;
+          step();
+        }, SB_SPONSOR_SLIDE_MS);
+      }, SB_SPONSOR_SLIDE_MS + (s.dur || 3000));
+    };
+    src.onerror = function() {
+      if (run !== sbSponsorRun) return;
+      sbSponsorIdx = (sbSponsorIdx + 1) % sbSponsorList.length;
+      sbSponsorTimer = setTimeout(step, 500); /* skip a broken logo without spinning */
+    };
+    src.src = s.src;
+  }
+  step();
+}
+
+function sbLoadSponsors() {
+  if (!sbSponsorsEnabled) return;
+  fetch('/api/sponsors?ingame=1', { cache: 'no-store' }).then(function(r) { return r.json(); }).then(function(list) {
+    list = Array.isArray(list) ? list : [];
+    var sig = list.map(function(s) { return s.src; }).join('|');
+    if (sig === sbSponsorSig) return; /* unchanged — don't restart the scroll */
+    sbSponsorSig = sig;
+    sbStartSponsors(list);
+  }).catch(function() {});
+}
+
+fetch('/api/sponsor-boxes-enabled', { cache: 'no-store' }).then(function(r) { return r.json(); })
+  .then(function(d) { sbApplySponsorsEnabled(!!(d && d.enabled)); })
+  .catch(function() { sbApplySponsorsEnabled(true); });
+setInterval(sbLoadSponsors, 30000); /* pick up dashboard Sponsors-tab edits */
+try {
+  createOverlaySSE().addEventListener('sponsorboxes', function(e) {
+    try { sbApplySponsorsEnabled(!!JSON.parse(e.data).enabled); } catch (err) {}
+  });
+} catch (err) {}

@@ -349,6 +349,11 @@
   .tally-table tbody td.tally-squad{font-weight:700;color:var(--text);}
   .tally-table tbody tr.tally-team-start td{border-top:2px solid var(--border);}
   .tally-table tbody tr:hover td{background:rgba(255,255,255,0.02);}
+
+  /* Dropdown popups: force dark scheme + explicit option colours so the list never renders
+     light-on-light in browsers that ignore the select's own styling. */
+  select { color-scheme: dark; }
+  select option, select optgroup { background: #13131c; color: #ddd; }
 </style>
 </head>
 <body>

@@ -18,18 +18,311 @@
   .led-text { display: flex; align-items: center; justify-content: center; text-align: center;
               white-space: nowrap; overflow: hidden; text-transform: uppercase; }
 
-  /* Elements go here — one id/class and one absolute position each (every element independently editable). */
+  /* ════════════════════════════════════════════════════════════════
+     INGAME LED — the Grand Finals LED wall. The LED template
+     (assets/ledoverlay/ledtemplate.png, 2000x667) is laid out here at
+     1920x640 (x0.96), anchored top-left of the 1920x1080 canvas:
+       red   = left panel (0-534)  / right panel (1386-1920), y 0-480
+               -> 5 team cards each (rank, logo, name, ELIM, TOTAL)
+       green = game feed (534-1386, y 0-480) -> kept black
+       blue  = featured team strip (372-852 / 1067-1547, y 480-640)
+       black = the three "DEAD" zones on the bottom strip
+     ════════════════════════════════════════════════════════════════ */
+  #ingame-led-page {
+    position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+    display: none; overflow: hidden; background: transparent;
+    opacity: 0; transition: opacity 400ms ease;
+  }
+  #ingame-led-page.led-on { display: block; }
+  #ingame-led-page.led-visible { opacity: 1; }
+
+  /* Solid black behind everything — the LED's dead/game areas stay black. */
+  #led-base { position: absolute; left: 0; top: 0; width: 1920px; height: 640px; background: #000; }
+  /* Looping background (same shared GBRC loop the other overlays use). */
+  #led-bg { position: absolute; left: 0; top: 0; width: 1920px; height: 640px; object-fit: cover; }
+  /* Black masks over the video: game feed + the three DEAD zones. */
+  .led-mask { position: absolute; background: #000; }
+  #led-mask-game  { left: 534px;  top: 0;   width: 852px; height: 480px; }
+  #led-mask-dead1 { left: 0;      top: 480px; width: 372px; height: 160px; }
+  #led-mask-dead2 { left: 852px;  top: 480px; width: 215px; height: 160px; }
+  #led-mask-dead3 { left: 1547px; top: 480px; width: 373px; height: 160px; }
+
+  /* The two team columns (5 cards each). Rows inside are fixed relative to
+     their column, same precedent as the Overall Ranking board's columns. */
+  .led-col { position: absolute; top: 0; width: 534px; height: 480px; }
+  #led-col-left  { left: 0; }
+  #led-col-right { left: 1386px; }
+
+  .led-row { position: absolute; left: 10px; width: 514px; height: 88px; filter: drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
+  .led-row-bg { position: absolute; left: 0; top: 0; width: 514px; height: 88px;
+                background: linear-gradient(90deg, #ffffff 0%, #f1f1f1 55%, #e2e2e2 100%); border-bottom: 3px solid #0a0a0a; }
+  /* In The Zone (Grand Finals) — the white container goes yellow. Won via ZOWNED! goes red. */
+  .led-row.led-zone .led-row-bg { background: linear-gradient(90deg, #fff15a 0%, #ffe800 55%, #f5d800 100%); }
+  .led-row.led-won .led-row-bg { background: linear-gradient(90deg, #f0343d 0%, #e0141e 55%, #c10f18 100%); }
+  .led-row.led-won .led-rc-name { color: #fff; }
+  .led-row-tab { position: absolute; left: 0; top: 0; width: 80px; height: 88px; background: linear-gradient(180deg, #232323, #0e0e0e);
+                 clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%); }
+  .led-row-tab::after { content: ''; position: absolute; left: 0; top: 0; width: 5px; height: 100%; background: #ffe800; }
+  .led-row-stats { position: absolute; left: 350px; top: 0; width: 164px; height: 88px; background: linear-gradient(180deg, #232323, #0e0e0e);
+                   clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%); }
+  .led-cell { position: absolute; display: flex; align-items: center; justify-content: center; text-align: center;
+              font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; color: #0a0a0a;
+              text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+  .led-cell span { display: block; transform: translateY(0.12em); }
+  .led-rc-rank { left: 4px; top: 0; width: 62px; height: 88px; font-size: 54px; color: #fff; }
+  .led-row.led-top .led-rc-rank { color: #ffe800; }
+  .led-rc-logo { left: 88px; top: 9px; width: 70px; height: 70px; background: #fff; border: 1px solid #cfcfcf; border-radius: 8px; padding: 5px;
+                 box-shadow: inset 0 0 0 1px rgba(255,255,255,.8); }
+  .led-rc-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .led-rc-name { left: 166px; top: 0; width: 184px; height: 85px; justify-content: flex-start; text-align: left; font-size: 30px; }
+  .led-rc-elim, .led-rc-total { top: 28px; width: 70px; height: 54px; font-size: 46px; color: #fff; }
+  .led-rc-total { color: #ffe800; }
+  .led-rc-elim  { left: 364px; }
+  .led-rc-total { left: 438px; }
+  .led-rc-lbl { top: 7px; width: 70px; height: 22px; font-size: 20px; font-weight: 600; color: #9a9a9a; }
+  .led-rc-lbl-elim  { left: 364px; }
+  .led-rc-lbl-total { left: 438px; }
+  .led-row-divider { position: absolute; top: 14px; width: 1px; height: 60px; background: #4a4a4a; }
+
+  /* Featured team strip (blue areas): dark panel + yellow accent, large logo plate,
+     FEATURED tag, name and a rank/points line — each its own element. In The Zone
+     turns the panel yellow. */
+  .led-feat-box { position: absolute; width: 456px; height: 140px; display: none; background: linear-gradient(135deg, #262626, #0b0b0b);
+                  clip-path: polygon(0 0, 100% 0, calc(100% - 22px) 100%, 0 100%); filter: none; }
+  .led-feat-box::before { content: ''; position: absolute; left: 0; top: 0; width: 8px; height: 100%; background: #ffe800; }
+  .led-feat-box.led-zone { background: linear-gradient(135deg, #fff15a, #ffe800 60%, #f5d800); }
+  .led-feat-box.led-zone::before { background: #0a0a0a; }
+  .led-feat-box.led-won { background: linear-gradient(135deg, #f0343d, #c10f18); }
+  .led-feat-box.led-won::before { background: #fff; }
+  .led-feat-logo { position: absolute; width: 116px; height: 116px; display: none; background: #fff; border-radius: 12px; padding: 8px;
+                   box-shadow: 0 3px 8px rgba(0,0,0,.45); }
+  .led-feat-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .led-feat-name { position: absolute; width: 280px; height: 60px; justify-content: flex-start; text-align: left;
+                   font-family: 'Teko', sans-serif; font-weight: 700; font-size: 56px; line-height: 1; color: #fff; }
+  .led-feat-name span, .led-feat-info span { display: block; transform: translateY(0.12em); }
+  .led-feat-info { position: absolute; width: 270px; height: 34px; justify-content: flex-start; text-align: left;
+                   font-family: 'Teko', sans-serif; font-weight: 600; font-size: 28px; line-height: 1; color: #ffe800; letter-spacing: .04em; }
+  .led-feat-name.led-zone { color: #0a0a0a; }
+  .led-feat-info.led-zone { color: #0a0a0a; }
+  .led-feat-name.led-won-txt, .led-feat-info.led-won-txt { color: #fff; }
+  #led-feat-left-box   { left: 384px;  top: 490px; }
+  #led-feat-left-logo  { left: 402px;  top: 502px; }
+  #led-feat-left-name  { left: 534px;  top: 512px; }
+  #led-feat-left-info  { left: 534px;  top: 576px; }
+  #led-feat-right-box  { left: 1079px; top: 490px; }
+  #led-feat-right-logo { left: 1097px; top: 502px; }
+  #led-feat-right-name { left: 1229px; top: 512px; }
+  #led-feat-right-info { left: 1229px; top: 576px; }
 </style>
 </head>
 <body>
 <div id="stage">
+  <div id="ingame-led-page">
+    <div id="led-base"></div>
+    <video id="led-bg" src="/assets/gbrc_loopbg.webm" muted loop playsinline preload="auto"></video>
+    <div class="led-mask" id="led-mask-game"></div>
+    <div class="led-mask" id="led-mask-dead1"></div>
+    <div class="led-mask" id="led-mask-dead2"></div>
+    <div class="led-mask" id="led-mask-dead3"></div>
+
+    <div class="led-col" id="led-col-left"></div>
+    <div class="led-col" id="led-col-right"></div>
+
+    <div class="led-feat-box" id="led-feat-left-box"></div>
+    <div class="led-feat-logo" id="led-feat-left-logo"><img alt=""></div>
+    <div class="led-text led-feat-name" id="led-feat-left-name"><span></span></div>
+    <div class="led-text led-feat-info" id="led-feat-left-info"><span></span></div>
+    <div class="led-feat-box" id="led-feat-right-box"></div>
+    <div class="led-feat-logo" id="led-feat-right-logo"><img alt=""></div>
+    <div class="led-text led-feat-name" id="led-feat-right-name"><span></span></div>
+    <div class="led-text led-feat-info" id="led-feat-right-info"><span></span></div>
+  </div>
 </div>
 
+<script src="/html/js/overlay-sse-shim.js"></script>
 <script>
 /* Preview-frame flag, same check Fullscreen.html uses. Any real-server side effect added later must skip when true. */
 const isPreviewFrame = new URLSearchParams(location.search).get('preview') === '1';
 
-/* Live data / SSE wiring goes here — use createOverlaySSE() from /html/js/overlay-sse-shim.js, never a raw EventSource. */
+/* ── INGAME LED scene ─────────────────────────────────────────────── */
+const ledPage = document.getElementById('ingame-led-page');
+const ledBg   = document.getElementById('led-bg');
+let ledShown = false;
+let ledPollTimer = null;
+let ledLastKey = null;
+
+function ledFitMeasure(el, maxSize, minSize) {
+  let size = maxSize;
+  el.style.fontSize = size + 'px';
+  while (el.scrollWidth > el.clientWidth && size > minSize) el.style.fontSize = (--size) + 'px';
+}
+function ledFit(el, maxSize, minSize) {
+  ledFitMeasure(el, maxSize, minSize);
+  if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(() => ledFitMeasure(el, maxSize, minSize));
+}
+/* Card team names: 30px is the MAXIMUM. If the name doesn't fit on one line at that
+   size it wraps onto two rows (same size) instead of shrinking; only a single word too
+   wide for the box shrinks. */
+const LED_NAME_MAX = 30, LED_NAME_MIN = 16;
+function ledFitNameMeasure(el) {
+  let size = LED_NAME_MAX;
+  el.style.whiteSpace = 'nowrap'; el.style.lineHeight = '1'; el.style.fontSize = size + 'px';
+  if (el.scrollWidth <= el.clientWidth) return;
+  const span = el.querySelector('span');
+  el.style.whiteSpace = 'normal'; el.style.lineHeight = '0.9'; span.style.textWrap = 'balance';
+  while ((span.scrollWidth > el.clientWidth || span.offsetHeight > el.clientHeight - 6) && size > LED_NAME_MIN) el.style.fontSize = (--size) + 'px';
+}
+function ledFitName(el) {
+  ledFitNameMeasure(el);
+  if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(() => ledFitNameMeasure(el));
+}
+function ledFmt(n) { return String(Math.round((Number(n) || 0) * 100) / 100); }
+function ledEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+/* Standings (Grand Finals overall — same source as Overall Ranking) + the
+   operator's arrangement from the dashboard's TABLE TEAMS tab. */
+async function ledFetch() {
+  const [st, tbl, zd] = await Promise.all([
+    fetch('/api/live-sheet-overall-standings', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch('/api/led-table', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch('/api/in-the-zone', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+  ]);
+  /* In The Zone (ticked in the IN THE ZONE tab): zone = yellow container, won = red. */
+  const zone = new Set(((zd && zd.zone) || []).map(n => String(n).trim().toLowerCase()));
+  const won = new Set(((zd && zd.won) || []).map(n => String(n).trim().toLowerCase()));
+  const teams = ((st && st.teams) || []).map(t => Object.assign({}, t));
+  const byName = new Map(teams.map(t => [String(t.name).trim().toLowerCase(), t]));
+  const find = n => { const t = byName.get(String(n || '').trim().toLowerCase()) || (n ? { name: n, rank: 0, totalKills: 0, totalScore: 0 } : null);
+                      if (t) { const k = String(t.name).trim().toLowerCase(); t.inZone = zone.has(k); t.won = t.inZone && won.has(k); } return t; };
+  const arranged = tbl && tbl.arranged;
+  const order = arranged ? tbl.order.map(find) : teams.slice(0, 10).map(t => find(t.name));
+  while (order.length < 10) order.push(null);
+  let featured = arranged ? tbl.featured.map(find) : [];
+  if (!featured[0] && !featured[1] && !arranged) featured = teams.slice(0, 2).map(t => find(t.name));
+  while (featured.length < 2) featured.push(null);
+  return { order, featured };
+}
+
+function ledBuildRow(t, i) {
+  const row = document.createElement('div');
+  row.className = 'led-row' + (t.rank === 1 && Number(t.totalScore) > 0 ? ' led-top' : '') + (t.inZone ? (t.won ? ' led-won' : ' led-zone') : '');
+  row.style.top = (4 + i * 95) + 'px';
+  row.innerHTML =
+    '<div class="led-row-bg"></div><div class="led-row-tab"></div><div class="led-row-stats"></div>' +
+    '<div class="led-row-divider" style="left:432px"></div>' +
+    '<div class="led-cell led-rc-rank"><span>' + (t.rank || '') + '</span></div>' +
+    '<div class="led-cell led-rc-logo"><img alt="" src="/logos/' + encodeURIComponent(t.name) + '.png" onerror="this.style.display=\'none\'"></div>' +
+    '<div class="led-cell led-rc-name"><span>' + ledEsc(t.name) + '</span></div>' +
+    '<div class="led-cell led-rc-lbl led-rc-lbl-elim"><span>ELIM</span></div>' +
+    '<div class="led-cell led-rc-lbl led-rc-lbl-total"><span>TOTAL</span></div>' +
+    '<div class="led-cell led-rc-elim"><span>' + ledFmt(t.totalKills) + '</span></div>' +
+    '<div class="led-cell led-rc-total"><span>' + ledFmt(t.totalScore) + '</span></div>';
+  return row;
+}
+
+function ledFillColumn(id, teams) {
+  const col = document.getElementById(id);
+  col.innerHTML = '';
+  teams.forEach((t, i) => { if (t) col.appendChild(ledBuildRow(t, i)); });
+}
+
+function ledSetFeatured(side, t) {
+  const $ = k => document.getElementById('led-feat-' + side + '-' + k);
+  const box = $('box'), logo = $('logo'), name = $('name'), info = $('info');
+  const els = [box, logo, name, info];
+  if (!t) { els.forEach(e => { e.style.display = 'none'; }); return; }
+  const z = t.inZone ? (t.won ? 'led-won' : 'led-zone') : '';
+  box.className = 'led-feat-box ' + z;
+  [name, info].forEach(e => e.classList.toggle('led-zone', !!t.inZone && !t.won));
+  [name, info].forEach(e => e.classList.toggle('led-won-txt', !!t.won));
+  box.style.display = 'block';
+  name.style.display = 'flex'; info.style.display = 'flex';
+  name.querySelector('span').textContent = t.name;
+  info.querySelector('span').textContent = (t.rank ? 'RANK #' + t.rank + '  ·  ' : '') + ledFmt(t.totalKills) + ' ELIM  ·  ' + ledFmt(t.totalScore) + ' PTS';
+  const img = logo.querySelector('img');
+  logo.style.display = 'none';
+  img.onload = () => { logo.style.display = 'block'; };
+  img.onerror = () => { logo.style.display = 'none'; };
+  img.src = '/logos/' + encodeURIComponent(t.name) + '.png';
+}
+
+function ledFitAll() {
+  ledPage.querySelectorAll('.led-rc-name').forEach(el => ledFitName(el));
+  ledPage.querySelectorAll('.led-rc-elim, .led-rc-total').forEach(el => ledFit(el, 46, 24));
+  ledPage.querySelectorAll('.led-feat-name').forEach(el => ledFit(el, 56, 26));
+  ledPage.querySelectorAll('.led-feat-info').forEach(el => ledFit(el, 28, 16));
+}
+
+function ledApply(d) {
+  ledFillColumn('led-col-left',  d.order.slice(0, 5));
+  ledFillColumn('led-col-right', d.order.slice(5, 10));
+  ledSetFeatured('left',  d.featured[0]);
+  ledSetFeatured('right', d.featured[1]);
+  ledFitAll();   /* page is display:block by now, so there is real layout to measure */
+}
+
+/* Re-render only when something actually changed. */
+async function ledRefresh() {
+  if (!ledShown) return;
+  const d = await ledFetch();
+  const key = JSON.stringify(d);
+  if (key === ledLastKey) return;
+  ledLastKey = key;
+  ledApply(d);
+}
+
+async function showIngameLedScene() {
+  ledShown = true;
+  ledLastKey = null;
+  const data = await ledFetch();
+  if (!ledShown) return;
+  ledLastKey = JSON.stringify(data);
+  ledPage.classList.add('led-on');
+  ledApply(data);
+  try { ledBg.play(); } catch (e) {}
+  void ledPage.offsetWidth;
+  ledPage.classList.add('led-visible');
+  clearInterval(ledPollTimer);
+  ledPollTimer = setInterval(ledRefresh, 4000);
+}
+function hideIngameLedScene() {
+  ledShown = false;
+  clearInterval(ledPollTimer);
+  ledPage.classList.remove('led-visible');
+  return new Promise(resolve => setTimeout(() => {
+    if (ledShown) return resolve();
+    ledPage.classList.remove('led-on');
+    ledBg.pause();   /* never leave a 1080p loop decoding while hidden */
+    resolve();
+  }, 420));
+}
+window.showIngameLedScene = showIngameLedScene;
+window.hideIngameLedScene = hideIngameLedScene;
+window.previewTrigger = function (event, action) {
+  if (event !== 'ingame_led') return;
+  if (action === 'show') showIngameLedScene(); else hideIngameLedScene();
+};
+
+/* Per-element position/size overrides saved from the dashboard Edit tab. */
+fetch('/api/overlay-styles?file=ledoverlay', { cache: 'no-store' }).then(r => r.json()).then(styles => {
+  if (!styles || !Object.keys(styles).length) return;
+  const css = Object.keys(styles).map(sel => sel + '{' + Object.keys(styles[sel]).filter(p => p !== 'asset')
+    .map(p => (p === 'fontSize' ? 'font-size' : p) + ':' + styles[sel][p] + ' !important').join(';') + '}').join('\n');
+  const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+}).catch(() => {});
+
+/* Live pages reload when the Edit tab saves; the preview/edit frame doesn't. */
+if (!isPreviewFrame) {
+  const sse = createOverlaySSE();
+  sse.addEventListener('reload', () => window.location.reload());
+  sse.addEventListener('ingame_led', (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.action === 'show') showIngameLedScene(); else hideIngameLedScene();
+  });
+  /* Normally on: restore the real state on load (default shown if the fetch fails). */
+  fetch('/overlay/check-overlays', { cache: 'no-store' }).then(r => r.json()).catch(() => ({}))
+    .then(s => { if (s.ingame_led !== false) showIngameLedScene(); });
+}
 </script>
 </body>
 </html>

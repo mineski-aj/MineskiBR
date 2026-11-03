@@ -170,6 +170,11 @@
     .sheet-columns{flex-direction:column;}
   }
   ::selection{background:var(--accent);color:#231802;}
+
+  /* Dropdown popups: force dark scheme + explicit option colours so the list never renders
+     light-on-light in browsers that ignore the select's own styling. */
+  select { color-scheme: dark; }
+  select option, select optgroup { background: #13131c; color: #ddd; }
 </style>
 </head>
 <body>

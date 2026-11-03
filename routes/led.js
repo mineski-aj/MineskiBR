@@ -2,6 +2,7 @@
 const express = require('express');
 const router  = express.Router();
 const state   = require('../lib/state');
+const ledTable = require('../lib/ledTable');
 
 const noStore = { "Cache-Control": "no-store" };
 
@@ -53,6 +54,18 @@ router.get('/led/healthshow', (req, res) => {
 router.get('/led/healthhide', (req, res) => {
   state.overlayClients.forEach(c => { try { c.write('event: led_health\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set(noStore).json({ ok: true, action: "hide" });
+});
+
+// Grand Finals "Table Teams" — which squad sits in which LED slot (see lib/ledTable.js).
+// GET  /api/led-table — { arranged, order:[10], featured:[2] }
+// POST /api/led-table — { order:[...], featured:[...] } to save, or { reset:true }.
+router.get('/api/led-table', (req, res) => {
+  res.set(noStore).json(ledTable.get());
+});
+
+router.post('/api/led-table', (req, res) => {
+  const body = req.body || {};
+  res.json(Object.assign({ ok: true }, body.reset ? ledTable.reset() : ledTable.set(body)));
 });
 
 module.exports = router;

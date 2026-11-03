@@ -2,20 +2,18 @@
   "categories": [
     {
       "id": "cat_mucavrt312",
-      "name": "OFFICIAL SPONSORS",
-      "duration": 3,
+      "name": "OFFICIAL SPONSOR",
+      "duration": 5,
       "logos": [
-        "CLEAR.png",
-        "SMART.png",
-        "VISA.png"
+        "Shopee.png"
       ]
     },
     {
       "id": "cat_mucaw3rr472",
-      "name": "PARTNER IN ESPORTS",
+      "name": "OFFICIAL GAMING CHAIR",
       "duration": 3,
       "logos": [
-        "INFINIX.png"
+        "TTRACING.png"
       ]
     }
   ],

@@ -12276,7 +12276,7 @@
         if (!logos.length) return;
         items.push({ type: 'heading', text: cat.name });
         logos.forEach(file => {
-          items.push({ type: 'logo', src: '/sponsors/' + encodeURIComponent(file), title: '' });
+          items.push({ type: 'logo', src: '/sponsors/white/' + encodeURIComponent(file), title: '' });
         });
         items.push({ type: 'space', height: 40 });
       });
@@ -12994,6 +12994,10 @@
        killable family". This flag additionally stops NEW loop cycles
        from starting at all while off, so a hidden box isn't still
        fetching/cycling logos behind the scenes. */
+    /* Fullscreen sponsor boxes sit on black — use the white logo variants
+       (/sponsors/white/<file>, server falls back to the normal logo if a
+       sponsor has no white version). */
+    function sponsorWhiteSrc(src) { return String(src || '').replace(/^\/sponsors\/(?!white\/)/, '/sponsors/white/'); }
     let sponsorBoxesEnabled = true;
     function applySponsorBoxesEnabled(enabled) {
       sponsorBoxesEnabled = enabled;
@@ -13042,6 +13046,7 @@
           if (!sponsorBoxesEnabled) return;
           active = true;
           fetch('/api/sponsors').then(r => r.json()).then(list => {
+            list = (list || []).map(x => Object.assign({}, x, { src: sponsorWhiteSrc(x.src) }));
             if (!active || !list || !list.length) return;
             sponsors = list;
             idx = 0;
@@ -13106,6 +13111,7 @@
           if (!sponsorBoxesEnabled) return;
           active = true;
           fetch('/api/sponsors').then(r => r.json()).then(list => {
+            list = (list || []).map(x => Object.assign({}, x, { src: sponsorWhiteSrc(x.src) }));
             if (!active || !list || !list.length) return;
             sponsors = list;
             idx = 0;

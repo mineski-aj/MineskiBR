@@ -55,6 +55,11 @@
   .empty { color: #666; font-size: 13px; padding: 12px 0; }
   .cols { display: grid; grid-template-columns: 28px 36px 1fr 60px 80px 120px 112px; gap: 12px; padding: 0 12px 6px; font-size: 10px; font-weight: 700; color: #555; letter-spacing: 0.1em; text-transform: uppercase; }
   .cols span:nth-child(5) { text-align: right; }
+
+  /* Dropdown popups: force dark scheme + explicit option colours so the list never renders
+     light-on-light in browsers that ignore the select's own styling. */
+  select { color-scheme: dark; }
+  select option, select optgroup { background: #13131c; color: #ddd; }
 </style>
 </head>
 <body>

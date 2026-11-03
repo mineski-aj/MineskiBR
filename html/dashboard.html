@@ -861,7 +861,12 @@
       border: none;
       transform-origin: top left;
     }
-  </style>
+  
+  /* Dropdown popups: force dark scheme + explicit option colours so the list never renders
+     light-on-light in browsers that ignore the select's own styling. */
+  select { color-scheme: dark; }
+  select option, select optgroup { background: #13131c; color: #ddd; }
+</style>
 </head>
 <body>
 <div id="copy-tooltip"></div>
@@ -935,6 +940,12 @@
 <!-- Page: Playoffs — Lobby A / Lobby B squad lists (fetch-only, no SSE) -->
 <div id="page-playoffs" class="page">
   <iframe src="/html/playoffs-dashboard.html" style="width:100%;flex:1;border:none;min-height:0;"></iframe>
+</div>
+
+<!-- Page: Table Teams — replaces the Playoffs tab while Match Board's Stage is Grand Finals:
+     arranges the 10 squads + 2 featured squads on the Ingame LED (ledoverlay.html). Fetch-only. -->
+<div id="page-tableteams" class="page">
+  <iframe id="tableteams-iframe" src="about:blank" style="width:100%;flex:1;border:none;min-height:0;"></iframe>
 </div>
 
 <!-- Page: Sponsors -->
@@ -1243,6 +1254,39 @@
         editIfLoaded = false;
       }
     });
+  });
+
+  /* ── Playoffs <-> Table Teams tab ────────────────────────────
+     While Match Board's Stage is Grand Finals the Playoffs tab becomes
+     "Table Teams" (arrange the Ingame LED); any other stage it is the
+     normal Playoffs lobbies tab. The Table Teams iframe is only loaded
+     while that tab is showing (about:blank otherwise — never ''). */
+  var playoffsTabBtn = document.querySelector('.tab-btn[data-page="playoffs"]');
+  var ttIframe = document.getElementById('tableteams-iframe');
+  function applyPlayoffsTabStage(stage) {
+    var gf = /grand\s*finals/i.test(String(stage || ''));
+    var want = gf ? 'tableteams' : 'playoffs';
+    if (playoffsTabBtn.dataset.page === want) return;
+    var wasActive = playoffsTabBtn.classList.contains('active');
+    var oldPage = document.getElementById('page-' + playoffsTabBtn.dataset.page);
+    playoffsTabBtn.dataset.page = want;
+    playoffsTabBtn.textContent = gf ? 'Table Teams' : 'Playoffs';
+    if (wasActive) {
+      oldPage.classList.remove('active');
+      document.getElementById('page-' + want).classList.add('active');
+    }
+    if (gf && wasActive) ttIframe.src = '/html/table-teams-dashboard.html';
+    if (!gf) ttIframe.src = 'about:blank';
+  }
+  function pollStageForTab() {
+    fetch('/match/state', { cache: 'no-store' }).then(function (r) { return r.json(); })
+      .then(function (d) { applyPlayoffsTabStage(d && d.stage); }).catch(function () {});
+  }
+  pollStageForTab();
+  setInterval(pollStageForTab, 3000);
+  /* Load Table Teams fresh each time its tab is opened (cheap, fetch-only page). */
+  playoffsTabBtn.addEventListener('click', function () {
+    if (playoffsTabBtn.dataset.page === 'tableteams') ttIframe.src = '/html/table-teams-dashboard.html';
   });
 
   /* ── API Mode (LIVE / WEB / DEBUG) ─────────────────────────────
@@ -1871,7 +1915,7 @@
     } catch (err) {}
   });
 
-  ['scoreboard'].forEach(function (key) {
+  ['scoreboard', 'ingame_led'].forEach(function (key) {
     dashboardSSE.addEventListener(key, function (e) {
       try {
         var d = JSON.parse(e.data);
@@ -2108,7 +2152,10 @@
       id: 'ledoverlay',
       name: 'LED Overlay',
       file: 'ledoverlay.html',
-      /* Skeleton only for now — no show/hide wiring yet; link + live preview. */
+      checkToggles: [
+        { name: 'Ingame LED', key: 'ingame_led' },
+      ],
+      /* Ingame LED scene: always-on page, no show/hide wiring; link + live preview. Arranged from the Table Teams tab. */
     },
   ];
 
@@ -4305,6 +4352,36 @@
     { group: 'PL Right Val', id: '.pl-rval', name: 'Right Value (all rows)' },
   ];
 
+  /* ── Ingame LED (ledoverlay.html) — led-* selectors. Canvas is 1920x640 (the LED
+     template x0.96) at the top-left of the 1920x1080 page. The two columns hold
+     5 fixed rows each (same precedent as the Overall Ranking columns). ── */
+  var LED_DEFAULTS = {
+    '#led-bg': { left: 0, top: 0, width: 1920, height: 640 },
+    '#led-col-left': { left: 0, top: 0, width: 534, height: 480 },
+    '#led-col-right': { left: 1386, top: 0, width: 534, height: 480 },
+    '#led-feat-left-box': { left: 384, top: 490, width: 456, height: 140 },
+    '#led-feat-left-logo': { left: 402, top: 502, width: 116, height: 116 },
+    '#led-feat-left-name': { left: 534, top: 512, width: 280, height: 60, fontSize: 56 },
+    '#led-feat-left-info': { left: 534, top: 576, width: 270, height: 34, fontSize: 28 },
+    '#led-feat-right-box': { left: 1079, top: 490, width: 456, height: 140 },
+    '#led-feat-right-logo': { left: 1097, top: 502, width: 116, height: 116 },
+    '#led-feat-right-name': { left: 1229, top: 512, width: 280, height: 60, fontSize: 56 },
+    '#led-feat-right-info': { left: 1229, top: 576, width: 270, height: 34, fontSize: 28 },
+  };
+  var LED_ELEMENTS = [
+    { group: 'LED Background', id: '#led-bg', name: 'Background (looping webm)' },
+    { group: 'LED Left Teams', id: '#led-col-left', name: 'Left Panel (5 team cards)' },
+    { group: 'LED Right Teams', id: '#led-col-right', name: 'Right Panel (5 team cards)' },
+    { group: 'LED Feat Left Box', id: '#led-feat-left-box', name: 'Featured Left — Panel' },
+    { group: 'LED Feat Left Logo', id: '#led-feat-left-logo', name: 'Featured Left — Logo' },
+    { group: 'LED Feat Left Name', id: '#led-feat-left-name', name: 'Featured Left — Name' },
+    { group: 'LED Feat Left Info', id: '#led-feat-left-info', name: 'Featured Left — Rank / Points' },
+    { group: 'LED Feat Right Box', id: '#led-feat-right-box', name: 'Featured Right — Panel' },
+    { group: 'LED Feat Right Logo', id: '#led-feat-right-logo', name: 'Featured Right — Logo' },
+    { group: 'LED Feat Right Name', id: '#led-feat-right-name', name: 'Featured Right — Name' },
+    { group: 'LED Feat Right Info', id: '#led-feat-right-info', name: 'Featured Right — Rank / Points' },
+  ];
+
   /* ── Team H2H L3 (LowerThirds.html) — tm-* selectors. ── */
   var TM_DEFAULTS = {
     '#tm-box': { left: 330, top: 770, width: 1260, height: 270 },
@@ -5113,6 +5190,15 @@
       elements:    TMH_ELEMENTS,
       defaults:    TMH_DEFAULTS,
       showFn:      'showTeamH2HScene',
+    },
+    led_ingame: {
+      label:       'Ingame LED · LED Overlay',
+      file:        'ledoverlay.html',
+      styleFile:   'ledoverlay',
+      defaultsKey: 'sb_edit_defaults_led_ingame',
+      elements:    LED_ELEMENTS,
+      defaults:    LED_DEFAULTS,
+      showFn:      'showIngameLedScene',
     },
     lowerthirds_playerh2h: {
       label:       'Player H2H L3 · Lower Thirds',

@@ -99,6 +99,18 @@ router.get('/overlay/scoreboard/hide', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
+// GET /overlay/ingame_led/show|hide — LED Overlay → Ingame LED scene (checkOverlays pattern)
+router.get('/overlay/ingame_led/show', (req, res) => {
+  state.checkOverlays.ingame_led = true;
+  state.overlayClients.forEach(c => { try { c.write('event: ingame_led\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+router.get('/overlay/ingame_led/hide', (req, res) => {
+  state.checkOverlays.ingame_led = false;
+  state.overlayClients.forEach(c => { try { c.write('event: ingame_led\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
 // GET /overlay/hrm-state — current per-player heart-rate meter on/off
 // state (ingame_red.html / ingame_blue.html), so any page (dashboard,
 // ingame overlays on a different browser/machine, vMix) can poll the

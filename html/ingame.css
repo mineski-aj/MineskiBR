@@ -26,7 +26,8 @@
      overlay-scoreboard.js), which also drives the mainheader1-first/
      header1-right-behind stagger. ── */
   #sb-mainheader1,
-  #sb-header1 {
+  #sb-header1,
+  #sb-sponsorbar {
     position: absolute;
     left: 0px;
     background-repeat: no-repeat;
@@ -34,10 +35,11 @@
     /* Lives on the base rule (not just .sb-slide-in) so removing the class
        glides back off-screen instead of snapping there instantly — see
        sbHandleToggle in overlay-scoreboard.js. */
-    transition: transform 0.6s cubic-bezier(0, 0, 0.2, 1);
+    transition: transform 0.6s cubic-bezier(0, 0, 0.2, 1), top 0.4s ease;
   }
   #sb-mainheader1.sb-slide-in,
-  #sb-header1.sb-slide-in {
+  #sb-header1.sb-slide-in,
+  #sb-sponsorbar.sb-slide-in {
     transform: translateX(0);
   }
   /* Used only for sbAnimateHeaders' reset-before-replay step (a real hide
@@ -46,7 +48,8 @@
      back off-screen instantly, so a re-show always starts its slide-in
      from the same spot instead of animating a visible flick-out first. */
   #sb-mainheader1.sb-instant,
-  #sb-header1.sb-instant {
+  #sb-header1.sb-instant,
+  #sb-sponsorbar.sb-instant {
     transition: none;
   }
   #sb-mainheader1 {
@@ -62,6 +65,73 @@
     height: 54px;
     z-index: 31;
     background-image: url('/assets/ingame/ingame_header2.png');
+  }
+  /* ── Sponsor bar — white strip under the ID card, only when the global
+     Sponsor Boxes setting is on (body.sponsorboxes-off hides it via its
+     data-sponsorbox tag). When on, the ID card + banner strip sit
+     56px higher (body.sponsorbar-on) to make room. Logos scroll right to
+     left. ── */
+  #sb-sponsorbar {
+    top: 1024px;
+    width: 529px;
+    height: 56px;
+    z-index: 30;
+    background: #fff;
+    overflow: hidden;
+  }
+  body.sponsorboxes-off [data-sponsorbox] { display: none !important; }
+  body:not(.sponsorboxes-off) #sb-mainheader1 { top: 865px; }
+  body:not(.sponsorboxes-off) #sb-header1 { top: 812px; }
+  /* Category tag — changes with the logo's category; the old tag is
+     pushed down and out while the new one drops in from the top (see
+     sbSetSponsorTag). Each tag is its own absolutely-stacked layer. */
+  #sb-sponsor-label {
+    position: absolute;
+    left: 0; top: 0;
+    width: 215px; height: 56px;
+    z-index: 2;
+    overflow: hidden;
+    background: #fff;
+  }
+  .sb-tag {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Teko', sans-serif;
+    font-weight: 700;
+    font-size: 27px;
+    color: #1a1a1a;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform: translateY(0);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .sb-tag > span { display: inline-block; transform: translateY(0.15em); }
+  .sb-tag.sb-tag-above { transform: translateY(-100%); }
+  .sb-tag.sb-tag-below { transform: translateY(100%); }
+  #sb-sponsor-viewport {
+    position: absolute;
+    left: 215px; top: 0;
+    width: 314px; height: 56px;
+    overflow: hidden;
+  }
+  /* One logo at a time — slides in from the right, holds for the
+     category's duration, slides out to the left (see sbRunSponsors). */
+  #sb-sponsor-img {
+    position: absolute;
+    left: 50%; top: 50%;
+    max-width: 270px; max-height: 40px;
+    transform: translate(150%, -50%);
+    opacity: 0;
+  }
+  #sb-sponsor-img.sb-spon-in {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+    transition: transform 0.5s cubic-bezier(0, 0, 0.2, 1), opacity 0.3s ease;
+  }
+  #sb-sponsor-img.sb-spon-out {
+    transform: translate(-250%, -50%);
+    opacity: 0;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 1, 1), opacity 0.4s ease 0.1s;
   }
   #sb-mh1-logo {
     position: absolute;

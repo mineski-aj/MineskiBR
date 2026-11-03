@@ -171,6 +171,11 @@
   .cmt-platform.instagram { background: #a02a78; }
   .cmt-platform.twitch    { background: #6a3fc4; }
   .cmt-platform.x, .cmt-platform.twitter { background: #222; border: 1px solid #444; }
+
+  /* Dropdown popups: force dark scheme + explicit option colours so the list never renders
+     light-on-light in browsers that ignore the select's own styling. */
+  select { color-scheme: dark; }
+  select option, select optgroup { background: #13131c; color: #ddd; }
 </style>
 </head>
 <body>

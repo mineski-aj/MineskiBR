@@ -93,6 +93,18 @@ app.post('/match/team-lineups', function (req, res) {
 // folder. Keeps every existing consumer's `/sponsors/<file>` URL
 // (/api/sponsors' playlist, sponsors-dashboard.html's logoUrl()) working
 // unchanged — only which folder it resolves to changes, per active project.
+// White (for black backgrounds) variants live in <sponsors dir>/white/ with
+// the same filename; Fullscreen.html's sponsor boxes request these. Falls
+// back to the normal logo when a logo has no white version.
+app.get('/sponsors/white/:filename', function (req, res, next) {
+  var dir = projects.getProjectScopedFilePath('sponsors');
+  var name = path.basename(req.params.filename);
+  res.sendFile(path.join(dir, 'white', name), { maxAge: '1h' }, function (err) {
+    if (!err) return;
+    res.sendFile(path.join(dir, name), { maxAge: '1h' }, function (err2) { if (err2) next(); });
+  });
+});
+
 app.get('/sponsors/:filename', function (req, res, next) {
   var dir = projects.getProjectScopedFilePath('sponsors');
   var filePath = path.join(dir, path.basename(req.params.filename));
