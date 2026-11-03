@@ -166,9 +166,9 @@
       "matchType": "regular"
     }
   ],
-  "countdownLabel": "SHOW RESUMES IN",
+  "countdownLabel": "SHOW STARTS IN",
   "goodbyeLabel": "SEE YOU TOMORROW",
-  "match": 11,
+  "match": 1,
   "countdownLabelAuto": true,
   "timer": {
     "running": true,
@@ -181,102 +181,86 @@
     "Naisou",
     "Wolf"
   ],
-  "stage": "Playoffs",
-  "todayMapsCount": 11,
+  "stage": "Grand Finals",
+  "todayMapsCount": 12,
   "todayMaps": [
     {
       "time": " ",
       "mapName": "Isolated",
       "winner": "GNR ESPORTS LEGACY OMEN",
       "done": false,
-      "groupMatch": "",
-      "label": "1",
-      "lobby": ""
+      "groupMatch": ""
     },
     {
       "time": "                                           ",
       "mapName": "Krai",
       "done": false,
       "groupMatch": "",
-      "winner": "ADMT PYRITE",
-      "label": "2.1",
-      "lobby": "A"
+      "winner": "ADMT PYRITE"
     },
     {
       "time": " ",
       "mapName": "Krai",
       "done": false,
       "groupMatch": "",
-      "winner": "POISON IVY GIZY",
-      "label": "2.2",
-      "lobby": "B"
+      "winner": "POISON IVY GIZY"
     },
     {
       "time": " ",
       "mapName": "Blackout",
       "done": false,
       "groupMatch": "",
-      "winner": "4K JOKER",
-      "label": "3",
-      "lobby": ""
+      "winner": "4K JOKER"
     },
     {
       "time": " ",
       "mapName": "Rebirth Island",
       "done": false,
       "groupMatch": "",
-      "winner": "LEAP MAIN",
-      "label": "4.1",
-      "lobby": "A"
+      "winner": "LEAP MAIN"
     },
     {
       "time": " ",
       "mapName": "Rebirth Island",
       "done": false,
       "groupMatch": "",
-      "winner": "POISON IVY GIZY",
-      "label": "4.2",
-      "lobby": "B"
+      "winner": "POISON IVY GIZY"
     },
     {
       "time": " ",
       "mapName": "Isolated",
       "groupMatch": "",
-      "winner": "LEAP UNBOUND",
-      "label": "5",
-      "lobby": ""
+      "winner": "LEAP UNBOUND"
     },
     {
       "time": " ",
       "mapName": "Blackout",
       "groupMatch": "",
-      "winner": "POISON IVY GIZY",
-      "label": "6",
-      "lobby": ""
+      "winner": "POISON IVY GIZY"
     },
     {
       "time": " ",
       "mapName": "Krai",
       "groupMatch": "",
-      "winner": "UNBOTHERED TZY",
-      "label": "7.1",
-      "lobby": "A"
+      "winner": "UNBOTHERED TZY"
     },
     {
       "time": " ",
       "mapName": "Krai",
       "groupMatch": "",
-      "winner": "POISON IVY GIZY",
-      "label": "7.2",
-      "lobby": "B"
+      "winner": "POISON IVY GIZY"
     },
     {
       "time": " ",
       "mapName": "Isolated",
       "groupMatch": "",
-      "winner": "",
-      "label": "8",
-      "lobby": ""
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "groupMatch": "",
+      "winner": ""
     }
   ],
   "tomorrowMapsCount": 6,
