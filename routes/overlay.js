@@ -910,7 +910,7 @@ router.get('/overlay/features', (req, res) => {
 });
 
 // GET /overlay/feature/:feature/enable|disable
-const VALID_FEATURES = ['fights','debugphotos'];
+const VALID_FEATURES = ['killevents','debugphotos'];
 router.get('/overlay/feature/:feature/:action', (req, res) => {
   const { feature, action } = req.params;
   if (!VALID_FEATURES.includes(feature) || !['enable','disable'].includes(action)) {
@@ -1002,6 +1002,25 @@ router.get('/overlay/lowerthird/hideall', (req, res) => {
   state.checkOverlays.lowerthird_team_h2h = false;
   lowerThirdBroadcast({ action: 'hideall' });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hideall" });
+});
+
+// Ingame Events → Kill Events: fire a test popup ON AIR (every open ingame.html).
+// ?tier=1 (MERCENARY!, 5 kills) | 2 (ULTIMATE MERCENARY!, 10 kills). Uses the
+// current map's top killer when the live sheet has one, else a sample name.
+router.get('/overlay/ingame_event/kill/test', (req, res) => {
+  const tier = parseInt(req.query.tier, 10) === 2 ? 2 : 1;
+  let pick = { name: 'Player One', team: 'ADMT PYRITE', country: 'PH' };
+  try {
+    const live = require('../lib/tallyRoster').getMapPlayerKills();
+    let best = null;
+    (live.teams || []).forEach(t => t.players.forEach(p => {
+      if (!best || p.kills > best.kills) best = { name: p.name, team: t.name, country: t.region, kills: p.kills };
+    }));
+    if (best) pick = best;
+  } catch (e) {}
+  const payload = JSON.stringify({ action: 'kill_test', tier, name: pick.name, team: pick.team, country: pick.country, kills: tier === 2 ? 10 : 5 });
+  state.overlayClients.forEach(c => { try { c.write('event: ingame_event\ndata: ' + payload + '\n\n'); } catch {} });
+  res.set({ 'Cache-Control': 'no-store' }).json({ ok: true, tier, player: pick.name });
 });
 
 module.exports = router;

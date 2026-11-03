@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LED Overlay</title>
+<style>
+  @font-face { font-family: 'Anton'; src: url('/fonts/Anton-Regular.ttf'); font-display: block; }
+  @font-face { font-family: 'Teko'; src: url('/fonts/Teko-SemiBold.ttf'); font-weight: 600; font-display: block; }
+  @font-face { font-family: 'Teko'; src: url('/fonts/Teko-Bold.ttf'); font-weight: 700; font-display: block; }
+  @font-face { font-family: 'General Sans'; src: url('/fonts/GeneralSans-Bold.otf'); font-weight: 700; font-display: block; }
+  @font-face { font-family: 'General Sans'; src: url('/fonts/GeneralSans-Semibold.otf'); font-weight: 600; font-display: block; }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; }
+  #stage { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; overflow: hidden; background: transparent; }
+
+  /* Shared text-box treatment: center-center, shrink-to-fit */
+  .led-text { display: flex; align-items: center; justify-content: center; text-align: center;
+              white-space: nowrap; overflow: hidden; text-transform: uppercase; }
+
+  /* Elements go here — one id/class and one absolute position each (every element independently editable). */
+</style>
+</head>
+<body>
+<div id="stage">
+</div>
+
+<script>
+/* Preview-frame flag, same check Fullscreen.html uses. Any real-server side effect added later must skip when true. */
+const isPreviewFrame = new URLSearchParams(location.search).get('preview') === '1';
+
+/* Live data / SSE wiring goes here — use createOverlaySSE() from /html/js/overlay-sse-shim.js, never a raw EventSource. */
+</script>
+</body>
+</html>
