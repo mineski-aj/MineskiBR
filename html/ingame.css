@@ -606,7 +606,7 @@
 #ke2-root.ke2-nophoto #ke2-name { translate: -80px 0; }
 
 #ke2-root.ke2-in #ke2-strip { animation: ke2-strip-in 520ms cubic-bezier(.7,0,.2,1) 60ms both; }
-#ke2-root.ke2-in #ke2-photo { animation: ke2-photo-in 560ms cubic-bezier(.2,1.4,.3,1) 330ms both; }
+#ke2-root.ke2-in #ke2-photo { animation: ke2-photo-in 560ms cubic-bezier(.22,.9,.3,1) 330ms both; } /* ease-out, NO overshoot — a bounce lifts the photo's bottom edge off the canvas bottom and shows a transparent gap */
 #ke2-root.ke2-in #ke2-name  { animation: ke2-slide-in 400ms ease-out 520ms both; }
 #ke2-root.ke2-in #ke2-kills { animation: ke2-pop-in 420ms cubic-bezier(.2,1.6,.3,1) 620ms both; }
 #ke2-root.ke2-out #ke2-strip { animation: ke2-strip-out 520ms cubic-bezier(.7,0,.2,1) both !important; }

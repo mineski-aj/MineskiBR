@@ -181,8 +181,8 @@
     "Naisou",
     "Wolf"
   ],
-  "stage": "Showmatch",
-  "todayMapsCount": 8,
+  "stage": "Grand Finals",
+  "todayMapsCount": 12,
   "todayMaps": [
     {
       "time": " ",
@@ -234,6 +234,30 @@
     },
     {
       "time": " ",
+      "mapName": "Isolated",
+      "groupMatch": "",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "groupMatch": "",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "groupMatch": "",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "groupMatch": "",
+      "winner": ""
+    },
+    {
+      "time": "",
       "mapName": "Isolated",
       "groupMatch": "",
       "winner": ""
