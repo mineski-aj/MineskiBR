@@ -575,3 +575,47 @@
 #ke-root.ke-out .ke-el { animation: ke-out 480ms cubic-bezier(.6,0,.9,.4) both !important; }
 #ke-root.ke-out #ke-shine::after { animation: none !important; opacity: 0; }
 @keyframes ke-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(60px) scale(.94); } }
+
+/* ── [FEATURE: killevents V2] — Kill Events V2 (Control tab → Kill Events → "V2" toggle).
+   The two CODM_GBRC_KILLEVENTS_*.webm banners (alpha WebM, 60fps, ~5.1s: the banner wipes
+   in from its centre over ~0.6s, holds, wipes out ~4.4s→4.95s) carry the title; HTML adds a
+   black name/kills strip FLUSH with the bottom of the canvas (y 988-1080) and the player photo,
+   which overlaps the banner and the ingame overlay. Everything is timed to the webm
+   (see overlay-killevents.js: WEBM_OUT_AT). #ke2-root is only the state layer (.ke2-on,
+   .ke2-t1/.ke2-t2 for the tier, .ke2-in/.ke2-out for the phases). Banner content box is 710px
+   wide at x=698 (the whole V2 group is x0.67 of the first 1060px design, anchored bottom-centre); each webm is scaled so ITS visible banner (not its padded frame) is that
+   wide and its bottom edge lands on the strip's top edge — hence two different video sizes. ── */
+#ke2-root { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; display: none; pointer-events: none; z-index: 800; }
+#ke2-root.ke2-on { display: block; }
+#ke2-root > * { position: absolute; }
+#ke2-root .ke2-flex { display: flex; align-items: center; text-align: center; white-space: nowrap; overflow: hidden;
+                      font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; text-transform: uppercase; }
+#ke2-root .ke2-flex span { display: block; transform: translateY(0.12em); }
+#ke2-root .ke2-el { opacity: 0; }
+#ke2-strip   { left: 698px; top: 1018px; width: 710px; height: 62px; z-index: 1; background: #000; }
+/* Ultimate banner (1169x312 frame; visible 1136x304 at 14,4 → x0.933). */
+#ke2-video-2 { left: 689px; top: 826px; width: 731px; height: 195px; z-index: 2; display: none; }
+/* Mercenary banner (1580x505 frame; visible 1536x400 at 22,52 → x0.690; the little chevron dips into the strip). */
+#ke2-video-1 { left: 688px; top: 808px; width: 730px; height: 234px; z-index: 2; display: none; }
+#ke2-root.ke2-t1 #ke2-video-1, #ke2-root.ke2-t2 #ke2-video-2 { display: block; }
+#ke2-photo   { left: 468px; top: 752px; width: 328px; height: 328px; z-index: 3; object-fit: contain; object-position: bottom;
+               filter: drop-shadow(0 6px 14px rgba(0,0,0,.55)); }
+#ke2-name    { left: 815px; top: 1018px; width: 375px; height: 62px; z-index: 4; color: #fff; font-size: 36px; justify-content: flex-start; }
+#ke2-kills   { left: 1207px; top: 1018px; width: 181px; height: 62px; z-index: 4; color: #ffe600; font-size: 43px; justify-content: flex-end; }
+#ke2-root.ke2-nophoto #ke2-photo { display: none; }
+#ke2-root.ke2-nophoto #ke2-name { translate: -80px 0; }
+
+#ke2-root.ke2-in #ke2-strip { animation: ke2-strip-in 520ms cubic-bezier(.7,0,.2,1) 60ms both; }
+#ke2-root.ke2-in #ke2-photo { animation: ke2-photo-in 560ms cubic-bezier(.2,1.4,.3,1) 330ms both; }
+#ke2-root.ke2-in #ke2-name  { animation: ke2-slide-in 400ms ease-out 520ms both; }
+#ke2-root.ke2-in #ke2-kills { animation: ke2-pop-in 420ms cubic-bezier(.2,1.6,.3,1) 620ms both; }
+#ke2-root.ke2-out #ke2-strip { animation: ke2-strip-out 520ms cubic-bezier(.7,0,.2,1) both !important; }
+#ke2-root.ke2-out #ke2-photo { animation: ke2-photo-out 460ms cubic-bezier(.6,0,.9,.4) both !important; }
+#ke2-root.ke2-out #ke2-name, #ke2-root.ke2-out #ke2-kills { animation: ke2-text-out 300ms ease-in both !important; }
+@keyframes ke2-strip-in  { from { opacity: 1; clip-path: inset(0 50% 0 50%); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
+@keyframes ke2-strip-out { from { opacity: 1; clip-path: inset(0 0 0 0); } to { opacity: 1; clip-path: inset(0 50% 0 50%); } }
+@keyframes ke2-photo-in  { from { opacity: 0; transform: translateY(240px) scale(.9); } to { opacity: 1; transform: none; } }
+@keyframes ke2-photo-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(260px) scale(.92); } }
+@keyframes ke2-slide-in  { from { opacity: 0; transform: translateX(-60px); } to { opacity: 1; transform: none; } }
+@keyframes ke2-pop-in    { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+@keyframes ke2-text-out  { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(24px); } }

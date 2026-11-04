@@ -275,9 +275,12 @@
     }
     #control-search:focus { border-color: #6677cc; }
     .search-hidden { display: none !important; }
-    /* Collapsed folders still render their rows (hidden) so search can reach them. */
     .fs-folder-body.fs-collapsed { display: none; }
-    #control-panel-body.fs-searching .fs-folder-body.fs-collapsed { display: block; }
+    /* While searching, every folder (and FAVORITES) stays visible as a drop target. Its contents
+       are hidden unless the folder holds a match (.fs-has-match) — then it opens showing only the
+       matching scenes, so scenes inside folders are searchable too. */
+    #control-panel-body.fs-searching .fs-folder-body { display: none; }
+    #control-panel-body.fs-searching .fs-folder.fs-has-match .fs-folder-body { display: block; }
     #control-panel-body {
       flex: 1;
       overflow-y: auto;
@@ -416,6 +419,23 @@
     .feature-row[draggable="true"] { cursor: grab; }
     .feature-row.fs-dragging { opacity: 0.4; }
     .feature-row.fs-drop-before { box-shadow: 0 -2px 0 0 #6677cc; }
+    .fs-hdr-btns { display: flex; gap: 6px; align-items: center; }
+    /* Compact header buttons (▲ ▼ ★ Archive) — same footprint as the show/hide copy buttons. */
+    .fs-hdr-btns .btn { font-size: 10px; padding: 3px 7px; line-height: 18px; height: auto; min-height: 0; white-space: nowrap; }
+    .fs-star.on { color: #ffcc00; border-color: #8a6d00; background: #2a2200; }
+    .fs-mv { padding: 2px 7px; }
+    .fs-folder-fav { border-color: #6d5a00; }
+    /* user folders can be re-ordered: ▲ ▼ buttons, or drag the header onto another folder */
+    /* drag handle on the LEFT of a folder header (only this starts a folder drag): a dotted grip texture */
+    .fs-folder-grip { flex: 0 0 auto; width: 14px; height: 28px; margin: -4px 2px -4px -4px; cursor: grab; border-radius: 3px;
+      background: radial-gradient(circle, #6677cc 1.4px, transparent 1.9px) 0 0 / 6px 6px; opacity: 0.75; }
+    .fs-folder-grip:hover { opacity: 1; background-color: #1a1a2c; }
+    .fs-folder-grip:active { cursor: grabbing; }
+    .fs-folder.fs-folder-dragging { opacity: 0.4; }
+    .fs-folder.fs-folder-before { box-shadow: 0 -3px 0 0 #6677cc; }
+    .fs-folder.fs-folder-after { box-shadow: 0 3px 0 0 #6677cc; }
+    .fs-folder-fav .fs-folder-name { color: #ffcc00; }
+    .fs-folder-fav .fs-folder-caret { color: #ffcc00; }
     .fs-folder-toolbar { display: flex; gap: 6px; margin: 4px 0 8px; }
     .archive-section { display: none; }
     .archive-section.archive-open { display: block; }
@@ -1257,14 +1277,14 @@
   });
 
   /* ── Playoffs <-> Table Teams tab ────────────────────────────
-     While Match Board's Stage is Grand Finals the Playoffs tab becomes
+     While Match Board's Stage is Grand Finals or Showmatch the Playoffs tab becomes
      "Table Teams" (arrange the Ingame LED); any other stage it is the
      normal Playoffs lobbies tab. The Table Teams iframe is only loaded
      while that tab is showing (about:blank otherwise — never ''). */
   var playoffsTabBtn = document.querySelector('.tab-btn[data-page="playoffs"]');
   var ttIframe = document.getElementById('tableteams-iframe');
   function applyPlayoffsTabStage(stage) {
-    var gf = /grand\s*finals/i.test(String(stage || ''));
+    var gf = /grand\s*finals|show\s*match/i.test(String(stage || ''));
     var want = gf ? 'tableteams' : 'playoffs';
     if (playoffsTabBtn.dataset.page === want) return;
     var wasActive = playoffsTabBtn.classList.contains('active');
@@ -1618,6 +1638,11 @@
   function applyToggleBtn(feature, enabled) {
     var b = toggleBtns[feature];
     if (!b) return;
+    if (b.dataset.kind === 'v2') {   /* Kill Events V2 — a separate, default-OFF flag next to Enabled */
+      b.textContent = enabled ? '◆ V2 On' : '◇ V2 Off';
+      b.className   = 'btn btn-toggle ' + (enabled ? 'btn-toggle-on' : 'btn-toggle-off');
+      return;
+    }
     b.textContent = enabled ? '● Enabled' : '○ Disabled';
     b.className   = 'btn btn-toggle ' + (enabled ? 'btn-toggle-on' : 'btn-toggle-off');
   }
@@ -1625,6 +1650,7 @@
   fetch('/overlay/features').then(function(r){ return r.json(); }).then(function(d) {
     featureStates = d || {};
     Object.keys(featureStates).forEach(function(f) { applyToggleBtn(f, featureStates[f]); });
+    applyToggleBtn('killevents_v2', featureStates.killevents_v2 === true);
   }).catch(function(){});
 
   function toggleFeature(feature) {
@@ -1715,6 +1741,11 @@
     qual_team_elims:   'qualteamelims',
     tournament_schedule: 'tournamentschedule',
     prize_pool:        'prizepool',
+    zone_bounty:       'zonebounty',
+    zowned_points:     'zownedpoints',
+    points_system:         'pointssystem',
+    endgame_protocol:         'endgameprotocol',
+    zone_rush:         'zonerush',
     team_lineup:       'teamlineup',
     map_winner:        'mapwinner',
     map_mvp:           'mapmvp',
@@ -1737,7 +1768,7 @@
     groupa: 'Group A', groupb: 'Group B', groupc: 'Group C', groupd: 'Group D', dangerzone: 'Danger Zone',
     qualifiedteams1: 'Qualified Teams 1', qualifiedteams2: 'Qualified Teams 2',
     averageplacement: 'Average Placement', mapplacementavg: 'Map Placement AVG', playerh2h: 'Player H2H', teamh2h: 'Team H2H', zownedrate: 'Zowned Rate', maprotation: 'Map Rotation', elimsmap: 'Eliminations/Map', elimleaders: 'Total Elim Leaders', groupelimleaders: 'Group Elim Leaders', teammapelims: 'Team Map Elims', pointcontribution: 'Point Contribution', teampointpct: 'Team Point Percent', qualelimleaders: 'Qualifier Elim Leaders', totalteamelims: 'Total Team Elims', groupteamelims: 'Group Team Elims', qualteamelims: 'Qualifier Team Elims', playoffselimleaders: 'Playoffs Elim Leaders', playoffsteamelims: 'Playoffs Team Elims',
-    tournamentschedule: 'Tournament Schedule', prizepool: 'Prize Pool', teamlineup: 'Team Lineup', mapwinner: 'Map Winner', mapmvp: 'Map MVP',
+    tournamentschedule: 'Tournament Schedule', prizepool: 'Prize Pool', zonebounty: 'Zone Bounty', zownedpoints: 'Zowned Points', zonerush: 'Zone Rush', endgameprotocol: 'Endgame Protocol', pointssystem: 'Points System', teamlineup: 'Team Lineup', mapwinner: 'Map Winner', mapmvp: 'Map MVP',
     postqualified: 'Post Qualified', maphighlights: 'Map Highlights',
   };
 
@@ -1772,12 +1803,16 @@
     return af ? fullscreenSceneState.activeFeature === af : false;
   }
 
+  /* fullscreenFeatureBtns[key] is a LIST — a starred feature has a second row in the
+     Favorites folder, and both rows' toggles must stay in sync. Reset every buildControlBody. */
   function applyFullscreenFeatureBtn(key) {
-    var b = fullscreenFeatureBtns[key];
-    if (!b) return;
+    var list = fullscreenFeatureBtns[key];
+    if (!list) return;
     var shown = fullscreenFeatureShown(key);
-    b.textContent = shown ? '● Showing' : '○ Hidden';
-    b.className   = 'btn btn-toggle ' + (shown ? 'btn-toggle-on' : 'btn-toggle-off');
+    list.forEach(function (b) {
+      b.textContent = shown ? '● Showing' : '○ Hidden';
+      b.className   = 'btn btn-toggle ' + (shown ? 'btn-toggle-on' : 'btn-toggle-off');
+    });
   }
 
   function refreshFullscreenFeatureButtons() {
@@ -1856,10 +1891,10 @@
       trigger('show');
     });
 
-    previewToggleRegistry[eventName] = function (shown) {
+    (previewToggleRegistry[eventName] = previewToggleRegistry[eventName] || []).push(function (shown) {
       active = shown;
       pvb.classList.toggle('active', shown);
-    };
+    });
 
     return pvb;
   }
@@ -1871,7 +1906,7 @@
     if (e.origin !== window.location.origin) return;
     var d = e.data;
     if (d && d.type === 'preview-board' && previewToggleRegistry[d.key]) {
-      previewToggleRegistry[d.key](!!d.shown);
+      previewToggleRegistry[d.key].forEach(function (fn) { fn(!!d.shown); });
     }
   });
 
@@ -2104,6 +2139,11 @@
         { name: 'Qualifier Team Elims', show: '/overlay/qual_team_elims/show', hide: '/overlay/qual_team_elims/hide' },
         { name: 'Tournament Schedule', show: '/overlay/tournament_schedule/show', hide: '/overlay/tournament_schedule/hide' },
         { name: 'Prize Pool', show: '/overlay/prize_pool/show', hide: '/overlay/prize_pool/hide' },
+        { name: 'Zone Bounty', show: '/overlay/zone_bounty/show', hide: '/overlay/zone_bounty/hide' },
+        { name: 'Zowned Points', show: '/overlay/zowned_points/show', hide: '/overlay/zowned_points/hide' },
+        { name: 'Points System', show: '/overlay/points_system/show', hide: '/overlay/points_system/hide' },
+        { name: 'Endgame Protocol', show: '/overlay/endgame_protocol/show', hide: '/overlay/endgame_protocol/hide' },
+        { name: 'Zone Rush', show: '/overlay/zone_rush/show', hide: '/overlay/zone_rush/hide' },
         { name: 'Team Lineup', show: '/overlay/team_lineup/show', hide: '/overlay/team_lineup/hide', extraButtons: [
           { label: 'Page 1', action: '/overlay/team_lineup/page/1' },
           { label: 'Page 2', action: '/overlay/team_lineup/page/2' },
@@ -2142,7 +2182,7 @@
         /* Kill Events: popup at 5 kills (MERCENARY!) / 10 kills (ULTIMATE MERCENARY!).
            'preview' tests run only inside the Control preview iframe; 'on air' ones
            broadcast to every open ingame.html. */
-        { name: 'Kill Events', feature: 'killevents', tests: [
+        { name: 'Kill Events', feature: 'killevents', v2Feature: 'killevents_v2', tests: [
           { label: '◈ Preview MERCENARY!', tier: 1 }, { label: '◈ Preview ULTIMATE', tier: 2 },
           { label: '▶ On air MERCENARY!', tier: 1, live: true }, { label: '▶ On air ULTIMATE', tier: 2, live: true },
         ] },
@@ -2152,6 +2192,8 @@
       id: 'ledoverlay',
       name: 'LED Overlay',
       file: 'ledoverlay.html',
+      autoPreviewEvent: 'ingame_led',
+      teamIntro: true,   /* Team Introduction: per-squad Show/Hide/Preview rows (see buildControlBody) */
       checkToggles: [
         { name: 'Ingame LED', key: 'ingame_led' },
       ],
@@ -2335,12 +2377,12 @@
       var hit = !q || (n && n.textContent.toLowerCase().indexOf(q) !== -1);
       row.classList.toggle('search-hidden', !hit);
     });
-    /* While searching, collapsed folders open up to show matches; folders
-       with no match disappear. */
+    /* While searching, folders stay put (drop targets); one that holds a match opens to show
+       just those matches, the rest keep their contents hidden — see the .fs-searching CSS. */
     controlPanelBody.classList.toggle('fs-searching', !!q);
     controlPanelBody.querySelectorAll('.fs-folder').forEach(function (f) {
-      var any = f.querySelector('.feature-row:not(.search-hidden)');
-      f.classList.toggle('search-hidden', !!q && !any);
+      f.classList.remove('search-hidden');
+      f.classList.toggle('fs-has-match', !!q && !!f.querySelector('.feature-row:not(.search-hidden)'));
     });
   }
   controlSearchInput.addEventListener('input', applyControlSearch);
@@ -2371,6 +2413,14 @@
     buildControlBody(ov);
     previewTitle.textContent = ov.name;
     previewLabel.textContent = ov.url || ov.file || '';
+    previewIframe.onload = null;
+    if (ov.autoPreviewEvent) {
+      /* Always-on page (LED): the ?preview=1 instance skips real SSE/restore, so
+         drive it locally once loaded. Isolated — no server call. */
+      previewIframe.onload = function () {
+        try { previewIframe.contentWindow.previewTrigger(ov.autoPreviewEvent, 'show'); } catch (e) {}
+      };
+    }
     if (srcUrl) previewIframe.src = srcUrl + (ov.url ? '' : ('?t=' + Date.now() + '&preview=1'));
     layout.classList.add('split');
     requestAnimationFrame(scalePreview);
@@ -2685,6 +2735,7 @@
     fullscreenLiveBadge = null;
     activePreviewOff = null; // body.innerHTML just wiped whichever preview button held this
     previewToggleRegistry = {};
+    fullscreenFeatureBtns = {}; // list per key; rebuilt with the rows
     archiveSection = null; // body.innerHTML just wiped any previous archive section element
     archiveCount = 0;
     controlPanelArchiveBtn.style.display = 'none'; // re-shown below if this overlay has anything archived
@@ -2752,6 +2803,49 @@
         arow.appendChild(cb);
       });
       body.appendChild(arow);
+    }
+
+    /* Team Introduction (LED) — one Show/Hide row per Grand Finals squad. Show hits the real
+       /led/intro/<slug>/show route (LED wall, swaps the previous squad out); ◈ Preview only drives
+       the loaded preview iframe locally — no server call, nothing reaches the real LED. */
+    if (ov.teamIntro) {
+      if (body.children.length) body.appendChild(el('div', 'divider'));
+      body.appendChild(el('div', 'features-label', 'Team Introduction'));
+      var tiWrap = el('div', 'ti-wrap');
+      body.appendChild(tiWrap);
+      var tiAll = el('div', 'btn-row');
+      tiAll.appendChild(btn('Hide Intro', 'btn-hide', function () { hit('/led/intro/hide', body); }));
+      var tiAllCopy = document.createElement('button');
+      tiAllCopy.className = 'btn btn-copy';
+      tiAllCopy.innerHTML = '<span class="copy-icon">⧉</span> hide';
+      tiAllCopy.addEventListener('click', function () { copyRoute('/led/intro/hide', 'Hide Intro route', tiAllCopy); });
+      tiAll.appendChild(tiAllCopy);
+      tiWrap.appendChild(tiAll);
+      fetch('/led/intro/list', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+        (d.teams || []).forEach(function (t) {
+          var fr = el('div', 'feature-row');
+          var hd = el('div', 'feature-header');
+          hd.appendChild(el('div', 'feature-name', t.name));
+          fr.appendChild(hd);
+          var fb = el('div', 'feature-btns');
+          var showPath = '/led/intro/' + t.slug + '/show', hidePath = '/led/intro/' + t.slug + '/hide';
+          fb.appendChild(btn('Show', 'btn-show', function () { hit(showPath, body); }));
+          fb.appendChild(btn('Hide', 'btn-hide', function () { hit(hidePath, body); }));
+          [['show', showPath], ['hide', hidePath]].forEach(function (pair) {
+            var cb = document.createElement('button');
+            cb.className = 'btn btn-copy';
+            cb.innerHTML = '<span class="copy-icon">⧉</span> ' + pair[0];
+            cb.addEventListener('click', function () { copyRoute(pair[1], t.name + ' ' + pair[0] + ' route', cb); });
+            fb.appendChild(cb);
+          });
+          fb.appendChild(btn('◈ Preview', 'btn-action', function () {
+            try { previewIframe.contentWindow.previewTrigger('led_intro', 'show', t.name); } catch (e) {}
+          }));
+          fr.appendChild(fb);
+          tiWrap.appendChild(fr);
+        });
+        tiWrap.appendChild(el('div', 'features-label', ''));
+      }).catch(function () {});
     }
 
     /* Check-overlay toggles (item/emblem/gold-diff check) — a single
@@ -3036,11 +3130,20 @@
       if (archivable) {
         var arKey = fullscreenFeatureKey(feat);
         var isArchived = fullscreenArchivedSet.indexOf(arKey) !== -1;
+        var isFav = fullscreenFavorites.indexOf(arKey) !== -1;
+        var hdrBtns = el('div', 'fs-hdr-btns');
+        var starBtn = el('button', 'btn btn-copy fs-star' + (isFav ? ' on' : ''), isFav ? '★' : '☆');
+        starBtn.title = isFav ? 'Remove from Favorites' : 'Add to Favorites';
+        starBtn.addEventListener('click', function (e) { e.stopPropagation(); toggleFullscreenFavorite(arKey); });
+        hdrBtns.appendChild(starBtn);
         var arBtn = el('button', 'btn btn-copy', isArchived ? '↩ Restore' : '🗄 Archive');
         arBtn.addEventListener('click', function () {
+          /* Safety prompt on ARCHIVE only (restoring is harmless) — guards against a stray click. */
+          if (!isArchived && !window.confirm('Archive "' + feat.name + '"?\n\nIt will be hidden from the feature list (restore it anytime from the Archive button).')) return;
           toggleFullscreenFeatureArchived(arKey, !isArchived);
         });
-        header.appendChild(arBtn);
+        hdrBtns.appendChild(arBtn);
+        header.appendChild(hdrBtns);
       }
       fr.appendChild(header);
       var fb = el('div', 'feature-btns');
@@ -3056,7 +3159,7 @@
         var key = feat.show.split('/')[2];
         var tb = el('button', 'btn btn-toggle btn-toggle-off', '○ Hidden');
         tb.addEventListener('click', (function (f, k) { return function () { toggleFullscreenFeature(f, k, body); }; })(feat, key));
-        fullscreenFeatureBtns[key] = tb;
+        (fullscreenFeatureBtns[key] = fullscreenFeatureBtns[key] || []).push(tb);
         applyFullscreenFeatureBtn(key);
         fb.appendChild(tb);
       } else {
@@ -3159,7 +3262,22 @@
         tb.addEventListener('click', (function (f) { return function () { toggleFeature(f); }; })(ft.feature));
         toggleBtns[ft.feature] = tb;
         applyToggleBtn(ft.feature, featureStates[ft.feature] !== false);
-        fr.appendChild(tb);
+        if (ft.v2Feature) {
+          /* Enabled + V2 side by side. V2 defaults OFF, so "on" means an explicit true (never !== false). */
+          var brow = el('div', 'feature-btns');
+          brow.appendChild(tb);
+          var vb = el('button', 'btn btn-toggle btn-toggle-off', '◇ V2 Off');
+          vb.dataset.kind = 'v2';
+          vb.title = 'Kill Events V2: plays the CODM_GBRC_KILLEVENTS webm banners';
+          vb.addEventListener('click', function () {
+            var on = featureStates[ft.v2Feature] === true;
+            fetch('/overlay/feature/' + encodeURIComponent(ft.v2Feature) + '/' + (on ? 'disable' : 'enable')).catch(function () {});
+          });
+          toggleBtns[ft.v2Feature] = vb;
+          applyToggleBtn(ft.v2Feature, featureStates[ft.v2Feature] === true);
+          brow.appendChild(vb);
+          fr.appendChild(brow);
+        } else fr.appendChild(tb);
         if (ft.tests) {
           var tr = el('div', 'feature-btns');
           ft.tests.forEach(function (t) {
@@ -3167,7 +3285,7 @@
             b.addEventListener('click', function () {
               if (t.live) { fetch('/overlay/ingame_event/kill/test?tier=' + t.tier, { cache: 'no-store' }).catch(function () {}); return; }
               var iw = previewIframe && previewIframe.contentWindow;
-              if (iw && typeof iw.keTest === 'function') iw.keTest(t.tier);
+              if (iw && typeof iw.keTest === 'function') iw.keTest(t.tier, null, ft.v2Feature ? featureStates[ft.v2Feature] === true : undefined);
             });
             tr.appendChild(b);
           });
@@ -3277,14 +3395,30 @@
      archived and in a folder keeps its folder slot — it just isn't drawn
      until restored. */
   var fullscreenFolders = [];
+  /* FAVORITES — a permanent, non-deletable folder above the user's own. A feature can be
+     starred AND sit in one user folder at once, so it's a separate ordered key list, not
+     one of fullscreenFolders (which are single-membership). Persisted alongside folders;
+     localStorage mirrors it so nothing is lost if the server predates the field. */
+  var fullscreenFavorites = [];
+  var fullscreenFavoritesOpen = true;
+  try {
+    var _favLs = JSON.parse(localStorage.getItem('fs_favorites') || 'null');
+    if (_favLs && Array.isArray(_favLs.keys)) { fullscreenFavorites = _favLs.keys; fullscreenFavoritesOpen = _favLs.open !== false; }
+  } catch (e) {}
   var fsFolderPendingRename = null;
   var fsDragKey = null;
+  var fsDragFrom = null;   /* 'fav' | folder id | null (Unsorted) */
+  var fsDragFolder = null; /* id of the folder header being dragged (re-ordering folders), else null */
 
   function fetchFullscreenFolders() {
     return fetch('/api/fullscreen-folders', { cache: 'no-store' })
       .then(function (r) { return r.json(); })
       .then(function (d) {
         fullscreenFolders = (d && d.folders) || [];
+        if (d && Array.isArray(d.favorites)) {
+          fullscreenFavorites = d.favorites;
+          fullscreenFavoritesOpen = d.favoritesOpen !== false;
+        }
         if (lastOverlay && lastOverlay.id === 'fullscreen') buildControlBody(lastOverlay);
       })
       .catch(function () {});
@@ -3295,8 +3429,28 @@
     fetch('/api/fullscreen-folders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ folders: fullscreenFolders }),
+      body: JSON.stringify({ folders: fullscreenFolders, favorites: fullscreenFavorites, favoritesOpen: fullscreenFavoritesOpen }),
     }).catch(function () {});
+    try { localStorage.setItem('fs_favorites', JSON.stringify({ keys: fullscreenFavorites, open: fullscreenFavoritesOpen })); } catch (e) {}
+  }
+
+  function toggleFullscreenFavorite(key) {
+    var i = fullscreenFavorites.indexOf(key);
+    if (i === -1) fullscreenFavorites.push(key); else fullscreenFavorites.splice(i, 1);
+    saveFullscreenFolders();
+    if (lastOverlay && lastOverlay.id === 'fullscreen') buildControlBody(lastOverlay);
+  }
+
+  /* Swap `key` with its previous/next VISIBLE neighbour inside `keys` (archived/hidden
+     keys in between keep their slots). */
+  function shiftFeatureKey(keys, visible, key, delta) {
+    var vi = visible.indexOf(key), ni = vi + delta;
+    if (vi === -1 || ni < 0 || ni >= visible.length) return;
+    var a = keys.indexOf(key), b = keys.indexOf(visible[ni]);
+    keys.splice(a, 1);
+    keys.splice(keys.indexOf(visible[ni]) + (delta > 0 ? 1 : 0), 0, key);
+    saveFullscreenFolders();
+    if (lastOverlay && lastOverlay.id === 'fullscreen') buildControlBody(lastOverlay);
   }
 
   /* Moves `key` into folder `folderId` (null = back to Unsorted),
@@ -3317,26 +3471,54 @@
     if (lastOverlay && lastOverlay.id === 'fullscreen') buildControlBody(lastOverlay);
   }
 
+  /* Re-orders user folders by dragging their left-side grip (FAVORITES always stays first).
+     moveFolderTo(id, targetId, after). The array order IS the saved order (the server stores
+     `folders` as-is). */
+  function moveFolderTo(folderId, targetId, after) {
+    if (folderId === targetId) return;
+    var moving = fullscreenFolders.filter(function (f) { return f.id === folderId; })[0];
+    if (!moving) return;
+    var rest = fullscreenFolders.filter(function (f) { return f.id !== folderId; });
+    var at = rest.findIndex(function (f) { return f.id === targetId; });
+    if (at === -1) return;
+    rest.splice(after ? at + 1 : at, 0, moving);
+    fullscreenFolders = rest;
+    saveFullscreenFolders();
+    if (lastOverlay && lastOverlay.id === 'fullscreen') buildControlBody(lastOverlay);
+  }
+
   function buildFullscreenFolderedList(feats, body, renderRow) {
     var byKey = {};
     feats.forEach(function (f) { byKey[fullscreenFeatureKey(f)] = f; });
     var filed = {};
     fullscreenFolders.forEach(function (f) { f.keys.forEach(function (k) { filed[k] = true; }); });
 
-    function makeRow(feat) {
+    /* `source`: 'fav' | folder id | null (Unsorted). Rows inside a folder / Favorites get
+       ▲ ▼ buttons for manual re-ordering (drag-and-drop works too). */
+    function makeRow(feat, source, keys, visible) {
       var key = fullscreenFeatureKey(feat);
       var row = renderRow(feat, body, true);
       row.draggable = true;
       row.dataset.fsKey = key;
+      if (keys) {
+        var hb = row.querySelector('.fs-hdr-btns');
+        if (hb) {
+          var up = el('button', 'btn btn-copy fs-mv', '▲'); up.title = 'Move up';
+          var dn = el('button', 'btn btn-copy fs-mv', '▼'); dn.title = 'Move down';
+          up.addEventListener('click', function (e) { e.stopPropagation(); shiftFeatureKey(keys, visible, key, -1); });
+          dn.addEventListener('click', function (e) { e.stopPropagation(); shiftFeatureKey(keys, visible, key, 1); });
+          hb.insertBefore(dn, hb.firstChild); hb.insertBefore(up, hb.firstChild);
+        }
+      }
       row.addEventListener('dragstart', function (e) {
-        fsDragKey = key;
+        fsDragKey = key; fsDragFrom = source;
         row.classList.add('fs-dragging');
         e.dataTransfer.effectAllowed = 'move';
         try { e.dataTransfer.setData('text/plain', key); } catch (x) {}
         e.stopPropagation();
       });
       row.addEventListener('dragend', function () {
-        fsDragKey = null;
+        fsDragKey = null; fsDragFrom = null;
         row.classList.remove('fs-dragging');
         body.querySelectorAll('.fs-drop-over, .fs-drop-before').forEach(function (n) { n.classList.remove('fs-drop-over', 'fs-drop-before'); });
       });
@@ -3344,9 +3526,12 @@
     }
 
     /* Wires a container as a drop target. `folderId` null = Unsorted. */
+    /* Favorites only re-orders its own rows (star/unstar adds/removes); real folders and
+       Unsorted never accept a Favorites row. */
+    function accepts(folderId) { return folderId === 'fav' ? fsDragFrom === 'fav' : fsDragFrom !== 'fav'; }
     function makeDropZone(zone, folderId) {
       zone.addEventListener('dragover', function (e) {
-        if (!fsDragKey) return;
+        if (!fsDragKey || !accepts(folderId)) return;
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
         var rowEl = e.target.closest ? e.target.closest('.feature-row') : null;
@@ -3358,13 +3543,22 @@
         if (!zone.contains(e.relatedTarget)) zone.classList.remove('fs-drop-over');
       });
       zone.addEventListener('drop', function (e) {
-        if (!fsDragKey) return;
+        if (!fsDragKey || !accepts(folderId)) return;
         e.preventDefault();
         e.stopPropagation();
         var rowEl = e.target.closest ? e.target.closest('.feature-row') : null;
         var beforeKey = (rowEl && folderId && rowEl.dataset.fsKey !== fsDragKey) ? rowEl.dataset.fsKey : null;
         var key = fsDragKey;
-        fsDragKey = null;
+        fsDragKey = null; fsDragFrom = null;
+        if (folderId === 'fav') {
+          var fi = fullscreenFavorites.indexOf(key);
+          if (fi !== -1) fullscreenFavorites.splice(fi, 1);
+          var at = beforeKey ? fullscreenFavorites.indexOf(beforeKey) : -1;
+          if (at === -1) fullscreenFavorites.push(key); else fullscreenFavorites.splice(at, 0, key);
+          saveFullscreenFolders();
+          buildControlBody(lastOverlay);
+          return;
+        }
         moveFullscreenFeature(key, folderId, beforeKey);
       });
     }
@@ -3381,6 +3575,28 @@
     toolbar.appendChild(addBtn);
     body.appendChild(toolbar);
 
+    /* ★ FAVORITES — permanent (no rename/delete), always first. */
+    {
+      var favVisible = fullscreenFavorites.filter(function (k) { return byKey[k]; });
+      var favBox = el('div', 'fs-folder fs-folder-fav');
+      var favHead = el('div', 'fs-folder-head');
+      favHead.appendChild(el('span', 'fs-folder-caret', fullscreenFavoritesOpen ? '▾' : '▸'));
+      favHead.appendChild(el('span', 'fs-folder-name', '★ FAVORITES'));
+      favHead.appendChild(el('span', 'fs-folder-count', String(favVisible.length)));
+      favHead.addEventListener('click', function () {
+        fullscreenFavoritesOpen = !fullscreenFavoritesOpen;
+        saveFullscreenFolders();
+        buildControlBody(lastOverlay);
+      });
+      favBox.appendChild(favHead);
+      var favBody = el('div', 'fs-folder-body' + (fullscreenFavoritesOpen ? '' : ' fs-collapsed'));
+      if (!favVisible.length) favBody.appendChild(el('div', 'fs-empty-hint', 'Tap ☆ on a scene to add it here'));
+      favVisible.forEach(function (k) { favBody.appendChild(makeRow(byKey[k], 'fav', fullscreenFavorites, favVisible)); });
+      favBox.appendChild(favBody);
+      makeDropZone(favBox, 'fav');
+      body.appendChild(favBox);
+    }
+
     fullscreenFolders.forEach(function (folder) {
       var visibleKeys = folder.keys.filter(function (k) { return byKey[k]; });
       var box = el('div', 'fs-folder');
@@ -3392,6 +3608,11 @@
       renBtn.title = 'Rename folder';
       var delBtn = el('button', 'btn btn-copy', '🗑');
       delBtn.title = 'Delete folder (scenes go back to Unsorted)';
+      var grip = el('span', 'fs-folder-grip');
+      grip.title = 'Drag to re-order folders';
+      grip.draggable = true;
+      grip.addEventListener('click', function (e) { e.stopPropagation(); }); /* don't toggle the folder */
+      head.appendChild(grip);
       head.appendChild(caret); head.appendChild(nameEl); head.appendChild(count);
       head.appendChild(renBtn); head.appendChild(delBtn);
       box.appendChild(head);
@@ -3432,17 +3653,50 @@
 
       var fbody = el('div', 'fs-folder-body' + (folder.open ? '' : ' fs-collapsed'));
       if (!visibleKeys.length) fbody.appendChild(el('div', 'fs-empty-hint', 'Drag scenes here'));
-      visibleKeys.forEach(function (k) { fbody.appendChild(makeRow(byKey[k])); });
+      visibleKeys.forEach(function (k) { fbody.appendChild(makeRow(byKey[k], folder.id, folder.keys, visibleKeys)); });
       box.appendChild(fbody);
+      /* drag the LEFT grip to re-order folders (scene drags use fsDragKey, so the two never mix) */
+      grip.addEventListener('dragstart', function (e) {
+        fsDragFolder = folder.id;
+        box.classList.add('fs-folder-dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        try { e.dataTransfer.setDragImage(box, 24, 18); } catch (x) {}
+        e.stopPropagation();
+        try { e.dataTransfer.setData('text/plain', 'folder:' + folder.id); } catch (x) {}
+      });
+      grip.addEventListener('dragend', function () {
+        fsDragFolder = null;
+        body.querySelectorAll('.fs-folder-dragging, .fs-folder-before, .fs-folder-after').forEach(function (n) { n.classList.remove('fs-folder-dragging', 'fs-folder-before', 'fs-folder-after'); });
+      });
+      box.addEventListener('dragover', function (e) {
+        if (!fsDragFolder || fsDragFolder === folder.id) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        var r = box.getBoundingClientRect();
+        var after = e.clientY > r.top + r.height / 2;
+        box.classList.toggle('fs-folder-after', after);
+        box.classList.toggle('fs-folder-before', !after);
+      });
+      box.addEventListener('dragleave', function (e) {
+        if (!box.contains(e.relatedTarget)) box.classList.remove('fs-folder-before', 'fs-folder-after');
+      });
+      box.addEventListener('drop', function (e) {
+        if (!fsDragFolder || fsDragFolder === folder.id) return;
+        e.preventDefault(); e.stopPropagation();
+        var r = box.getBoundingClientRect();
+        var after = e.clientY > r.top + r.height / 2;
+        var dragged = fsDragFolder; fsDragFolder = null;
+        moveFolderTo(dragged, folder.id, after);
+      });
       makeDropZone(box, folder.id);
       body.appendChild(box);
       if (fsFolderPendingRename === folder.id) { fsFolderPendingRename = null; startRename(); }
     });
 
     var loose = feats.filter(function (f) { return !filed[fullscreenFeatureKey(f)]; });
-    if (fullscreenFolders.length) body.appendChild(el('div', 'features-label', 'Unsorted'));
+    body.appendChild(el('div', 'features-label', 'Unsorted'));
     var zone = el('div', 'fs-ungrouped');
-    loose.forEach(function (f) { zone.appendChild(makeRow(f)); });
+    loose.forEach(function (f) { zone.appendChild(makeRow(f, null, null, null)); });
     makeDropZone(zone, null);
     body.appendChild(zone);
   }
@@ -3568,6 +3822,7 @@
     '#wt-bg-art':      { left: 0,    top: 0,  width: 1920, height: 1080 },
     '#wt-timer-value': { left: 23,   top: 17, width: 396,  height: 130, fontSize: 154.6 },
     '#wt-codm-logo':   { left: 1414, top: 85, width: 498,  height: 108 },
+    '#wt-sponsorbox':  { left: 1538, top: 880, width: 382, height: 182 },
   };
 
   var WT_ELEMENTS = [
@@ -3575,6 +3830,7 @@
     { group: 'Background Art', id: '#wt-bg-art',  name: 'Poster Art' },
     { group: 'Timer',      id: '#wt-timer-value', name: 'Countdown Timer' },
     { group: 'Logo',       id: '#wt-codm-logo',   name: 'CoD:M / GBRC Logo' },
+    { group: 'Sponsor Box', id: '#wt-sponsorbox',  name: 'Sponsor Box' },
   ];
 
   /* ── Today's / Tomorrow's Schedule (Fullscreen.html) element defaults ──
@@ -3646,6 +3902,9 @@
     '#wtvc-header':      { left: 1381, top: 367, width: 521,  height: 50 },
     '#wtvc-rows':        { left: 1381, top: 417, width: 521,  height: 530 },
     '#wtvc-maps':        { left: 0,    top: 0,   width: 525,  height: 597 },
+    '#wtvc-spon-tag':      { left: 1090, top: 41, width: 248, height: 36 },
+    '#wtvc-spon-tag-text': { left: 1112, top: 41, width: 204, height: 36 },
+    '#wtvc-spon-logo':     { left: 1050, top: 88, width: 320, height: 104 },
   };
   var WTVC_ELEMENTS = [
     { group: 'Background', id: '#wtvc-bg-video', name: 'Background Video' },
@@ -3657,6 +3916,9 @@
     { group: 'Scoreboard',  id: '#wtvc-header',   name: 'Header'           },
     { group: 'Scoreboard',  id: '#wtvc-rows',     name: 'Rows Block'       },
     { group: 'Maps',        id: '#wtvc-maps',     name: 'Maps Block'       },
+    { group: 'Sponsor Tag',  id: '#wtvc-spon-tag',      name: 'Sponsor — Black Tag' },
+    { group: 'Sponsor Tag Text', id: '#wtvc-spon-tag-text', name: 'Sponsor — Tag Text' },
+    { group: 'Sponsor Logo', id: '#wtvc-spon-logo',     name: 'Sponsor — Logo' },
   ];
 
   /* ── Today's / Tomorrow's Schedule — per-match-count layout ───────
@@ -4293,6 +4555,23 @@
     '#ke-flash': { left: 540, top: 760, width: 838, height: 300 },
     '#ke-sparks': { left: 1010, top: 876 },
   };
+  /* Kill Events V2 (webm banners) — ke2-* selectors, 1920x1080 canvas. Banner content is 710px wide at x=698 (x0.67 of the first design); the strip is flush with the canvas bottom. */
+  var KE2_DEFAULTS = {
+    '#ke2-strip': { left: 698, top: 1018, width: 710, height: 62 },
+    '#ke2-video-2': { left: 689, top: 826, width: 731, height: 195 },
+    '#ke2-photo': { left: 468, top: 752, width: 328, height: 328 },
+    '#ke2-name': { left: 815, top: 1018, width: 375, height: 62, fontSize: 36 },
+    '#ke2-kills': { left: 1207, top: 1018, width: 181, height: 62, fontSize: 43 },
+  };
+  var KE2_ELEMENTS = [
+    { group: 'KE2 Strip', id: '#ke2-strip', name: 'V2 Black Name Strip (bottom)' },
+    { group: 'KE2 Ultimate', id: '#ke2-video-2', name: 'V2 Ultimate Banner (webm)' },
+    { group: 'KE2 Photo', id: '#ke2-photo', name: 'V2 Player Photo' },
+    { group: 'KE2 Name', id: '#ke2-name', name: 'V2 Player Name' },
+    { group: 'KE2 Kills', id: '#ke2-kills', name: 'V2 Kills (10 KILLS)' },
+  ];
+  var KE2M_DEFAULTS = { '#ke2-video-1': { left: 688, top: 808, width: 730, height: 234 } };
+  var KE2M_ELEMENTS = [ { group: 'KE2 Mercenary', id: '#ke2-video-1', name: 'V2 Mercenary Banner (webm)' } ];
   var KE_ELEMENTS = [
     { group: 'KE Glow', id: '#ke-glow', name: 'Back Glow' },
     { group: 'KE Bar', id: '#ke-bar', name: 'Black Bar' },
@@ -4381,6 +4660,44 @@
     { group: 'LED Feat Right Name', id: '#led-feat-right-name', name: 'Featured Right — Name' },
     { group: 'LED Feat Right Info', id: '#led-feat-right-info', name: 'Featured Right — Rank / Points' },
   ];
+
+  /* ── Team Introduction (ledoverlay.html) — li-* selectors, same 1920x640 LED canvas. ── */
+  var LI_DEFAULTS = {
+    '#li-bg': { left: 0, top: 0, width: 1920, height: 480 },
+    '#li-mq-top': { left: 0, top: 0, width: 1920, height: 44, fontSize: 34 },
+    '#li-mq-bottom': { left: 0, top: 436, width: 1920, height: 44, fontSize: 34 },
+    '#li-logo-big': { left: 640, top: 0, width: 640, height: 480 },
+    '#li-panel-l': { left: 372, top: 480, width: 480, height: 160 },
+    '#li-logo-l': { left: 388, top: 492, width: 100, height: 100 },
+    '#li-name-l': { left: 506, top: 490, width: 330, height: 140, fontSize: 84 },
+    '#li-region-l': { left: 388, top: 596, width: 100, height: 36, fontSize: 36 },
+    '#li-panel-r': { left: 1067, top: 480, width: 480, height: 160 },
+    '#li-logo-r': { left: 1431, top: 492, width: 100, height: 100 },
+    '#li-name-r': { left: 1083, top: 490, width: 330, height: 140, fontSize: 84 },
+    '#li-region-r': { left: 1431, top: 596, width: 100, height: 36, fontSize: 36 },
+  };
+  var LI_ELEMENTS = [
+    { group: 'LI Background', id: '#li-bg', name: 'Background (looping webm)' },
+    { group: 'LI Marquee Top', id: '#li-mq-top', name: 'Marquee — Top (scrolls left)' },
+    { group: 'LI Marquee Bottom', id: '#li-mq-bottom', name: 'Marquee — Bottom (scrolls right)' },
+    { group: 'LI Logo Big', id: '#li-logo-big', name: 'Team Logo (big, behind players)' },
+    { group: 'LI Panel L', id: '#li-panel-l', name: 'Left LED — Panel' },
+    { group: 'LI Logo L', id: '#li-logo-l', name: 'Left LED — Logo' },
+    { group: 'LI Name L', id: '#li-name-l', name: 'Left LED — Team Name (2 rows if long)' },
+    { group: 'LI Region L', id: '#li-region-l', name: 'Left LED — Country Code' },
+    { group: 'LI Panel R', id: '#li-panel-r', name: 'Right LED — Panel' },
+    { group: 'LI Logo R', id: '#li-logo-r', name: 'Right LED — Logo' },
+    { group: 'LI Name R', id: '#li-name-r', name: 'Right LED — Team Name (2 rows if long)' },
+    { group: 'LI Region R', id: '#li-region-r', name: 'Right LED — Country Code' },
+  ];
+  [1, 2, 3, 4, 5].forEach(function (n) {
+    LI_DEFAULTS['#li-card-' + n] = { left: [16, 400, 790, 1176, 1560][n - 1], top: 56, width: 340, height: 380 };
+    LI_DEFAULTS['#li-photo-' + n] = { left: [-34, 350, 740, 1126, 1510][n - 1], top: -4, width: 440, height: 440 };
+    LI_DEFAULTS['#li-ign-' + n] = { left: [36, 420, 810, 1196, 1580][n - 1], top: 388, width: 300, height: 44, fontSize: 38 };
+    LI_ELEMENTS.push({ group: 'LI Card ' + n, id: '#li-card-' + n, name: 'Player ' + n + ' — Card' });
+    LI_ELEMENTS.push({ group: 'LI Photo ' + n, id: '#li-photo-' + n, name: 'Player ' + n + ' — Photo' });
+    LI_ELEMENTS.push({ group: 'LI IGN ' + n, id: '#li-ign-' + n, name: 'Player ' + n + ' — IGN' });
+  });
 
   /* ── Team H2H L3 (LowerThirds.html) — tm-* selectors. ── */
   var TM_DEFAULTS = {
@@ -4908,10 +5225,642 @@
   /* ── Prize Pool (Fullscreen.html) element defaults —
      a single full-bleed PNG, nothing else. ── */
   var PPL_DEFAULTS = {
-    '#ppl-art': { left: 0, top: 0, width: 1920, height: 1080 },
+    '#ppl-total-label': { left: 560, top: 238, width: 800, height: 70, fontSize: 70 },
+    '#ppl-total': { left: 480, top: 295, width: 960, height: 242, fontSize: 242 },
+    '#ppl-champ-bg': { left: 587, top: 561, width: 749, height: 242 },
+    '#ppl-champ-label': { left: 757, top: 586, width: 410, height: 51, fontSize: 51 },
+    '#ppl-champ': { left: 640, top: 619, width: 640, height: 176, fontSize: 176 },
+    '#ppl-2nd-label': { left: 91, top: 609, width: 360, height: 40, fontSize: 40 },
+    '#ppl-2nd': { left: 70, top: 635, width: 402, height: 136, fontSize: 136 },
+    '#ppl-3rd-label': { left: 1421, top: 609, width: 360, height: 40, fontSize: 40 },
+    '#ppl-3rd': { left: 1400, top: 635, width: 402, height: 136, fontSize: 136 },
+    '#ppl-4th-label': { left: 455, top: 854, width: 320, height: 27, fontSize: 27 },
+    '#ppl-4th': { left: 440, top: 870, width: 350, height: 95, fontSize: 95 },
+    '#ppl-5th-label': { left: 796, top: 854, width: 340, height: 27, fontSize: 27 },
+    '#ppl-5th': { left: 790, top: 870, width: 350, height: 95, fontSize: 95 },
+    '#ppl-7th-label': { left: 1112, top: 854, width: 400, height: 27, fontSize: 27 },
+    '#ppl-7th': { left: 1137, top: 870, width: 350, height: 95, fontSize: 95 },
   };
   var PPL_ELEMENTS = [
-    { group: 'Prize Pool Art', id: '#ppl-art', name: 'Prize Pool Image' },
+    { group: "Prize Pool Total Prize Pool Label", id: '#ppl-total-label', name: "Total Prize Pool · label" },
+    { group: "Prize Pool Total Prize Pool Amount", id: '#ppl-total', name: "Total Prize Pool · amount" },
+    { group: "Prize Pool Champion Shape", id: '#ppl-champ-bg', name: "Champion · yellow shape" },
+    { group: "Prize Pool Champion Label", id: '#ppl-champ-label', name: "Champion · label" },
+    { group: "Prize Pool Champion Amount", id: '#ppl-champ', name: "Champion · amount" },
+    { group: "Prize Pool 2nd Place Label", id: '#ppl-2nd-label', name: "2nd Place · label" },
+    { group: "Prize Pool 2nd Place Amount", id: '#ppl-2nd', name: "2nd Place · amount" },
+    { group: "Prize Pool 3rd Place Label", id: '#ppl-3rd-label', name: "3rd Place · label" },
+    { group: "Prize Pool 3rd Place Amount", id: '#ppl-3rd', name: "3rd Place · amount" },
+    { group: "Prize Pool 4th Place Label", id: '#ppl-4th-label', name: "4th Place · label" },
+    { group: "Prize Pool 4th Place Amount", id: '#ppl-4th', name: "4th Place · amount" },
+    { group: "Prize Pool 5th-6th Place Label", id: '#ppl-5th-label', name: "5th-6th Place · label" },
+    { group: "Prize Pool 5th-6th Place Amount", id: '#ppl-5th', name: "5th-6th Place · amount" },
+    { group: "Prize Pool 7th-10th Place Label", id: '#ppl-7th-label', name: "7th-10th Place · label" },
+    { group: "Prize Pool 7th-10th Place Amount", id: '#ppl-7th', name: "7th-10th Place · amount" },
+  ];
+
+  /* ── Zowned Points (Fullscreen.html) — rank-header scene, all #zwp-* ── */
+  var ZWP_DEFAULTS = {
+    '#zwp-hero': { left: 60, top: 235, width: 880, height: 560 },
+    '#zwp-hero-num': { left: 110, top: 235, width: 780, height: 440, fontSize: 440 },
+    '#zwp-hero-unit': { left: 110, top: 637, width: 780, height: 72, fontSize: 72 },
+    '#zwp-strip': { left: 60, top: 815, width: 880, height: 80 },
+    '#zwp-strip-text': { left: 60, top: 815, width: 880, height: 80, fontSize: 50 },
+    '#zwp-tile-leader': { left: 60, top: 915, width: 430, height: 135 },
+    '#zwp-tile-leader-label': { left: 70, top: 928, width: 410, height: 40, fontSize: 36 },
+    '#zwp-tile-leader-val': { left: 70, top: 970, width: 410, height: 70, fontSize: 70 },
+    '#zwp-tile-bonus': { left: 510, top: 915, width: 430, height: 135 },
+    '#zwp-tile-bonus-label': { left: 520, top: 928, width: 410, height: 40, fontSize: 36 },
+    '#zwp-tile-bonus-val': { left: 520, top: 970, width: 410, height: 70, fontSize: 70 },
+    '#zwp-card': { left: 980, top: 235, width: 880, height: 815 },
+    '#zwp-row1-icon': { left: 1011, top: 310, width: 54, height: 54 },
+    '#zwp-row1-text': { left: 1091, top: 267, width: 745, height: 140, fontSize: 38 },
+    '#zwp-row1-line': { left: 1011, top: 439, width: 818, height: 2 },
+    '#zwp-row2-icon': { left: 1011, top: 514, width: 54, height: 54 },
+    '#zwp-row2-text': { left: 1091, top: 471, width: 745, height: 140, fontSize: 38 },
+    '#zwp-row2-line': { left: 1011, top: 643, width: 818, height: 2 },
+    '#zwp-row3-icon': { left: 1011, top: 718, width: 54, height: 54 },
+    '#zwp-row3-text': { left: 1091, top: 675, width: 745, height: 140, fontSize: 38 },
+    '#zwp-row3-line': { left: 1011, top: 847, width: 818, height: 2 },
+    '#zwp-row4-icon': { left: 1011, top: 922, width: 54, height: 54 },
+    '#zwp-row4-text': { left: 1091, top: 879, width: 745, height: 140, fontSize: 38 },
+  };
+  var ZWP_ELEMENTS = [
+    { group: "Zowned Points Hero Panel", id: '#zwp-hero', name: "Hero · yellow panel" },
+    { group: "Zowned Points Hero Number", id: '#zwp-hero-num', name: "Hero · points number" },
+    { group: "Zowned Points Hero Unit", id: '#zwp-hero-unit', name: "Hero · \"ZOWNED POINTS\"" },
+    { group: "Zowned Points Source Strip", id: '#zwp-strip', name: "Source · black bar" },
+    { group: "Zowned Points Source Text", id: '#zwp-strip-text', name: "Source · text" },
+    { group: "Zowned Points Tile leader", id: '#zwp-tile-leader', name: "Tile 1 · panel" },
+    { group: "Zowned Points Tile leader Label", id: '#zwp-tile-leader-label', name: "Tile 1 · label" },
+    { group: "Zowned Points Tile leader Value", id: '#zwp-tile-leader-val', name: "Tile 1 · value" },
+    { group: "Zowned Points Tile bonus", id: '#zwp-tile-bonus', name: "Tile 2 · panel" },
+    { group: "Zowned Points Tile bonus Label", id: '#zwp-tile-bonus-label', name: "Tile 2 · label" },
+    { group: "Zowned Points Tile bonus Value", id: '#zwp-tile-bonus-val', name: "Tile 2 · value" },
+    { group: "Zowned Points Details Panel", id: '#zwp-card', name: "Details · panel" },
+    { group: "Zowned Points Row 1", id: '#zwp-row1-icon', name: "Row 1 · icon" },
+    { group: "Zowned Points Row 1 Text", id: '#zwp-row1-text', name: "Row 1 · text" },
+    { group: "Zowned Points Details Lines", id: '#zwp-row1-line', name: "Details · line after row 1" },
+    { group: "Zowned Points Row 2", id: '#zwp-row2-icon', name: "Row 2 · icon" },
+    { group: "Zowned Points Row 2 Text", id: '#zwp-row2-text', name: "Row 2 · text" },
+    { group: "Zowned Points Details Lines", id: '#zwp-row2-line', name: "Details · line after row 2" },
+    { group: "Zowned Points Row 3", id: '#zwp-row3-icon', name: "Row 3 · icon" },
+    { group: "Zowned Points Row 3 Text", id: '#zwp-row3-text', name: "Row 3 · text" },
+    { group: "Zowned Points Details Lines", id: '#zwp-row3-line', name: "Details · line after row 3" },
+    { group: "Zowned Points Row 4", id: '#zwp-row4-icon', name: "Row 4 · icon" },
+    { group: "Zowned Points Row 4 Text", id: '#zwp-row4-text', name: "Row 4 · text" },
+  ];
+
+  /* ── Zone Bounty (Fullscreen.html) — standalone explainer scene, all #zb-* ── */
+  var ZB_DEFAULTS = {
+    '#zb-corner-tr': { left: 1644, top: 0, width: 276, height: 86 },
+    '#zb-corner-bl': { left: 0, top: 940, width: 178, height: 140 },
+    '#zb-logo': { left: 924, top: 22, width: 94, height: 118 },
+    '#zb-presented': { left: 660, top: 142, width: 600, height: 26, fontSize: 27 },
+    '#zb-title-zone': { left: 440, top: 128, width: 392, height: 190, fontSize: 190 },
+    '#zb-title-box': { left: 853, top: 164, width: 540, height: 118 },
+    '#zb-title-bounty': { left: 853, top: 128, width: 540, height: 190, fontSize: 190 },
+    '#zb-crown': { left: 334, top: 212, width: 64, height: 60 },
+    '#zb-xhair': { left: 1530, top: 196, width: 70, height: 70 },
+    '#zb-sub-a': { left: 420, top: 296, width: 204, height: 52, fontSize: 48 },
+    '#zb-sub-zone-box': { left: 630, top: 296, width: 222, height: 52 },
+    '#zb-sub-zone': { left: 630, top: 296, width: 222, height: 52, fontSize: 48 },
+    '#zb-sub-c': { left: 862, top: 296, width: 330, height: 52, fontSize: 48 },
+    '#zb-sub-claim-box': { left: 1198, top: 296, width: 302, height: 52 },
+    '#zb-sub-claim': { left: 1198, top: 296, width: 302, height: 52, fontSize: 48 },
+    '#zb-from': { left: 760, top: 352, width: 400, height: 26, fontSize: 27 },
+    '#zb-c1': { left: 85, top: 394, width: 562, height: 456 },
+    '#zb-c1-num': { left: 114, top: 425, width: 54, height: 54, fontSize: 56 },
+    '#zb-c1-title': { left: 185, top: 418, width: 440, height: 68, fontSize: 64 },
+    '#zb-c1-hline': { left: 116, top: 491, width: 500, height: 2 },
+    '#zb-c1-r1-icon': { left: 116, top: 508, width: 50, height: 50 },
+    '#zb-c1-r1-text': { left: 192, top: 493, width: 440, height: 80, fontSize: 36 },
+    '#zb-c1-r1-line': { left: 116, top: 575, width: 500, height: 2 },
+    '#zb-c1-r2-icon': { left: 116, top: 594, width: 50, height: 50 },
+    '#zb-c1-r2-text': { left: 192, top: 579, width: 440, height: 80, fontSize: 36 },
+    '#zb-c1-r2-line': { left: 116, top: 661, width: 500, height: 2 },
+    '#zb-c1-r3-icon': { left: 116, top: 680, width: 50, height: 50 },
+    '#zb-c1-r3-text': { left: 192, top: 665, width: 440, height: 80, fontSize: 36 },
+    '#zb-c1-r3-line': { left: 116, top: 747, width: 500, height: 2 },
+    '#zb-c1-r4-icon': { left: 116, top: 766, width: 50, height: 50 },
+    '#zb-c1-r4-text': { left: 192, top: 751, width: 440, height: 80, fontSize: 36 },
+    '#zb-c2': { left: 681, top: 394, width: 562, height: 456 },
+    '#zb-c2-num': { left: 710, top: 425, width: 54, height: 54, fontSize: 56 },
+    '#zb-c2-title': { left: 781, top: 418, width: 440, height: 68, fontSize: 64 },
+    '#zb-c2-hline': { left: 712, top: 491, width: 500, height: 2 },
+    '#zb-c2-r1-icon': { left: 712, top: 508, width: 50, height: 50 },
+    '#zb-c2-r1-text': { left: 788, top: 493, width: 440, height: 80, fontSize: 36 },
+    '#zb-c2-r1-line': { left: 712, top: 575, width: 500, height: 2 },
+    '#zb-c2-r2-icon': { left: 712, top: 594, width: 50, height: 50 },
+    '#zb-c2-r2-text': { left: 788, top: 579, width: 440, height: 80, fontSize: 36 },
+    '#zb-c2-r2-line': { left: 712, top: 661, width: 500, height: 2 },
+    '#zb-c2-r3-icon': { left: 712, top: 680, width: 50, height: 50 },
+    '#zb-c2-r3-text': { left: 788, top: 665, width: 440, height: 80, fontSize: 36 },
+    '#zb-c3': { left: 1278, top: 394, width: 562, height: 456 },
+    '#zb-c3-num': { left: 1307, top: 425, width: 54, height: 54, fontSize: 56 },
+    '#zb-c3-title': { left: 1378, top: 418, width: 440, height: 68, fontSize: 64 },
+    '#zb-c3-hline': { left: 1309, top: 491, width: 500, height: 2 },
+    '#zb-c3-r1-icon': { left: 1309, top: 508, width: 50, height: 50 },
+    '#zb-c3-r1-text': { left: 1385, top: 493, width: 440, height: 80, fontSize: 36 },
+    '#zb-c3-r1-line': { left: 1309, top: 575, width: 500, height: 2 },
+    '#zb-c3-r2-icon': { left: 1309, top: 594, width: 50, height: 50 },
+    '#zb-c3-r2-text': { left: 1385, top: 579, width: 440, height: 80, fontSize: 36 },
+    '#zb-c3-r2-line': { left: 1309, top: 661, width: 500, height: 2 },
+    '#zb-c3-r3-icon': { left: 1309, top: 680, width: 50, height: 50 },
+    '#zb-c3-r3-text': { left: 1385, top: 665, width: 440, height: 80, fontSize: 36 },
+    '#zb-c3-r3-line': { left: 1309, top: 747, width: 500, height: 2 },
+    '#zb-c3-r4-icon': { left: 1309, top: 766, width: 50, height: 50 },
+    '#zb-c3-r4-text': { left: 1385, top: 751, width: 440, height: 80, fontSize: 36 },
+    '#zb-banner': { left: 452, top: 895, width: 1020, height: 80 },
+    '#zb-banner-text': { left: 590, top: 895, width: 744, height: 80, fontSize: 60 },
+    '#zb-banner-trophy-l': { left: 506, top: 913, width: 44, height: 44 },
+    '#zb-banner-trophy-r': { left: 1374, top: 913, width: 44, height: 44 },
+  };
+  var ZB_ELEMENTS = [
+    { group: "Zone Bounty Corners", id: '#zb-corner-tr', name: "Top-right corner" },
+    { group: "Zone Bounty Corners", id: '#zb-corner-bl', name: "Bottom-left corner" },
+    { group: "Zone Bounty Logo", id: '#zb-logo', name: "Emblem" },
+    { group: "Zone Bounty Presented", id: '#zb-presented', name: "Garena Battle Royale Cup 2026" },
+    { group: "Zone Bounty Title ZONE", id: '#zb-title-zone', name: "Title · ZONE" },
+    { group: "Zone Bounty Title Box", id: '#zb-title-box', name: "Title · yellow box" },
+    { group: "Zone Bounty Title BOUNTY", id: '#zb-title-bounty', name: "Title · BOUNTY" },
+    { group: "Zone Bounty Crown", id: '#zb-crown', name: "Crown icon" },
+    { group: "Zone Bounty Crosshair", id: '#zb-xhair', name: "Crosshair icon" },
+    { group: "Zone Bounty Subtitle A", id: '#zb-sub-a', name: "Subtitle · \"Eliminate an\"" },
+    { group: "Zone Bounty Subtitle Zone Box", id: '#zb-sub-zone-box', name: "Subtitle · IN THE ZONE box" },
+    { group: "Zone Bounty Subtitle Zone Text", id: '#zb-sub-zone', name: "Subtitle · IN THE ZONE" },
+    { group: "Zone Bounty Subtitle C", id: '#zb-sub-c', name: "Subtitle · \"team's last player =\"" },
+    { group: "Zone Bounty Subtitle Claim Box", id: '#zb-sub-claim-box', name: "Subtitle · claim box" },
+    { group: "Zone Bounty Subtitle Claim Text", id: '#zb-sub-claim', name: "Subtitle · claim the bounty" },
+    { group: "Zone Bounty From Map", id: '#zb-from', name: "FROM MAP 8 ONWARD" },
+    { group: "Zone Bounty Card 1", id: '#zb-c1', name: "Card 1 · panel" },
+    { group: "Zone Bounty Card 1 Header", id: '#zb-c1-num', name: "Card 1 · number badge" },
+    { group: "Zone Bounty Card 1 Title", id: '#zb-c1-title', name: "Card 1 · title" },
+    { group: "Zone Bounty Card 1 Lines", id: '#zb-c1-hline', name: "Card 1 · header line" },
+    { group: "Zone Bounty Card 1 Row 1", id: '#zb-c1-r1-icon', name: "Card 1 · row 1 icon" },
+    { group: "Zone Bounty Card 1 Row 1 Text", id: '#zb-c1-r1-text', name: "Card 1 · row 1 text" },
+    { group: "Zone Bounty Card 1 Lines", id: '#zb-c1-r1-line', name: "Card 1 · line after row 1" },
+    { group: "Zone Bounty Card 1 Row 2", id: '#zb-c1-r2-icon', name: "Card 1 · row 2 icon" },
+    { group: "Zone Bounty Card 1 Row 2 Text", id: '#zb-c1-r2-text', name: "Card 1 · row 2 text" },
+    { group: "Zone Bounty Card 1 Lines", id: '#zb-c1-r2-line', name: "Card 1 · line after row 2" },
+    { group: "Zone Bounty Card 1 Row 3", id: '#zb-c1-r3-icon', name: "Card 1 · row 3 icon" },
+    { group: "Zone Bounty Card 1 Row 3 Text", id: '#zb-c1-r3-text', name: "Card 1 · row 3 text" },
+    { group: "Zone Bounty Card 1 Lines", id: '#zb-c1-r3-line', name: "Card 1 · line after row 3" },
+    { group: "Zone Bounty Card 1 Row 4", id: '#zb-c1-r4-icon', name: "Card 1 · row 4 icon" },
+    { group: "Zone Bounty Card 1 Row 4 Text", id: '#zb-c1-r4-text', name: "Card 1 · row 4 text" },
+    { group: "Zone Bounty Card 2", id: '#zb-c2', name: "Card 2 · panel" },
+    { group: "Zone Bounty Card 2 Header", id: '#zb-c2-num', name: "Card 2 · number badge" },
+    { group: "Zone Bounty Card 2 Title", id: '#zb-c2-title', name: "Card 2 · title" },
+    { group: "Zone Bounty Card 2 Lines", id: '#zb-c2-hline', name: "Card 2 · header line" },
+    { group: "Zone Bounty Card 2 Row 1", id: '#zb-c2-r1-icon', name: "Card 2 · row 1 icon" },
+    { group: "Zone Bounty Card 2 Row 1 Text", id: '#zb-c2-r1-text', name: "Card 2 · row 1 text" },
+    { group: "Zone Bounty Card 2 Lines", id: '#zb-c2-r1-line', name: "Card 2 · line after row 1" },
+    { group: "Zone Bounty Card 2 Row 2", id: '#zb-c2-r2-icon', name: "Card 2 · row 2 icon" },
+    { group: "Zone Bounty Card 2 Row 2 Text", id: '#zb-c2-r2-text', name: "Card 2 · row 2 text" },
+    { group: "Zone Bounty Card 2 Lines", id: '#zb-c2-r2-line', name: "Card 2 · line after row 2" },
+    { group: "Zone Bounty Card 2 Row 3", id: '#zb-c2-r3-icon', name: "Card 2 · row 3 icon" },
+    { group: "Zone Bounty Card 2 Row 3 Text", id: '#zb-c2-r3-text', name: "Card 2 · row 3 text" },
+    { group: "Zone Bounty Card 3", id: '#zb-c3', name: "Card 3 · panel" },
+    { group: "Zone Bounty Card 3 Header", id: '#zb-c3-num', name: "Card 3 · number badge" },
+    { group: "Zone Bounty Card 3 Title", id: '#zb-c3-title', name: "Card 3 · title" },
+    { group: "Zone Bounty Card 3 Lines", id: '#zb-c3-hline', name: "Card 3 · header line" },
+    { group: "Zone Bounty Card 3 Row 1", id: '#zb-c3-r1-icon', name: "Card 3 · row 1 icon" },
+    { group: "Zone Bounty Card 3 Row 1 Text", id: '#zb-c3-r1-text', name: "Card 3 · row 1 text" },
+    { group: "Zone Bounty Card 3 Lines", id: '#zb-c3-r1-line', name: "Card 3 · line after row 1" },
+    { group: "Zone Bounty Card 3 Row 2", id: '#zb-c3-r2-icon', name: "Card 3 · row 2 icon" },
+    { group: "Zone Bounty Card 3 Row 2 Text", id: '#zb-c3-r2-text', name: "Card 3 · row 2 text" },
+    { group: "Zone Bounty Card 3 Lines", id: '#zb-c3-r2-line', name: "Card 3 · line after row 2" },
+    { group: "Zone Bounty Card 3 Row 3", id: '#zb-c3-r3-icon', name: "Card 3 · row 3 icon" },
+    { group: "Zone Bounty Card 3 Row 3 Text", id: '#zb-c3-r3-text', name: "Card 3 · row 3 text" },
+    { group: "Zone Bounty Card 3 Lines", id: '#zb-c3-r3-line', name: "Card 3 · line after row 3" },
+    { group: "Zone Bounty Card 3 Row 4", id: '#zb-c3-r4-icon', name: "Card 3 · row 4 icon" },
+    { group: "Zone Bounty Card 3 Row 4 Text", id: '#zb-c3-r4-text', name: "Card 3 · row 4 text" },
+    { group: "Zone Bounty Banner", id: '#zb-banner', name: "Banner · yellow bar" },
+    { group: "Zone Bounty Banner Text", id: '#zb-banner-text', name: "Banner · text" },
+    { group: "Zone Bounty Banner Trophy L", id: '#zb-banner-trophy-l', name: "Banner · trophy left" },
+    { group: "Zone Bounty Banner Trophy R", id: '#zb-banner-trophy-r', name: "Banner · trophy right" },
+  ];
+
+  /* ── Zone Rush (Fullscreen.html) — standalone explainer scene, all #zr-* ── */
+  var ZRH_DEFAULTS = {
+    '#zrh-corner-tr': { left: 1644, top: 0, width: 276, height: 86 },
+    '#zrh-corner-bl': { left: 0, top: 940, width: 178, height: 140 },
+    '#zrh-logo': { left: 924, top: 22, width: 94, height: 118 },
+    '#zrh-presented': { left: 660, top: 142, width: 600, height: 26, fontSize: 27 },
+    '#zrh-title-zone': { left: 467, top: 128, width: 392, height: 190, fontSize: 190 },
+    '#zrh-title-box': { left: 880, top: 164, width: 400, height: 118 },
+    '#zrh-title-rush': { left: 880, top: 128, width: 400, height: 190, fontSize: 190 },
+    '#zrh-bolt': { left: 440, top: 206, width: 64, height: 68 },
+    '#zrh-xhair': { left: 1400, top: 196, width: 70, height: 70 },
+    '#zrh-sub-a': { left: 405, top: 296, width: 112, height: 52, fontSize: 48 },
+    '#zrh-sub-zone-box': { left: 525, top: 296, width: 340, height: 52 },
+    '#zrh-sub-zone': { left: 525, top: 296, width: 340, height: 52, fontSize: 48 },
+    '#zrh-sub-c': { left: 875, top: 296, width: 270, height: 52, fontSize: 48 },
+    '#zrh-sub-claim-box': { left: 1155, top: 296, width: 360, height: 52 },
+    '#zrh-sub-claim': { left: 1155, top: 296, width: 360, height: 52, fontSize: 48 },
+    '#zrh-from': { left: 660, top: 352, width: 600, height: 26, fontSize: 27 },
+    '#zrh-c1': { left: 85, top: 394, width: 562, height: 456 },
+    '#zrh-c1-num': { left: 114, top: 425, width: 54, height: 54, fontSize: 56 },
+    '#zrh-c1-title': { left: 185, top: 418, width: 440, height: 68, fontSize: 64 },
+    '#zrh-c1-hline': { left: 116, top: 491, width: 500, height: 2 },
+    '#zrh-c1-r1-icon': { left: 116, top: 508, width: 50, height: 50 },
+    '#zrh-c1-r1-text': { left: 192, top: 493, width: 440, height: 80, fontSize: 36 },
+    '#zrh-c1-r1-line': { left: 116, top: 575, width: 500, height: 2 },
+    '#zrh-c1-r2-icon': { left: 116, top: 594, width: 50, height: 50 },
+    '#zrh-c1-r2-text': { left: 192, top: 579, width: 440, height: 80, fontSize: 36 },
+    '#zrh-c1-r2-line': { left: 116, top: 661, width: 500, height: 2 },
+    '#zrh-c1-r3-icon': { left: 116, top: 680, width: 50, height: 50 },
+    '#zrh-c1-r3-text': { left: 192, top: 665, width: 440, height: 80, fontSize: 36 },
+    '#zrh-c1-r3-line': { left: 116, top: 747, width: 500, height: 2 },
+    '#zrh-c1-r4-icon': { left: 116, top: 766, width: 50, height: 50 },
+    '#zrh-c1-r4-text': { left: 192, top: 751, width: 440, height: 80, fontSize: 36 },
+    '#zrh-c2': { left: 681, top: 394, width: 562, height: 456 },
+    '#zrh-c2-num': { left: 710, top: 425, width: 54, height: 54, fontSize: 56 },
+    '#zrh-c2-title': { left: 781, top: 418, width: 440, height: 68, fontSize: 64 },
+    '#zrh-c2-hline': { left: 712, top: 491, width: 500, height: 2 },
+    '#zrh-c2-r1-icon': { left: 712, top: 508, width: 50, height: 50 },
+    '#zrh-c2-r1-text': { left: 788, top: 493, width: 440, height: 80, fontSize: 36 },
+    '#zrh-c2-r1-line': { left: 712, top: 575, width: 500, height: 2 },
+    '#zrh-c2-r2-icon': { left: 712, top: 594, width: 50, height: 50 },
+    '#zrh-c2-r2-text': { left: 788, top: 579, width: 440, height: 80, fontSize: 36 },
+    '#zrh-c2-r2-line': { left: 712, top: 661, width: 500, height: 2 },
+    '#zrh-c2-r3-icon': { left: 712, top: 680, width: 50, height: 50 },
+    '#zrh-c2-r3-text': { left: 788, top: 665, width: 440, height: 80, fontSize: 36 },
+    '#zrh-c2-r3-line': { left: 712, top: 747, width: 500, height: 2 },
+    '#zrh-c2-r4-icon': { left: 712, top: 766, width: 50, height: 50 },
+    '#zrh-c2-r4-text': { left: 788, top: 751, width: 440, height: 80, fontSize: 36 },
+    '#zrh-c3': { left: 1278, top: 394, width: 562, height: 456 },
+    '#zrh-c3-num': { left: 1307, top: 425, width: 54, height: 54, fontSize: 56 },
+    '#zrh-c3-title': { left: 1378, top: 418, width: 440, height: 68, fontSize: 64 },
+    '#zrh-c3-hline': { left: 1309, top: 491, width: 500, height: 2 },
+    '#zrh-c3-r1-icon': { left: 1309, top: 508, width: 50, height: 50 },
+    '#zrh-c3-r1-text': { left: 1385, top: 493, width: 440, height: 80, fontSize: 36 },
+    '#zrh-c3-r1-line': { left: 1309, top: 575, width: 500, height: 2 },
+    '#zrh-c3-r2-icon': { left: 1309, top: 594, width: 50, height: 50 },
+    '#zrh-c3-r2-text': { left: 1385, top: 579, width: 440, height: 80, fontSize: 36 },
+    '#zrh-c3-r2-line': { left: 1309, top: 661, width: 500, height: 2 },
+    '#zrh-c3-r3-icon': { left: 1309, top: 680, width: 50, height: 50 },
+    '#zrh-c3-r3-text': { left: 1385, top: 665, width: 440, height: 80, fontSize: 36 },
+    '#zrh-c3-r3-line': { left: 1309, top: 747, width: 500, height: 2 },
+    '#zrh-c3-r4-icon': { left: 1309, top: 766, width: 50, height: 50 },
+    '#zrh-c3-r4-text': { left: 1385, top: 751, width: 440, height: 80, fontSize: 36 },
+    '#zrh-banner': { left: 452, top: 895, width: 1020, height: 80 },
+    '#zrh-banner-text': { left: 590, top: 895, width: 744, height: 80, fontSize: 60 },
+    '#zrh-banner-trophy-l': { left: 506, top: 913, width: 44, height: 44 },
+    '#zrh-banner-trophy-r': { left: 1374, top: 913, width: 44, height: 44 },
+  };
+  var ZRH_ELEMENTS = [
+    { group: "Zone Rush Corners", id: '#zrh-corner-tr', name: "Top-right corner" },
+    { group: "Zone Rush Corners", id: '#zrh-corner-bl', name: "Bottom-left corner" },
+    { group: "Zone Rush Logo", id: '#zrh-logo', name: "Emblem" },
+    { group: "Zone Rush Presented", id: '#zrh-presented', name: "Garena Battle Royale Cup 2026" },
+    { group: "Zone Rush Title ZONE", id: '#zrh-title-zone', name: "Title · ZONE" },
+    { group: "Zone Rush Title Box", id: '#zrh-title-box', name: "Title · yellow box" },
+    { group: "Zone Rush Title RUSH", id: '#zrh-title-rush', name: "Title · RUSH" },
+    { group: "Zone Rush Bolt", id: '#zrh-bolt', name: "Bolt icon" },
+    { group: "Zone Rush Crosshair", id: '#zrh-xhair', name: "Map icon" },
+    { group: "Zone Rush Subtitle A", id: '#zrh-sub-a', name: "Subtitle · \"Day 1\"" },
+    { group: "Zone Rush Subtitle Box 1", id: '#zrh-sub-zone-box', name: "Subtitle · yellow box" },
+    { group: "Zone Rush Subtitle Box 1 Text", id: '#zrh-sub-zone', name: "Subtitle · MAP 1 TO MAP 6" },
+    { group: "Zone Rush Subtitle C", id: '#zrh-sub-c', name: "Subtitle · \"build the lead\"" },
+    { group: "Zone Rush Subtitle Box 2", id: '#zrh-sub-claim-box', name: "Subtitle · black box" },
+    { group: "Zone Rush Subtitle Box 2 Text", id: '#zrh-sub-claim', name: "Subtitle · CARRY IT TO DAY 2" },
+    { group: "Zone Rush From", id: '#zrh-from', name: "Stage line" },
+    { group: "Zone Rush Card 1", id: '#zrh-c1', name: "Card 1 · panel" },
+    { group: "Zone Rush Card 1 Header", id: '#zrh-c1-num', name: "Card 1 · number badge" },
+    { group: "Zone Rush Card 1 Title", id: '#zrh-c1-title', name: "Card 1 · title" },
+    { group: "Zone Rush Card 1 Lines", id: '#zrh-c1-hline', name: "Card 1 · header line" },
+    { group: "Zone Rush Card 1 Row 1", id: '#zrh-c1-r1-icon', name: "Card 1 · row 1 icon" },
+    { group: "Zone Rush Card 1 Row 1 Text", id: '#zrh-c1-r1-text', name: "Card 1 · row 1 text" },
+    { group: "Zone Rush Card 1 Lines", id: '#zrh-c1-r1-line', name: "Card 1 · line after row 1" },
+    { group: "Zone Rush Card 1 Row 2", id: '#zrh-c1-r2-icon', name: "Card 1 · row 2 icon" },
+    { group: "Zone Rush Card 1 Row 2 Text", id: '#zrh-c1-r2-text', name: "Card 1 · row 2 text" },
+    { group: "Zone Rush Card 1 Lines", id: '#zrh-c1-r2-line', name: "Card 1 · line after row 2" },
+    { group: "Zone Rush Card 1 Row 3", id: '#zrh-c1-r3-icon', name: "Card 1 · row 3 icon" },
+    { group: "Zone Rush Card 1 Row 3 Text", id: '#zrh-c1-r3-text', name: "Card 1 · row 3 text" },
+    { group: "Zone Rush Card 1 Lines", id: '#zrh-c1-r3-line', name: "Card 1 · line after row 3" },
+    { group: "Zone Rush Card 1 Row 4", id: '#zrh-c1-r4-icon', name: "Card 1 · row 4 icon" },
+    { group: "Zone Rush Card 1 Row 4 Text", id: '#zrh-c1-r4-text', name: "Card 1 · row 4 text" },
+    { group: "Zone Rush Card 2", id: '#zrh-c2', name: "Card 2 · panel" },
+    { group: "Zone Rush Card 2 Header", id: '#zrh-c2-num', name: "Card 2 · number badge" },
+    { group: "Zone Rush Card 2 Title", id: '#zrh-c2-title', name: "Card 2 · title" },
+    { group: "Zone Rush Card 2 Lines", id: '#zrh-c2-hline', name: "Card 2 · header line" },
+    { group: "Zone Rush Card 2 Row 1", id: '#zrh-c2-r1-icon', name: "Card 2 · row 1 icon" },
+    { group: "Zone Rush Card 2 Row 1 Text", id: '#zrh-c2-r1-text', name: "Card 2 · row 1 text" },
+    { group: "Zone Rush Card 2 Lines", id: '#zrh-c2-r1-line', name: "Card 2 · line after row 1" },
+    { group: "Zone Rush Card 2 Row 2", id: '#zrh-c2-r2-icon', name: "Card 2 · row 2 icon" },
+    { group: "Zone Rush Card 2 Row 2 Text", id: '#zrh-c2-r2-text', name: "Card 2 · row 2 text" },
+    { group: "Zone Rush Card 2 Lines", id: '#zrh-c2-r2-line', name: "Card 2 · line after row 2" },
+    { group: "Zone Rush Card 2 Row 3", id: '#zrh-c2-r3-icon', name: "Card 2 · row 3 icon" },
+    { group: "Zone Rush Card 2 Row 3 Text", id: '#zrh-c2-r3-text', name: "Card 2 · row 3 text" },
+    { group: "Zone Rush Card 2 Lines", id: '#zrh-c2-r3-line', name: "Card 2 · line after row 3" },
+    { group: "Zone Rush Card 2 Row 4", id: '#zrh-c2-r4-icon', name: "Card 2 · row 4 icon" },
+    { group: "Zone Rush Card 2 Row 4 Text", id: '#zrh-c2-r4-text', name: "Card 2 · row 4 text" },
+    { group: "Zone Rush Card 3", id: '#zrh-c3', name: "Card 3 · panel" },
+    { group: "Zone Rush Card 3 Header", id: '#zrh-c3-num', name: "Card 3 · number badge" },
+    { group: "Zone Rush Card 3 Title", id: '#zrh-c3-title', name: "Card 3 · title" },
+    { group: "Zone Rush Card 3 Lines", id: '#zrh-c3-hline', name: "Card 3 · header line" },
+    { group: "Zone Rush Card 3 Row 1", id: '#zrh-c3-r1-icon', name: "Card 3 · row 1 icon" },
+    { group: "Zone Rush Card 3 Row 1 Text", id: '#zrh-c3-r1-text', name: "Card 3 · row 1 text" },
+    { group: "Zone Rush Card 3 Lines", id: '#zrh-c3-r1-line', name: "Card 3 · line after row 1" },
+    { group: "Zone Rush Card 3 Row 2", id: '#zrh-c3-r2-icon', name: "Card 3 · row 2 icon" },
+    { group: "Zone Rush Card 3 Row 2 Text", id: '#zrh-c3-r2-text', name: "Card 3 · row 2 text" },
+    { group: "Zone Rush Card 3 Lines", id: '#zrh-c3-r2-line', name: "Card 3 · line after row 2" },
+    { group: "Zone Rush Card 3 Row 3", id: '#zrh-c3-r3-icon', name: "Card 3 · row 3 icon" },
+    { group: "Zone Rush Card 3 Row 3 Text", id: '#zrh-c3-r3-text', name: "Card 3 · row 3 text" },
+    { group: "Zone Rush Card 3 Lines", id: '#zrh-c3-r3-line', name: "Card 3 · line after row 3" },
+    { group: "Zone Rush Card 3 Row 4", id: '#zrh-c3-r4-icon', name: "Card 3 · row 4 icon" },
+    { group: "Zone Rush Card 3 Row 4 Text", id: '#zrh-c3-r4-text', name: "Card 3 · row 4 text" },
+    { group: "Zone Rush Banner", id: '#zrh-banner', name: "Banner · yellow bar" },
+    { group: "Zone Rush Banner Text", id: '#zrh-banner-text', name: "Banner · text" },
+    { group: "Zone Rush Banner Icon L", id: '#zrh-banner-trophy-l', name: "Banner · bolt left" },
+    { group: "Zone Rush Banner Icon R", id: '#zrh-banner-trophy-r', name: "Banner · bolt right" },
+  ];
+
+  /* ── Endgame Protocol (Fullscreen.html) — standalone explainer scene, all #zr-* ── */
+  var EGP_DEFAULTS = {
+    '#egp-corner-tr': { left: 1644, top: 0, width: 276, height: 86 },
+    '#egp-corner-bl': { left: 0, top: 940, width: 178, height: 140 },
+    '#egp-logo': { left: 924, top: 22, width: 94, height: 118 },
+    '#egp-presented': { left: 660, top: 142, width: 600, height: 26, fontSize: 27 },
+    '#egp-title-zone': { left: 420, top: 128, width: 443, height: 190, fontSize: 190 },
+    '#egp-title-box': { left: 883, top: 164, width: 560, height: 118 },
+    '#egp-title-rush': { left: 883, top: 128, width: 560, height: 190, fontSize: 190 },
+    '#egp-bolt': { left: 330, top: 206, width: 64, height: 68 },
+    '#egp-xhair': { left: 1500, top: 206, width: 70, height: 66 },
+    '#egp-sub-a': { left: 510, top: 296, width: 84, height: 52, fontSize: 48 },
+    '#egp-sub-zone-box': { left: 604, top: 296, width: 226, height: 52 },
+    '#egp-sub-zone': { left: 604, top: 296, width: 226, height: 52, fontSize: 48 },
+    '#egp-sub-c': { left: 842, top: 296, width: 300, height: 52, fontSize: 48 },
+    '#egp-sub-claim-box': { left: 1150, top: 296, width: 262, height: 52 },
+    '#egp-sub-claim': { left: 1150, top: 296, width: 262, height: 52, fontSize: 48 },
+    '#egp-from': { left: 660, top: 352, width: 600, height: 26, fontSize: 27 },
+    '#egp-c1': { left: 85, top: 394, width: 562, height: 456 },
+    '#egp-c1-num': { left: 114, top: 425, width: 54, height: 54, fontSize: 56 },
+    '#egp-c1-title': { left: 185, top: 418, width: 440, height: 68, fontSize: 64 },
+    '#egp-c1-hline': { left: 116, top: 491, width: 500, height: 2 },
+    '#egp-c1-r1-icon': { left: 116, top: 508, width: 50, height: 50 },
+    '#egp-c1-r1-text': { left: 192, top: 493, width: 440, height: 80, fontSize: 36 },
+    '#egp-c1-r1-line': { left: 116, top: 575, width: 500, height: 2 },
+    '#egp-c1-r2-icon': { left: 116, top: 594, width: 50, height: 50 },
+    '#egp-c1-r2-text': { left: 192, top: 579, width: 440, height: 80, fontSize: 36 },
+    '#egp-c1-r2-line': { left: 116, top: 661, width: 500, height: 2 },
+    '#egp-c1-r3-icon': { left: 116, top: 680, width: 50, height: 50 },
+    '#egp-c1-r3-text': { left: 192, top: 665, width: 440, height: 80, fontSize: 36 },
+    '#egp-c1-r3-line': { left: 116, top: 747, width: 500, height: 2 },
+    '#egp-c1-r4-icon': { left: 116, top: 766, width: 50, height: 50 },
+    '#egp-c1-r4-text': { left: 192, top: 751, width: 440, height: 80, fontSize: 36 },
+    '#egp-c2': { left: 681, top: 394, width: 562, height: 456 },
+    '#egp-c2-num': { left: 710, top: 425, width: 54, height: 54, fontSize: 56 },
+    '#egp-c2-title': { left: 781, top: 418, width: 440, height: 68, fontSize: 64 },
+    '#egp-c2-hline': { left: 712, top: 491, width: 500, height: 2 },
+    '#egp-c2-r1-icon': { left: 712, top: 508, width: 50, height: 50 },
+    '#egp-c2-r1-text': { left: 788, top: 493, width: 440, height: 80, fontSize: 36 },
+    '#egp-c2-r1-line': { left: 712, top: 575, width: 500, height: 2 },
+    '#egp-c2-r2-icon': { left: 712, top: 594, width: 50, height: 50 },
+    '#egp-c2-r2-text': { left: 788, top: 579, width: 440, height: 80, fontSize: 36 },
+    '#egp-c2-r2-line': { left: 712, top: 661, width: 500, height: 2 },
+    '#egp-c2-r3-icon': { left: 712, top: 680, width: 50, height: 50 },
+    '#egp-c2-r3-text': { left: 788, top: 665, width: 440, height: 80, fontSize: 36 },
+    '#egp-c2-r3-line': { left: 712, top: 747, width: 500, height: 2 },
+    '#egp-c2-r4-icon': { left: 712, top: 766, width: 50, height: 50 },
+    '#egp-c2-r4-text': { left: 788, top: 751, width: 440, height: 80, fontSize: 36 },
+    '#egp-c3': { left: 1278, top: 394, width: 562, height: 456 },
+    '#egp-c3-num': { left: 1307, top: 425, width: 54, height: 54, fontSize: 56 },
+    '#egp-c3-title': { left: 1378, top: 418, width: 440, height: 68, fontSize: 64 },
+    '#egp-c3-hline': { left: 1309, top: 491, width: 500, height: 2 },
+    '#egp-c3-r1-icon': { left: 1309, top: 508, width: 50, height: 50 },
+    '#egp-c3-r1-text': { left: 1385, top: 493, width: 440, height: 80, fontSize: 36 },
+    '#egp-c3-r1-line': { left: 1309, top: 575, width: 500, height: 2 },
+    '#egp-c3-r2-icon': { left: 1309, top: 594, width: 50, height: 50 },
+    '#egp-c3-r2-text': { left: 1385, top: 579, width: 440, height: 80, fontSize: 36 },
+    '#egp-c3-r2-line': { left: 1309, top: 661, width: 500, height: 2 },
+    '#egp-c3-r3-icon': { left: 1309, top: 680, width: 50, height: 50 },
+    '#egp-c3-r3-text': { left: 1385, top: 665, width: 440, height: 80, fontSize: 36 },
+    '#egp-banner': { left: 452, top: 895, width: 1020, height: 80 },
+    '#egp-banner-text': { left: 590, top: 895, width: 744, height: 80, fontSize: 60 },
+    '#egp-banner-trophy-l': { left: 506, top: 913, width: 44, height: 44 },
+    '#egp-banner-trophy-r': { left: 1374, top: 913, width: 44, height: 44 },
+  };
+  var EGP_ELEMENTS = [
+    { group: "Endgame Protocol Corners", id: '#egp-corner-tr', name: "Top-right corner" },
+    { group: "Endgame Protocol Corners", id: '#egp-corner-bl', name: "Bottom-left corner" },
+    { group: "Endgame Protocol Logo", id: '#egp-logo', name: "Emblem" },
+    { group: "Endgame Protocol Presented", id: '#egp-presented', name: "Garena Battle Royale Cup 2026" },
+    { group: "Endgame Protocol Title ENDGAME", id: '#egp-title-zone', name: "Title · ENDGAME" },
+    { group: "Endgame Protocol Title Box", id: '#egp-title-box', name: "Title · yellow box" },
+    { group: "Endgame Protocol Title PROTOCOL", id: '#egp-title-rush', name: "Title · PROTOCOL" },
+    { group: "Endgame Protocol Checker", id: '#egp-bolt', name: "Checkered flag icon" },
+    { group: "Endgame Protocol Crown", id: '#egp-xhair', name: "Crown icon" },
+    { group: "Endgame Protocol Subtitle A", id: '#egp-sub-a', name: "Subtitle · \"Get\"" },
+    { group: "Endgame Protocol Subtitle Box 1", id: '#egp-sub-zone-box', name: "Subtitle · yellow box" },
+    { group: "Endgame Protocol Subtitle Box 1 Text", id: '#egp-sub-zone', name: "Subtitle · IN THE ZONE" },
+    { group: "Endgame Protocol Subtitle C", id: '#egp-sub-c', name: "Subtitle · \"then finish with\"" },
+    { group: "Endgame Protocol Subtitle Box 2", id: '#egp-sub-claim-box', name: "Subtitle · black box" },
+    { group: "Endgame Protocol Subtitle Box 2 Text", id: '#egp-sub-claim', name: "Subtitle · A VICTORY" },
+    { group: "Endgame Protocol From", id: '#egp-from', name: "Stage line" },
+    { group: "Endgame Protocol Card 1", id: '#egp-c1', name: "Card 1 · panel" },
+    { group: "Endgame Protocol Card 1 Header", id: '#egp-c1-num', name: "Card 1 · number badge" },
+    { group: "Endgame Protocol Card 1 Title", id: '#egp-c1-title', name: "Card 1 · title" },
+    { group: "Endgame Protocol Card 1 Lines", id: '#egp-c1-hline', name: "Card 1 · header line" },
+    { group: "Endgame Protocol Card 1 Row 1", id: '#egp-c1-r1-icon', name: "Card 1 · row 1 icon" },
+    { group: "Endgame Protocol Card 1 Row 1 Text", id: '#egp-c1-r1-text', name: "Card 1 · row 1 text" },
+    { group: "Endgame Protocol Card 1 Lines", id: '#egp-c1-r1-line', name: "Card 1 · line after row 1" },
+    { group: "Endgame Protocol Card 1 Row 2", id: '#egp-c1-r2-icon', name: "Card 1 · row 2 icon" },
+    { group: "Endgame Protocol Card 1 Row 2 Text", id: '#egp-c1-r2-text', name: "Card 1 · row 2 text" },
+    { group: "Endgame Protocol Card 1 Lines", id: '#egp-c1-r2-line', name: "Card 1 · line after row 2" },
+    { group: "Endgame Protocol Card 1 Row 3", id: '#egp-c1-r3-icon', name: "Card 1 · row 3 icon" },
+    { group: "Endgame Protocol Card 1 Row 3 Text", id: '#egp-c1-r3-text', name: "Card 1 · row 3 text" },
+    { group: "Endgame Protocol Card 1 Lines", id: '#egp-c1-r3-line', name: "Card 1 · line after row 3" },
+    { group: "Endgame Protocol Card 1 Row 4", id: '#egp-c1-r4-icon', name: "Card 1 · row 4 icon" },
+    { group: "Endgame Protocol Card 1 Row 4 Text", id: '#egp-c1-r4-text', name: "Card 1 · row 4 text" },
+    { group: "Endgame Protocol Card 2", id: '#egp-c2', name: "Card 2 · panel" },
+    { group: "Endgame Protocol Card 2 Header", id: '#egp-c2-num', name: "Card 2 · number badge" },
+    { group: "Endgame Protocol Card 2 Title", id: '#egp-c2-title', name: "Card 2 · title" },
+    { group: "Endgame Protocol Card 2 Lines", id: '#egp-c2-hline', name: "Card 2 · header line" },
+    { group: "Endgame Protocol Card 2 Row 1", id: '#egp-c2-r1-icon', name: "Card 2 · row 1 icon" },
+    { group: "Endgame Protocol Card 2 Row 1 Text", id: '#egp-c2-r1-text', name: "Card 2 · row 1 text" },
+    { group: "Endgame Protocol Card 2 Lines", id: '#egp-c2-r1-line', name: "Card 2 · line after row 1" },
+    { group: "Endgame Protocol Card 2 Row 2", id: '#egp-c2-r2-icon', name: "Card 2 · row 2 icon" },
+    { group: "Endgame Protocol Card 2 Row 2 Text", id: '#egp-c2-r2-text', name: "Card 2 · row 2 text" },
+    { group: "Endgame Protocol Card 2 Lines", id: '#egp-c2-r2-line', name: "Card 2 · line after row 2" },
+    { group: "Endgame Protocol Card 2 Row 3", id: '#egp-c2-r3-icon', name: "Card 2 · row 3 icon" },
+    { group: "Endgame Protocol Card 2 Row 3 Text", id: '#egp-c2-r3-text', name: "Card 2 · row 3 text" },
+    { group: "Endgame Protocol Card 2 Lines", id: '#egp-c2-r3-line', name: "Card 2 · line after row 3" },
+    { group: "Endgame Protocol Card 2 Row 4", id: '#egp-c2-r4-icon', name: "Card 2 · row 4 icon" },
+    { group: "Endgame Protocol Card 2 Row 4 Text", id: '#egp-c2-r4-text', name: "Card 2 · row 4 text" },
+    { group: "Endgame Protocol Card 3", id: '#egp-c3', name: "Card 3 · panel" },
+    { group: "Endgame Protocol Card 3 Header", id: '#egp-c3-num', name: "Card 3 · number badge" },
+    { group: "Endgame Protocol Card 3 Title", id: '#egp-c3-title', name: "Card 3 · title" },
+    { group: "Endgame Protocol Card 3 Lines", id: '#egp-c3-hline', name: "Card 3 · header line" },
+    { group: "Endgame Protocol Card 3 Row 1", id: '#egp-c3-r1-icon', name: "Card 3 · row 1 icon" },
+    { group: "Endgame Protocol Card 3 Row 1 Text", id: '#egp-c3-r1-text', name: "Card 3 · row 1 text" },
+    { group: "Endgame Protocol Card 3 Lines", id: '#egp-c3-r1-line', name: "Card 3 · line after row 1" },
+    { group: "Endgame Protocol Card 3 Row 2", id: '#egp-c3-r2-icon', name: "Card 3 · row 2 icon" },
+    { group: "Endgame Protocol Card 3 Row 2 Text", id: '#egp-c3-r2-text', name: "Card 3 · row 2 text" },
+    { group: "Endgame Protocol Card 3 Lines", id: '#egp-c3-r2-line', name: "Card 3 · line after row 2" },
+    { group: "Endgame Protocol Card 3 Row 3", id: '#egp-c3-r3-icon', name: "Card 3 · row 3 icon" },
+    { group: "Endgame Protocol Card 3 Row 3 Text", id: '#egp-c3-r3-text', name: "Card 3 · row 3 text" },
+    { group: "Endgame Protocol Banner", id: '#egp-banner', name: "Banner · yellow bar" },
+    { group: "Endgame Protocol Banner Text", id: '#egp-banner-text', name: "Banner · text" },
+    { group: "Endgame Protocol Banner Icon L", id: '#egp-banner-trophy-l', name: "Banner · crown left" },
+    { group: "Endgame Protocol Banner Icon R", id: '#egp-banner-trophy-r', name: "Banner · crown right" },
+  ];
+
+  /* ── Points System (Fullscreen.html) — standalone explainer scene, all #zr-* ── */
+  var PSY_DEFAULTS = {
+    '#psy-corner-tr': { left: 1644, top: 0, width: 276, height: 86 },
+    '#psy-corner-bl': { left: 0, top: 940, width: 178, height: 140 },
+    '#psy-logo': { left: 1528, top: 26, width: 94, height: 118 },
+    '#psy-presented': { left: 1290, top: 152, width: 570, height: 28, fontSize: 27 },
+    '#psy-title-a': { left: 60, top: 20, width: 430, height: 140, fontSize: 140 },
+    '#psy-title-box': { left: 506, top: 44, width: 520, height: 92 },
+    '#psy-title-b': { left: 506, top: 20, width: 520, height: 140, fontSize: 140 },
+    '#psy-title-icon': { left: 1056, top: 38, width: 84, height: 84 },
+    '#psy-sub-a': { left: 60, top: 152, width: 380, height: 52, fontSize: 40 },
+    '#psy-sub-zone-box': { left: 450, top: 152, width: 280, height: 52 },
+    '#psy-sub-t1': { left: 450, top: 152, width: 280, height: 52, fontSize: 40 },
+    '#psy-sub-plus': { left: 740, top: 152, width: 36, height: 52, fontSize: 48 },
+    '#psy-sub-claim-box': { left: 786, top: 152, width: 340, height: 52 },
+    '#psy-sub-t2': { left: 786, top: 152, width: 340, height: 52, fontSize: 40 },
+    '#psy-table': { left: 60, top: 225, width: 1190, height: 825 },
+    '#psy-thead': { left: 90, top: 246, width: 1130, height: 58 },
+    '#psy-th-place': { left: 110, top: 246, width: 300, height: 58, fontSize: 40 },
+    '#psy-th-pts': { left: 780, top: 246, width: 420, height: 58, fontSize: 40 },
+    '#psy-r1-place': { left: 90, top: 322, width: 230, height: 56, fontSize: 50 },
+    '#psy-r1-bar': { left: 430, top: 330, width: 620, height: 40 },
+    '#psy-r1-val': { left: 1100, top: 320, width: 120, height: 60, fontSize: 54 },
+    '#psy-r1-line': { left: 90, top: 389, width: 1130, height: 2 },
+    '#psy-r2-place': { left: 90, top: 402, width: 230, height: 56, fontSize: 50 },
+    '#psy-r2-bar': { left: 430, top: 410, width: 372, height: 40 },
+    '#psy-r2-val': { left: 1100, top: 400, width: 120, height: 60, fontSize: 54 },
+    '#psy-r2-line': { left: 90, top: 469, width: 1130, height: 2 },
+    '#psy-r3-place': { left: 90, top: 482, width: 230, height: 56, fontSize: 50 },
+    '#psy-r3-bar': { left: 430, top: 490, width: 310, height: 40 },
+    '#psy-r3-val': { left: 1100, top: 480, width: 120, height: 60, fontSize: 54 },
+    '#psy-r3-line': { left: 90, top: 549, width: 1130, height: 2 },
+    '#psy-r4-place': { left: 90, top: 562, width: 230, height: 56, fontSize: 50 },
+    '#psy-r4-bar': { left: 430, top: 570, width: 248, height: 40 },
+    '#psy-r4-val': { left: 1100, top: 560, width: 120, height: 60, fontSize: 54 },
+    '#psy-r4-line': { left: 90, top: 629, width: 1130, height: 2 },
+    '#psy-r5-place': { left: 90, top: 642, width: 230, height: 56, fontSize: 50 },
+    '#psy-r5-bar': { left: 430, top: 650, width: 186, height: 40 },
+    '#psy-r5-val': { left: 1100, top: 640, width: 120, height: 60, fontSize: 54 },
+    '#psy-r5-line': { left: 90, top: 709, width: 1130, height: 2 },
+    '#psy-r6-place': { left: 90, top: 722, width: 230, height: 56, fontSize: 50 },
+    '#psy-r6-bar': { left: 430, top: 730, width: 124, height: 40 },
+    '#psy-r6-val': { left: 1100, top: 720, width: 120, height: 60, fontSize: 54 },
+    '#psy-r6-line': { left: 90, top: 789, width: 1130, height: 2 },
+    '#psy-r7-place': { left: 90, top: 802, width: 230, height: 56, fontSize: 50 },
+    '#psy-r7-bar': { left: 430, top: 810, width: 62, height: 40 },
+    '#psy-r7-val': { left: 1100, top: 800, width: 120, height: 60, fontSize: 54 },
+    '#psy-r7-line': { left: 90, top: 869, width: 1130, height: 2 },
+    '#psy-r8-place': { left: 90, top: 882, width: 230, height: 56, fontSize: 50 },
+    '#psy-r8-bar': { left: 430, top: 890, width: 12, height: 40 },
+    '#psy-r8-val': { left: 1100, top: 880, width: 120, height: 60, fontSize: 54 },
+    '#psy-r8-line': { left: 90, top: 949, width: 1130, height: 2 },
+    '#psy-r9-icon': { left: 90, top: 962, width: 56, height: 56 },
+    '#psy-r9-place': { left: 166, top: 960, width: 250, height: 60, fontSize: 54 },
+    '#psy-r9-note': { left: 430, top: 960, width: 400, height: 60, fontSize: 46 },
+    '#psy-r9-val': { left: 1100, top: 960, width: 120, height: 60, fontSize: 54 },
+    '#psy-rules': { left: 1290, top: 225, width: 570, height: 825 },
+    '#psy-rules-num': { left: 1319, top: 250, width: 54, height: 54 },
+    '#psy-rules-title': { left: 1390, top: 243, width: 440, height: 68, fontSize: 64 },
+    '#psy-rules-hline': { left: 1321, top: 322, width: 508, height: 2 },
+    '#psy-rule1-icon': { left: 1321, top: 363, width: 50, height: 50 },
+    '#psy-rule1-text': { left: 1397, top: 334, width: 443, height: 108, fontSize: 32 },
+    '#psy-rule1-line': { left: 1321, top: 445, width: 508, height: 2 },
+    '#psy-rule2-icon': { left: 1321, top: 479, width: 50, height: 50 },
+    '#psy-rule2-text': { left: 1397, top: 450, width: 443, height: 108, fontSize: 32 },
+    '#psy-rule2-line': { left: 1321, top: 561, width: 508, height: 2 },
+    '#psy-rule3-icon': { left: 1321, top: 595, width: 50, height: 50 },
+    '#psy-rule3-text': { left: 1397, top: 566, width: 443, height: 108, fontSize: 32 },
+    '#psy-rule3-line': { left: 1321, top: 677, width: 508, height: 2 },
+    '#psy-rule4-icon': { left: 1321, top: 711, width: 50, height: 50 },
+    '#psy-rule4-text': { left: 1397, top: 682, width: 443, height: 108, fontSize: 32 },
+    '#psy-rule4-line': { left: 1321, top: 793, width: 508, height: 2 },
+    '#psy-rule5-icon': { left: 1321, top: 827, width: 50, height: 50 },
+    '#psy-rule5-text': { left: 1397, top: 798, width: 443, height: 108, fontSize: 32 },
+    '#psy-rule5-line': { left: 1321, top: 909, width: 508, height: 2 },
+    '#psy-rule6-icon': { left: 1321, top: 943, width: 50, height: 50 },
+    '#psy-rule6-text': { left: 1397, top: 914, width: 443, height: 108, fontSize: 32 },
+  };
+  var PSY_ELEMENTS = [
+    { group: "Points System Corners", id: '#psy-corner-tr', name: "Top-right corner" },
+    { group: "Points System Corners", id: '#psy-corner-bl', name: "Bottom-left corner" },
+    { group: "Points System Logo", id: '#psy-logo', name: "Emblem" },
+    { group: "Points System Presented", id: '#psy-presented', name: "Garena Battle Royale Cup 2026" },
+    { group: "Points System Title POINTS", id: '#psy-title-a', name: "Title · POINTS" },
+    { group: "Points System Title Box", id: '#psy-title-box', name: "Title · yellow box" },
+    { group: "Points System Title SYSTEM", id: '#psy-title-b', name: "Title · SYSTEM" },
+    { group: "Points System Title Icon", id: '#psy-title-icon', name: "Podium icon" },
+    { group: "Points System Subtitle A", id: '#psy-sub-a', name: "Subtitle · \"Total points per map =\"" },
+    { group: "Points System Subtitle Box 1", id: '#psy-sub-zone-box', name: "Subtitle · yellow box" },
+    { group: "Points System Subtitle Box 1 Text", id: '#psy-sub-t1', name: "Subtitle · SURVIVAL POINTS" },
+    { group: "Points System Subtitle Plus", id: '#psy-sub-plus', name: "Subtitle · +" },
+    { group: "Points System Subtitle Box 2", id: '#psy-sub-claim-box', name: "Subtitle · black box" },
+    { group: "Points System Subtitle Box 2 Text", id: '#psy-sub-t2', name: "Subtitle · ELIMINATION POINTS" },
+    { group: "Points System Table Panel", id: '#psy-table', name: "Table · panel" },
+    { group: "Points System Table Header Bar", id: '#psy-thead', name: "Table · header bar" },
+    { group: "Points System Table Header Placement", id: '#psy-th-place', name: "Table · header \"PLACEMENT\"" },
+    { group: "Points System Table Header Points", id: '#psy-th-pts', name: "Table · header \"SURVIVAL POINTS\"" },
+    { group: "Points System Row 1 Placement", id: '#psy-r1-place', name: "Row 1 · placement chip" },
+    { group: "Points System Row 1 Bar", id: '#psy-r1-bar', name: "Row 1 · points bar" },
+    { group: "Points System Row 1 Value", id: '#psy-r1-val', name: "Row 1 · points value" },
+    { group: "Points System Table Lines", id: '#psy-r1-line', name: "Table · line after row 1" },
+    { group: "Points System Row 2 Placement", id: '#psy-r2-place', name: "Row 2 · placement chip" },
+    { group: "Points System Row 2 Bar", id: '#psy-r2-bar', name: "Row 2 · points bar" },
+    { group: "Points System Row 2 Value", id: '#psy-r2-val', name: "Row 2 · points value" },
+    { group: "Points System Table Lines", id: '#psy-r2-line', name: "Table · line after row 2" },
+    { group: "Points System Row 3 Placement", id: '#psy-r3-place', name: "Row 3 · placement chip" },
+    { group: "Points System Row 3 Bar", id: '#psy-r3-bar', name: "Row 3 · points bar" },
+    { group: "Points System Row 3 Value", id: '#psy-r3-val', name: "Row 3 · points value" },
+    { group: "Points System Table Lines", id: '#psy-r3-line', name: "Table · line after row 3" },
+    { group: "Points System Row 4 Placement", id: '#psy-r4-place', name: "Row 4 · placement chip" },
+    { group: "Points System Row 4 Bar", id: '#psy-r4-bar', name: "Row 4 · points bar" },
+    { group: "Points System Row 4 Value", id: '#psy-r4-val', name: "Row 4 · points value" },
+    { group: "Points System Table Lines", id: '#psy-r4-line', name: "Table · line after row 4" },
+    { group: "Points System Row 5 Placement", id: '#psy-r5-place', name: "Row 5 · placement chip" },
+    { group: "Points System Row 5 Bar", id: '#psy-r5-bar', name: "Row 5 · points bar" },
+    { group: "Points System Row 5 Value", id: '#psy-r5-val', name: "Row 5 · points value" },
+    { group: "Points System Table Lines", id: '#psy-r5-line', name: "Table · line after row 5" },
+    { group: "Points System Row 6 Placement", id: '#psy-r6-place', name: "Row 6 · placement chip" },
+    { group: "Points System Row 6 Bar", id: '#psy-r6-bar', name: "Row 6 · points bar" },
+    { group: "Points System Row 6 Value", id: '#psy-r6-val', name: "Row 6 · points value" },
+    { group: "Points System Table Lines", id: '#psy-r6-line', name: "Table · line after row 6" },
+    { group: "Points System Row 7 Placement", id: '#psy-r7-place', name: "Row 7 · placement chip" },
+    { group: "Points System Row 7 Bar", id: '#psy-r7-bar', name: "Row 7 · points bar" },
+    { group: "Points System Row 7 Value", id: '#psy-r7-val', name: "Row 7 · points value" },
+    { group: "Points System Table Lines", id: '#psy-r7-line', name: "Table · line after row 7" },
+    { group: "Points System Row 8 Placement", id: '#psy-r8-place', name: "Row 8 · placement chip" },
+    { group: "Points System Row 8 Bar", id: '#psy-r8-bar', name: "Row 8 · points bar" },
+    { group: "Points System Row 8 Value", id: '#psy-r8-val', name: "Row 8 · points value" },
+    { group: "Points System Table Lines", id: '#psy-r8-line', name: "Table · line after row 8" },
+    { group: "Points System Row 9", id: '#psy-r9-icon', name: "Row 9 · icon" },
+    { group: "Points System Row 9 Place", id: '#psy-r9-place', name: "Row 9 · label" },
+    { group: "Points System Row 9 Note", id: '#psy-r9-note', name: "Row 9 · \"PER ELIMINATION\"" },
+    { group: "Points System Row 9 Value", id: '#psy-r9-val', name: "Row 9 · points value" },
+    { group: "Points System Rules Panel", id: '#psy-rules', name: "Rules · panel" },
+    { group: "Points System Rules Header", id: '#psy-rules-num', name: "Rules · badge" },
+    { group: "Points System Rules Title", id: '#psy-rules-title', name: "Rules · title" },
+    { group: "Points System Rules Lines", id: '#psy-rules-hline', name: "Rules · header line" },
+    { group: "Points System Rule 1", id: '#psy-rule1-icon', name: "Rule 1 · icon" },
+    { group: "Points System Rule 1 Text", id: '#psy-rule1-text', name: "Rule 1 · text" },
+    { group: "Points System Rules Lines", id: '#psy-rule1-line', name: "Rules · line after rule 1" },
+    { group: "Points System Rule 2", id: '#psy-rule2-icon', name: "Rule 2 · icon" },
+    { group: "Points System Rule 2 Text", id: '#psy-rule2-text', name: "Rule 2 · text" },
+    { group: "Points System Rules Lines", id: '#psy-rule2-line', name: "Rules · line after rule 2" },
+    { group: "Points System Rule 3", id: '#psy-rule3-icon', name: "Rule 3 · icon" },
+    { group: "Points System Rule 3 Text", id: '#psy-rule3-text', name: "Rule 3 · text" },
+    { group: "Points System Rules Lines", id: '#psy-rule3-line', name: "Rules · line after rule 3" },
+    { group: "Points System Rule 4", id: '#psy-rule4-icon', name: "Rule 4 · icon" },
+    { group: "Points System Rule 4 Text", id: '#psy-rule4-text', name: "Rule 4 · text" },
+    { group: "Points System Rules Lines", id: '#psy-rule4-line', name: "Rules · line after rule 4" },
+    { group: "Points System Rule 5", id: '#psy-rule5-icon', name: "Rule 5 · icon" },
+    { group: "Points System Rule 5 Text", id: '#psy-rule5-text', name: "Rule 5 · text" },
+    { group: "Points System Rules Lines", id: '#psy-rule5-line', name: "Rules · line after rule 5" },
+    { group: "Points System Rule 6", id: '#psy-rule6-icon', name: "Rule 6 · icon" },
+    { group: "Points System Rule 6 Text", id: '#psy-rule6-text', name: "Rule 6 · text" },
   ];
 
   /* ── Final Team (Fullscreen.html) element defaults ────────────────────
@@ -5009,6 +5958,24 @@
       elements:    KE_ELEMENTS,
       defaults:    KE_DEFAULTS,
       showFn:      'keShowDemo',
+    },
+    ingame_killevents_v2: {
+      label:       'Kill Events V2 (Ultimate) · Ingame',
+      file:        'ingame.html',
+      styleFile:   'ingame_events',
+      defaultsKey: 'sb_edit_defaults_ingame_killevents_v2',
+      elements:    KE2_ELEMENTS,
+      defaults:    KE2_DEFAULTS,
+      showFn:      'keShowDemoV2',
+    },
+    ingame_killevents_v2_merc: {
+      label:       'Kill Events V2 (Mercenary banner) · Ingame',
+      file:        'ingame.html',
+      styleFile:   'ingame_events',
+      defaultsKey: 'sb_edit_defaults_ingame_killevents_v2_merc',
+      elements:    KE2M_ELEMENTS,
+      defaults:    KE2M_DEFAULTS,
+      showFn:      'keShowDemoV2Merc',
     },
     fullscreen_timer: {
       label:       'Waiting Timer · Fullscreen',
@@ -5200,6 +6167,15 @@
       defaults:    LED_DEFAULTS,
       showFn:      'showIngameLedScene',
     },
+    led_intro: {
+      label:       'Team Introduction · LED Overlay',
+      file:        'ledoverlay.html',
+      styleFile:   'ledoverlay',
+      defaultsKey: 'sb_edit_defaults_led_intro',
+      elements:    LI_ELEMENTS,
+      defaults:    LI_DEFAULTS,
+      showFn:      'showLedIntroDemo',
+    },
     lowerthirds_playerh2h: {
       label:       'Player H2H L3 · Lower Thirds',
       file:        'LowerThirds.html',
@@ -5344,6 +6320,51 @@
       elements:    PPL_ELEMENTS,
       defaults:    PPL_DEFAULTS,
       showFn:      'showPrizePoolScene',
+    },
+    fullscreen_zownedpoints: {
+      label:       'Zowned Points · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_zownedpoints',
+      elements:    ZWP_ELEMENTS,
+      defaults:    ZWP_DEFAULTS,
+      showFn:      'showZownedPointsScene',
+    },
+    fullscreen_zonebounty: {
+      label:       'Zone Bounty · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_zonebounty',
+      elements:    ZB_ELEMENTS,
+      defaults:    ZB_DEFAULTS,
+      showFn:      'showZoneBountyScene',
+    },
+    fullscreen_zonerush: {
+      label:       'Zone Rush · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_zonerush',
+      elements:    ZRH_ELEMENTS,
+      defaults:    ZRH_DEFAULTS,
+      showFn:      'showZoneRushScene',
+    },
+    fullscreen_endgameprotocol: {
+      label:       'Endgame Protocol · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_endgameprotocol',
+      elements:    EGP_ELEMENTS,
+      defaults:    EGP_DEFAULTS,
+      showFn:      'showEndgameProtocolScene',
+    },
+    fullscreen_pointssystem: {
+      label:       'Points System · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_pointssystem',
+      elements:    PSY_ELEMENTS,
+      defaults:    PSY_DEFAULTS,
+      showFn:      'showPointsSystemScene',
     },
     fullscreen_mapwinner: {
       label:       'Map Winner · Fullscreen',

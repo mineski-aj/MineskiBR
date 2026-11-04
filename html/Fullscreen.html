@@ -339,6 +339,23 @@
     /* .Rectangle_5 from the design export — background-color placeholder
        dropped (see CLAUDE.md's "Working from pasted design-tool CSS"
        rule); the plaque itself is already baked into waitingtvc_bg.png. */
+    /* ── Waiting TVC sponsor spot (top-centre): black tag + logo window. Three independent
+       elements. Category text pushes in from the TOP (old one pushed down/out); the
+       logo pushes in from the RIGHT (old one pushed out to the left). Regular
+       (non-white) logos — this spot sits on the light background. ── */
+    #wtvc-spon-tag, #wtvc-spon-tag-text, #wtvc-spon-logo { display: none; position: absolute; }
+    #wtvc-spon-tag.wsp-on, #wtvc-spon-tag-text.wsp-on, #wtvc-spon-logo.wsp-on { display: block; }
+    #wtvc-spon-tag { left: 1090px; top: 41px; width: 248px; height: 36px; background: #0a0a0a;
+                     clip-path: polygon(7% 0, 100% 0, 93% 100%, 0 100%); }
+    #wtvc-spon-tag-text { left: 1112px; top: 41px; width: 204px; height: 36px; overflow: hidden; }
+    #wtvc-spon-logo { left: 1050px; top: 88px; width: 320px; height: 104px; overflow: hidden; }
+    .wsp-item { position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+                display: flex; align-items: center; justify-content: center; }
+    #wtvc-spon-tag-text .wsp-item { font-family: 'Teko', sans-serif; font-weight: 700; font-size: 27px; line-height: 1;
+                color: #fff; text-transform: uppercase; white-space: nowrap; text-align: center; }
+    #wtvc-spon-tag-text .wsp-item span { display: block; transform: translateY(0.12em); }
+    #wtvc-spon-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
     #wtvc-stage {
       position: absolute;
       left: 1382px; top: 259px;
@@ -638,6 +655,17 @@
     /* .Rectangle_4 from the design export — left/top/width/height kept,
        its placeholder background-color dropped (see CLAUDE.md's "Working
        from pasted design-tool CSS" rule). */
+    /* Waiting Timer sponsor box — same plate/label/loop shape as the Rank Header's
+       #rnk-sponsorbox but a WHITE plate (dark label) with the REGULAR logos. */
+    #wt-sponsorbox { position: absolute; left: 1538px; top: 880px; width: 382px; height: 182px; z-index: 3; }
+    #wt-sponsorbox .wl-sponsor-bg { filter: brightness(4); }
+    #wt-sponsorbox-label {
+      position: absolute; left: 56px; top: 20px; width: 319px; height: 31px;
+      display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden;
+      font-family: 'Teko', sans-serif; font-weight: 500; font-size: 29.75px; line-height: 1.1;
+      color: #0a0a0a; text-transform: uppercase; word-break: break-word;
+    }
+    #wt-sponsorbox-loop { position: absolute; left: 56px; top: 59px; width: 319px; height: 112px; overflow: hidden; }
     #wt-timer-value {
       position: absolute;
       left: 23px; top: 17px;
@@ -2999,10 +3027,1104 @@
       background: transparent;
       opacity: 0;
       transition: opacity 400ms ease;
+      font-family: 'Teko', sans-serif;
     }
     #prize-pool-page.ppl-on { display: block; }
     #prize-pool-page.ppl-visible { opacity: 1; }
-    #ppl-art { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; }
+    /* Prize Pool is rebuilt as live HTML (was prizepool.png): every figure is its own
+       #ppl-* element (Edit tab), Teko 700. The shared rank header sits above (RANK_FEATURES).
+       Entrance = CSS keyframes on .ppl-play + count-up on the two big amounts. */
+    #prize-pool-page > div { position: absolute; box-sizing: border-box; }
+    #prize-pool-page .ppl-t {
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      font-weight: 700; color: #141414; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    #prize-pool-page .ppl-t span { display: block; transform: translateY(.1em); }
+    #prize-pool-page #ppl-champ-bg { background: #FFE800; clip-path: polygon(68px 0, 749px 0, 725px 157px, 699px 94px, 681px 242px, 0 242px, 23px 84px, 49px 149px); }
+    @keyframes pplUp    { from { opacity: 0; transform: translateY(-26px); } to { opacity: 1; transform: none; } }
+    @keyframes pplRise  { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: none; } }
+    @keyframes pplPop   { 0% { opacity: 0; transform: scale(.55); } 70% { opacity: 1; transform: scale(1.05); } 100% { opacity: 1; transform: none; } }
+    @keyframes pplScaleX{ from { opacity: 0; transform: scaleX(0); } to { opacity: 1; transform: none; } }
+    @keyframes pplLeft  { from { opacity: 0; transform: translateX(-220px); } to { opacity: 1; transform: none; } }
+    @keyframes pplRight { from { opacity: 0; transform: translateX(220px); } to { opacity: 1; transform: none; } }
+    #prize-pool-page:not(.ppl-play) > div { opacity: 0; }
+    #prize-pool-page.ppl-play .ppl-a-up     { animation: pplUp 600ms cubic-bezier(.2,.8,.2,1) both; }
+    #prize-pool-page.ppl-play .ppl-a-rise   { animation: pplRise 650ms cubic-bezier(.2,.8,.2,1) both; }
+    #prize-pool-page.ppl-play .ppl-a-pop    { animation: pplPop 700ms cubic-bezier(.3,1.2,.5,1) both; }
+    #prize-pool-page.ppl-play .ppl-a-scalex { animation: pplScaleX 600ms cubic-bezier(.7,0,.2,1) both; transform-origin: center; }
+    #prize-pool-page.ppl-play .ppl-a-left   { animation: pplLeft 700ms cubic-bezier(.2,.8,.2,1) both; }
+    #prize-pool-page.ppl-play .ppl-a-right  { animation: pplRight 700ms cubic-bezier(.2,.8,.2,1) both; }
+    #ppl-total-label { left: 560px; top: 238px; width: 800px; height: 70px; font-size: 70px; animation-delay: 0ms; }
+    #ppl-total { left: 480px; top: 295px; width: 960px; height: 242px; font-size: 242px; animation-delay: 150ms; }
+    #ppl-champ-bg { left: 587px; top: 561px; width: 749px; height: 242px; animation-delay: 650ms; }
+    #ppl-champ-label { left: 757px; top: 586px; width: 410px; height: 51px; font-size: 51px; animation-delay: 900ms; }
+    #ppl-champ { left: 640px; top: 619px; width: 640px; height: 176px; font-size: 176px; animation-delay: 950ms; }
+    #ppl-2nd-label { left: 91px; top: 609px; width: 360px; height: 40px; font-size: 40px; animation-delay: 1250ms; }
+    #ppl-2nd { left: 70px; top: 635px; width: 402px; height: 136px; font-size: 136px; animation-delay: 1300ms; }
+    #ppl-3rd-label { left: 1421px; top: 609px; width: 360px; height: 40px; font-size: 40px; animation-delay: 1350ms; }
+    #ppl-3rd { left: 1400px; top: 635px; width: 402px; height: 136px; font-size: 136px; animation-delay: 1400ms; }
+    #ppl-4th-label { left: 455px; top: 854px; width: 320px; height: 27px; font-size: 27px; animation-delay: 1650ms; }
+    #ppl-4th { left: 440px; top: 870px; width: 350px; height: 95px; font-size: 95px; animation-delay: 1700ms; }
+    #ppl-5th-label { left: 796px; top: 854px; width: 340px; height: 27px; font-size: 27px; animation-delay: 1800ms; }
+    #ppl-5th { left: 790px; top: 870px; width: 350px; height: 95px; font-size: 95px; animation-delay: 1850ms; }
+    #ppl-7th-label { left: 1112px; top: 854px; width: 400px; height: 27px; font-size: 27px; animation-delay: 1950ms; }
+    #ppl-7th { left: 1137px; top: 870px; width: 350px; height: 95px; font-size: 95px; animation-delay: 2000ms; }
+
+    /* ── ZOWNED POINTS (full-screen scene under the shared rank header —
+       not in RANK_FEATURES / POST_FEATURES; the default transitionToImpl
+       branch hides the boards). Plays the shared #bg-video underneath
+       (showBgVideo/hideBgVideo). Every element is absolutely positioned
+       to the canvas with its own id (#zwp-*) so the Edit tab can move it.
+       Entrance = CSS animations on .zwp-play, staggered by .zwp-d<N> classes
+       (N * 50ms); the page itself still uses the usual two-class fade. ── */
+    #zowned-points-page {
+      position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+      display: none; overflow: hidden; background: transparent;
+      opacity: 0; transition: opacity 400ms ease;
+      font-family: 'Teko', sans-serif; color: #0a0a0a;
+    }
+    #zowned-points-page.zwp-on { display: block; }
+    #zowned-points-page.zwp-visible { opacity: 1; }
+    #zowned-points-page > * { position: absolute; box-sizing: border-box; }
+    #zowned-points-page svg { width: 100%; height: 100%; display: block; }
+    #zowned-points-page img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    #zowned-points-page .zwp-text, #zowned-points-page .zwp-title, #zowned-points-page .zwp-badge,
+    #zowned-points-page .zwp-card-title, #zowned-points-page .zwp-row-text, #zowned-points-page .zwp-banner-text {
+      display: flex; align-items: center; justify-content: flex-start; white-space: nowrap; overflow: hidden; line-height: 1;
+    }
+    #zowned-points-page .zwp-center { justify-content: center; text-align: center; }
+    #zowned-points-page .zwp-right { justify-content: flex-end; text-align: right; }
+    #zowned-points-page .zwp-text { font-weight: 600; letter-spacing: .03em; }
+    #zowned-points-page #zwp-presented, #zowned-points-page #zwp-from { color: #2a2a2a; font-weight: 600; letter-spacing: .12em; }
+    #zowned-points-page .zwp-title { font-weight: 700; letter-spacing: -.02em; color: #0a0a0a; }
+    #zowned-points-page .zwp-text span, #zowned-points-page .zwp-title span { display: block; transform: translateY(.12em); }
+    #zowned-points-page .zwp-title span { padding-right: .06em; }
+    #zowned-points-page #zwp-title-box, #zowned-points-page #zwp-sub-zone-box { background: #FFE600; }
+    #zowned-points-page #zwp-sub-claim-box { background: #0a0a0a; }
+    #zowned-points-page .zwp-sub { font-weight: 600; letter-spacing: 0; }
+    #zowned-points-page .zwp-sub-b { font-weight: 700; color: #0a0a0a; }
+    #zowned-points-page .zwp-sub-c2 { font-weight: 700; color: #FFE600; }
+    #zowned-points-page .zwp-icon-big { color: #0a0a0a; }
+    #zowned-points-page #zwp-corner-tr, #zowned-points-page #zwp-corner-bl { background: #0a0a0a; }
+    #zowned-points-page #zwp-corner-tr { clip-path: polygon(0 0, 100% 0, 100% 100%); }
+    #zowned-points-page #zwp-corner-bl { clip-path: polygon(0 0, 0 100%, 100% 100%); }
+    #zowned-points-page .zwp-wm { color: rgba(0,0,0,.09); }
+    #zowned-points-page .zwp-wm-dark { color: rgba(255,255,255,.13); }
+    #zowned-points-page .zwp-card { background: #fff; border-top: 7px solid #0a0a0a; box-shadow: 0 10px 22px rgba(0,0,0,.16); }
+    #zowned-points-page .zwp-card-dark { background: #0b0b0b; border-top-color: #FFE600; }
+    #zowned-points-page .zwp-badge { background: #FFE600; color: #0a0a0a; font-family: 'Teko', sans-serif; font-weight: 700; justify-content: center; }
+    #zowned-points-page .zwp-badge span { display: block; transform: translateY(.1em); }
+    #zowned-points-page .zwp-card-title { font-family: 'Teko', sans-serif; font-weight: 700; letter-spacing: .02em; color: #0a0a0a; }
+    #zowned-points-page .zwp-card-title span { display: block; transform: translateY(.1em); }
+    #zowned-points-page .zwp-on-dark { color: #fff; }
+    #zowned-points-page .zwp-line { background: rgba(0,0,0,.16); }
+    #zowned-points-page .zwp-line-dark { background: rgba(255,255,255,.2); }
+    #zowned-points-page .zwp-row-icon { background: #FFE600; color: #0a0a0a; padding: 9px; }
+    #zowned-points-page .zwp-row-text { font-weight: 500; white-space: normal; letter-spacing: 0; }
+    #zowned-points-page .zwp-row-text span { display: block; line-height: .95; transform: translateY(.08em); }
+    #zowned-points-page .zwp-row-text b { font-weight: 700; }
+    #zowned-points-page .zwp-banner { background: #FFE600; border: 5px solid #0a0a0a; }
+    #zowned-points-page .zwp-banner-text { font-family: 'Teko', sans-serif; font-weight: 700; letter-spacing: .03em; color: #0a0a0a; }
+    #zowned-points-page .zwp-banner-text span { display: block; transform: translateY(.1em); }
+    #zowned-points-page .zwp-banner-ico { color: #0a0a0a; }
+
+    #zowned-points-page .zwp-hero { background: #FFE600; clip-path: polygon(9.1% 0, 100% 0, 96.8% 64.9%, 93.3% 38.8%, 90.9% 100%, 0 100%, 3.1% 34.7%, 6.5% 61.6%); }
+    #zowned-points-page .zwp-strip { background: #0a0a0a; }
+    #zowned-points-page .zwp-strip-t, #zowned-points-page .zwp-tlabel, #zowned-points-page .zwp-tval {
+      display: flex; align-items: center; justify-content: center; text-align: center; font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    #zowned-points-page .zwp-strip-t { color: #FFE600; letter-spacing: .05em; }
+    #zowned-points-page .zwp-tlabel { color: #3a3a3a; font-weight: 500; letter-spacing: .08em; }
+    #zowned-points-page .zwp-tval { color: #0a0a0a; }
+    #zowned-points-page .zwp-strip-t span, #zowned-points-page .zwp-tlabel span, #zowned-points-page .zwp-tval span { display: block; transform: translateY(.1em); }
+
+    /* entrance animations — nothing runs until .zwp-play is added */
+    #zowned-points-page .zwp-a { }
+    @keyframes zwpUp      { from { opacity: 0; transform: translateY(34px); } to { opacity: 1; transform: none; } }
+    @keyframes zwpLeftIn  { from { opacity: 0; transform: translateX(-120px); } to { opacity: 1; transform: none; } }
+    @keyframes zwpLeftInS { from { opacity: 0; transform: translateX(-34px); } to { opacity: 1; transform: none; } }
+    @keyframes zwpWipe    { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+    @keyframes zwpWipeC   { from { clip-path: inset(0 50% 0 50%); } to { clip-path: inset(0 0 0 0); } }
+    @keyframes zwpPop     { 0% { opacity: 0; transform: scale(.2) rotate(-12deg); } 65% { opacity: 1; transform: scale(1.14) rotate(2deg); } 100% { opacity: 1; transform: none; } }
+    @keyframes zwpPopSoft { from { opacity: 0; transform: scale(.7) translateY(-20px); } to { opacity: 1; transform: none; } }
+    @keyframes zwpRise    { from { opacity: 0; transform: translateY(90px); } to { opacity: 1; transform: none; } }
+    @keyframes zwpLineIn  { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    @keyframes zwpSlideTr { from { transform: translate(180px, -90px); } to { transform: none; } }
+    @keyframes zwpSlideBl { from { transform: translate(-180px, 140px); } to { transform: none; } }
+    @keyframes zwpFadeWm  { from { opacity: 0; } to { opacity: 1; } }
+    #zowned-points-page:not(.zwp-play) > * { opacity: 0; }
+    #zowned-points-page.zwp-play .zwp-up       { animation: zwpUp 600ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zowned-points-page.zwp-play .zwp-left-in  { animation: zwpLeftIn 650ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zowned-points-page.zwp-play .zwp-left-in-s{ animation: zwpLeftInS 500ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zowned-points-page.zwp-play .zwp-wipe     { animation: zwpWipe 520ms cubic-bezier(.7,0,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zowned-points-page.zwp-play .zwp-wipe-c   { animation: zwpWipeC 650ms cubic-bezier(.7,0,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zowned-points-page.zwp-play .zwp-pop      { animation: zwpPop 520ms cubic-bezier(.3,1.3,.5,1) both; animation-delay: var(--zbd, 0ms); }
+    #zowned-points-page.zwp-play .zwp-pop-soft { animation: zwpPopSoft 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zowned-points-page.zwp-play .zwp-rise     { animation: zwpRise 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zowned-points-page.zwp-play .zwp-line-in  { animation: zwpLineIn 420ms cubic-bezier(.4,0,.2,1) both; transform-origin: left center; animation-delay: var(--zbd, 0ms); }
+    #zowned-points-page.zwp-play .zwp-slide-tr { animation: zwpSlideTr 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zowned-points-page.zwp-play .zwp-slide-bl { animation: zwpSlideBl 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zowned-points-page.zwp-play .zwp-fade-wm  { animation: zwpFadeWm 900ms ease both; animation-delay: var(--zbd, 0ms); }
+    #zowned-points-page.zwp-play > * { opacity: 1; }
+    #zowned-points-page .zwp-d0 { --zbd: 0ms; }
+    #zowned-points-page .zwp-d1 { --zbd: 50ms; }
+    #zowned-points-page .zwp-d2 { --zbd: 100ms; }
+    #zowned-points-page .zwp-d3 { --zbd: 150ms; }
+    #zowned-points-page .zwp-d4 { --zbd: 200ms; }
+    #zowned-points-page .zwp-d5 { --zbd: 250ms; }
+    #zowned-points-page .zwp-d6 { --zbd: 300ms; }
+    #zowned-points-page .zwp-d7 { --zbd: 350ms; }
+    #zowned-points-page .zwp-d8 { --zbd: 400ms; }
+    #zowned-points-page .zwp-d9 { --zbd: 450ms; }
+    #zowned-points-page .zwp-d10 { --zbd: 500ms; }
+    #zowned-points-page .zwp-d11 { --zbd: 550ms; }
+    #zowned-points-page .zwp-d12 { --zbd: 600ms; }
+    #zowned-points-page .zwp-d13 { --zbd: 650ms; }
+    #zowned-points-page .zwp-d14 { --zbd: 700ms; }
+    #zowned-points-page .zwp-d15 { --zbd: 750ms; }
+    #zowned-points-page .zwp-d16 { --zbd: 800ms; }
+    #zowned-points-page .zwp-d17 { --zbd: 850ms; }
+    #zowned-points-page .zwp-d18 { --zbd: 900ms; }
+    #zowned-points-page .zwp-d19 { --zbd: 950ms; }
+    #zowned-points-page .zwp-d20 { --zbd: 1000ms; }
+    #zowned-points-page .zwp-d21 { --zbd: 1050ms; }
+    #zowned-points-page .zwp-d22 { --zbd: 1100ms; }
+    #zowned-points-page .zwp-d23 { --zbd: 1150ms; }
+    #zowned-points-page .zwp-d24 { --zbd: 1200ms; }
+    #zowned-points-page .zwp-d25 { --zbd: 1250ms; }
+    #zowned-points-page .zwp-d26 { --zbd: 1300ms; }
+    #zowned-points-page .zwp-d27 { --zbd: 1350ms; }
+    #zowned-points-page .zwp-d28 { --zbd: 1400ms; }
+    #zowned-points-page .zwp-d29 { --zbd: 1450ms; }
+    #zowned-points-page .zwp-d30 { --zbd: 1500ms; }
+    #zowned-points-page .zwp-d31 { --zbd: 1550ms; }
+    #zowned-points-page .zwp-d32 { --zbd: 1600ms; }
+    #zowned-points-page .zwp-d33 { --zbd: 1650ms; }
+    #zowned-points-page .zwp-d34 { --zbd: 1700ms; }
+    #zowned-points-page .zwp-d35 { --zbd: 1750ms; }
+    #zowned-points-page .zwp-d36 { --zbd: 1800ms; }
+    #zowned-points-page .zwp-d37 { --zbd: 1850ms; }
+    #zowned-points-page .zwp-d38 { --zbd: 1900ms; }
+    #zowned-points-page .zwp-d39 { --zbd: 1950ms; }
+    #zowned-points-page .zwp-d40 { --zbd: 2000ms; }
+    #zowned-points-page .zwp-d41 { --zbd: 2050ms; }
+    #zowned-points-page .zwp-d42 { --zbd: 2100ms; }
+    #zowned-points-page .zwp-d43 { --zbd: 2150ms; }
+    #zowned-points-page .zwp-d44 { --zbd: 2200ms; }
+    #zowned-points-page .zwp-d45 { --zbd: 2250ms; }
+    #zowned-points-page .zwp-d46 { --zbd: 2300ms; }
+    #zowned-points-page .zwp-d47 { --zbd: 2350ms; }
+    #zowned-points-page .zwp-d48 { --zbd: 2400ms; }
+    #zowned-points-page .zwp-d49 { --zbd: 2450ms; }
+    #zowned-points-page .zwp-d50 { --zbd: 2500ms; }
+    #zowned-points-page .zwp-d51 { --zbd: 2550ms; }
+    #zowned-points-page .zwp-d52 { --zbd: 2600ms; }
+    #zowned-points-page .zwp-d53 { --zbd: 2650ms; }
+    #zowned-points-page .zwp-d54 { --zbd: 2700ms; }
+    #zowned-points-page .zwp-d55 { --zbd: 2750ms; }
+    #zowned-points-page .zwp-d56 { --zbd: 2800ms; }
+    #zowned-points-page .zwp-d57 { --zbd: 2850ms; }
+    #zowned-points-page .zwp-d58 { --zbd: 2900ms; }
+    #zowned-points-page .zwp-d59 { --zbd: 2950ms; }
+    #zowned-points-page .zwp-d60 { --zbd: 3000ms; }
+
+    #zwp-hero { left: 60px; top: 235px; width: 880px; height: 560px; }
+    #zwp-hero-num { left: 110px; top: 235px; width: 780px; height: 440px; font-size: 440px; }
+    #zwp-hero-unit { left: 110px; top: 637px; width: 780px; height: 72px; font-size: 72px; }
+    #zwp-strip { left: 60px; top: 815px; width: 880px; height: 80px; }
+    #zwp-strip-text { left: 60px; top: 815px; width: 880px; height: 80px; font-size: 50px; }
+    #zwp-tile-leader { left: 60px; top: 915px; width: 430px; height: 135px; }
+    #zwp-tile-leader-label { left: 70px; top: 928px; width: 410px; height: 40px; font-size: 36px; }
+    #zwp-tile-leader-val { left: 70px; top: 970px; width: 410px; height: 70px; font-size: 70px; }
+    #zwp-tile-bonus { left: 510px; top: 915px; width: 430px; height: 135px; }
+    #zwp-tile-bonus-label { left: 520px; top: 928px; width: 410px; height: 40px; font-size: 36px; }
+    #zwp-tile-bonus-val { left: 520px; top: 970px; width: 410px; height: 70px; font-size: 70px; }
+    #zwp-card { left: 980px; top: 235px; width: 880px; height: 815px; }
+    #zwp-row1-icon { left: 1011px; top: 310px; width: 54px; height: 54px; }
+    #zwp-row1-text { left: 1091px; top: 267px; width: 745px; height: 140px; font-size: 38px; }
+    #zwp-row1-line { left: 1011px; top: 439px; width: 818px; height: 2px; }
+    #zwp-row2-icon { left: 1011px; top: 514px; width: 54px; height: 54px; }
+    #zwp-row2-text { left: 1091px; top: 471px; width: 745px; height: 140px; font-size: 38px; }
+    #zwp-row2-line { left: 1011px; top: 643px; width: 818px; height: 2px; }
+    #zwp-row3-icon { left: 1011px; top: 718px; width: 54px; height: 54px; }
+    #zwp-row3-text { left: 1091px; top: 675px; width: 745px; height: 140px; font-size: 38px; }
+    #zwp-row3-line { left: 1011px; top: 847px; width: 818px; height: 2px; }
+    #zwp-row4-icon { left: 1011px; top: 922px; width: 54px; height: 54px; }
+    #zwp-row4-text { left: 1091px; top: 879px; width: 745px; height: 140px; font-size: 38px; }
+    /* ── ZONE BOUNTY (standalone full-screen explainer — NO shared header,
+       not in RANK_FEATURES / POST_FEATURES; the default transitionToImpl
+       branch hides the boards). Plays the shared #bg-video underneath
+       (showBgVideo/hideBgVideo). Every element is absolutely positioned
+       to the canvas with its own id (#zb-*) so the Edit tab can move it.
+       Entrance = CSS animations on .zb-play, staggered by .zb-d<N> classes
+       (N * 50ms); the page itself still uses the usual two-class fade. ── */
+    #zone-bounty-page {
+      position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+      display: none; overflow: hidden; background: transparent;
+      opacity: 0; transition: opacity 400ms ease;
+      font-family: 'Teko', sans-serif; color: #0a0a0a;
+    }
+    #zone-bounty-page.zb-on { display: block; }
+    #zone-bounty-page.zb-visible { opacity: 1; }
+    #zone-bounty-page > * { position: absolute; box-sizing: border-box; }
+    #zone-bounty-page svg { width: 100%; height: 100%; display: block; }
+    #zone-bounty-page img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    #zone-bounty-page .zb-text, #zone-bounty-page .zb-title, #zone-bounty-page .zb-badge,
+    #zone-bounty-page .zb-card-title, #zone-bounty-page .zb-row-text, #zone-bounty-page .zb-banner-text {
+      display: flex; align-items: center; justify-content: flex-start; white-space: nowrap; overflow: hidden; line-height: 1;
+    }
+    #zone-bounty-page .zb-center { justify-content: center; text-align: center; }
+    #zone-bounty-page .zb-right { justify-content: flex-end; text-align: right; }
+    #zone-bounty-page .zb-text { font-weight: 600; letter-spacing: .03em; }
+    #zone-bounty-page #zb-presented, #zone-bounty-page #zb-from { color: #2a2a2a; font-weight: 600; letter-spacing: .12em; }
+    #zone-bounty-page .zb-title { font-weight: 700; letter-spacing: -.02em; color: #0a0a0a; }
+    #zone-bounty-page .zb-text span, #zone-bounty-page .zb-title span { display: block; transform: translateY(.12em); }
+    #zone-bounty-page .zb-title span { padding-right: .06em; }
+    #zone-bounty-page #zb-title-box, #zone-bounty-page #zb-sub-zone-box { background: #FFE600; }
+    #zone-bounty-page #zb-sub-claim-box { background: #0a0a0a; }
+    #zone-bounty-page .zb-sub { font-weight: 600; letter-spacing: 0; }
+    #zone-bounty-page .zb-sub-b { font-weight: 700; color: #0a0a0a; }
+    #zone-bounty-page .zb-sub-c2 { font-weight: 700; color: #FFE600; }
+    #zone-bounty-page .zb-icon-big { color: #0a0a0a; }
+    #zone-bounty-page #zb-corner-tr, #zone-bounty-page #zb-corner-bl { background: #0a0a0a; }
+    #zone-bounty-page #zb-corner-tr { clip-path: polygon(0 0, 100% 0, 100% 100%); }
+    #zone-bounty-page #zb-corner-bl { clip-path: polygon(0 0, 0 100%, 100% 100%); }
+    #zone-bounty-page .zb-wm { color: rgba(0,0,0,.09); }
+    #zone-bounty-page .zb-wm-dark { color: rgba(255,255,255,.13); }
+    #zone-bounty-page .zb-card { background: #fff; border-top: 7px solid #0a0a0a; box-shadow: 0 10px 22px rgba(0,0,0,.16); }
+    #zone-bounty-page .zb-card-dark { background: #0b0b0b; border-top-color: #FFE600; }
+    #zone-bounty-page .zb-badge { background: #FFE600; color: #0a0a0a; font-family: 'Teko', sans-serif; font-weight: 700; justify-content: center; }
+    #zone-bounty-page .zb-badge span { display: block; transform: translateY(.1em); }
+    #zone-bounty-page .zb-card-title { font-family: 'Teko', sans-serif; font-weight: 700; letter-spacing: .02em; color: #0a0a0a; }
+    #zone-bounty-page .zb-card-title span { display: block; transform: translateY(.1em); }
+    #zone-bounty-page .zb-on-dark { color: #fff; }
+    #zone-bounty-page .zb-line { background: rgba(0,0,0,.16); }
+    #zone-bounty-page .zb-line-dark { background: rgba(255,255,255,.2); }
+    #zone-bounty-page .zb-row-icon { background: #FFE600; color: #0a0a0a; padding: 9px; }
+    #zone-bounty-page .zb-row-text { font-weight: 500; white-space: normal; letter-spacing: 0; }
+    #zone-bounty-page .zb-row-text span { display: block; line-height: .95; transform: translateY(.08em); }
+    #zone-bounty-page .zb-row-text b { font-weight: 700; }
+    #zone-bounty-page .zb-banner { background: #FFE600; border: 5px solid #0a0a0a; }
+    #zone-bounty-page .zb-banner-text { font-family: 'Teko', sans-serif; font-weight: 700; letter-spacing: .03em; color: #0a0a0a; }
+    #zone-bounty-page .zb-banner-text span { display: block; transform: translateY(.1em); }
+    #zone-bounty-page .zb-banner-ico { color: #0a0a0a; }
+
+    /* entrance animations — nothing runs until .zb-play is added */
+    #zone-bounty-page .zb-a { }
+    @keyframes zbUp      { from { opacity: 0; transform: translateY(34px); } to { opacity: 1; transform: none; } }
+    @keyframes zbLeftIn  { from { opacity: 0; transform: translateX(-120px); } to { opacity: 1; transform: none; } }
+    @keyframes zbLeftInS { from { opacity: 0; transform: translateX(-34px); } to { opacity: 1; transform: none; } }
+    @keyframes zbWipe    { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+    @keyframes zbWipeC   { from { clip-path: inset(0 50% 0 50%); } to { clip-path: inset(0 0 0 0); } }
+    @keyframes zbPop     { 0% { opacity: 0; transform: scale(.2) rotate(-12deg); } 65% { opacity: 1; transform: scale(1.14) rotate(2deg); } 100% { opacity: 1; transform: none; } }
+    @keyframes zbPopSoft { from { opacity: 0; transform: scale(.7) translateY(-20px); } to { opacity: 1; transform: none; } }
+    @keyframes zbRise    { from { opacity: 0; transform: translateY(90px); } to { opacity: 1; transform: none; } }
+    @keyframes zbLineIn  { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    @keyframes zbSlideTr { from { transform: translate(180px, -90px); } to { transform: none; } }
+    @keyframes zbSlideBl { from { transform: translate(-180px, 140px); } to { transform: none; } }
+    @keyframes zbFadeWm  { from { opacity: 0; } to { opacity: 1; } }
+    #zone-bounty-page:not(.zb-play) > * { opacity: 0; }
+    #zone-bounty-page.zb-play .zb-up       { animation: zbUp 600ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-bounty-page.zb-play .zb-left-in  { animation: zbLeftIn 650ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-bounty-page.zb-play .zb-left-in-s{ animation: zbLeftInS 500ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-bounty-page.zb-play .zb-wipe     { animation: zbWipe 520ms cubic-bezier(.7,0,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-bounty-page.zb-play .zb-wipe-c   { animation: zbWipeC 650ms cubic-bezier(.7,0,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-bounty-page.zb-play .zb-pop      { animation: zbPop 520ms cubic-bezier(.3,1.3,.5,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-bounty-page.zb-play .zb-pop-soft { animation: zbPopSoft 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-bounty-page.zb-play .zb-rise     { animation: zbRise 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-bounty-page.zb-play .zb-line-in  { animation: zbLineIn 420ms cubic-bezier(.4,0,.2,1) both; transform-origin: left center; animation-delay: var(--zbd, 0ms); }
+    #zone-bounty-page.zb-play .zb-slide-tr { animation: zbSlideTr 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-bounty-page.zb-play .zb-slide-bl { animation: zbSlideBl 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-bounty-page.zb-play .zb-fade-wm  { animation: zbFadeWm 900ms ease both; animation-delay: var(--zbd, 0ms); }
+    #zone-bounty-page.zb-play > * { opacity: 1; }
+    #zone-bounty-page .zb-d0 { --zbd: 0ms; }
+    #zone-bounty-page .zb-d1 { --zbd: 50ms; }
+    #zone-bounty-page .zb-d2 { --zbd: 100ms; }
+    #zone-bounty-page .zb-d3 { --zbd: 150ms; }
+    #zone-bounty-page .zb-d4 { --zbd: 200ms; }
+    #zone-bounty-page .zb-d5 { --zbd: 250ms; }
+    #zone-bounty-page .zb-d6 { --zbd: 300ms; }
+    #zone-bounty-page .zb-d7 { --zbd: 350ms; }
+    #zone-bounty-page .zb-d8 { --zbd: 400ms; }
+    #zone-bounty-page .zb-d9 { --zbd: 450ms; }
+    #zone-bounty-page .zb-d10 { --zbd: 500ms; }
+    #zone-bounty-page .zb-d11 { --zbd: 550ms; }
+    #zone-bounty-page .zb-d12 { --zbd: 600ms; }
+    #zone-bounty-page .zb-d13 { --zbd: 650ms; }
+    #zone-bounty-page .zb-d14 { --zbd: 700ms; }
+    #zone-bounty-page .zb-d15 { --zbd: 750ms; }
+    #zone-bounty-page .zb-d16 { --zbd: 800ms; }
+    #zone-bounty-page .zb-d17 { --zbd: 850ms; }
+    #zone-bounty-page .zb-d18 { --zbd: 900ms; }
+    #zone-bounty-page .zb-d19 { --zbd: 950ms; }
+    #zone-bounty-page .zb-d20 { --zbd: 1000ms; }
+    #zone-bounty-page .zb-d21 { --zbd: 1050ms; }
+    #zone-bounty-page .zb-d22 { --zbd: 1100ms; }
+    #zone-bounty-page .zb-d23 { --zbd: 1150ms; }
+    #zone-bounty-page .zb-d24 { --zbd: 1200ms; }
+    #zone-bounty-page .zb-d25 { --zbd: 1250ms; }
+    #zone-bounty-page .zb-d26 { --zbd: 1300ms; }
+    #zone-bounty-page .zb-d27 { --zbd: 1350ms; }
+    #zone-bounty-page .zb-d28 { --zbd: 1400ms; }
+    #zone-bounty-page .zb-d29 { --zbd: 1450ms; }
+    #zone-bounty-page .zb-d30 { --zbd: 1500ms; }
+    #zone-bounty-page .zb-d31 { --zbd: 1550ms; }
+    #zone-bounty-page .zb-d32 { --zbd: 1600ms; }
+    #zone-bounty-page .zb-d33 { --zbd: 1650ms; }
+    #zone-bounty-page .zb-d34 { --zbd: 1700ms; }
+    #zone-bounty-page .zb-d35 { --zbd: 1750ms; }
+    #zone-bounty-page .zb-d36 { --zbd: 1800ms; }
+    #zone-bounty-page .zb-d37 { --zbd: 1850ms; }
+    #zone-bounty-page .zb-d38 { --zbd: 1900ms; }
+    #zone-bounty-page .zb-d39 { --zbd: 1950ms; }
+    #zone-bounty-page .zb-d40 { --zbd: 2000ms; }
+    #zone-bounty-page .zb-d41 { --zbd: 2050ms; }
+    #zone-bounty-page .zb-d42 { --zbd: 2100ms; }
+    #zone-bounty-page .zb-d43 { --zbd: 2150ms; }
+    #zone-bounty-page .zb-d44 { --zbd: 2200ms; }
+    #zone-bounty-page .zb-d45 { --zbd: 2250ms; }
+    #zone-bounty-page .zb-d46 { --zbd: 2300ms; }
+    #zone-bounty-page .zb-d47 { --zbd: 2350ms; }
+    #zone-bounty-page .zb-d48 { --zbd: 2400ms; }
+    #zone-bounty-page .zb-d49 { --zbd: 2450ms; }
+    #zone-bounty-page .zb-d50 { --zbd: 2500ms; }
+    #zone-bounty-page .zb-d51 { --zbd: 2550ms; }
+    #zone-bounty-page .zb-d52 { --zbd: 2600ms; }
+    #zone-bounty-page .zb-d53 { --zbd: 2650ms; }
+    #zone-bounty-page .zb-d54 { --zbd: 2700ms; }
+    #zone-bounty-page .zb-d55 { --zbd: 2750ms; }
+    #zone-bounty-page .zb-d56 { --zbd: 2800ms; }
+    #zone-bounty-page .zb-d57 { --zbd: 2850ms; }
+    #zone-bounty-page .zb-d58 { --zbd: 2900ms; }
+    #zone-bounty-page .zb-d59 { --zbd: 2950ms; }
+    #zone-bounty-page .zb-d60 { --zbd: 3000ms; }
+
+    #zb-corner-tr { left: 1644px; top: 0px; width: 276px; height: 86px; }
+    #zb-corner-bl { left: 0px; top: 940px; width: 178px; height: 140px; }
+    #zb-logo { left: 924px; top: 22px; width: 94px; height: 118px; }
+    #zb-presented { left: 660px; top: 142px; width: 600px; height: 26px; font-size: 27px; }
+    #zb-title-zone { left: 440px; top: 128px; width: 392px; height: 190px; font-size: 190px; }
+    #zb-title-box { left: 853px; top: 164px; width: 540px; height: 118px; }
+    #zb-title-bounty { left: 853px; top: 128px; width: 540px; height: 190px; font-size: 190px; }
+    #zb-crown { left: 334px; top: 212px; width: 64px; height: 60px; }
+    #zb-xhair { left: 1530px; top: 196px; width: 70px; height: 70px; }
+    #zb-sub-a { left: 420px; top: 296px; width: 204px; height: 52px; font-size: 48px; }
+    #zb-sub-zone-box { left: 630px; top: 296px; width: 222px; height: 52px; }
+    #zb-sub-zone { left: 630px; top: 296px; width: 222px; height: 52px; font-size: 48px; }
+    #zb-sub-c { left: 862px; top: 296px; width: 330px; height: 52px; font-size: 48px; }
+    #zb-sub-claim-box { left: 1198px; top: 296px; width: 302px; height: 52px; }
+    #zb-sub-claim { left: 1198px; top: 296px; width: 302px; height: 52px; font-size: 48px; }
+    #zb-from { left: 760px; top: 352px; width: 400px; height: 26px; font-size: 27px; }
+    #zb-c1 { left: 85px; top: 394px; width: 562px; height: 456px; }
+    #zb-c1-num { left: 114px; top: 425px; width: 54px; height: 54px; font-size: 56px; }
+    #zb-c1-title { left: 185px; top: 418px; width: 440px; height: 68px; font-size: 64px; }
+    #zb-c1-hline { left: 116px; top: 491px; width: 500px; height: 2px; }
+    #zb-c1-r1-icon { left: 116px; top: 508px; width: 50px; height: 50px; }
+    #zb-c1-r1-text { left: 192px; top: 493px; width: 440px; height: 80px; font-size: 36px; }
+    #zb-c1-r1-line { left: 116px; top: 575px; width: 500px; height: 2px; }
+    #zb-c1-r2-icon { left: 116px; top: 594px; width: 50px; height: 50px; }
+    #zb-c1-r2-text { left: 192px; top: 579px; width: 440px; height: 80px; font-size: 36px; }
+    #zb-c1-r2-line { left: 116px; top: 661px; width: 500px; height: 2px; }
+    #zb-c1-r3-icon { left: 116px; top: 680px; width: 50px; height: 50px; }
+    #zb-c1-r3-text { left: 192px; top: 665px; width: 440px; height: 80px; font-size: 36px; }
+    #zb-c1-r3-line { left: 116px; top: 747px; width: 500px; height: 2px; }
+    #zb-c1-r4-icon { left: 116px; top: 766px; width: 50px; height: 50px; }
+    #zb-c1-r4-text { left: 192px; top: 751px; width: 440px; height: 80px; font-size: 36px; }
+    #zb-c2 { left: 681px; top: 394px; width: 562px; height: 456px; }
+    #zb-c2-num { left: 710px; top: 425px; width: 54px; height: 54px; font-size: 56px; }
+    #zb-c2-title { left: 781px; top: 418px; width: 440px; height: 68px; font-size: 64px; }
+    #zb-c2-hline { left: 712px; top: 491px; width: 500px; height: 2px; }
+    #zb-c2-r1-icon { left: 712px; top: 508px; width: 50px; height: 50px; }
+    #zb-c2-r1-text { left: 788px; top: 493px; width: 440px; height: 80px; font-size: 36px; }
+    #zb-c2-r1-line { left: 712px; top: 575px; width: 500px; height: 2px; }
+    #zb-c2-r2-icon { left: 712px; top: 594px; width: 50px; height: 50px; }
+    #zb-c2-r2-text { left: 788px; top: 579px; width: 440px; height: 80px; font-size: 36px; }
+    #zb-c2-r2-line { left: 712px; top: 661px; width: 500px; height: 2px; }
+    #zb-c2-r3-icon { left: 712px; top: 680px; width: 50px; height: 50px; }
+    #zb-c2-r3-text { left: 788px; top: 665px; width: 440px; height: 80px; font-size: 36px; }
+    #zb-c3 { left: 1278px; top: 394px; width: 562px; height: 456px; }
+    #zb-c3-num { left: 1307px; top: 425px; width: 54px; height: 54px; font-size: 56px; }
+    #zb-c3-title { left: 1378px; top: 418px; width: 440px; height: 68px; font-size: 64px; }
+    #zb-c3-hline { left: 1309px; top: 491px; width: 500px; height: 2px; }
+    #zb-c3-r1-icon { left: 1309px; top: 508px; width: 50px; height: 50px; }
+    #zb-c3-r1-text { left: 1385px; top: 493px; width: 440px; height: 80px; font-size: 36px; }
+    #zb-c3-r1-line { left: 1309px; top: 575px; width: 500px; height: 2px; }
+    #zb-c3-r2-icon { left: 1309px; top: 594px; width: 50px; height: 50px; }
+    #zb-c3-r2-text { left: 1385px; top: 579px; width: 440px; height: 80px; font-size: 36px; }
+    #zb-c3-r2-line { left: 1309px; top: 661px; width: 500px; height: 2px; }
+    #zb-c3-r3-icon { left: 1309px; top: 680px; width: 50px; height: 50px; }
+    #zb-c3-r3-text { left: 1385px; top: 665px; width: 440px; height: 80px; font-size: 36px; }
+    #zb-c3-r3-line { left: 1309px; top: 747px; width: 500px; height: 2px; }
+    #zb-c3-r4-icon { left: 1309px; top: 766px; width: 50px; height: 50px; }
+    #zb-c3-r4-text { left: 1385px; top: 751px; width: 440px; height: 80px; font-size: 36px; }
+    #zb-banner { left: 452px; top: 895px; width: 1020px; height: 80px; }
+    #zb-banner-text { left: 590px; top: 895px; width: 744px; height: 80px; font-size: 60px; }
+    #zb-banner-trophy-l { left: 506px; top: 913px; width: 44px; height: 44px; }
+    #zb-banner-trophy-r { left: 1374px; top: 913px; width: 44px; height: 44px; }
+
+    /* ── POINTS SYSTEM (standalone full-screen explainer — NO shared header,
+       not in RANK_FEATURES / POST_FEATURES; the default transitionToImpl
+       branch hides the boards). Plays the shared #bg-video underneath
+       (showBgVideo/hideBgVideo). Every element is absolutely positioned
+       to the canvas with its own id (#psy-*) so the Edit tab can move it.
+       Entrance = CSS animations on .psy-play, staggered by .psy-d<N> classes
+       (N * 50ms); the page itself still uses the usual two-class fade. ── */
+    #points-system-page {
+      position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+      display: none; overflow: hidden; background: transparent;
+      opacity: 0; transition: opacity 400ms ease;
+      font-family: 'Teko', sans-serif; color: #0a0a0a;
+    }
+    #points-system-page.psy-on { display: block; }
+    #points-system-page.psy-visible { opacity: 1; }
+    #points-system-page > * { position: absolute; box-sizing: border-box; }
+    #points-system-page svg { width: 100%; height: 100%; display: block; }
+    #points-system-page img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    #points-system-page .psy-text, #points-system-page .psy-title, #points-system-page .psy-badge,
+    #points-system-page .psy-card-title, #points-system-page .psy-row-text, #points-system-page .psy-banner-text {
+      display: flex; align-items: center; justify-content: flex-start; white-space: nowrap; overflow: hidden; line-height: 1;
+    }
+    #points-system-page .psy-center { justify-content: center; text-align: center; }
+    #points-system-page .psy-right { justify-content: flex-end; text-align: right; }
+    #points-system-page .psy-text { font-weight: 600; letter-spacing: .03em; }
+    #points-system-page #psy-presented, #points-system-page #psy-from { color: #2a2a2a; font-weight: 600; letter-spacing: .12em; }
+    #points-system-page .psy-title { font-weight: 700; letter-spacing: -.02em; color: #0a0a0a; }
+    #points-system-page .psy-text span, #points-system-page .psy-title span { display: block; transform: translateY(.12em); }
+    #points-system-page .psy-title span { padding-right: .06em; }
+    #points-system-page #psy-title-box, #points-system-page #psy-sub-zone-box { background: #FFE600; }
+    #points-system-page #psy-sub-claim-box { background: #0a0a0a; }
+    #points-system-page .psy-sub { font-weight: 600; letter-spacing: 0; }
+    #points-system-page .psy-sub-b { font-weight: 700; color: #0a0a0a; }
+    #points-system-page .psy-sub-c2 { font-weight: 700; color: #FFE600; }
+    #points-system-page .psy-icon-big { color: #0a0a0a; }
+    #points-system-page #psy-corner-tr, #points-system-page #psy-corner-bl { background: #0a0a0a; }
+    #points-system-page #psy-corner-tr { clip-path: polygon(0 0, 100% 0, 100% 100%); }
+    #points-system-page #psy-corner-bl { clip-path: polygon(0 0, 0 100%, 100% 100%); }
+    #points-system-page .psy-wm { color: rgba(0,0,0,.09); }
+    #points-system-page .psy-wm-dark { color: rgba(255,255,255,.13); }
+    #points-system-page .psy-card { background: #fff; border-top: 7px solid #0a0a0a; box-shadow: 0 10px 22px rgba(0,0,0,.16); }
+    #points-system-page .psy-card-dark { background: #0b0b0b; border-top-color: #FFE600; }
+    #points-system-page .psy-badge { background: #FFE600; color: #0a0a0a; font-family: 'Teko', sans-serif; font-weight: 700; justify-content: center; }
+    #points-system-page .psy-badge span { display: block; transform: translateY(.1em); }
+    #points-system-page .psy-card-title { font-family: 'Teko', sans-serif; font-weight: 700; letter-spacing: .02em; color: #0a0a0a; }
+    #points-system-page .psy-card-title span { display: block; transform: translateY(.1em); }
+    #points-system-page .psy-on-dark { color: #fff; }
+    #points-system-page .psy-line { background: rgba(0,0,0,.16); }
+    #points-system-page .psy-line-dark { background: rgba(255,255,255,.2); }
+    #points-system-page .psy-row-icon { background: #FFE600; color: #0a0a0a; padding: 9px; }
+    #points-system-page .psy-row-text { font-weight: 500; white-space: normal; letter-spacing: 0; }
+    #points-system-page .psy-row-text span { display: block; line-height: .95; transform: translateY(.08em); }
+    #points-system-page .psy-row-text b { font-weight: 700; }
+    #points-system-page .psy-banner { background: #FFE600; border: 5px solid #0a0a0a; }
+    #points-system-page .psy-banner-text { font-family: 'Teko', sans-serif; font-weight: 700; letter-spacing: .03em; color: #0a0a0a; }
+    #points-system-page .psy-banner-text span { display: block; transform: translateY(.1em); }
+    #points-system-page .psy-banner-ico { color: #0a0a0a; }
+
+    #points-system-page .psy-thead { background: #0a0a0a; }
+    #points-system-page .psy-th, #points-system-page .psy-place, #points-system-page .psy-val, #points-system-page .psy-note {
+      display: flex; align-items: center; font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; white-space: nowrap; overflow: hidden;
+    }
+    #points-system-page .psy-th { color: #FFE600; letter-spacing: .05em; justify-content: flex-start; }
+    #points-system-page .psy-th-r { justify-content: flex-end; }
+    #points-system-page .psy-place { color: #0a0a0a; letter-spacing: .02em; }
+    #points-system-page .psy-th span, #points-system-page .psy-place span, #points-system-page .psy-val span, #points-system-page .psy-note span { display: block; transform: translateY(.1em); }
+    #points-system-page .psy-chip { display: flex; align-items: center; justify-content: center; background: #FFE600; color: #0a0a0a; font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; white-space: nowrap; overflow: hidden; letter-spacing: .03em; }
+    #points-system-page .psy-chip span { display: block; transform: translateY(.1em); }
+    #points-system-page .psy-bar { background: #FFE600; border: 3px solid #0a0a0a; }
+    #points-system-page .psy-bar-zero { background: #0a0a0a; }
+    #points-system-page .psy-val { background: #0a0a0a; color: #FFE600; justify-content: center; }
+    #points-system-page .psy-note { font-weight: 500; color: #3a3a3a; letter-spacing: .08em; }
+
+    /* entrance animations — nothing runs until .psy-play is added */
+    #points-system-page .psy-a { }
+    @keyframes psyUp      { from { opacity: 0; transform: translateY(34px); } to { opacity: 1; transform: none; } }
+    @keyframes psyLeftIn  { from { opacity: 0; transform: translateX(-120px); } to { opacity: 1; transform: none; } }
+    @keyframes psyLeftInS { from { opacity: 0; transform: translateX(-34px); } to { opacity: 1; transform: none; } }
+    @keyframes psyWipe    { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+    @keyframes psyWipeC   { from { clip-path: inset(0 50% 0 50%); } to { clip-path: inset(0 0 0 0); } }
+    @keyframes psyPop     { 0% { opacity: 0; transform: scale(.2) rotate(-12deg); } 65% { opacity: 1; transform: scale(1.14) rotate(2deg); } 100% { opacity: 1; transform: none; } }
+    @keyframes psyPopSoft { from { opacity: 0; transform: scale(.7) translateY(-20px); } to { opacity: 1; transform: none; } }
+    @keyframes psyRise    { from { opacity: 0; transform: translateY(90px); } to { opacity: 1; transform: none; } }
+    @keyframes psyLineIn  { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    @keyframes psySlideTr { from { transform: translate(180px, -90px); } to { transform: none; } }
+    @keyframes psySlideBl { from { transform: translate(-180px, 140px); } to { transform: none; } }
+    @keyframes psyFadeWm  { from { opacity: 0; } to { opacity: 1; } }
+    #points-system-page:not(.psy-play) > * { opacity: 0; }
+    #points-system-page.psy-play .psy-up       { animation: psyUp 600ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #points-system-page.psy-play .psy-left-in  { animation: psyLeftIn 650ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #points-system-page.psy-play .psy-left-in-s{ animation: psyLeftInS 500ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #points-system-page.psy-play .psy-wipe     { animation: psyWipe 520ms cubic-bezier(.7,0,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #points-system-page.psy-play .psy-wipe-c   { animation: psyWipeC 650ms cubic-bezier(.7,0,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #points-system-page.psy-play .psy-pop      { animation: psyPop 520ms cubic-bezier(.3,1.3,.5,1) both; animation-delay: var(--zbd, 0ms); }
+    #points-system-page.psy-play .psy-pop-soft { animation: psyPopSoft 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #points-system-page.psy-play .psy-rise     { animation: psyRise 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #points-system-page.psy-play .psy-line-in  { animation: psyLineIn 420ms cubic-bezier(.4,0,.2,1) both; transform-origin: left center; animation-delay: var(--zbd, 0ms); }
+    #points-system-page.psy-play .psy-slide-tr { animation: psySlideTr 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #points-system-page.psy-play .psy-slide-bl { animation: psySlideBl 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #points-system-page.psy-play .psy-fade-wm  { animation: psyFadeWm 900ms ease both; animation-delay: var(--zbd, 0ms); }
+    #points-system-page.psy-play > * { opacity: 1; }
+    #points-system-page .psy-d0 { --zbd: 0ms; }
+    #points-system-page .psy-d1 { --zbd: 50ms; }
+    #points-system-page .psy-d2 { --zbd: 100ms; }
+    #points-system-page .psy-d3 { --zbd: 150ms; }
+    #points-system-page .psy-d4 { --zbd: 200ms; }
+    #points-system-page .psy-d5 { --zbd: 250ms; }
+    #points-system-page .psy-d6 { --zbd: 300ms; }
+    #points-system-page .psy-d7 { --zbd: 350ms; }
+    #points-system-page .psy-d8 { --zbd: 400ms; }
+    #points-system-page .psy-d9 { --zbd: 450ms; }
+    #points-system-page .psy-d10 { --zbd: 500ms; }
+    #points-system-page .psy-d11 { --zbd: 550ms; }
+    #points-system-page .psy-d12 { --zbd: 600ms; }
+    #points-system-page .psy-d13 { --zbd: 650ms; }
+    #points-system-page .psy-d14 { --zbd: 700ms; }
+    #points-system-page .psy-d15 { --zbd: 750ms; }
+    #points-system-page .psy-d16 { --zbd: 800ms; }
+    #points-system-page .psy-d17 { --zbd: 850ms; }
+    #points-system-page .psy-d18 { --zbd: 900ms; }
+    #points-system-page .psy-d19 { --zbd: 950ms; }
+    #points-system-page .psy-d20 { --zbd: 1000ms; }
+    #points-system-page .psy-d21 { --zbd: 1050ms; }
+    #points-system-page .psy-d22 { --zbd: 1100ms; }
+    #points-system-page .psy-d23 { --zbd: 1150ms; }
+    #points-system-page .psy-d24 { --zbd: 1200ms; }
+    #points-system-page .psy-d25 { --zbd: 1250ms; }
+    #points-system-page .psy-d26 { --zbd: 1300ms; }
+    #points-system-page .psy-d27 { --zbd: 1350ms; }
+    #points-system-page .psy-d28 { --zbd: 1400ms; }
+    #points-system-page .psy-d29 { --zbd: 1450ms; }
+    #points-system-page .psy-d30 { --zbd: 1500ms; }
+    #points-system-page .psy-d31 { --zbd: 1550ms; }
+    #points-system-page .psy-d32 { --zbd: 1600ms; }
+    #points-system-page .psy-d33 { --zbd: 1650ms; }
+    #points-system-page .psy-d34 { --zbd: 1700ms; }
+    #points-system-page .psy-d35 { --zbd: 1750ms; }
+    #points-system-page .psy-d36 { --zbd: 1800ms; }
+    #points-system-page .psy-d37 { --zbd: 1850ms; }
+    #points-system-page .psy-d38 { --zbd: 1900ms; }
+    #points-system-page .psy-d39 { --zbd: 1950ms; }
+    #points-system-page .psy-d40 { --zbd: 2000ms; }
+    #points-system-page .psy-d41 { --zbd: 2050ms; }
+    #points-system-page .psy-d42 { --zbd: 2100ms; }
+    #points-system-page .psy-d43 { --zbd: 2150ms; }
+    #points-system-page .psy-d44 { --zbd: 2200ms; }
+    #points-system-page .psy-d45 { --zbd: 2250ms; }
+    #points-system-page .psy-d46 { --zbd: 2300ms; }
+    #points-system-page .psy-d47 { --zbd: 2350ms; }
+    #points-system-page .psy-d48 { --zbd: 2400ms; }
+    #points-system-page .psy-d49 { --zbd: 2450ms; }
+    #points-system-page .psy-d50 { --zbd: 2500ms; }
+    #points-system-page .psy-d51 { --zbd: 2550ms; }
+    #points-system-page .psy-d52 { --zbd: 2600ms; }
+    #points-system-page .psy-d53 { --zbd: 2650ms; }
+    #points-system-page .psy-d54 { --zbd: 2700ms; }
+    #points-system-page .psy-d55 { --zbd: 2750ms; }
+    #points-system-page .psy-d56 { --zbd: 2800ms; }
+    #points-system-page .psy-d57 { --zbd: 2850ms; }
+    #points-system-page .psy-d58 { --zbd: 2900ms; }
+    #points-system-page .psy-d59 { --zbd: 2950ms; }
+    #points-system-page .psy-d60 { --zbd: 3000ms; }
+
+    #psy-corner-tr { left: 1644px; top: 0px; width: 276px; height: 86px; }
+    #psy-corner-bl { left: 0px; top: 940px; width: 178px; height: 140px; }
+    #psy-logo { left: 1528px; top: 26px; width: 94px; height: 118px; }
+    #psy-presented { left: 1290px; top: 152px; width: 570px; height: 28px; font-size: 27px; }
+    #psy-title-a { left: 60px; top: 20px; width: 430px; height: 140px; font-size: 140px; }
+    #psy-title-box { left: 506px; top: 44px; width: 520px; height: 92px; }
+    #psy-title-b { left: 506px; top: 20px; width: 520px; height: 140px; font-size: 140px; }
+    #psy-title-icon { left: 1056px; top: 38px; width: 84px; height: 84px; }
+    #psy-sub-a { left: 60px; top: 152px; width: 380px; height: 52px; font-size: 40px; }
+    #psy-sub-zone-box { left: 450px; top: 152px; width: 280px; height: 52px; }
+    #psy-sub-t1 { left: 450px; top: 152px; width: 280px; height: 52px; font-size: 40px; }
+    #psy-sub-plus { left: 740px; top: 152px; width: 36px; height: 52px; font-size: 48px; }
+    #psy-sub-claim-box { left: 786px; top: 152px; width: 340px; height: 52px; }
+    #psy-sub-t2 { left: 786px; top: 152px; width: 340px; height: 52px; font-size: 40px; }
+    #psy-table { left: 60px; top: 225px; width: 1190px; height: 825px; }
+    #psy-thead { left: 90px; top: 246px; width: 1130px; height: 58px; }
+    #psy-th-place { left: 110px; top: 246px; width: 300px; height: 58px; font-size: 40px; }
+    #psy-th-pts { left: 780px; top: 246px; width: 420px; height: 58px; font-size: 40px; }
+    #psy-r1-place { left: 90px; top: 322px; width: 230px; height: 56px; font-size: 50px; }
+    #psy-r1-bar { left: 430px; top: 330px; width: 620px; height: 40px; }
+    #psy-r1-val { left: 1100px; top: 320px; width: 120px; height: 60px; font-size: 54px; }
+    #psy-r1-line { left: 90px; top: 389px; width: 1130px; height: 2px; }
+    #psy-r2-place { left: 90px; top: 402px; width: 230px; height: 56px; font-size: 50px; }
+    #psy-r2-bar { left: 430px; top: 410px; width: 372px; height: 40px; }
+    #psy-r2-val { left: 1100px; top: 400px; width: 120px; height: 60px; font-size: 54px; }
+    #psy-r2-line { left: 90px; top: 469px; width: 1130px; height: 2px; }
+    #psy-r3-place { left: 90px; top: 482px; width: 230px; height: 56px; font-size: 50px; }
+    #psy-r3-bar { left: 430px; top: 490px; width: 310px; height: 40px; }
+    #psy-r3-val { left: 1100px; top: 480px; width: 120px; height: 60px; font-size: 54px; }
+    #psy-r3-line { left: 90px; top: 549px; width: 1130px; height: 2px; }
+    #psy-r4-place { left: 90px; top: 562px; width: 230px; height: 56px; font-size: 50px; }
+    #psy-r4-bar { left: 430px; top: 570px; width: 248px; height: 40px; }
+    #psy-r4-val { left: 1100px; top: 560px; width: 120px; height: 60px; font-size: 54px; }
+    #psy-r4-line { left: 90px; top: 629px; width: 1130px; height: 2px; }
+    #psy-r5-place { left: 90px; top: 642px; width: 230px; height: 56px; font-size: 50px; }
+    #psy-r5-bar { left: 430px; top: 650px; width: 186px; height: 40px; }
+    #psy-r5-val { left: 1100px; top: 640px; width: 120px; height: 60px; font-size: 54px; }
+    #psy-r5-line { left: 90px; top: 709px; width: 1130px; height: 2px; }
+    #psy-r6-place { left: 90px; top: 722px; width: 230px; height: 56px; font-size: 50px; }
+    #psy-r6-bar { left: 430px; top: 730px; width: 124px; height: 40px; }
+    #psy-r6-val { left: 1100px; top: 720px; width: 120px; height: 60px; font-size: 54px; }
+    #psy-r6-line { left: 90px; top: 789px; width: 1130px; height: 2px; }
+    #psy-r7-place { left: 90px; top: 802px; width: 230px; height: 56px; font-size: 50px; }
+    #psy-r7-bar { left: 430px; top: 810px; width: 62px; height: 40px; }
+    #psy-r7-val { left: 1100px; top: 800px; width: 120px; height: 60px; font-size: 54px; }
+    #psy-r7-line { left: 90px; top: 869px; width: 1130px; height: 2px; }
+    #psy-r8-place { left: 90px; top: 882px; width: 230px; height: 56px; font-size: 50px; }
+    #psy-r8-bar { left: 430px; top: 890px; width: 12px; height: 40px; }
+    #psy-r8-val { left: 1100px; top: 880px; width: 120px; height: 60px; font-size: 54px; }
+    #psy-r8-line { left: 90px; top: 949px; width: 1130px; height: 2px; }
+    #psy-r9-icon { left: 90px; top: 962px; width: 56px; height: 56px; }
+    #psy-r9-place { left: 166px; top: 960px; width: 250px; height: 60px; font-size: 54px; }
+    #psy-r9-note { left: 430px; top: 960px; width: 400px; height: 60px; font-size: 46px; }
+    #psy-r9-val { left: 1100px; top: 960px; width: 120px; height: 60px; font-size: 54px; }
+    #psy-rules { left: 1290px; top: 225px; width: 570px; height: 825px; }
+    #psy-rules-num { left: 1319px; top: 250px; width: 54px; height: 54px; }
+    #psy-rules-title { left: 1390px; top: 243px; width: 440px; height: 68px; font-size: 64px; }
+    #psy-rules-hline { left: 1321px; top: 322px; width: 508px; height: 2px; }
+    #psy-rule1-icon { left: 1321px; top: 363px; width: 50px; height: 50px; }
+    #psy-rule1-text { left: 1397px; top: 334px; width: 443px; height: 108px; font-size: 32px; }
+    #psy-rule1-line { left: 1321px; top: 445px; width: 508px; height: 2px; }
+    #psy-rule2-icon { left: 1321px; top: 479px; width: 50px; height: 50px; }
+    #psy-rule2-text { left: 1397px; top: 450px; width: 443px; height: 108px; font-size: 32px; }
+    #psy-rule2-line { left: 1321px; top: 561px; width: 508px; height: 2px; }
+    #psy-rule3-icon { left: 1321px; top: 595px; width: 50px; height: 50px; }
+    #psy-rule3-text { left: 1397px; top: 566px; width: 443px; height: 108px; font-size: 32px; }
+    #psy-rule3-line { left: 1321px; top: 677px; width: 508px; height: 2px; }
+    #psy-rule4-icon { left: 1321px; top: 711px; width: 50px; height: 50px; }
+    #psy-rule4-text { left: 1397px; top: 682px; width: 443px; height: 108px; font-size: 32px; }
+    #psy-rule4-line { left: 1321px; top: 793px; width: 508px; height: 2px; }
+    #psy-rule5-icon { left: 1321px; top: 827px; width: 50px; height: 50px; }
+    #psy-rule5-text { left: 1397px; top: 798px; width: 443px; height: 108px; font-size: 32px; }
+    #psy-rule5-line { left: 1321px; top: 909px; width: 508px; height: 2px; }
+    #psy-rule6-icon { left: 1321px; top: 943px; width: 50px; height: 50px; }
+    #psy-rule6-text { left: 1397px; top: 914px; width: 443px; height: 108px; font-size: 32px; }
+
+    /* ── ENDGAME PROTOCOL (standalone full-screen explainer — NO shared header,
+       not in RANK_FEATURES / POST_FEATURES; the default transitionToImpl
+       branch hides the boards). Plays the shared #bg-video underneath
+       (showBgVideo/hideBgVideo). Every element is absolutely positioned
+       to the canvas with its own id (#egp-*) so the Edit tab can move it.
+       Entrance = CSS animations on .egp-play, staggered by .egp-d<N> classes
+       (N * 50ms); the page itself still uses the usual two-class fade. ── */
+    #endgame-protocol-page {
+      position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+      display: none; overflow: hidden; background: transparent;
+      opacity: 0; transition: opacity 400ms ease;
+      font-family: 'Teko', sans-serif; color: #0a0a0a;
+    }
+    #endgame-protocol-page.egp-on { display: block; }
+    #endgame-protocol-page.egp-visible { opacity: 1; }
+    #endgame-protocol-page > * { position: absolute; box-sizing: border-box; }
+    #endgame-protocol-page svg { width: 100%; height: 100%; display: block; }
+    #endgame-protocol-page img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    #endgame-protocol-page .egp-text, #endgame-protocol-page .egp-title, #endgame-protocol-page .egp-badge,
+    #endgame-protocol-page .egp-card-title, #endgame-protocol-page .egp-row-text, #endgame-protocol-page .egp-banner-text {
+      display: flex; align-items: center; justify-content: flex-start; white-space: nowrap; overflow: hidden; line-height: 1;
+    }
+    #endgame-protocol-page .egp-center { justify-content: center; text-align: center; }
+    #endgame-protocol-page .egp-right { justify-content: flex-end; text-align: right; }
+    #endgame-protocol-page .egp-text { font-weight: 600; letter-spacing: .03em; }
+    #endgame-protocol-page #egp-presented, #endgame-protocol-page #egp-from { color: #2a2a2a; font-weight: 600; letter-spacing: .12em; }
+    #endgame-protocol-page .egp-title { font-weight: 700; letter-spacing: -.02em; color: #0a0a0a; }
+    #endgame-protocol-page .egp-text span, #endgame-protocol-page .egp-title span { display: block; transform: translateY(.12em); }
+    #endgame-protocol-page .egp-title span { padding-right: .06em; }
+    #endgame-protocol-page #egp-title-box, #endgame-protocol-page #egp-sub-zone-box { background: #FFE600; }
+    #endgame-protocol-page #egp-sub-claim-box { background: #0a0a0a; }
+    #endgame-protocol-page .egp-sub { font-weight: 600; letter-spacing: 0; }
+    #endgame-protocol-page .egp-sub-b { font-weight: 700; color: #0a0a0a; }
+    #endgame-protocol-page .egp-sub-c2 { font-weight: 700; color: #FFE600; }
+    #endgame-protocol-page .egp-icon-big { color: #0a0a0a; }
+    #endgame-protocol-page #egp-corner-tr, #endgame-protocol-page #egp-corner-bl { background: #0a0a0a; }
+    #endgame-protocol-page #egp-corner-tr { clip-path: polygon(0 0, 100% 0, 100% 100%); }
+    #endgame-protocol-page #egp-corner-bl { clip-path: polygon(0 0, 0 100%, 100% 100%); }
+    #endgame-protocol-page .egp-wm { color: rgba(0,0,0,.09); }
+    #endgame-protocol-page .egp-wm-dark { color: rgba(255,255,255,.13); }
+    #endgame-protocol-page .egp-card { background: #fff; border-top: 7px solid #0a0a0a; box-shadow: 0 10px 22px rgba(0,0,0,.16); }
+    #endgame-protocol-page .egp-card-dark { background: #0b0b0b; border-top-color: #FFE600; }
+    #endgame-protocol-page .egp-badge { background: #FFE600; color: #0a0a0a; font-family: 'Teko', sans-serif; font-weight: 700; justify-content: center; }
+    #endgame-protocol-page .egp-badge span { display: block; transform: translateY(.1em); }
+    #endgame-protocol-page .egp-card-title { font-family: 'Teko', sans-serif; font-weight: 700; letter-spacing: .02em; color: #0a0a0a; }
+    #endgame-protocol-page .egp-card-title span { display: block; transform: translateY(.1em); }
+    #endgame-protocol-page .egp-on-dark { color: #fff; }
+    #endgame-protocol-page .egp-line { background: rgba(0,0,0,.16); }
+    #endgame-protocol-page .egp-line-dark { background: rgba(255,255,255,.2); }
+    #endgame-protocol-page .egp-row-icon { background: #FFE600; color: #0a0a0a; padding: 9px; }
+    #endgame-protocol-page .egp-row-text { font-weight: 500; white-space: normal; letter-spacing: 0; }
+    #endgame-protocol-page .egp-row-text span { display: block; line-height: .95; transform: translateY(.08em); }
+    #endgame-protocol-page .egp-row-text b { font-weight: 700; }
+    #endgame-protocol-page .egp-banner { background: #FFE600; border: 5px solid #0a0a0a; }
+    #endgame-protocol-page .egp-banner-text { font-family: 'Teko', sans-serif; font-weight: 700; letter-spacing: .03em; color: #0a0a0a; }
+    #endgame-protocol-page .egp-banner-text span { display: block; transform: translateY(.1em); }
+    #endgame-protocol-page .egp-banner-ico { color: #0a0a0a; }
+
+    /* entrance animations — nothing runs until .egp-play is added */
+    #endgame-protocol-page .egp-a { }
+    @keyframes egpUp      { from { opacity: 0; transform: translateY(34px); } to { opacity: 1; transform: none; } }
+    @keyframes egpLeftIn  { from { opacity: 0; transform: translateX(-120px); } to { opacity: 1; transform: none; } }
+    @keyframes egpLeftInS { from { opacity: 0; transform: translateX(-34px); } to { opacity: 1; transform: none; } }
+    @keyframes egpWipe    { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+    @keyframes egpWipeC   { from { clip-path: inset(0 50% 0 50%); } to { clip-path: inset(0 0 0 0); } }
+    @keyframes egpPop     { 0% { opacity: 0; transform: scale(.2) rotate(-12deg); } 65% { opacity: 1; transform: scale(1.14) rotate(2deg); } 100% { opacity: 1; transform: none; } }
+    @keyframes egpPopSoft { from { opacity: 0; transform: scale(.7) translateY(-20px); } to { opacity: 1; transform: none; } }
+    @keyframes egpRise    { from { opacity: 0; transform: translateY(90px); } to { opacity: 1; transform: none; } }
+    @keyframes egpLineIn  { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    @keyframes egpSlideTr { from { transform: translate(180px, -90px); } to { transform: none; } }
+    @keyframes egpSlideBl { from { transform: translate(-180px, 140px); } to { transform: none; } }
+    @keyframes egpFadeWm  { from { opacity: 0; } to { opacity: 1; } }
+    #endgame-protocol-page:not(.egp-play) > * { opacity: 0; }
+    #endgame-protocol-page.egp-play .egp-up       { animation: egpUp 600ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #endgame-protocol-page.egp-play .egp-left-in  { animation: egpLeftIn 650ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #endgame-protocol-page.egp-play .egp-left-in-s{ animation: egpLeftInS 500ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #endgame-protocol-page.egp-play .egp-wipe     { animation: egpWipe 520ms cubic-bezier(.7,0,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #endgame-protocol-page.egp-play .egp-wipe-c   { animation: egpWipeC 650ms cubic-bezier(.7,0,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #endgame-protocol-page.egp-play .egp-pop      { animation: egpPop 520ms cubic-bezier(.3,1.3,.5,1) both; animation-delay: var(--zbd, 0ms); }
+    #endgame-protocol-page.egp-play .egp-pop-soft { animation: egpPopSoft 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #endgame-protocol-page.egp-play .egp-rise     { animation: egpRise 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #endgame-protocol-page.egp-play .egp-line-in  { animation: egpLineIn 420ms cubic-bezier(.4,0,.2,1) both; transform-origin: left center; animation-delay: var(--zbd, 0ms); }
+    #endgame-protocol-page.egp-play .egp-slide-tr { animation: egpSlideTr 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #endgame-protocol-page.egp-play .egp-slide-bl { animation: egpSlideBl 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #endgame-protocol-page.egp-play .egp-fade-wm  { animation: egpFadeWm 900ms ease both; animation-delay: var(--zbd, 0ms); }
+    #endgame-protocol-page.egp-play > * { opacity: 1; }
+    #endgame-protocol-page .egp-d0 { --zbd: 0ms; }
+    #endgame-protocol-page .egp-d1 { --zbd: 50ms; }
+    #endgame-protocol-page .egp-d2 { --zbd: 100ms; }
+    #endgame-protocol-page .egp-d3 { --zbd: 150ms; }
+    #endgame-protocol-page .egp-d4 { --zbd: 200ms; }
+    #endgame-protocol-page .egp-d5 { --zbd: 250ms; }
+    #endgame-protocol-page .egp-d6 { --zbd: 300ms; }
+    #endgame-protocol-page .egp-d7 { --zbd: 350ms; }
+    #endgame-protocol-page .egp-d8 { --zbd: 400ms; }
+    #endgame-protocol-page .egp-d9 { --zbd: 450ms; }
+    #endgame-protocol-page .egp-d10 { --zbd: 500ms; }
+    #endgame-protocol-page .egp-d11 { --zbd: 550ms; }
+    #endgame-protocol-page .egp-d12 { --zbd: 600ms; }
+    #endgame-protocol-page .egp-d13 { --zbd: 650ms; }
+    #endgame-protocol-page .egp-d14 { --zbd: 700ms; }
+    #endgame-protocol-page .egp-d15 { --zbd: 750ms; }
+    #endgame-protocol-page .egp-d16 { --zbd: 800ms; }
+    #endgame-protocol-page .egp-d17 { --zbd: 850ms; }
+    #endgame-protocol-page .egp-d18 { --zbd: 900ms; }
+    #endgame-protocol-page .egp-d19 { --zbd: 950ms; }
+    #endgame-protocol-page .egp-d20 { --zbd: 1000ms; }
+    #endgame-protocol-page .egp-d21 { --zbd: 1050ms; }
+    #endgame-protocol-page .egp-d22 { --zbd: 1100ms; }
+    #endgame-protocol-page .egp-d23 { --zbd: 1150ms; }
+    #endgame-protocol-page .egp-d24 { --zbd: 1200ms; }
+    #endgame-protocol-page .egp-d25 { --zbd: 1250ms; }
+    #endgame-protocol-page .egp-d26 { --zbd: 1300ms; }
+    #endgame-protocol-page .egp-d27 { --zbd: 1350ms; }
+    #endgame-protocol-page .egp-d28 { --zbd: 1400ms; }
+    #endgame-protocol-page .egp-d29 { --zbd: 1450ms; }
+    #endgame-protocol-page .egp-d30 { --zbd: 1500ms; }
+    #endgame-protocol-page .egp-d31 { --zbd: 1550ms; }
+    #endgame-protocol-page .egp-d32 { --zbd: 1600ms; }
+    #endgame-protocol-page .egp-d33 { --zbd: 1650ms; }
+    #endgame-protocol-page .egp-d34 { --zbd: 1700ms; }
+    #endgame-protocol-page .egp-d35 { --zbd: 1750ms; }
+    #endgame-protocol-page .egp-d36 { --zbd: 1800ms; }
+    #endgame-protocol-page .egp-d37 { --zbd: 1850ms; }
+    #endgame-protocol-page .egp-d38 { --zbd: 1900ms; }
+    #endgame-protocol-page .egp-d39 { --zbd: 1950ms; }
+    #endgame-protocol-page .egp-d40 { --zbd: 2000ms; }
+    #endgame-protocol-page .egp-d41 { --zbd: 2050ms; }
+    #endgame-protocol-page .egp-d42 { --zbd: 2100ms; }
+    #endgame-protocol-page .egp-d43 { --zbd: 2150ms; }
+    #endgame-protocol-page .egp-d44 { --zbd: 2200ms; }
+    #endgame-protocol-page .egp-d45 { --zbd: 2250ms; }
+    #endgame-protocol-page .egp-d46 { --zbd: 2300ms; }
+    #endgame-protocol-page .egp-d47 { --zbd: 2350ms; }
+    #endgame-protocol-page .egp-d48 { --zbd: 2400ms; }
+    #endgame-protocol-page .egp-d49 { --zbd: 2450ms; }
+    #endgame-protocol-page .egp-d50 { --zbd: 2500ms; }
+    #endgame-protocol-page .egp-d51 { --zbd: 2550ms; }
+    #endgame-protocol-page .egp-d52 { --zbd: 2600ms; }
+    #endgame-protocol-page .egp-d53 { --zbd: 2650ms; }
+    #endgame-protocol-page .egp-d54 { --zbd: 2700ms; }
+    #endgame-protocol-page .egp-d55 { --zbd: 2750ms; }
+    #endgame-protocol-page .egp-d56 { --zbd: 2800ms; }
+    #endgame-protocol-page .egp-d57 { --zbd: 2850ms; }
+    #endgame-protocol-page .egp-d58 { --zbd: 2900ms; }
+    #endgame-protocol-page .egp-d59 { --zbd: 2950ms; }
+    #endgame-protocol-page .egp-d60 { --zbd: 3000ms; }
+
+    #egp-corner-tr { left: 1644px; top: 0px; width: 276px; height: 86px; }
+    #egp-corner-bl { left: 0px; top: 940px; width: 178px; height: 140px; }
+    #egp-logo { left: 924px; top: 22px; width: 94px; height: 118px; }
+    #egp-presented { left: 660px; top: 142px; width: 600px; height: 26px; font-size: 27px; }
+    #egp-title-zone { left: 420px; top: 128px; width: 443px; height: 190px; font-size: 190px; }
+    #egp-title-box { left: 883px; top: 164px; width: 560px; height: 118px; }
+    #egp-title-rush { left: 883px; top: 128px; width: 560px; height: 190px; font-size: 190px; }
+    #egp-bolt { left: 330px; top: 206px; width: 64px; height: 68px; }
+    #egp-xhair { left: 1500px; top: 206px; width: 70px; height: 66px; }
+    #egp-sub-a { left: 510px; top: 296px; width: 84px; height: 52px; font-size: 48px; }
+    #egp-sub-zone-box { left: 604px; top: 296px; width: 226px; height: 52px; }
+    #egp-sub-zone { left: 604px; top: 296px; width: 226px; height: 52px; font-size: 48px; }
+    #egp-sub-c { left: 842px; top: 296px; width: 300px; height: 52px; font-size: 48px; }
+    #egp-sub-claim-box { left: 1150px; top: 296px; width: 262px; height: 52px; }
+    #egp-sub-claim { left: 1150px; top: 296px; width: 262px; height: 52px; font-size: 48px; }
+    #egp-from { left: 660px; top: 352px; width: 600px; height: 26px; font-size: 27px; }
+    #egp-c1 { left: 85px; top: 394px; width: 562px; height: 456px; }
+    #egp-c1-num { left: 114px; top: 425px; width: 54px; height: 54px; font-size: 56px; }
+    #egp-c1-title { left: 185px; top: 418px; width: 440px; height: 68px; font-size: 64px; }
+    #egp-c1-hline { left: 116px; top: 491px; width: 500px; height: 2px; }
+    #egp-c1-r1-icon { left: 116px; top: 508px; width: 50px; height: 50px; }
+    #egp-c1-r1-text { left: 192px; top: 493px; width: 440px; height: 80px; font-size: 36px; }
+    #egp-c1-r1-line { left: 116px; top: 575px; width: 500px; height: 2px; }
+    #egp-c1-r2-icon { left: 116px; top: 594px; width: 50px; height: 50px; }
+    #egp-c1-r2-text { left: 192px; top: 579px; width: 440px; height: 80px; font-size: 36px; }
+    #egp-c1-r2-line { left: 116px; top: 661px; width: 500px; height: 2px; }
+    #egp-c1-r3-icon { left: 116px; top: 680px; width: 50px; height: 50px; }
+    #egp-c1-r3-text { left: 192px; top: 665px; width: 440px; height: 80px; font-size: 36px; }
+    #egp-c1-r3-line { left: 116px; top: 747px; width: 500px; height: 2px; }
+    #egp-c1-r4-icon { left: 116px; top: 766px; width: 50px; height: 50px; }
+    #egp-c1-r4-text { left: 192px; top: 751px; width: 440px; height: 80px; font-size: 36px; }
+    #egp-c2 { left: 681px; top: 394px; width: 562px; height: 456px; }
+    #egp-c2-num { left: 710px; top: 425px; width: 54px; height: 54px; font-size: 56px; }
+    #egp-c2-title { left: 781px; top: 418px; width: 440px; height: 68px; font-size: 64px; }
+    #egp-c2-hline { left: 712px; top: 491px; width: 500px; height: 2px; }
+    #egp-c2-r1-icon { left: 712px; top: 508px; width: 50px; height: 50px; }
+    #egp-c2-r1-text { left: 788px; top: 493px; width: 440px; height: 80px; font-size: 36px; }
+    #egp-c2-r1-line { left: 712px; top: 575px; width: 500px; height: 2px; }
+    #egp-c2-r2-icon { left: 712px; top: 594px; width: 50px; height: 50px; }
+    #egp-c2-r2-text { left: 788px; top: 579px; width: 440px; height: 80px; font-size: 36px; }
+    #egp-c2-r2-line { left: 712px; top: 661px; width: 500px; height: 2px; }
+    #egp-c2-r3-icon { left: 712px; top: 680px; width: 50px; height: 50px; }
+    #egp-c2-r3-text { left: 788px; top: 665px; width: 440px; height: 80px; font-size: 36px; }
+    #egp-c2-r3-line { left: 712px; top: 747px; width: 500px; height: 2px; }
+    #egp-c2-r4-icon { left: 712px; top: 766px; width: 50px; height: 50px; }
+    #egp-c2-r4-text { left: 788px; top: 751px; width: 440px; height: 80px; font-size: 36px; }
+    #egp-c3 { left: 1278px; top: 394px; width: 562px; height: 456px; }
+    #egp-c3-num { left: 1307px; top: 425px; width: 54px; height: 54px; font-size: 56px; }
+    #egp-c3-title { left: 1378px; top: 418px; width: 440px; height: 68px; font-size: 64px; }
+    #egp-c3-hline { left: 1309px; top: 491px; width: 500px; height: 2px; }
+    #egp-c3-r1-icon { left: 1309px; top: 508px; width: 50px; height: 50px; }
+    #egp-c3-r1-text { left: 1385px; top: 493px; width: 440px; height: 80px; font-size: 36px; }
+    #egp-c3-r1-line { left: 1309px; top: 575px; width: 500px; height: 2px; }
+    #egp-c3-r2-icon { left: 1309px; top: 594px; width: 50px; height: 50px; }
+    #egp-c3-r2-text { left: 1385px; top: 579px; width: 440px; height: 80px; font-size: 36px; }
+    #egp-c3-r2-line { left: 1309px; top: 661px; width: 500px; height: 2px; }
+    #egp-c3-r3-icon { left: 1309px; top: 680px; width: 50px; height: 50px; }
+    #egp-c3-r3-text { left: 1385px; top: 665px; width: 440px; height: 80px; font-size: 36px; }
+    #egp-banner { left: 452px; top: 895px; width: 1020px; height: 80px; }
+    #egp-banner-text { left: 590px; top: 895px; width: 744px; height: 80px; font-size: 60px; }
+    #egp-banner-trophy-l { left: 506px; top: 913px; width: 44px; height: 44px; }
+    #egp-banner-trophy-r { left: 1374px; top: 913px; width: 44px; height: 44px; }
+
+    /* ── ZONE RUSH (standalone full-screen explainer — NO shared header,
+       not in RANK_FEATURES / POST_FEATURES; the default transitionToImpl
+       branch hides the boards). Plays the shared #bg-video underneath
+       (showBgVideo/hideBgVideo). Every element is absolutely positioned
+       to the canvas with its own id (#zrh-*) so the Edit tab can move it.
+       Entrance = CSS animations on .zrh-play, staggered by .zrh-d<N> classes
+       (N * 50ms); the page itself still uses the usual two-class fade. ── */
+    #zone-rush-page {
+      position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+      display: none; overflow: hidden; background: transparent;
+      opacity: 0; transition: opacity 400ms ease;
+      font-family: 'Teko', sans-serif; color: #0a0a0a;
+    }
+    #zone-rush-page.zrh-on { display: block; }
+    #zone-rush-page.zrh-visible { opacity: 1; }
+    #zone-rush-page > * { position: absolute; box-sizing: border-box; }
+    #zone-rush-page svg { width: 100%; height: 100%; display: block; }
+    #zone-rush-page img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    #zone-rush-page .zrh-text, #zone-rush-page .zrh-title, #zone-rush-page .zrh-badge,
+    #zone-rush-page .zrh-card-title, #zone-rush-page .zrh-row-text, #zone-rush-page .zrh-banner-text {
+      display: flex; align-items: center; justify-content: flex-start; white-space: nowrap; overflow: hidden; line-height: 1;
+    }
+    #zone-rush-page .zrh-center { justify-content: center; text-align: center; }
+    #zone-rush-page .zrh-right { justify-content: flex-end; text-align: right; }
+    #zone-rush-page .zrh-text { font-weight: 600; letter-spacing: .03em; }
+    #zone-rush-page #zrh-presented, #zone-rush-page #zrh-from { color: #2a2a2a; font-weight: 600; letter-spacing: .12em; }
+    #zone-rush-page .zrh-title { font-weight: 700; letter-spacing: -.02em; color: #0a0a0a; }
+    #zone-rush-page .zrh-text span, #zone-rush-page .zrh-title span { display: block; transform: translateY(.12em); }
+    #zone-rush-page .zrh-title span { padding-right: .06em; }
+    #zone-rush-page #zrh-title-box, #zone-rush-page #zrh-sub-zone-box { background: #FFE600; }
+    #zone-rush-page #zrh-sub-claim-box { background: #0a0a0a; }
+    #zone-rush-page .zrh-sub { font-weight: 600; letter-spacing: 0; }
+    #zone-rush-page .zrh-sub-b { font-weight: 700; color: #0a0a0a; }
+    #zone-rush-page .zrh-sub-c2 { font-weight: 700; color: #FFE600; }
+    #zone-rush-page .zrh-icon-big { color: #0a0a0a; }
+    #zone-rush-page #zrh-corner-tr, #zone-rush-page #zrh-corner-bl { background: #0a0a0a; }
+    #zone-rush-page #zrh-corner-tr { clip-path: polygon(0 0, 100% 0, 100% 100%); }
+    #zone-rush-page #zrh-corner-bl { clip-path: polygon(0 0, 0 100%, 100% 100%); }
+    #zone-rush-page .zrh-wm { color: rgba(0,0,0,.09); }
+    #zone-rush-page .zrh-wm-dark { color: rgba(255,255,255,.13); }
+    #zone-rush-page .zrh-card { background: #fff; border-top: 7px solid #0a0a0a; box-shadow: 0 10px 22px rgba(0,0,0,.16); }
+    #zone-rush-page .zrh-card-dark { background: #0b0b0b; border-top-color: #FFE600; }
+    #zone-rush-page .zrh-badge { background: #FFE600; color: #0a0a0a; font-family: 'Teko', sans-serif; font-weight: 700; justify-content: center; }
+    #zone-rush-page .zrh-badge span { display: block; transform: translateY(.1em); }
+    #zone-rush-page .zrh-card-title { font-family: 'Teko', sans-serif; font-weight: 700; letter-spacing: .02em; color: #0a0a0a; }
+    #zone-rush-page .zrh-card-title span { display: block; transform: translateY(.1em); }
+    #zone-rush-page .zrh-on-dark { color: #fff; }
+    #zone-rush-page .zrh-line { background: rgba(0,0,0,.16); }
+    #zone-rush-page .zrh-line-dark { background: rgba(255,255,255,.2); }
+    #zone-rush-page .zrh-row-icon { background: #FFE600; color: #0a0a0a; padding: 9px; }
+    #zone-rush-page .zrh-row-text { font-weight: 500; white-space: normal; letter-spacing: 0; }
+    #zone-rush-page .zrh-row-text span { display: block; line-height: .95; transform: translateY(.08em); }
+    #zone-rush-page .zrh-row-text b { font-weight: 700; }
+    #zone-rush-page .zrh-banner { background: #FFE600; border: 5px solid #0a0a0a; }
+    #zone-rush-page .zrh-banner-text { font-family: 'Teko', sans-serif; font-weight: 700; letter-spacing: .03em; color: #0a0a0a; }
+    #zone-rush-page .zrh-banner-text span { display: block; transform: translateY(.1em); }
+    #zone-rush-page .zrh-banner-ico { color: #0a0a0a; }
+
+    /* entrance animations — nothing runs until .zrh-play is added */
+    #zone-rush-page .zrh-a { }
+    @keyframes zrhUp      { from { opacity: 0; transform: translateY(34px); } to { opacity: 1; transform: none; } }
+    @keyframes zrhLeftIn  { from { opacity: 0; transform: translateX(-120px); } to { opacity: 1; transform: none; } }
+    @keyframes zrhLeftInS { from { opacity: 0; transform: translateX(-34px); } to { opacity: 1; transform: none; } }
+    @keyframes zrhWipe    { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+    @keyframes zrhWipeC   { from { clip-path: inset(0 50% 0 50%); } to { clip-path: inset(0 0 0 0); } }
+    @keyframes zrhPop     { 0% { opacity: 0; transform: scale(.2) rotate(-12deg); } 65% { opacity: 1; transform: scale(1.14) rotate(2deg); } 100% { opacity: 1; transform: none; } }
+    @keyframes zrhPopSoft { from { opacity: 0; transform: scale(.7) translateY(-20px); } to { opacity: 1; transform: none; } }
+    @keyframes zrhRise    { from { opacity: 0; transform: translateY(90px); } to { opacity: 1; transform: none; } }
+    @keyframes zrhLineIn  { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    @keyframes zrhSlideTr { from { transform: translate(180px, -90px); } to { transform: none; } }
+    @keyframes zrhSlideBl { from { transform: translate(-180px, 140px); } to { transform: none; } }
+    @keyframes zrhFadeWm  { from { opacity: 0; } to { opacity: 1; } }
+    #zone-rush-page:not(.zrh-play) > * { opacity: 0; }
+    #zone-rush-page.zrh-play .zrh-up       { animation: zrhUp 600ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-rush-page.zrh-play .zrh-left-in  { animation: zrhLeftIn 650ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-rush-page.zrh-play .zrh-left-in-s{ animation: zrhLeftInS 500ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-rush-page.zrh-play .zrh-wipe     { animation: zrhWipe 520ms cubic-bezier(.7,0,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-rush-page.zrh-play .zrh-wipe-c   { animation: zrhWipeC 650ms cubic-bezier(.7,0,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-rush-page.zrh-play .zrh-pop      { animation: zrhPop 520ms cubic-bezier(.3,1.3,.5,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-rush-page.zrh-play .zrh-pop-soft { animation: zrhPopSoft 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-rush-page.zrh-play .zrh-rise     { animation: zrhRise 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-rush-page.zrh-play .zrh-line-in  { animation: zrhLineIn 420ms cubic-bezier(.4,0,.2,1) both; transform-origin: left center; animation-delay: var(--zbd, 0ms); }
+    #zone-rush-page.zrh-play .zrh-slide-tr { animation: zrhSlideTr 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-rush-page.zrh-play .zrh-slide-bl { animation: zrhSlideBl 700ms cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--zbd, 0ms); }
+    #zone-rush-page.zrh-play .zrh-fade-wm  { animation: zrhFadeWm 900ms ease both; animation-delay: var(--zbd, 0ms); }
+    #zone-rush-page.zrh-play > * { opacity: 1; }
+    #zone-rush-page .zrh-d0 { --zbd: 0ms; }
+    #zone-rush-page .zrh-d1 { --zbd: 50ms; }
+    #zone-rush-page .zrh-d2 { --zbd: 100ms; }
+    #zone-rush-page .zrh-d3 { --zbd: 150ms; }
+    #zone-rush-page .zrh-d4 { --zbd: 200ms; }
+    #zone-rush-page .zrh-d5 { --zbd: 250ms; }
+    #zone-rush-page .zrh-d6 { --zbd: 300ms; }
+    #zone-rush-page .zrh-d7 { --zbd: 350ms; }
+    #zone-rush-page .zrh-d8 { --zbd: 400ms; }
+    #zone-rush-page .zrh-d9 { --zbd: 450ms; }
+    #zone-rush-page .zrh-d10 { --zbd: 500ms; }
+    #zone-rush-page .zrh-d11 { --zbd: 550ms; }
+    #zone-rush-page .zrh-d12 { --zbd: 600ms; }
+    #zone-rush-page .zrh-d13 { --zbd: 650ms; }
+    #zone-rush-page .zrh-d14 { --zbd: 700ms; }
+    #zone-rush-page .zrh-d15 { --zbd: 750ms; }
+    #zone-rush-page .zrh-d16 { --zbd: 800ms; }
+    #zone-rush-page .zrh-d17 { --zbd: 850ms; }
+    #zone-rush-page .zrh-d18 { --zbd: 900ms; }
+    #zone-rush-page .zrh-d19 { --zbd: 950ms; }
+    #zone-rush-page .zrh-d20 { --zbd: 1000ms; }
+    #zone-rush-page .zrh-d21 { --zbd: 1050ms; }
+    #zone-rush-page .zrh-d22 { --zbd: 1100ms; }
+    #zone-rush-page .zrh-d23 { --zbd: 1150ms; }
+    #zone-rush-page .zrh-d24 { --zbd: 1200ms; }
+    #zone-rush-page .zrh-d25 { --zbd: 1250ms; }
+    #zone-rush-page .zrh-d26 { --zbd: 1300ms; }
+    #zone-rush-page .zrh-d27 { --zbd: 1350ms; }
+    #zone-rush-page .zrh-d28 { --zbd: 1400ms; }
+    #zone-rush-page .zrh-d29 { --zbd: 1450ms; }
+    #zone-rush-page .zrh-d30 { --zbd: 1500ms; }
+    #zone-rush-page .zrh-d31 { --zbd: 1550ms; }
+    #zone-rush-page .zrh-d32 { --zbd: 1600ms; }
+    #zone-rush-page .zrh-d33 { --zbd: 1650ms; }
+    #zone-rush-page .zrh-d34 { --zbd: 1700ms; }
+    #zone-rush-page .zrh-d35 { --zbd: 1750ms; }
+    #zone-rush-page .zrh-d36 { --zbd: 1800ms; }
+    #zone-rush-page .zrh-d37 { --zbd: 1850ms; }
+    #zone-rush-page .zrh-d38 { --zbd: 1900ms; }
+    #zone-rush-page .zrh-d39 { --zbd: 1950ms; }
+    #zone-rush-page .zrh-d40 { --zbd: 2000ms; }
+    #zone-rush-page .zrh-d41 { --zbd: 2050ms; }
+    #zone-rush-page .zrh-d42 { --zbd: 2100ms; }
+    #zone-rush-page .zrh-d43 { --zbd: 2150ms; }
+    #zone-rush-page .zrh-d44 { --zbd: 2200ms; }
+    #zone-rush-page .zrh-d45 { --zbd: 2250ms; }
+    #zone-rush-page .zrh-d46 { --zbd: 2300ms; }
+    #zone-rush-page .zrh-d47 { --zbd: 2350ms; }
+    #zone-rush-page .zrh-d48 { --zbd: 2400ms; }
+    #zone-rush-page .zrh-d49 { --zbd: 2450ms; }
+    #zone-rush-page .zrh-d50 { --zbd: 2500ms; }
+    #zone-rush-page .zrh-d51 { --zbd: 2550ms; }
+    #zone-rush-page .zrh-d52 { --zbd: 2600ms; }
+    #zone-rush-page .zrh-d53 { --zbd: 2650ms; }
+    #zone-rush-page .zrh-d54 { --zbd: 2700ms; }
+    #zone-rush-page .zrh-d55 { --zbd: 2750ms; }
+    #zone-rush-page .zrh-d56 { --zbd: 2800ms; }
+    #zone-rush-page .zrh-d57 { --zbd: 2850ms; }
+    #zone-rush-page .zrh-d58 { --zbd: 2900ms; }
+    #zone-rush-page .zrh-d59 { --zbd: 2950ms; }
+    #zone-rush-page .zrh-d60 { --zbd: 3000ms; }
+
+    #zrh-corner-tr { left: 1644px; top: 0px; width: 276px; height: 86px; }
+    #zrh-corner-bl { left: 0px; top: 940px; width: 178px; height: 140px; }
+    #zrh-logo { left: 924px; top: 22px; width: 94px; height: 118px; }
+    #zrh-presented { left: 660px; top: 142px; width: 600px; height: 26px; font-size: 27px; }
+    #zrh-title-zone { left: 467px; top: 128px; width: 392px; height: 190px; font-size: 190px; }
+    #zrh-title-box { left: 880px; top: 164px; width: 400px; height: 118px; }
+    #zrh-title-rush { left: 880px; top: 128px; width: 400px; height: 190px; font-size: 190px; }
+    #zrh-bolt { left: 440px; top: 206px; width: 64px; height: 68px; }
+    #zrh-xhair { left: 1400px; top: 196px; width: 70px; height: 70px; }
+    #zrh-sub-a { left: 405px; top: 296px; width: 112px; height: 52px; font-size: 48px; }
+    #zrh-sub-zone-box { left: 525px; top: 296px; width: 340px; height: 52px; }
+    #zrh-sub-zone { left: 525px; top: 296px; width: 340px; height: 52px; font-size: 48px; }
+    #zrh-sub-c { left: 875px; top: 296px; width: 270px; height: 52px; font-size: 48px; }
+    #zrh-sub-claim-box { left: 1155px; top: 296px; width: 360px; height: 52px; }
+    #zrh-sub-claim { left: 1155px; top: 296px; width: 360px; height: 52px; font-size: 48px; }
+    #zrh-from { left: 660px; top: 352px; width: 600px; height: 26px; font-size: 27px; }
+    #zrh-c1 { left: 85px; top: 394px; width: 562px; height: 456px; }
+    #zrh-c1-num { left: 114px; top: 425px; width: 54px; height: 54px; font-size: 56px; }
+    #zrh-c1-title { left: 185px; top: 418px; width: 440px; height: 68px; font-size: 64px; }
+    #zrh-c1-hline { left: 116px; top: 491px; width: 500px; height: 2px; }
+    #zrh-c1-r1-icon { left: 116px; top: 508px; width: 50px; height: 50px; }
+    #zrh-c1-r1-text { left: 192px; top: 493px; width: 440px; height: 80px; font-size: 36px; }
+    #zrh-c1-r1-line { left: 116px; top: 575px; width: 500px; height: 2px; }
+    #zrh-c1-r2-icon { left: 116px; top: 594px; width: 50px; height: 50px; }
+    #zrh-c1-r2-text { left: 192px; top: 579px; width: 440px; height: 80px; font-size: 36px; }
+    #zrh-c1-r2-line { left: 116px; top: 661px; width: 500px; height: 2px; }
+    #zrh-c1-r3-icon { left: 116px; top: 680px; width: 50px; height: 50px; }
+    #zrh-c1-r3-text { left: 192px; top: 665px; width: 440px; height: 80px; font-size: 36px; }
+    #zrh-c1-r3-line { left: 116px; top: 747px; width: 500px; height: 2px; }
+    #zrh-c1-r4-icon { left: 116px; top: 766px; width: 50px; height: 50px; }
+    #zrh-c1-r4-text { left: 192px; top: 751px; width: 440px; height: 80px; font-size: 36px; }
+    #zrh-c2 { left: 681px; top: 394px; width: 562px; height: 456px; }
+    #zrh-c2-num { left: 710px; top: 425px; width: 54px; height: 54px; font-size: 56px; }
+    #zrh-c2-title { left: 781px; top: 418px; width: 440px; height: 68px; font-size: 64px; }
+    #zrh-c2-hline { left: 712px; top: 491px; width: 500px; height: 2px; }
+    #zrh-c2-r1-icon { left: 712px; top: 508px; width: 50px; height: 50px; }
+    #zrh-c2-r1-text { left: 788px; top: 493px; width: 440px; height: 80px; font-size: 36px; }
+    #zrh-c2-r1-line { left: 712px; top: 575px; width: 500px; height: 2px; }
+    #zrh-c2-r2-icon { left: 712px; top: 594px; width: 50px; height: 50px; }
+    #zrh-c2-r2-text { left: 788px; top: 579px; width: 440px; height: 80px; font-size: 36px; }
+    #zrh-c2-r2-line { left: 712px; top: 661px; width: 500px; height: 2px; }
+    #zrh-c2-r3-icon { left: 712px; top: 680px; width: 50px; height: 50px; }
+    #zrh-c2-r3-text { left: 788px; top: 665px; width: 440px; height: 80px; font-size: 36px; }
+    #zrh-c2-r3-line { left: 712px; top: 747px; width: 500px; height: 2px; }
+    #zrh-c2-r4-icon { left: 712px; top: 766px; width: 50px; height: 50px; }
+    #zrh-c2-r4-text { left: 788px; top: 751px; width: 440px; height: 80px; font-size: 36px; }
+    #zrh-c3 { left: 1278px; top: 394px; width: 562px; height: 456px; }
+    #zrh-c3-num { left: 1307px; top: 425px; width: 54px; height: 54px; font-size: 56px; }
+    #zrh-c3-title { left: 1378px; top: 418px; width: 440px; height: 68px; font-size: 64px; }
+    #zrh-c3-hline { left: 1309px; top: 491px; width: 500px; height: 2px; }
+    #zrh-c3-r1-icon { left: 1309px; top: 508px; width: 50px; height: 50px; }
+    #zrh-c3-r1-text { left: 1385px; top: 493px; width: 440px; height: 80px; font-size: 36px; }
+    #zrh-c3-r1-line { left: 1309px; top: 575px; width: 500px; height: 2px; }
+    #zrh-c3-r2-icon { left: 1309px; top: 594px; width: 50px; height: 50px; }
+    #zrh-c3-r2-text { left: 1385px; top: 579px; width: 440px; height: 80px; font-size: 36px; }
+    #zrh-c3-r2-line { left: 1309px; top: 661px; width: 500px; height: 2px; }
+    #zrh-c3-r3-icon { left: 1309px; top: 680px; width: 50px; height: 50px; }
+    #zrh-c3-r3-text { left: 1385px; top: 665px; width: 440px; height: 80px; font-size: 36px; }
+    #zrh-c3-r3-line { left: 1309px; top: 747px; width: 500px; height: 2px; }
+    #zrh-c3-r4-icon { left: 1309px; top: 766px; width: 50px; height: 50px; }
+    #zrh-c3-r4-text { left: 1385px; top: 751px; width: 440px; height: 80px; font-size: 36px; }
+    #zrh-banner { left: 452px; top: 895px; width: 1020px; height: 80px; }
+    #zrh-banner-text { left: 590px; top: 895px; width: 744px; height: 80px; font-size: 60px; }
+    #zrh-banner-trophy-l { left: 506px; top: 913px; width: 44px; height: 44px; }
+    #zrh-banner-trophy-r { left: 1374px; top: 913px; width: 44px; height: 44px; }
 
     /* ── MAP WINNER PAGE — the winning team of the current map (picked in
        Match Board's Today's Maps → Winner). Header is the shared
@@ -4616,6 +5738,51 @@
       </div>
     </div>
 
+    <div class="feature-card">
+      <div class="feature-card-label">Zone Bounty</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showZoneBountyScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideZoneBountyScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-zonebounty" onclick="toggleLocalPreview('zonebounty', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-card-label">Zowned Points</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showZownedPointsScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideZownedPointsScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-zownedpoints" onclick="toggleLocalPreview('zownedpoints', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-card-label">Points System</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showPointsSystemScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hidePointsSystemScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-pointssystem" onclick="toggleLocalPreview('pointssystem', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-card-label">Endgame Protocol</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showEndgameProtocolScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideEndgameProtocolScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-endgameprotocol" onclick="toggleLocalPreview('endgameprotocol', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-card-label">Zone Rush</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showZoneRushScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideZoneRushScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-zonerush" onclick="toggleLocalPreview('zonerush', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
     <!-- MAP WINNER -->
     <div class="feature-card">
       <div class="feature-card-label">Map Winner</div>
@@ -4791,12 +5958,20 @@
       <div id="wtvc-rows"></div>
       <div id="wtvc-maps"></div>
       <div id="wtvc-dots"></div>
+      <div id="wtvc-spon-tag" data-sponsorbox></div>
+      <div id="wtvc-spon-tag-text" data-sponsorbox></div>
+      <div id="wtvc-spon-logo" data-sponsorbox></div>
     </div>
     <div id="waiting-timer-page">
       <video id="wt-bg-video" src="/assets/gbrc_loopbg_waiting.webm" loop muted playsinline></video>
       <img id="wt-bg-art" src="/assets/Waiting Timer/waiting_background.png" alt="">
       <img id="wt-codm-logo" src="/assets/Waiting Timer/codm_yellow.png" alt="">
       <div id="wt-timer-value"></div>
+      <div id="wt-sponsorbox" data-sponsorbox>
+        <img class="wl-sponsor-bg" src="/assets/sponsorbox/sponsorbox.png" alt="">
+        <div id="wt-sponsorbox-label"></div>
+        <div id="wt-sponsorbox-loop" class="wl-sponsor-loop"><img id="wt-sponsorbox-img" src="" alt=""></div>
+      </div>
     </div>
     <div id="team-hexagon-page">
       <div id="th-bottom-panel"></div>
@@ -6005,7 +7180,318 @@
       <img id="tsc-art" src="/assets/fullscreeners/tournament%20schedule.png" alt="">
     </div>
     <div id="prize-pool-page">
-      <img id="ppl-art" src="/assets/fullscreeners/prizepool.png" alt="">
+      <div id="ppl-total-label" class="ppl-t ppl-a-up ppl-fit" data-max="70" data-min="40"><span>TOTAL PRIZE POOL</span></div>
+      <div id="ppl-total" class="ppl-t ppl-a-pop ppl-fit" data-max="242" data-min="120" data-count="40000"><span>$40,000</span></div>
+      <div id="ppl-champ-bg" class="ppl-a-scalex"></div>
+      <div id="ppl-champ-label" class="ppl-t ppl-a-up ppl-fit" data-max="51" data-min="30"><span>CHAMPION</span></div>
+      <div id="ppl-champ" class="ppl-t ppl-a-pop ppl-fit" data-max="176" data-min="90" data-count="14000"><span>$14,000</span></div>
+      <div id="ppl-2nd-label" class="ppl-t ppl-a-left ppl-fit" data-max="40" data-min="24"><span>2ND PLACE</span></div>
+      <div id="ppl-2nd" class="ppl-t ppl-a-left ppl-fit" data-max="136" data-min="70"><span>$6,000</span></div>
+      <div id="ppl-3rd-label" class="ppl-t ppl-a-right ppl-fit" data-max="40" data-min="24"><span>3RD PLACE</span></div>
+      <div id="ppl-3rd" class="ppl-t ppl-a-right ppl-fit" data-max="136" data-min="70"><span>$4,000</span></div>
+      <div id="ppl-4th-label" class="ppl-t ppl-a-rise ppl-fit" data-max="27" data-min="16"><span>4TH PLACE</span></div>
+      <div id="ppl-4th" class="ppl-t ppl-a-rise ppl-fit" data-max="95" data-min="50"><span>$4,000</span></div>
+      <div id="ppl-5th-label" class="ppl-t ppl-a-rise ppl-fit" data-max="27" data-min="16"><span>5TH-6TH PLACE</span></div>
+      <div id="ppl-5th" class="ppl-t ppl-a-rise ppl-fit" data-max="95" data-min="50"><span>$3,000</span></div>
+      <div id="ppl-7th-label" class="ppl-t ppl-a-rise ppl-fit" data-max="27" data-min="16"><span>7TH-10TH PLACE</span></div>
+      <div id="ppl-7th" class="ppl-t ppl-a-rise ppl-fit" data-max="95" data-min="50"><span>$1,500</span></div>
+    </div>
+    <div id="zowned-points-page">
+      <div id="zwp-hero" class="zwp-hero zwp-pop-soft zwp-d0"></div>
+      <div id="zwp-hero-num" class="zwp-title zwp-center zwp-fit zwp-pop zwp-d8" data-max="440" data-min="120"><span>TBD</span></div>
+      <div id="zwp-hero-unit" class="zwp-title zwp-center zwp-fit zwp-up zwp-d14" data-max="72" data-min="36"><span>ZOWNED POINTS</span></div>
+      <div id="zwp-strip" class="zwp-strip zwp-wipe zwp-d16"></div>
+      <div id="zwp-strip-text" class="zwp-strip-t zwp-center zwp-fit zwp-up zwp-d18" data-max="50" data-min="26"><span>ANNOUNCED AFTER MAP 6</span></div>
+      <div id="zwp-tile-leader" class="zwp-card zwp-rise zwp-d20"></div>
+      <div id="zwp-tile-leader-label" class="zwp-tlabel zwp-fit zwp-up zwp-d23" data-max="36" data-min="20"><span>MAP 6 LEADER</span></div>
+      <div id="zwp-tile-leader-val" class="zwp-tval zwp-fit zwp-pop zwp-d24" data-max="70" data-min="30"><span>—</span></div>
+      <div id="zwp-tile-bonus" class="zwp-card zwp-rise zwp-d23"></div>
+      <div id="zwp-tile-bonus-label" class="zwp-tlabel zwp-fit zwp-up zwp-d26" data-max="36" data-min="20"><span>ADDITIONAL TARGET</span></div>
+      <div id="zwp-tile-bonus-val" class="zwp-tval zwp-fit zwp-pop zwp-d27" data-max="70" data-min="30"><span>+10</span></div>
+      <div id="zwp-card" class="zwp-card zwp-card-dark zwp-rise zwp-d4"></div>
+      <div id="zwp-row1-icon" class="zwp-row-icon zwp-pop zwp-d12"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="3"/></svg></div>
+      <div id="zwp-row1-text" class="zwp-row-text zwp-on-dark zwp-fit zwp-left-in-s zwp-d13" data-max="38" data-min="20"><span><b>The target score to be IN THE ZONE.</b> Reach it to become eligible for the Championship</span></div>
+      <div id="zwp-row1-line" class="zwp-line zwp-line-dark zwp-line-in zwp-d13"></div>
+      <div id="zwp-row2-icon" class="zwp-row-icon zwp-pop zwp-d15"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2M8 18h2M12 18h2"/></svg></div>
+      <div id="zwp-row2-text" class="zwp-row-text zwp-on-dark zwp-fit zwp-left-in-s zwp-d16" data-max="38" data-min="20"><span><b>Zone Point = 1st place total after Map 6, plus 10 points</b></span></div>
+      <div id="zwp-row2-line" class="zwp-line zwp-line-dark zwp-line-in zwp-d16"></div>
+      <div id="zwp-row3-icon" class="zwp-row-icon zwp-pop zwp-d18"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3M12 15v2.5"/></svg></div>
+      <div id="zwp-row3-text" class="zwp-row-text zwp-on-dark zwp-fit zwp-left-in-s zwp-d19" data-max="38" data-min="20"><span><b>Fixed</b> for the rest of the tournament. Never recalculated or adjusted</span></div>
+      <div id="zwp-row3-line" class="zwp-line zwp-line-dark zwp-line-in zwp-d19"></div>
+      <div id="zwp-row4-icon" class="zwp-row-icon zwp-pop zwp-d21"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg></div>
+      <div id="zwp-row4-text" class="zwp-row-text zwp-on-dark zwp-fit zwp-left-in-s zwp-d22" data-max="38" data-min="20"><span><b>IN THE ZONE plus a map win</b> from Map 8 onward makes you Champion</span></div>
+    </div>
+    <div id="zone-bounty-page">
+      <div id="zb-corner-tr" class="zb-slide-tr zb-d0"></div>
+      <div id="zb-corner-bl" class="zb-slide-bl zb-d0"></div>
+      <div id="zb-logo" class="zb-pop-soft zb-d3"><img src="/gbrc_logo.png" alt=""></div>
+      <div id="zb-presented" class="zb-text zb-center zb-fit zb-up zb-d5" data-max="27" data-min="16"><span>GARENA BATTLE ROYALE CUP 2026</span></div>
+      <div id="zb-title-zone" class="zb-title zb-right zb-fit zb-left-in zb-d6" data-max="190" data-min="90"><span>ZONE</span></div>
+      <div id="zb-title-box" class="zb-wipe zb-d9"></div>
+      <div id="zb-title-bounty" class="zb-title zb-center zb-fit zb-wipe zb-d11" data-max="190" data-min="90"><span>BOUNTY</span></div>
+      <div id="zb-crown" class="zb-icon-big zb-pop zb-d13"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg></div>
+      <div id="zb-xhair" class="zb-icon-big zb-pop zb-d14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5"/></svg></div>
+      <div id="zb-sub-a" class="zb-text zb-sub zb-fit zb-up zb-d15" data-max="48" data-min="26"><span>Eliminate an</span></div>
+      <div id="zb-sub-zone-box" class="zb-wipe zb-d16"></div>
+      <div id="zb-sub-zone" class="zb-text zb-sub zb-sub-b zb-center zb-fit zb-wipe zb-d17" data-max="48" data-min="26"><span>IN THE ZONE</span></div>
+      <div id="zb-sub-c" class="zb-text zb-sub zb-fit zb-up zb-d18" data-max="48" data-min="26"><span>team's last player =</span></div>
+      <div id="zb-sub-claim-box" class="zb-wipe zb-d19"></div>
+      <div id="zb-sub-claim" class="zb-text zb-sub zb-sub-c2 zb-center zb-fit zb-wipe zb-d20" data-max="48" data-min="26"><span>CLAIM THE BOUNTY</span></div>
+      <div id="zb-from" class="zb-text zb-center zb-fit zb-up zb-d22" data-max="27" data-min="16"><span>FROM MAP 8 ONWARD</span></div>
+      <div id="zb-c1" class="zb-card zb-rise zb-d24"></div>
+      <div id="zb-c1-num" class="zb-badge zb-center zb-pop zb-d28"><span>1</span></div>
+      <div id="zb-c1-title" class="zb-card-title zb-fit zb-left-in-s zb-d29" data-max="64" data-min="34"><span>HOW IT WORKS</span></div>
+      <div id="zb-c1-hline" class="zb-line zb-line-in zb-d30"></div>
+      <div id="zb-c1-r1-icon" class="zb-row-icon zb-pop zb-d31"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></div>
+      <div id="zb-c1-r1-text" class="zb-row-text zb-fit zb-left-in-s zb-d32" data-max="36" data-min="20"><span><b>Final elimination</b> only</span></div>
+      <div id="zb-c1-r1-line" class="zb-line zb-line-in zb-d32"></div>
+      <div id="zb-c1-r2-icon" class="zb-row-icon zb-pop zb-d33"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></div>
+      <div id="zb-c1-r2-text" class="zb-row-text zb-fit zb-left-in-s zb-d34" data-max="36" data-min="20"><span>Damage from other teams <b>earns nothing</b></span></div>
+      <div id="zb-c1-r2-line" class="zb-line zb-line-in zb-d34"></div>
+      <div id="zb-c1-r3-icon" class="zb-row-icon zb-pop zb-d35"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg></div>
+      <div id="zb-c1-r3-text" class="zb-row-text zb-fit zb-left-in-s zb-d36" data-max="36" data-min="20"><span>Several IN THE ZONE teams out = <b>a&nbsp;bounty&nbsp;each</b></span></div>
+      <div id="zb-c1-r3-line" class="zb-line zb-line-in zb-d36"></div>
+      <div id="zb-c1-r4-icon" class="zb-row-icon zb-pop zb-d37"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M7.5 12h9"/></svg></div>
+      <div id="zb-c1-r4-text" class="zb-row-text zb-fit zb-left-in-s zb-d38" data-max="36" data-min="20"><span>None eliminated = <b>no bounty</b></span></div>
+      <div id="zb-c2" class="zb-card zb-rise zb-d27"></div>
+      <div id="zb-c2-num" class="zb-badge zb-center zb-pop zb-d31"><span>2</span></div>
+      <div id="zb-c2-title" class="zb-card-title zb-fit zb-left-in-s zb-d32" data-max="64" data-min="34"><span>NO BOUNTY IF</span></div>
+      <div id="zb-c2-hline" class="zb-line zb-line-in zb-d33"></div>
+      <div id="zb-c2-r1-icon" class="zb-row-icon zb-pop zb-d34"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.4"/><path d="M12 5.2v1.4M12 17.4v1.4M5.2 12h1.4M17.4 12h1.4"/></svg></div>
+      <div id="zb-c2-r1-text" class="zb-row-text zb-fit zb-left-in-s zb-d35" data-max="36" data-min="20"><span>You were <b>already&nbsp;IN&nbsp;THE&nbsp;ZONE</b> at&nbsp;map&nbsp;start</span></div>
+      <div id="zb-c2-r1-line" class="zb-line zb-line-in zb-d35"></div>
+      <div id="zb-c2-r2-icon" class="zb-row-icon zb-pop zb-d36"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg></div>
+      <div id="zb-c2-r2-text" class="zb-row-text zb-fit zb-left-in-s zb-d37" data-max="36" data-min="20"><span>An <b>IN THE ZONE</b> team made the final elimination</span></div>
+      <div id="zb-c2-r2-line" class="zb-line zb-line-in zb-d37"></div>
+      <div id="zb-c2-r3-icon" class="zb-row-icon zb-pop zb-d38"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L22 20H2z"/><path d="M12 9.5v5"/><circle cx="12" cy="17.2" r=".6" fill="currentColor"/></svg></div>
+      <div id="zb-c2-r3-text" class="zb-row-text zb-fit zb-left-in-s zb-d39" data-max="36" data-min="20"><span><b>Non-enemy deaths</b>: safe zone, fall,&nbsp;vehicle</span></div>
+      <div id="zb-c3" class="zb-card zb-card-dark zb-rise zb-d30"></div>
+      <div id="zb-c3-num" class="zb-badge zb-center zb-pop zb-d34"><span>3</span></div>
+      <div id="zb-c3-title" class="zb-card-title zb-on-dark zb-fit zb-left-in-s zb-d35" data-max="64" data-min="34"><span>TIMING & EFFECTS</span></div>
+      <div id="zb-c3-hline" class="zb-line zb-line-dark zb-line-in zb-d36"></div>
+      <div id="zb-c3-r1-icon" class="zb-row-icon zb-pop zb-d37"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6l6 6-6 6M12 6l6 6-6 6"/></svg></div>
+      <div id="zb-c3-r1-text" class="zb-row-text zb-on-dark zb-fit zb-left-in-s zb-d38" data-max="36" data-min="20"><span>Status starts <b>next map</b></span></div>
+      <div id="zb-c3-r1-line" class="zb-line zb-line-dark zb-line-in zb-d38"></div>
+      <div id="zb-c3-r2-icon" class="zb-row-icon zb-pop zb-d39"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 20h8"/></svg></div>
+      <div id="zb-c3-r2-text" class="zb-row-text zb-on-dark zb-fit zb-left-in-s zb-d40" data-max="36" data-min="20"><span><b>No Championship win</b> in the claim&nbsp;map</span></div>
+      <div id="zb-c3-r2-line" class="zb-line zb-line-dark zb-line-in zb-d40"></div>
+      <div id="zb-c3-r3-icon" class="zb-row-icon zb-pop zb-d41"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 12h4.4M7.8 9.8v4.4"/><ellipse cx="15.4" cy="12" rx="1.9" ry="2.8"/></svg></div>
+      <div id="zb-c3-r3-text" class="zb-row-text zb-on-dark zb-fit zb-left-in-s zb-d42" data-max="36" data-min="20"><span><b>Status only.</b> No extra points</span></div>
+      <div id="zb-c3-r3-line" class="zb-line zb-line-dark zb-line-in zb-d42"></div>
+      <div id="zb-c3-r4-icon" class="zb-row-icon zb-pop zb-d43"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg></div>
+      <div id="zb-c3-r4-text" class="zb-row-text zb-on-dark zb-fit zb-left-in-s zb-d44" data-max="36" data-min="20"><span><b>Victory ≠ bounty.</b> Separate routes</span></div>
+      <div id="zb-banner" class="zb-banner zb-wipe-c zb-d44"></div>
+      <div id="zb-banner-text" class="zb-banner-text zb-center zb-fit zb-up zb-d47" data-max="60" data-min="34"><span>CLAIM IT. HOLD IT. FINISH WITH A VICTORY.</span></div>
+      <div id="zb-banner-trophy-l" class="zb-banner-ico zb-pop zb-d49"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 20h8"/></svg></div>
+      <div id="zb-banner-trophy-r" class="zb-banner-ico zb-pop zb-d50"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 20h8"/></svg></div>
+    </div>
+    <div id="points-system-page">
+      <div id="psy-corner-tr" class="psy-slide-tr psy-d0"></div>
+      <div id="psy-corner-bl" class="psy-slide-bl psy-d0"></div>
+      <div id="psy-logo" class="psy-pop-soft psy-d3"><img src="/gbrc_logo.png" alt=""></div>
+      <div id="psy-presented" class="psy-text psy-center psy-fit psy-up psy-d5" data-max="27" data-min="16"><span>GARENA BATTLE ROYALE CUP 2026</span></div>
+      <div id="psy-title-a" class="psy-title psy-right psy-fit psy-left-in psy-d6" data-max="140" data-min="70"><span>POINTS</span></div>
+      <div id="psy-title-box" class="psy-wipe psy-d9"></div>
+      <div id="psy-title-b" class="psy-title psy-center psy-fit psy-wipe psy-d11" data-max="140" data-min="70"><span>SYSTEM</span></div>
+      <div id="psy-title-icon" class="psy-icon-big psy-pop psy-d13"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M4 20v-6h5v6M9.5 20V8h5v12M15 20v-9h5v9"/><path d="M12 3.5v2"/></svg></div>
+      <div id="psy-sub-a" class="psy-text psy-sub psy-fit psy-up psy-d15" data-max="40" data-min="24"><span>Total points per map =</span></div>
+      <div id="psy-sub-zone-box" class="psy-wipe psy-d16"></div>
+      <div id="psy-sub-t1" class="psy-text psy-sub psy-sub-b psy-center psy-fit psy-wipe psy-d17" data-max="40" data-min="24"><span>SURVIVAL POINTS</span></div>
+      <div id="psy-sub-plus" class="psy-text psy-sub psy-center psy-fit psy-up psy-d18" data-max="48" data-min="28"><span>+</span></div>
+      <div id="psy-sub-claim-box" class="psy-wipe psy-d19"></div>
+      <div id="psy-sub-t2" class="psy-text psy-sub psy-sub-c2 psy-center psy-fit psy-wipe psy-d20" data-max="40" data-min="24"><span>ELIMINATION POINTS</span></div>
+      <div id="psy-table" class="psy-card psy-rise psy-d22"></div>
+      <div id="psy-thead" class="psy-thead psy-wipe psy-d25"></div>
+      <div id="psy-th-place" class="psy-th psy-fit psy-up psy-d27" data-max="40" data-min="24"><span>PLACEMENT</span></div>
+      <div id="psy-th-pts" class="psy-th psy-th-r psy-fit psy-up psy-d27" data-max="40" data-min="24"><span>SURVIVAL POINTS</span></div>
+      <div id="psy-r1-place" class="psy-chip psy-center psy-fit psy-pop psy-d29" data-max="50" data-min="28"><span>1ST</span></div>
+      <div id="psy-r1-bar" class="psy-bar psy-wipe psy-d29"></div>
+      <div id="psy-r1-val" class="psy-val psy-center psy-fit psy-pop psy-d30" data-max="54" data-min="30"><span>10</span></div>
+      <div id="psy-r1-line" class="psy-line psy-line-in psy-d29"></div>
+      <div id="psy-r2-place" class="psy-chip psy-center psy-fit psy-pop psy-d31" data-max="50" data-min="28"><span>2ND</span></div>
+      <div id="psy-r2-bar" class="psy-bar psy-wipe psy-d31"></div>
+      <div id="psy-r2-val" class="psy-val psy-center psy-fit psy-pop psy-d32" data-max="54" data-min="30"><span>6</span></div>
+      <div id="psy-r2-line" class="psy-line psy-line-in psy-d31"></div>
+      <div id="psy-r3-place" class="psy-chip psy-center psy-fit psy-pop psy-d33" data-max="50" data-min="28"><span>3RD</span></div>
+      <div id="psy-r3-bar" class="psy-bar psy-wipe psy-d33"></div>
+      <div id="psy-r3-val" class="psy-val psy-center psy-fit psy-pop psy-d34" data-max="54" data-min="30"><span>5</span></div>
+      <div id="psy-r3-line" class="psy-line psy-line-in psy-d33"></div>
+      <div id="psy-r4-place" class="psy-chip psy-center psy-fit psy-pop psy-d35" data-max="50" data-min="28"><span>4TH</span></div>
+      <div id="psy-r4-bar" class="psy-bar psy-wipe psy-d35"></div>
+      <div id="psy-r4-val" class="psy-val psy-center psy-fit psy-pop psy-d36" data-max="54" data-min="30"><span>4</span></div>
+      <div id="psy-r4-line" class="psy-line psy-line-in psy-d35"></div>
+      <div id="psy-r5-place" class="psy-chip psy-center psy-fit psy-pop psy-d37" data-max="50" data-min="28"><span>5TH</span></div>
+      <div id="psy-r5-bar" class="psy-bar psy-wipe psy-d37"></div>
+      <div id="psy-r5-val" class="psy-val psy-center psy-fit psy-pop psy-d38" data-max="54" data-min="30"><span>3</span></div>
+      <div id="psy-r5-line" class="psy-line psy-line-in psy-d37"></div>
+      <div id="psy-r6-place" class="psy-chip psy-center psy-fit psy-pop psy-d39" data-max="50" data-min="28"><span>6TH</span></div>
+      <div id="psy-r6-bar" class="psy-bar psy-wipe psy-d39"></div>
+      <div id="psy-r6-val" class="psy-val psy-center psy-fit psy-pop psy-d40" data-max="54" data-min="30"><span>2</span></div>
+      <div id="psy-r6-line" class="psy-line psy-line-in psy-d39"></div>
+      <div id="psy-r7-place" class="psy-chip psy-center psy-fit psy-pop psy-d41" data-max="50" data-min="28"><span>7TH–8TH</span></div>
+      <div id="psy-r7-bar" class="psy-bar psy-wipe psy-d41"></div>
+      <div id="psy-r7-val" class="psy-val psy-center psy-fit psy-pop psy-d42" data-max="54" data-min="30"><span>1</span></div>
+      <div id="psy-r7-line" class="psy-line psy-line-in psy-d41"></div>
+      <div id="psy-r8-place" class="psy-chip psy-center psy-fit psy-pop psy-d43" data-max="50" data-min="28"><span>9TH–10TH</span></div>
+      <div id="psy-r8-bar" class="psy-bar psy-bar-zero psy-wipe psy-d43"></div>
+      <div id="psy-r8-val" class="psy-val psy-center psy-fit psy-pop psy-d44" data-max="54" data-min="30"><span>0</span></div>
+      <div id="psy-r8-line" class="psy-line psy-line-in psy-d43"></div>
+      <div id="psy-r9-icon" class="psy-row-icon psy-pop psy-d44"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></div>
+      <div id="psy-r9-place" class="psy-place psy-fit psy-left-in-s psy-d45" data-max="54" data-min="30"><span>ELIMINATION</span></div>
+      <div id="psy-r9-note" class="psy-note psy-fit psy-left-in-s psy-d46" data-max="46" data-min="28"><span>PER ELIMINATION</span></div>
+      <div id="psy-r9-val" class="psy-val psy-center psy-fit psy-pop psy-d46" data-max="54" data-min="30"><span>+1</span></div>
+      <div id="psy-rules" class="psy-card psy-card-dark psy-rise psy-d26"></div>
+      <div id="psy-rules-num" class="psy-row-icon psy-pop psy-d30"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M8 8h7M8 12h5"/></svg></div>
+      <div id="psy-rules-title" class="psy-card-title psy-on-dark psy-fit psy-left-in-s psy-d31" data-max="64" data-min="34"><span>KEY RULES</span></div>
+      <div id="psy-rules-hline" class="psy-line psy-line-dark psy-line-in psy-d32"></div>
+      <div id="psy-rule1-icon" class="psy-row-icon psy-pop psy-d33"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg></div>
+      <div id="psy-rule1-text" class="psy-row-text psy-on-dark psy-fit psy-left-in-s psy-d34" data-max="32" data-min="18"><span><b>Applies to all 12 maps</b>, across both Zone Rush and Endgame Protocol</span></div>
+      <div id="psy-rule1-line" class="psy-line psy-line-dark psy-line-in psy-d34"></div>
+      <div id="psy-rule2-icon" class="psy-row-icon psy-pop psy-d35"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></div>
+      <div id="psy-rule2-text" class="psy-row-text psy-on-dark psy-fit psy-left-in-s psy-d36" data-max="32" data-min="18"><span><b>No multipliers.</b> No map, day or team gets bonus or multiplied points</span></div>
+      <div id="psy-rule2-line" class="psy-line psy-line-dark psy-line-in psy-d36"></div>
+      <div id="psy-rule3-icon" class="psy-row-icon psy-pop psy-d37"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M8 15h7M12.5 12.5L15 15l-2.5 2.5"/></svg></div>
+      <div id="psy-rule3-text" class="psy-row-text psy-on-dark psy-fit psy-left-in-s psy-d38" data-max="32" data-min="18"><span><b>Carry-over.</b> Day 1 points carry into Day 2 in full, no reset or handicap</span></div>
+      <div id="psy-rule3-line" class="psy-line psy-line-dark psy-line-in psy-d38"></div>
+      <div id="psy-rule4-icon" class="psy-row-icon psy-pop psy-d39"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></div>
+      <div id="psy-rule4-text" class="psy-row-text psy-on-dark psy-fit psy-left-in-s psy-d40" data-max="32" data-min="18"><span><b>Zone Bounty</b> gives status only. No points are transferred</span></div>
+      <div id="psy-rule4-line" class="psy-line psy-line-dark psy-line-in psy-d40"></div>
+      <div id="psy-rule5-icon" class="psy-row-icon psy-pop psy-d41"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2M8 18h2M12 18h2"/></svg></div>
+      <div id="psy-rule5-text" class="psy-row-text psy-on-dark psy-fit psy-left-in-s psy-d42" data-max="32" data-min="18"><span><b>Points decide</b> the Zone Point (Map 6 leader + 10), the Map 12 fallback Champion and 2nd to 10th</span></div>
+      <div id="psy-rule5-line" class="psy-line psy-line-dark psy-line-in psy-d42"></div>
+      <div id="psy-rule6-icon" class="psy-row-icon psy-pop psy-d43"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg></div>
+      <div id="psy-rule6-text" class="psy-row-text psy-on-dark psy-fit psy-left-in-s psy-d44" data-max="32" data-min="18"><span><b>An IN THE ZONE map win</b> from Map 8 makes you Champion, whatever the total</span></div>
+    </div>
+    <div id="endgame-protocol-page">
+      <div id="egp-corner-tr" class="egp-slide-tr egp-d0"></div>
+      <div id="egp-corner-bl" class="egp-slide-bl egp-d0"></div>
+      <div id="egp-logo" class="egp-pop-soft egp-d3"><img src="/gbrc_logo.png" alt=""></div>
+      <div id="egp-presented" class="egp-text egp-center egp-fit egp-up egp-d5" data-max="27" data-min="16"><span>GARENA BATTLE ROYALE CUP 2026</span></div>
+      <div id="egp-title-zone" class="egp-title egp-right egp-fit egp-left-in egp-d6" data-max="190" data-min="90"><span>ENDGAME</span></div>
+      <div id="egp-title-box" class="egp-wipe egp-d9"></div>
+      <div id="egp-title-rush" class="egp-title egp-center egp-fit egp-wipe egp-d11" data-max="190" data-min="90"><span>PROTOCOL</span></div>
+      <div id="egp-bolt" class="egp-icon-big egp-pop egp-d13"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V3"/><path d="M5 4h14v10H5"/><path d="M5 9h14M10 4v10M15 4v10"/></svg></div>
+      <div id="egp-xhair" class="egp-icon-big egp-pop egp-d14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg></div>
+      <div id="egp-sub-a" class="egp-text egp-sub egp-fit egp-up egp-d15" data-max="48" data-min="26"><span>Get</span></div>
+      <div id="egp-sub-zone-box" class="egp-wipe egp-d16"></div>
+      <div id="egp-sub-zone" class="egp-text egp-sub egp-sub-b egp-center egp-fit egp-wipe egp-d17" data-max="48" data-min="26"><span>IN THE ZONE</span></div>
+      <div id="egp-sub-c" class="egp-text egp-sub egp-fit egp-up egp-d18" data-max="48" data-min="26"><span>then finish with</span></div>
+      <div id="egp-sub-claim-box" class="egp-wipe egp-d19"></div>
+      <div id="egp-sub-claim" class="egp-text egp-sub egp-sub-c2 egp-center egp-fit egp-wipe egp-d20" data-max="48" data-min="26"><span>A VICTORY</span></div>
+      <div id="egp-from" class="egp-text egp-center egp-fit egp-up egp-d22" data-max="27" data-min="16"><span>GRAND FINALS · FROM MAP 8 ONWARD</span></div>
+      <div id="egp-c1" class="egp-card egp-rise egp-d24"></div>
+      <div id="egp-c1-num" class="egp-badge egp-center egp-pop egp-d28"><span>1</span></div>
+      <div id="egp-c1-title" class="egp-card-title egp-fit egp-left-in-s egp-d29" data-max="64" data-min="34"><span>HOW TO WIN</span></div>
+      <div id="egp-c1-hline" class="egp-line egp-line-in egp-d30"></div>
+      <div id="egp-c1-r1-icon" class="egp-row-icon egp-pop egp-d31"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h12l-2 4 2 4H5"/></svg></div>
+      <div id="egp-c1-r1-text" class="egp-row-text egp-fit egp-left-in-s egp-d32" data-max="36" data-min="20"><span>Applies <b>from Map 8 onward</b></span></div>
+      <div id="egp-c1-r1-line" class="egp-line egp-line-in egp-d32"></div>
+      <div id="egp-c1-r2-icon" class="egp-row-icon egp-pop egp-d33"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="3"/></svg></div>
+      <div id="egp-c1-r2-text" class="egp-row-text egp-fit egp-left-in-s egp-d34" data-max="36" data-min="20"><span>Only a team <b>IN THE ZONE</b> can win it</span></div>
+      <div id="egp-c1-r2-line" class="egp-line egp-line-in egp-d34"></div>
+      <div id="egp-c1-r3-icon" class="egp-row-icon egp-pop egp-d35"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 20h8"/></svg></div>
+      <div id="egp-c1-r3-text" class="egp-row-text egp-fit egp-left-in-s egp-d36" data-max="36" data-min="20"><span>First to achieve <b>Victory in a map</b></span></div>
+      <div id="egp-c1-r3-line" class="egp-line egp-line-in egp-d36"></div>
+      <div id="egp-c1-r4-icon" class="egp-row-icon egp-pop egp-d37"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg></div>
+      <div id="egp-c1-r4-text" class="egp-row-text egp-fit egp-left-in-s egp-d38" data-max="36" data-min="20"><span><b>Immediately declared Champion</b> of the Cup</span></div>
+      <div id="egp-c2" class="egp-card egp-rise egp-d27"></div>
+      <div id="egp-c2-num" class="egp-badge egp-center egp-pop egp-d31"><span>2</span></div>
+      <div id="egp-c2-title" class="egp-card-title egp-fit egp-left-in-s egp-d32" data-max="64" data-min="34"><span>WHEN TRIGGERED</span></div>
+      <div id="egp-c2-hline" class="egp-line egp-line-in egp-d33"></div>
+      <div id="egp-c2-r1-icon" class="egp-row-icon egp-pop egp-d34"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V3"/><path d="M5 4h14v10H5"/><path d="M5 9h14M10 4v10M15 4v10"/></svg></div>
+      <div id="egp-c2-r1-text" class="egp-row-text egp-fit egp-left-in-s egp-d35" data-max="36" data-min="20"><span><b>The Grand Finals ends</b> after that map</span></div>
+      <div id="egp-c2-r1-line" class="egp-line egp-line-in egp-d35"></div>
+      <div id="egp-c2-r2-icon" class="egp-row-icon egp-pop egp-d36"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M9.5 13l5 5M14.5 13l-5 5"/></svg></div>
+      <div id="egp-c2-r2-text" class="egp-row-text egp-fit egp-left-in-s egp-d37" data-max="36" data-min="20"><span>Remaining maps are <b>cancelled</b>, not played</span></div>
+      <div id="egp-c2-r2-line" class="egp-line egp-line-in egp-d37"></div>
+      <div id="egp-c2-r3-icon" class="egp-row-icon egp-pop egp-d38"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M7 20h10M5 8h14"/><path d="M5 8l-3 7a3 3 0 0 0 6 0zM19 8l-3 7a3 3 0 0 0 6 0z"/></svg></div>
+      <div id="egp-c2-r3-text" class="egp-row-text egp-fit egp-left-in-s egp-d39" data-max="36" data-min="20"><span><b>Tiebreaker:</b> IN THE ZONE teams tied for 1st</span></div>
+      <div id="egp-c2-r3-line" class="egp-line egp-line-in egp-d39"></div>
+      <div id="egp-c2-r4-icon" class="egp-row-icon egp-pop egp-d40"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="15" r="5.5"/><path d="M8.5 10.5L6 3h5l1 4M15.5 10.5L18 3h-5l-1 4M12 13v4M10.8 14l1.2-1"/></svg></div>
+      <div id="egp-c2-r4-text" class="egp-row-text egp-fit egp-left-in-s egp-d41" data-max="36" data-min="20"><span>The <b>in-game 1st place</b> result is final</span></div>
+      <div id="egp-c3" class="egp-card egp-card-dark egp-rise egp-d30"></div>
+      <div id="egp-c3-num" class="egp-badge egp-center egp-pop egp-d34"><span>3</span></div>
+      <div id="egp-c3-title" class="egp-card-title egp-on-dark egp-fit egp-left-in-s egp-d35" data-max="64" data-min="34"><span>TIMING & ELIGIBILITY</span></div>
+      <div id="egp-c3-hline" class="egp-line egp-line-dark egp-line-in egp-d36"></div>
+      <div id="egp-c3-r1-icon" class="egp-row-icon egp-pop egp-d37"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></div>
+      <div id="egp-c3-r1-text" class="egp-row-text egp-on-dark egp-fit egp-left-in-s egp-d38" data-max="36" data-min="20"><span>Became IN THE ZONE via a <b>Zone Bounty</b></span></div>
+      <div id="egp-c3-r1-line" class="egp-line egp-line-dark egp-line-in egp-d38"></div>
+      <div id="egp-c3-r2-icon" class="egp-row-icon egp-pop egp-d39"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 20h8"/><path d="M3 3l18 18"/></svg></div>
+      <div id="egp-c3-r2-text" class="egp-row-text egp-on-dark egp-fit egp-left-in-s egp-d40" data-max="36" data-min="20"><span><b>Can't win</b> the Championship in the claim map</span></div>
+      <div id="egp-c3-r2-line" class="egp-line egp-line-dark egp-line-in egp-d40"></div>
+      <div id="egp-c3-r3-icon" class="egp-row-icon egp-pop egp-d41"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12M6 21h12M7 3v4l5 5-5 5v4M17 3v4l-5 5 5 5v4"/></svg></div>
+      <div id="egp-c3-r3-text" class="egp-row-text egp-on-dark egp-fit egp-left-in-s egp-d42" data-max="36" data-min="20"><span>Status and eligibility <b>start next map</b></span></div>
+      <div id="egp-banner" class="egp-banner egp-wipe-c egp-d44"></div>
+      <div id="egp-banner-text" class="egp-banner-text egp-center egp-fit egp-up egp-d47" data-max="60" data-min="34"><span>GET IN THE ZONE. FINISH WITH A VICTORY.</span></div>
+      <div id="egp-banner-trophy-l" class="egp-banner-ico egp-pop egp-d49"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg></div>
+      <div id="egp-banner-trophy-r" class="egp-banner-ico egp-pop egp-d50"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg></div>
+    </div>
+    <div id="zone-rush-page">
+      <div id="zrh-corner-tr" class="zrh-slide-tr zrh-d0"></div>
+      <div id="zrh-corner-bl" class="zrh-slide-bl zrh-d0"></div>
+      <div id="zrh-logo" class="zrh-pop-soft zrh-d3"><img src="/gbrc_logo.png" alt=""></div>
+      <div id="zrh-presented" class="zrh-text zrh-center zrh-fit zrh-up zrh-d5" data-max="27" data-min="16"><span>GARENA BATTLE ROYALE CUP 2026</span></div>
+      <div id="zrh-title-zone" class="zrh-title zrh-right zrh-fit zrh-left-in zrh-d6" data-max="190" data-min="90"><span>ZONE</span></div>
+      <div id="zrh-title-box" class="zrh-wipe zrh-d9"></div>
+      <div id="zrh-title-rush" class="zrh-title zrh-center zrh-fit zrh-wipe zrh-d11" data-max="190" data-min="90"><span>RUSH</span></div>
+      <div id="zrh-bolt" class="zrh-icon-big zrh-pop zrh-d13"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div>
+      <div id="zrh-xhair" class="zrh-icon-big zrh-pop zrh-d14"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg></div>
+      <div id="zrh-sub-a" class="zrh-text zrh-sub zrh-fit zrh-up zrh-d15" data-max="48" data-min="26"><span>Day 1</span></div>
+      <div id="zrh-sub-zone-box" class="zrh-wipe zrh-d16"></div>
+      <div id="zrh-sub-zone" class="zrh-text zrh-sub zrh-sub-b zrh-center zrh-fit zrh-wipe zrh-d17" data-max="48" data-min="26"><span>MAP 1 TO MAP 6</span></div>
+      <div id="zrh-sub-c" class="zrh-text zrh-sub zrh-fit zrh-up zrh-d18" data-max="48" data-min="26"><span>build the lead</span></div>
+      <div id="zrh-sub-claim-box" class="zrh-wipe zrh-d19"></div>
+      <div id="zrh-sub-claim" class="zrh-text zrh-sub zrh-sub-c2 zrh-center zrh-fit zrh-wipe zrh-d20" data-max="48" data-min="26"><span>CARRY IT TO DAY 2</span></div>
+      <div id="zrh-from" class="zrh-text zrh-center zrh-fit zrh-up zrh-d22" data-max="27" data-min="16"><span>GRAND FINALS · ENDGAME PROTOCOL · DAY 1</span></div>
+      <div id="zrh-c1" class="zrh-card zrh-rise zrh-d24"></div>
+      <div id="zrh-c1-num" class="zrh-badge zrh-center zrh-pop zrh-d28"><span>1</span></div>
+      <div id="zrh-c1-title" class="zrh-card-title zrh-fit zrh-left-in-s zrh-d29" data-max="64" data-min="34"><span>HOW IT WORKS</span></div>
+      <div id="zrh-c1-hline" class="zrh-line zrh-line-in zrh-d30"></div>
+      <div id="zrh-c1-r1-icon" class="zrh-row-icon zrh-pop zrh-d31"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg></div>
+      <div id="zrh-c1-r1-text" class="zrh-row-text zrh-fit zrh-left-in-s zrh-d32" data-max="36" data-min="20"><span><b>All six maps</b> played in full and scored</span></div>
+      <div id="zrh-c1-r1-line" class="zrh-line zrh-line-in zrh-d32"></div>
+      <div id="zrh-c1-r2-icon" class="zrh-row-icon zrh-pop zrh-d33"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4M8 15h7M12.5 12.5L15 15l-2.5 2.5"/></svg></div>
+      <div id="zrh-c1-r2-text" class="zrh-row-text zrh-fit zrh-left-in-s zrh-d34" data-max="36" data-min="20"><span>Points <b>carry to Day 2</b>: no reset, no multiplier</span></div>
+      <div id="zrh-c1-r2-line" class="zrh-line zrh-line-in zrh-d34"></div>
+      <div id="zrh-c1-r3-icon" class="zrh-row-icon zrh-pop zrh-d35"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 20h8"/><path d="M3 3l18 18"/></svg></div>
+      <div id="zrh-c1-r3-text" class="zrh-row-text zrh-fit zrh-left-in-s zrh-d36" data-max="36" data-min="20"><span><b>No team may win</b> the Championship in Zone Rush</span></div>
+      <div id="zrh-c1-r3-line" class="zrh-line zrh-line-in zrh-d36"></div>
+      <div id="zrh-c1-r4-icon" class="zrh-row-icon zrh-pop zrh-d37"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M4 20v-6h5v6M9.5 20V8h5v12M15 20v-9h5v9"/><path d="M12 3.5v2"/></svg></div>
+      <div id="zrh-c1-r4-text" class="zrh-row-text zrh-fit zrh-left-in-s zrh-d38" data-max="36" data-min="20"><span>Map 6 standings set the <b>Seeding Rank</b></span></div>
+      <div id="zrh-c2" class="zrh-card zrh-rise zrh-d27"></div>
+      <div id="zrh-c2-num" class="zrh-badge zrh-center zrh-pop zrh-d31"><span>2</span></div>
+      <div id="zrh-c2-title" class="zrh-card-title zrh-fit zrh-left-in-s zrh-d32" data-max="64" data-min="34"><span>THE ZONE POINT</span></div>
+      <div id="zrh-c2-hline" class="zrh-line zrh-line-in zrh-d33"></div>
+      <div id="zrh-c2-r1-icon" class="zrh-row-icon zrh-pop zrh-d34"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3l7 4V6l-7 4z"/><path d="M17 9.5a4 4 0 0 1 0 5M19.5 7a7.5 7.5 0 0 1 0 10"/></svg></div>
+      <div id="zrh-c2-r1-text" class="zrh-row-text zrh-fit zrh-left-in-s zrh-d35" data-max="36" data-min="20"><span>Calculated after Map 6 and <b>announced publicly</b></span></div>
+      <div id="zrh-c2-r1-line" class="zrh-line zrh-line-in zrh-d35"></div>
+      <div id="zrh-c2-r2-icon" class="zrh-row-icon zrh-pop zrh-d36"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2M8 18h2M12 18h2"/></svg></div>
+      <div id="zrh-c2-r2-text" class="zrh-row-text zrh-fit zrh-left-in-s zrh-d37" data-max="36" data-min="20"><span><b>1st place total + 10 points</b></span></div>
+      <div id="zrh-c2-r2-line" class="zrh-line zrh-line-in zrh-d37"></div>
+      <div id="zrh-c2-r3-icon" class="zrh-row-icon zrh-pop zrh-d38"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg></div>
+      <div id="zrh-c2-r3-text" class="zrh-row-text zrh-fit zrh-left-in-s zrh-d39" data-max="36" data-min="20"><span>Example: <b>92&nbsp;pts&nbsp;=&nbsp;102</b> Zone Point</span></div>
+      <div id="zrh-c2-r3-line" class="zrh-line zrh-line-in zrh-d39"></div>
+      <div id="zrh-c2-r4-icon" class="zrh-row-icon zrh-pop zrh-d40"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3M12 15v2.5"/></svg></div>
+      <div id="zrh-c2-r4-text" class="zrh-row-text zrh-fit zrh-left-in-s zrh-d41" data-max="36" data-min="20"><span><b>Fixed</b> for the rest of the tournament</span></div>
+      <div id="zrh-c3" class="zrh-card zrh-card-dark zrh-rise zrh-d30"></div>
+      <div id="zrh-c3-num" class="zrh-badge zrh-center zrh-pop zrh-d34"><span>3</span></div>
+      <div id="zrh-c3-title" class="zrh-card-title zrh-on-dark zrh-fit zrh-left-in-s zrh-d35" data-max="64" data-min="34"><span>GOOD TO KNOW</span></div>
+      <div id="zrh-c3-hline" class="zrh-line zrh-line-dark zrh-line-in zrh-d36"></div>
+      <div id="zrh-c3-r1-icon" class="zrh-row-icon zrh-pop zrh-d37"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="3"/></svg></div>
+      <div id="zrh-c3-r1-text" class="zrh-row-text zrh-on-dark zrh-fit zrh-left-in-s zrh-d38" data-max="36" data-min="20"><span>Nobody starts Day 2 <b>IN THE ZONE</b>: 1st is 10 short</span></div>
+      <div id="zrh-c3-r1-line" class="zrh-line zrh-line-dark zrh-line-in zrh-d38"></div>
+      <div id="zrh-c3-r2-icon" class="zrh-row-icon zrh-pop zrh-d39"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M7.5 10h9M7.5 14h9"/></svg></div>
+      <div id="zrh-c3-r2-text" class="zrh-row-text zrh-on-dark zrh-fit zrh-left-in-s zrh-d40" data-max="36" data-min="20"><span><b>Tie for 1st:</b> the tied total is used</span></div>
+      <div id="zrh-c3-r2-line" class="zrh-line zrh-line-dark zrh-line-in zrh-d40"></div>
+      <div id="zrh-c3-r3-icon" class="zrh-row-icon zrh-pop zrh-d41"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg></div>
+      <div id="zrh-c3-r3-text" class="zrh-row-text zrh-on-dark zrh-fit zrh-left-in-s zrh-d42" data-max="36" data-min="20"><span>Tiebreaker sets <b>Seeding Rank</b> only</span></div>
+      <div id="zrh-c3-r3-line" class="zrh-line zrh-line-dark zrh-line-in zrh-d42"></div>
+      <div id="zrh-c3-r4-icon" class="zrh-row-icon zrh-pop zrh-d43"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h12l-2 4 2 4H5"/></svg></div>
+      <div id="zrh-c3-r4-text" class="zrh-row-text zrh-on-dark zrh-fit zrh-left-in-s zrh-d44" data-max="36" data-min="20"><span>Under 6 maps: Zone Point is <b>fixed at 115</b></span></div>
+      <div id="zrh-banner" class="zrh-banner zrh-wipe-c zrh-d44"></div>
+      <div id="zrh-banner-text" class="zrh-banner-text zrh-center zrh-fit zrh-up zrh-d47" data-max="60" data-min="34"><span>SIX MAPS. BUILD THE LEAD. CARRY IT FORWARD.</span></div>
+      <div id="zrh-banner-trophy-l" class="zrh-banner-ico zrh-pop zrh-d49"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div>
+      <div id="zrh-banner-trophy-r" class="zrh-banner-ico zrh-pop zrh-d50"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div>
     </div>
     <div id="map-winner-page">
       <div id="mwn-photos-back">
@@ -6687,6 +8173,46 @@
         if (msg.action === 'show') {
           document.getElementById('config-bar').classList.remove('debug-open');
           setTimeout(showPrizePoolScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('zone_bounty', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showZoneBountyScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('zowned_points', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showZownedPointsScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('points_system', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showPointsSystemScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('endgame_protocol', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showEndgameProtocolScene, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('zone_rush', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showZoneRushScene, 100);
         } else if (msg.action === 'hide') hideActiveFeature();
       });
 
@@ -7613,6 +9139,78 @@
       wtvcPollInt = null;
     }
 
+    /* Waiting TVC sponsor spot — see CSS above #wtvc-stage. Category text pushes in from the
+       top, logo pushes in from the right. Started/stopped with the scene. */
+    const wtvcSponLoop = (function () {
+      const tagBg = document.getElementById('wtvc-spon-tag');
+      const tagWin = document.getElementById('wtvc-spon-tag-text');
+      const logoWin = document.getElementById('wtvc-spon-logo');
+      const EASE = 'cubic-bezier(0.2, 0.7, 0.2, 1)', MS = 450;
+      let list = [], idx = 0, active = false, timer = null, curCat = null, runId = 0;
+      function push(win, node, from, to) {
+        const old = Array.from(win.children);
+        win.appendChild(node);
+        node.animate([{ transform: from }, { transform: 'none' }], { duration: MS, easing: EASE, fill: 'both' });
+        old.forEach(o => {
+          const a = o.animate([{ transform: 'none' }, { transform: to }], { duration: MS, easing: EASE, fill: 'both' });
+          a.onfinish = () => o.remove();
+        });
+      }
+      function fitTag(node) {
+        const span = node.firstChild;
+        let size = 27;
+        node.style.fontSize = size + 'px';
+        span.style.display = 'inline-block';
+        while (span.offsetWidth > win_w() && size > 14) node.style.fontSize = (size -= 0.5) + 'px';
+        span.style.display = '';
+      }
+      function win_w() { return tagWin.clientWidth; }
+      function step(id) {
+        if (!active || id !== runId || !list.length) return;
+        const s = list[idx % list.length];
+        const img = new Image();
+        let done = false;
+        const go = () => {
+          if (done) return; done = true;
+          if (!active || id !== runId) return;
+          if (s.category !== curCat) {
+            curCat = s.category;
+            const t = document.createElement('div'); t.className = 'wsp-item';
+            const sp = document.createElement('span'); sp.textContent = s.category || ''; t.appendChild(sp);
+            push(tagWin, t, 'translateY(-100%)', 'translateY(100%)');
+            fitTag(t);
+          }
+          const l = document.createElement('div'); l.className = 'wsp-item';
+          l.appendChild(img);
+          push(logoWin, l, 'translateX(100%)', 'translateX(-100%)');
+          idx++;
+          timer = setTimeout(() => step(id), s.dur + MS);
+        };
+        img.onload = go; img.onerror = go; setTimeout(go, 1500);
+        img.src = s.src;   /* regular logo, not the /white variant */
+      }
+      return {
+        start() {
+          if (!sponsorBoxesEnabled) return;
+          this.stop();
+          active = true;
+          const id = ++runId;
+          fetch('/api/sponsors', { cache: 'no-store' }).then(r => r.json()).then(l => {
+            if (!active || id !== runId || !l || !l.length) return;
+            list = l; idx = 0; curCat = null;
+            [tagBg, tagWin, logoWin].forEach(e => e.classList.add('wsp-on'));
+            step(id);
+          }).catch(() => {});
+        },
+        stop() {
+          active = false; runId++;
+          clearTimeout(timer);
+          [tagBg, tagWin, logoWin].forEach(e => e.classList.remove('wsp-on'));
+          tagWin.innerHTML = ''; logoWin.innerHTML = ''; curCat = null;
+        },
+      };
+    })();
+
     async function showWaitingScreen() {
       const dataPromise = wtvcFetchData();
       await transitionTo('waiting');
@@ -7626,6 +9224,7 @@
       wsPage.classList.add('ws-on');
       void wsPage.offsetWidth; /* force reflow so the opacity transition runs */
       wsPage.classList.add('ws-visible');
+      wtvcSponLoop.start();
     }
 
     function hideWaitingScreen() {
@@ -7638,6 +9237,7 @@
           stopWtvcPageCycle();
           stopWtvcPoll();
           stopWtvcTimer();
+          wtvcSponLoop.stop();
           resolve();
         }, 420);
       });
@@ -7675,6 +9275,7 @@
       wtTimerInt = null;
     }
 
+    const wtSponsorLoop = makeSponsorLoop('wt-sponsorbox-img', 'wt-sponsorbox-label', 29.75, 14, true);
     async function showWaitingTimer() {
       const msPromise = fetch(buildUrl('/match/state'), { cache: 'no-store' })
         .then(r => r.ok ? r.json() : null).catch(() => null);
@@ -7688,6 +9289,7 @@
       wtPage.classList.add('wt-on');
       void wtPage.offsetWidth; /* force reflow so the opacity transition runs */
       wtPage.classList.add('wt-visible');
+      wtSponsorLoop.start();
     }
 
     function hideWaitingTimer() {
@@ -7698,6 +9300,7 @@
           wtPage.classList.remove('wt-on');
           wtBgVideo.pause();
           stopWtTimer();
+          wtSponsorLoop.stop();
           resolve();
         }, 420);
       });
@@ -11317,14 +12920,49 @@
     ════════════════════════════════════════════════ */
     const pplPage = document.getElementById('prize-pool-page');
 
+    function pplFitAll() {
+      /* width-only fit (the translateY nudge on the span would read as vertical overflow) */
+      pplPage.querySelectorAll('.ppl-fit').forEach(el => {
+        let s = parseFloat(el.dataset.max); const min = parseFloat(el.dataset.min);
+        el.style.fontSize = s + 'px';
+        while (el.scrollWidth > el.clientWidth + 1 && s > min) { s -= 1; el.style.fontSize = s + 'px'; }
+      });
+    }
+    /* Count the big amounts up from 0 once the entrance starts (final text is set
+       first so the fit above was measured against the real width). */
+    let pplCountTimers = [];
+    function pplCountUp(el, target, delayMs, durMs) {
+      const span = el.querySelector('span');
+      const final = span.textContent;
+      span.textContent = '$0';
+      const t0 = performance.now() + delayMs;
+      const tick = (now) => {
+        if (!pplPage.classList.contains('ppl-play')) { span.textContent = final; return; }
+        const p = Math.min(1, Math.max(0, (now - t0) / durMs));
+        const v = Math.round(target * (1 - Math.pow(1 - p, 3)));
+        span.textContent = p >= 1 ? final : '$' + v.toLocaleString('en-US');
+        if (p < 1) pplCountTimers.push(requestAnimationFrame(tick));
+      };
+      pplCountTimers.push(requestAnimationFrame(tick));
+    }
+
     async function showPrizePoolScene() {
       await transitionTo('prizepool');
       if (activeFeature !== 'prizepool') return; /* superseded mid-await */
       rnkShowHeader('Prize Pool');
       rnkShowBgVideo();
-      pplPage.classList.add('ppl-on');
+      pplPage.classList.remove('ppl-play', 'ppl-visible');
+      pplPage.classList.add('ppl-on'); /* display:block so fit can measure; still opacity 0 */
+      try { await document.fonts.load('700 40px Teko'); } catch (e) {}
+      if (activeFeature !== 'prizepool') { pplPage.classList.remove('ppl-on'); return; }
+      pplFitAll();
       void pplPage.offsetWidth; /* force reflow so the opacity transition runs */
-      pplPage.classList.add('ppl-visible');
+      pplPage.classList.add('ppl-visible', 'ppl-play');
+      pplCountTimers.forEach(cancelAnimationFrame); pplCountTimers = [];
+      pplPage.querySelectorAll('[data-count]').forEach(el => {
+        const isChamp = el.id === 'ppl-champ';
+        pplCountUp(el, parseInt(el.dataset.count, 10), isChamp ? 1000 : 250, isChamp ? 900 : 1200);
+      });
     }
 
     function hidePrizePoolScene() {
@@ -11335,7 +12973,264 @@
         headerP,
         new Promise(resolve => {
           setTimeout(() => {
-            pplPage.classList.remove('ppl-on');
+            pplPage.classList.remove('ppl-on', 'ppl-play');
+            pplCountTimers.forEach(cancelAnimationFrame); pplCountTimers = [];
+            pplPage.querySelectorAll('[data-count]').forEach(el => { el.querySelector('span').textContent = '$' + parseInt(el.dataset.count, 10).toLocaleString('en-US'); });
+            rnkHideBgVideo();
+            resolve();
+          }, 420);
+        }),
+      ]);
+    }
+
+    /* ════════════════════════════════════════════════
+       ZONE BOUNTY — standalone explainer scene (no shared header, not in
+       RANK_FEATURES/POST_FEATURES). Shared #bg-video loop underneath.
+       Text boxes (.zb-fit) shrink-to-fit from data-max → data-min once the
+       page is display:block; the entrance is pure CSS (.zb-play).
+    ════════════════════════════════════════════════ */
+    const zbPage = document.getElementById('zone-bounty-page');
+
+    function zbFit(el, max, min) {
+      let s = max;
+      el.style.fontSize = s + 'px';
+      while ((el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) && s > min) {
+        s -= 0.5;
+        el.style.fontSize = s + 'px';
+      }
+    }
+    function zbFitAll() {
+      zbPage.querySelectorAll('.zb-fit').forEach(el => zbFit(el, parseFloat(el.dataset.max), parseFloat(el.dataset.min)));
+    }
+
+    async function showZoneBountyScene() {
+      await transitionTo('zonebounty');
+      if (activeFeature !== 'zonebounty') return; /* superseded mid-await */
+      showBgVideo();
+      zbPage.classList.remove('zb-play', 'zb-visible');
+      zbPage.classList.add('zb-on'); /* display:block so fit can measure, still opacity 0 */
+      try {
+        await Promise.all([document.fonts.load('700 40px Teko'), document.fonts.load('700 40px "General Sans"'), document.fonts.load('500 26px "General Sans"')]);
+      } catch (e) {}
+      if (activeFeature !== 'zonebounty') { zbPage.classList.remove('zb-on'); return; }
+      zbFitAll();
+      await preloadMedia(zbPage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'zonebounty') { zbPage.classList.remove('zb-on'); return; }
+      void zbPage.offsetWidth; /* force reflow so the fade + entrance start clean */
+      zbPage.classList.add('zb-visible', 'zb-play');
+    }
+
+    function hideZoneBountyScene() {
+      activeFeature = null;
+      zbPage.classList.remove('zb-visible');
+      return new Promise(resolve => {
+        setTimeout(() => {
+          zbPage.classList.remove('zb-on', 'zb-play');
+          hideBgVideo();
+          resolve();
+        }, 420);
+      });
+    }
+
+    /* ════════════════════════════════════════════════
+       ZONE RUSH — same shape/styling as Zone Bounty (standalone explainer,
+       no shared header, shared #bg-video, CSS entrance on .zrh-play).
+    ════════════════════════════════════════════════ */
+    const zrhPage = document.getElementById('zone-rush-page');
+
+    function zrhFitAll() {
+      zrhPage.querySelectorAll('.zrh-fit').forEach(el => zbFit(el, parseFloat(el.dataset.max), parseFloat(el.dataset.min)));
+    }
+
+    async function showZoneRushScene() {
+      await transitionTo('zonerush');
+      if (activeFeature !== 'zonerush') return; /* superseded mid-await */
+      showBgVideo();
+      zrhPage.classList.remove('zrh-play', 'zrh-visible');
+      zrhPage.classList.add('zrh-on'); /* display:block so fit can measure, still opacity 0 */
+      try {
+        await Promise.all([document.fonts.load('700 40px Teko'), document.fonts.load('500 40px Teko')]);
+      } catch (e) {}
+      if (activeFeature !== 'zonerush') { zrhPage.classList.remove('zrh-on'); return; }
+      zrhFitAll();
+      await preloadMedia(zrhPage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'zonerush') { zrhPage.classList.remove('zrh-on'); return; }
+      void zrhPage.offsetWidth;
+      zrhPage.classList.add('zrh-visible', 'zrh-play');
+    }
+
+    function hideZoneRushScene() {
+      activeFeature = null;
+      zrhPage.classList.remove('zrh-visible');
+      return new Promise(resolve => {
+        setTimeout(() => {
+          zrhPage.classList.remove('zrh-on', 'zrh-play');
+          hideBgVideo();
+          resolve();
+        }, 420);
+      });
+    }
+
+    /* ════════════════════════════════════════════════
+       ENDGAME PROTOCOL — same shape/styling as Zone Bounty (standalone explainer,
+       no shared header, shared #bg-video, CSS entrance on .egp-play).
+    ════════════════════════════════════════════════ */
+    const egpPage = document.getElementById('endgame-protocol-page');
+
+    function egpFitAll() {
+      egpPage.querySelectorAll('.egp-fit').forEach(el => zbFit(el, parseFloat(el.dataset.max), parseFloat(el.dataset.min)));
+    }
+
+    async function showEndgameProtocolScene() {
+      await transitionTo('endgameprotocol');
+      if (activeFeature !== 'endgameprotocol') return; /* superseded mid-await */
+      showBgVideo();
+      egpPage.classList.remove('egp-play', 'egp-visible');
+      egpPage.classList.add('egp-on'); /* display:block so fit can measure, still opacity 0 */
+      try {
+        await Promise.all([document.fonts.load('700 40px Teko'), document.fonts.load('500 40px Teko')]);
+      } catch (e) {}
+      if (activeFeature !== 'endgameprotocol') { egpPage.classList.remove('egp-on'); return; }
+      egpFitAll();
+      await preloadMedia(egpPage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'endgameprotocol') { egpPage.classList.remove('egp-on'); return; }
+      void egpPage.offsetWidth;
+      egpPage.classList.add('egp-visible', 'egp-play');
+    }
+
+    function hideEndgameProtocolScene() {
+      activeFeature = null;
+      egpPage.classList.remove('egp-visible');
+      return new Promise(resolve => {
+        setTimeout(() => {
+          egpPage.classList.remove('egp-on', 'egp-play');
+          hideBgVideo();
+          resolve();
+        }, 420);
+      });
+    }
+
+    /* ════════════════════════════════════════════════
+       POINTS SYSTEM — same shape/styling as Zone Bounty (standalone explainer,
+       no shared header, shared #bg-video, CSS entrance on .psy-play).
+    ════════════════════════════════════════════════ */
+    const psyPage = document.getElementById('points-system-page');
+
+    function psyFitAll() {
+      psyPage.querySelectorAll('.psy-fit').forEach(el => zbFit(el, parseFloat(el.dataset.max), parseFloat(el.dataset.min)));
+    }
+
+    async function showPointsSystemScene() {
+      await transitionTo('pointssystem');
+      if (activeFeature !== 'pointssystem') return; /* superseded mid-await */
+      showBgVideo();
+      psyPage.classList.remove('psy-play', 'psy-visible');
+      psyPage.classList.add('psy-on'); /* display:block so fit can measure, still opacity 0 */
+      try {
+        await Promise.all([document.fonts.load('700 40px Teko'), document.fonts.load('500 40px Teko')]);
+      } catch (e) {}
+      if (activeFeature !== 'pointssystem') { psyPage.classList.remove('psy-on'); return; }
+      psyFitAll();
+      await preloadMedia(psyPage.querySelectorAll('img'), 1500);
+      if (activeFeature !== 'pointssystem') { psyPage.classList.remove('psy-on'); return; }
+      void psyPage.offsetWidth;
+      psyPage.classList.add('psy-visible', 'psy-play');
+    }
+
+    function hidePointsSystemScene() {
+      activeFeature = null;
+      psyPage.classList.remove('psy-visible');
+      return new Promise(resolve => {
+        setTimeout(() => {
+          psyPage.classList.remove('psy-on', 'psy-play');
+          hideBgVideo();
+          resolve();
+        }, 420);
+      });
+    }
+
+    /* ════════════════════════════════════════════════
+       ZOWNED POINTS — the score needed to be IN THE ZONE. Part of the
+       RANK_FEATURES family (shared #rnk-header, labeled "Zowned Points").
+       Data: GET /api/zowned-points = the In The Zone tab's threshold, else
+       (Grand Finals' best team total after Map 6) + 10.
+    ════════════════════════════════════════════════ */
+    const zwpPage = document.getElementById('zowned-points-page');
+    let zwpCountRaf = 0;
+
+    function zwpFitAll() {
+      /* width-only fit (the span's translateY nudge would read as vertical overflow) */
+      zwpPage.querySelectorAll('.zwp-fit').forEach(el => {
+        let s = parseFloat(el.dataset.max); const min = parseFloat(el.dataset.min);
+        el.style.fontSize = s + 'px';
+        while (el.scrollWidth > el.clientWidth + 1 && s > min) { s -= 1; el.style.fontSize = s + 'px'; }
+      });
+    }
+    function zwpSet(id, text) {
+      const sp = document.querySelector('#' + id + ' span');
+      if (sp) sp.textContent = text;
+    }
+    async function zwpFetchData() {
+      try {
+        const r = await fetch(buildUrl('/api/zowned-points'), { cache: 'no-store' });
+        return r.ok ? await r.json() : null;
+      } catch (e) { return null; }
+    }
+    function zwpApply(d) {
+      const pts = d && d.points !== null && d.points !== undefined ? Number(d.points) : null;
+      const has = pts !== null && isFinite(pts);
+      zwpSet('zwp-hero-num', has ? String(Math.round(pts * 100) / 100) : 'TBD');
+      zwpSet('zwp-strip-text',
+        d && d.source === 'manual' ? 'THE SCORE TO REACH'
+        : d && d.source === 'fallback' && d.leader ? 'MAP 6 LEADER ' + d.leader.total + ' + 10'
+        : 'ANNOUNCED AFTER MAP 6');
+      const lead = d && d.leader;
+      zwpSet('zwp-tile-leader-label', lead ? 'MAP 6 LEADER · ' + lead.total + ' PTS' : 'MAP 6 LEADER');
+      zwpSet('zwp-tile-leader-val', lead ? lead.name : '—');
+      return has ? pts : null;
+    }
+
+    async function showZownedPointsScene() {
+      const dataP = zwpFetchData();
+      await transitionTo('zownedpoints');
+      if (activeFeature !== 'zownedpoints') return; /* superseded mid-await */
+      const data = await dataP;
+      if (activeFeature !== 'zownedpoints') return;
+      const pts = zwpApply(data);
+      rnkShowHeader('Zowned Points');
+      rnkShowBgVideo();
+      zwpPage.classList.remove('zwp-play', 'zwp-visible');
+      zwpPage.classList.add('zwp-on'); /* display:block so fit can measure; still opacity 0 */
+      try { await document.fonts.load('700 40px Teko'); await document.fonts.load('500 40px Teko'); } catch (e) {}
+      if (activeFeature !== 'zownedpoints') { zwpPage.classList.remove('zwp-on'); return; }
+      zwpFitAll();
+      void zwpPage.offsetWidth; /* force reflow so the opacity transition runs */
+      zwpPage.classList.add('zwp-visible', 'zwp-play');
+      cancelAnimationFrame(zwpCountRaf);
+      if (pts !== null) { /* count the number up once the entrance starts */
+        const sp = document.querySelector('#zwp-hero-num span');
+        const final = sp.textContent;
+        const t0 = performance.now() + 450, dur = 1100;
+        const tick = (now) => {
+          if (!zwpPage.classList.contains('zwp-play')) { sp.textContent = final; return; }
+          const p = Math.min(1, Math.max(0, (now - t0) / dur));
+          sp.textContent = p >= 1 ? final : String(Math.round(pts * (1 - Math.pow(1 - p, 3))));
+          if (p < 1) zwpCountRaf = requestAnimationFrame(tick);
+        };
+        zwpCountRaf = requestAnimationFrame(tick);
+      }
+    }
+
+    function hideZownedPointsScene() {
+      activeFeature = null;
+      zwpPage.classList.remove('zwp-visible');
+      const headerP = duringRankTransition ? Promise.resolve() : rnkHideHeader();
+      return Promise.all([
+        headerP,
+        new Promise(resolve => {
+          setTimeout(() => {
+            cancelAnimationFrame(zwpCountRaf);
+            zwpPage.classList.remove('zwp-on', 'zwp-play');
             rnkHideBgVideo();
             resolve();
           }, 420);
@@ -13009,7 +14904,7 @@
     /* Generic Draft/Waiting-Lobby-style sponsor loop (same /api/sponsors
        source + slide timing as startWlSponsorLoop above), reused by both
        Today's and Tomorrow's Schedule sponsor boxes. */
-    function makeSponsorLoop(imgId, labelId, labelMaxSize, labelMinSize) {
+    function makeSponsorLoop(imgId, labelId, labelMaxSize, labelMinSize, regularLogos) {
       let sponsors = [], idx = 0, active = false;
       let inHandler = null, outHandler = null, holdTimer = null;
       function run() {
@@ -13046,7 +14941,7 @@
           if (!sponsorBoxesEnabled) return;
           active = true;
           fetch('/api/sponsors').then(r => r.json()).then(list => {
-            list = (list || []).map(x => Object.assign({}, x, { src: sponsorWhiteSrc(x.src) }));
+            list = (list || []).map(x => Object.assign({}, x, { src: regularLogos ? x.src : sponsorWhiteSrc(x.src) }));
             if (!active || !list || !list.length) return;
             sponsors = list;
             idx = 0;
@@ -13355,7 +15250,7 @@
        header, only its own scoreboard content. Same precedent as
        cpDuringPostTransition above. */
     let duringRankTransition = false;
-    const RANK_FEATURES = new Set(['overallranking', 'overallranking2', 'mapranking', 'slotteams', 'groupa', 'groupb', 'groupc', 'groupd', 'dangerzone', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'playoffselimleaders', 'playoffsteamelims', 'elimsmap', 'elimleaders', 'groupelimleaders', 'teammapelims', 'teampointpct', 'pointcontribution', 'qualelimleaders', 'totalteamelims', 'groupteamelims', 'qualteamelims', 'tournamentschedule', 'prizepool', 'mapwinner', 'mapmvp', 'postqualified', 'teamlineup', 'zownedrate', 'averageplacement', 'mapplacementavg', 'playerh2h', 'teamh2h']);
+    const RANK_FEATURES = new Set(['overallranking', 'overallranking2', 'mapranking', 'slotteams', 'groupa', 'groupb', 'groupc', 'groupd', 'dangerzone', 'qualifiedteams1', 'qualifiedteams2', 'maprotation', 'playoffselimleaders', 'playoffsteamelims', 'elimsmap', 'elimleaders', 'groupelimleaders', 'teammapelims', 'teampointpct', 'pointcontribution', 'qualelimleaders', 'totalteamelims', 'groupteamelims', 'qualteamelims', 'tournamentschedule', 'prizepool', 'zownedpoints', 'mapwinner', 'mapmvp', 'postqualified', 'teamlineup', 'zownedrate', 'averageplacement', 'mapplacementavg', 'playerh2h', 'teamh2h']);
 
     /* Keeps server-side state.fullscreenScene.<key> (and thus the dashboard's
        Control-tab board toggles/live indicator) in sync with board
@@ -13462,6 +15357,11 @@
       if (prev === 'qualteamelims') return hideQualTeamElimsScene();
       if (prev === 'tournamentschedule') return hideTournamentScheduleScene();
       if (prev === 'prizepool') return hidePrizePoolScene();
+      if (prev === 'zonebounty') return hideZoneBountyScene();
+      if (prev === 'zownedpoints') return hideZownedPointsScene();
+      if (prev === 'pointssystem') return hidePointsSystemScene();
+      if (prev === 'endgameprotocol') return hideEndgameProtocolScene();
+      if (prev === 'zonerush') return hideZoneRushScene();
       if (prev === 'teamlineup') return hideTeamLineupScene();
       if (prev === 'mapwinner') return hideMapWinnerScene();
       if (prev === 'mapmvp') return hideMapMvpScene();
@@ -14318,6 +16218,11 @@
           else if (scene.activeFeature === 'qualteamelims') showQualTeamElimsScene();
           else if (scene.activeFeature === 'tournamentschedule') showTournamentScheduleScene();
           else if (scene.activeFeature === 'prizepool') showPrizePoolScene();
+          else if (scene.activeFeature === 'zonebounty') showZoneBountyScene();
+          else if (scene.activeFeature === 'zownedpoints') showZownedPointsScene();
+          else if (scene.activeFeature === 'pointssystem') showPointsSystemScene();
+          else if (scene.activeFeature === 'endgameprotocol') showEndgameProtocolScene();
+          else if (scene.activeFeature === 'zonerush') showZoneRushScene();
           else if (scene.activeFeature === 'teamlineup') showTeamLineupScene();
           else if (scene.activeFeature === 'mapwinner') showMapWinnerScene();
           else if (scene.activeFeature === 'mapmvp') showMapMvpScene();
@@ -14382,6 +16287,11 @@
         if (feature === 'qualteamelims') showQualTeamElimsScene();
         if (feature === 'tournamentschedule') showTournamentScheduleScene();
         if (feature === 'prizepool') showPrizePoolScene();
+        if (feature === 'zonebounty') showZoneBountyScene();
+        if (feature === 'zownedpoints') showZownedPointsScene();
+        if (feature === 'pointssystem') showPointsSystemScene();
+        if (feature === 'endgameprotocol') showEndgameProtocolScene();
+        if (feature === 'zonerush') showZoneRushScene();
         if (feature === 'teamlineup') showTeamLineupScene();
         if (feature === 'mapwinner') showMapWinnerScene();
         if (feature === 'mapmvp') showMapMvpScene();
@@ -14402,7 +16312,7 @@
     window.previewTrigger = function(event, action) {
       document.querySelectorAll('.dbg-btn.preview').forEach(b => b.classList.remove('active'));
       if (action === 'show') {
-        const btnMap = { team_h2h: 'preview-teamh2h', player_h2h: 'preview-playerh2h', map_placement_avg: 'preview-mapplacementavg', average_placement: 'preview-averageplacement', zowned_rate: 'preview-zownedrate', team_lineup: 'preview-teamlineup', post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', overall_ranking_2: 'preview-overallranking2', map_ranking: 'preview-mapranking', slot_teams: 'preview-slotteams', group_a: 'preview-groupa', group_b: 'preview-groupb', group_c: 'preview-groupc', group_d: 'preview-groupd', danger_zone: 'preview-dangerzone', qualified_teams_1: 'preview-qualifiedteams1', qualified_teams_2: 'preview-qualifiedteams2', map_rotation: 'preview-maprotation', elims_map: 'preview-elimsmap', elim_leaders: 'preview-elimleaders', group_elim_leaders: 'preview-groupelimleaders', team_map_elims: 'preview-teammapelims', team_point_percent: 'preview-teampointpct', point_contribution: 'preview-pointcontribution', qual_elim_leaders: 'preview-qualelimleaders', total_team_elims: 'preview-totalteamelims', group_team_elims: 'preview-groupteamelims', qual_team_elims: 'preview-qualteamelims', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool', map_winner: 'preview-mapwinner', map_mvp: 'preview-mapmvp' };
+        const btnMap = { team_h2h: 'preview-teamh2h', player_h2h: 'preview-playerh2h', map_placement_avg: 'preview-mapplacementavg', average_placement: 'preview-averageplacement', zowned_rate: 'preview-zownedrate', team_lineup: 'preview-teamlineup', post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_timer: 'preview-timer', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post_qualified: 'preview-postqualified', map_highlights: 'preview-maphighlights', herolineup: 'preview-herolineup', overall_ranking: 'preview-overallranking', overall_ranking_2: 'preview-overallranking2', map_ranking: 'preview-mapranking', slot_teams: 'preview-slotteams', group_a: 'preview-groupa', group_b: 'preview-groupb', group_c: 'preview-groupc', group_d: 'preview-groupd', danger_zone: 'preview-dangerzone', qualified_teams_1: 'preview-qualifiedteams1', qualified_teams_2: 'preview-qualifiedteams2', map_rotation: 'preview-maprotation', elims_map: 'preview-elimsmap', elim_leaders: 'preview-elimleaders', group_elim_leaders: 'preview-groupelimleaders', team_map_elims: 'preview-teammapelims', team_point_percent: 'preview-teampointpct', point_contribution: 'preview-pointcontribution', qual_elim_leaders: 'preview-qualelimleaders', total_team_elims: 'preview-totalteamelims', group_team_elims: 'preview-groupteamelims', qual_team_elims: 'preview-qualteamelims', tournament_schedule: 'preview-tournamentschedule', prize_pool: 'preview-prizepool', zone_bounty: 'preview-zonebounty', zowned_points: 'preview-zownedpoints', points_system: 'preview-pointssystem', endgame_protocol: 'preview-endgameprotocol', zone_rush: 'preview-zonerush', map_winner: 'preview-mapwinner', map_mvp: 'preview-mapmvp' };
         const btn = document.getElementById(btnMap[event]);
         if (btn) btn.classList.add('active');
       }
@@ -14438,6 +16348,11 @@
         if (event === 'qual_team_elims') showQualTeamElimsScene();
         if (event === 'tournament_schedule') showTournamentScheduleScene();
         if (event === 'prize_pool') showPrizePoolScene();
+        if (event === 'zone_bounty') showZoneBountyScene();
+        if (event === 'zowned_points') showZownedPointsScene();
+        if (event === 'points_system') showPointsSystemScene();
+        if (event === 'endgame_protocol') showEndgameProtocolScene();
+        if (event === 'zone_rush') showZoneRushScene();
         if (event === 'team_lineup') showTeamLineupScene();
         if (event === 'map_winner') showMapWinnerScene();
         if (event === 'map_mvp') showMapMvpScene();

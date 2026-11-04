@@ -3,33 +3,65 @@
     {
       "id": "fmv6rnuld",
       "name": "Waiting",
-      "open": true,
+      "open": false,
       "keys": [
         "waiting_tvc",
         "waiting_timer"
       ]
     },
     {
+      "id": "fmw1j0yxg",
+      "name": "Pre Show",
+      "open": false,
+      "keys": [
+        "points_system",
+        "zone_rush",
+        "endgame_protocol",
+        "zone_bounty",
+        "prize_pool",
+        "tournament_schedule",
+        "map_rotation",
+        "team_lineup"
+      ]
+    },
+    {
       "id": "fmv6rof9q",
-      "name": "Rankings",
+      "name": "PreFLight",
       "open": false,
       "keys": [
         "overall_ranking_2",
-        "map_ranking",
         "group_a",
         "group_b",
         "group_c",
         "group_d",
-        "overall_ranking"
+        "zowned_rate",
+        "map_placement_avg",
+        "average_placement",
+        "total_team_elims",
+        "team_map_elims",
+        "elim_leaders",
+        "elims_map",
+        "team_h2h",
+        "player_h2h"
+      ]
+    },
+    {
+      "id": "fmw1jvi9s",
+      "name": "Ranking",
+      "open": false,
+      "keys": [
+        "map_ranking",
+        "overall_ranking",
+        "map_winner",
+        "map_mvp",
+        "map_highlights"
       ]
     },
     {
       "id": "fmv6rqb0j",
       "name": "Stats",
-      "open": false,
+      "open": true,
       "keys": [
-        "elim_leaders",
-        "total_team_elims",
         "group_elim_leaders",
         "group_team_elims",
         "qual_elim_leaders",
@@ -37,10 +69,10 @@
         "playoffs_elim_leaders",
         "playoffs_team_elims",
         "point_contribution",
-        "team_point_percent",
-        "team_map_elims",
-        "elims_map"
+        "team_point_percent"
       ]
     }
-  ]
+  ],
+  "favorites": [],
+  "favoritesOpen": false
 }

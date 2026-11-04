@@ -82,6 +82,9 @@
   .led-rc-lbl { top: 7px; width: 70px; height: 22px; font-size: 20px; font-weight: 600; color: #9a9a9a; }
   .led-rc-lbl-elim  { left: 364px; }
   .led-rc-lbl-total { left: 438px; }
+  /* Showmatch: no team logos — the name takes the logo's space. */
+  .led-row.led-nologo .led-rc-name { left: 92px; width: 254px; }
+  .led-feat-name.led-nologo, .led-feat-info.led-nologo { box-sizing: content-box; translate: -135px 0; padding: 0 66px; justify-content: center; text-align: center; }
   .led-row-divider { position: absolute; top: 14px; width: 1px; height: 60px; background: #4a4a4a; }
 
   /* Featured team strip (blue areas): dark panel + yellow accent, large logo plate,
@@ -113,6 +116,107 @@
   #led-feat-right-logo { left: 1097px; top: 502px; }
   #led-feat-right-name { left: 1229px; top: 512px; }
   #led-feat-right-info { left: 1229px; top: 576px; }
+  /* ════════════════════════════════════════════════════════════════
+     TEAM INTRODUCTION — full LED takeover while a squad is introduced.
+     No game feed: the whole top (1920x480) is the stage — giant team logo
+     behind, 5 player cut-outs in front. Bottom strip: team name in the left
+     blue panel (2 rows if long), logo + country code in the right blue panel.
+     Every piece is its own element (Edit tab). Animations: CSS keyframes
+     keyed off .li-animin / .li-animout on the page; hide is timer-driven.
+     ════════════════════════════════════════════════════════════════ */
+  #led-intro-page { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; display: none; overflow: hidden;
+                    background: transparent; z-index: 10; }
+  #led-intro-page.li-on { display: block; }
+  #li-base { position: absolute; left: 0; top: 0; width: 1920px; height: 640px; background: #000; }
+  /* Top-LED crop: everything that belongs to the top LED lives in here, hard-clipped at y=480 so nothing (incl. rise/drop animations) can reach the bottom LEDs. Children keep canvas coordinates (wrapper sits at 0,0). */
+  #li-top-clip { position: absolute; left: 0; top: 0; width: 1920px; height: 480px; overflow: hidden; }
+  #li-bg { position: absolute; left: 0; top: 0; width: 1920px; height: 480px; object-fit: cover; opacity: .9; }
+  #li-vignette { position: absolute; left: 0; top: 0; width: 1920px; height: 480px;
+                 background: radial-gradient(ellipse at 50% 55%, rgba(255,232,0,.16) 0%, rgba(0,0,0,0) 55%), linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.05) 40%, rgba(0,0,0,.55)); }
+  #li-logo-big { position: absolute; left: 640px; top: 0px; width: 640px; height: 480px; display: flex; align-items: center; justify-content: center; }
+  #li-logo-big img { width: 100%; height: 100%; object-fit: contain; -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 52%, transparent 100%); mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 52%, transparent 100%); }
+  .li-card { position: absolute; top: 56px; width: 340px; height: 380px; background: linear-gradient(180deg, rgba(10,10,10,.0) 0%, rgba(10,10,10,.78) 100%);
+             clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%); border-bottom: 6px solid #ffe800; }
+  .li-photo { position: absolute; top: -4px; width: 440px; height: 440px; display: flex; align-items: flex-end; justify-content: center; }
+  .li-photo img { width: 100%; height: 100%; object-fit: contain; object-position: bottom; display: block; filter: drop-shadow(0 6px 10px rgba(0,0,0,.6)); }
+  .li-ign { position: absolute; top: 388px; width: 300px; height: 44px; display: flex; align-items: center; justify-content: center; text-align: center;
+            font-family: 'Teko', sans-serif; font-weight: 700; font-size: 38px; line-height: 1; color: #fff; text-transform: uppercase; white-space: nowrap; overflow: hidden;
+            text-shadow: 0 2px 6px rgba(0,0,0,.9); }
+  .li-ign span { display: block; transform: translateY(0.12em); }
+  #li-card-1 { left: 16px; }   #li-photo-1 { left: -34px; }  #li-ign-1 { left: 36px; }
+  #li-card-2 { left: 400px; }  #li-photo-2 { left: 350px; }  #li-ign-2 { left: 420px; }
+  #li-card-3 { left: 790px; }  #li-photo-3 { left: 740px; }  #li-ign-3 { left: 810px; }
+  #li-card-4 { left: 1176px; } #li-photo-4 { left: 1126px; } #li-ign-4 { left: 1196px; }
+  #li-card-5 { left: 1560px; } #li-photo-5 { left: 1510px; } #li-ign-5 { left: 1580px; }
+  /* Bottom LEDs (the two blue panels, 480x160 each): both carry the team — logo plate, country code, name (2 rows if long). Left = dark, right = yellow. */
+  .li-bpanel { position: absolute; top: 480px; width: 480px; height: 160px; overflow: hidden; }
+  #li-panel-l { left: 372px; background: linear-gradient(135deg, #262626, #0b0b0b); }
+  #li-panel-r { left: 1067px; background: linear-gradient(135deg, #fff15a, #ffe800 60%, #f5d800); }
+  .li-bpanel::before { content: ''; position: absolute; left: 0; top: 0; width: 100%; height: 6px; }
+  #li-panel-l::before { background: #ffe800; }
+  #li-panel-r::before { background: #0a0a0a; }
+  .li-blogo { position: absolute; top: 492px; width: 100px; height: 100px; background: #fff; border-radius: 12px; padding: 7px; box-shadow: 0 3px 8px rgba(0,0,0,.45); }
+  .li-blogo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .li-bname { position: absolute; top: 490px; width: 330px; height: 140px; display: flex; align-items: center; justify-content: center; text-align: center;
+              font-family: 'Teko', sans-serif; font-weight: 700; font-size: 84px; line-height: 1; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+  .li-bregion { position: absolute; top: 596px; width: 100px; height: 36px; display: flex; align-items: center; justify-content: center; text-align: center;
+                font-family: 'Teko', sans-serif; font-weight: 700; font-size: 36px; line-height: 1; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+  .li-bname span, .li-bregion span { display: block; transform: translateY(0.12em); }
+  #li-name-l, #li-region-l { color: #fff; }  #li-region-l { color: #ffe800; }
+  #li-name-r, #li-region-r { color: #0a0a0a; }
+  #li-logo-l { left: 388px; }  #li-name-l { left: 506px; }  #li-region-l { left: 388px; }
+  #li-logo-r { left: 1431px; } #li-name-r { left: 1083px; } #li-region-r { left: 1431px; }
+  #li-flash { position: absolute; left: -500px; top: -50px; width: 360px; height: 760px; opacity: 0; pointer-events: none;
+              background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.85), rgba(255,255,255,0)); transform: skewX(-20deg); }
+
+  @keyframes liRise  { 0% { transform: translateY(520px) skewX(-8deg); opacity: 0; } 60% { opacity: 1; } 78% { transform: translateY(-16px) skewX(1deg); } 100% { transform: none; opacity: 1; } }
+  @keyframes liDrop  { 0% { transform: none; opacity: 1; } 100% { transform: translateY(560px) skewX(8deg); opacity: 0; } }
+  @keyframes liZoomIn  { 0% { transform: scale(2.2); opacity: 0; filter: blur(14px); } 65% { opacity: 1; } 100% { transform: none; opacity: 1; filter: none; } }
+  @keyframes liZoomOut { 0% { transform: none; opacity: 1; } 100% { transform: scale(.6); opacity: 0; filter: blur(10px); } }
+  @keyframes liWipeL { 0% { clip-path: inset(0 100% 0 0); } 100% { clip-path: inset(0); } }
+  @keyframes liWipeR { 0% { clip-path: inset(0 0 0 100%); } 100% { clip-path: inset(0); } }
+  @keyframes liWipeIn  { 0% { clip-path: polygon(0 0, 0 0, 0 100%, 0 100%); } 100% { clip-path: polygon(0 0, 100% 0, calc(100% - 22px) 100%, 0 100%); } }
+  @keyframes liWipeInTag { 0% { clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%); } 100% { clip-path: polygon(22px 0, 100% 0, 100% 100%, 0 100%); } }
+  @keyframes liFadeUp  { 0% { transform: translateY(26px); opacity: 0; } 100% { transform: none; opacity: 1; } }
+  @keyframes liFadeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes liSweep   { 0% { left: -500px; opacity: 0; } 12% { opacity: 1; } 100% { left: 1960px; opacity: 0; } }
+  @keyframes liPunch   { 0% { opacity: 0; } 8% { opacity: .55; } 100% { opacity: 0; } }
+
+  #led-intro-page.li-animin .li-card, #led-intro-page.li-animin .li-photo { animation: liRise .75s cubic-bezier(.2,.9,.3,1) both; animation-delay: calc(var(--i, 0) * 85ms + 150ms); }
+  #led-intro-page.li-animin .li-ign { animation: liFadeUp .5s ease-out both; animation-delay: calc(var(--i, 0) * 85ms + 520ms); }
+  #led-intro-page.li-animin #li-logo-big { animation: liZoomIn .9s cubic-bezier(.2,.8,.2,1) both; }
+  #led-intro-page.li-animin #li-panel-l { animation: liWipeL .5s cubic-bezier(.7,0,.2,1) both; animation-delay: .35s; }
+  #led-intro-page.li-animin #li-panel-r { animation: liWipeR .5s cubic-bezier(.7,0,.2,1) both; animation-delay: .5s; }
+  #led-intro-page.li-animin .li-blogo, #led-intro-page.li-animin .li-bregion, #led-intro-page.li-animin .li-bname { animation: liFadeUp .45s ease-out both; animation-delay: .8s; }
+  #led-intro-page.li-animin #li-flash { animation: liSweep .9s ease-in .05s both; }
+  #led-intro-page.li-animin #li-vignette { animation: liPunch .6s ease-out both; }
+  /* before the first animin frame everything is invisible (page gets li-on, then li-animin after assets load) */
+  #led-intro-page:not(.li-animin):not(.li-animout) .li-card, #led-intro-page:not(.li-animin):not(.li-animout) .li-photo, #led-intro-page:not(.li-animin):not(.li-animout) .li-ign,
+  #led-intro-page:not(.li-animin):not(.li-animout) #li-logo-big, #led-intro-page:not(.li-animin):not(.li-animout) .li-bpanel, #led-intro-page:not(.li-animin):not(.li-animout) .li-blogo,
+  #led-intro-page:not(.li-animin):not(.li-animout) .li-bname, #led-intro-page:not(.li-animin):not(.li-animout) .li-bregion { opacity: 0; }
+
+  #led-intro-page.li-animout .li-card, #led-intro-page.li-animout .li-photo { animation: liDrop .5s cubic-bezier(.6,0,.9,.4) both; animation-delay: calc((4 - var(--i, 0)) * 50ms); }
+  #led-intro-page.li-animout .li-ign, #led-intro-page.li-animout .li-bpanel, #led-intro-page.li-animout .li-blogo,
+  #led-intro-page.li-animout .li-bname, #led-intro-page.li-animout .li-bregion { animation: liFadeOut .3s ease-in both; }
+  #led-intro-page.li-animout #li-logo-big { animation: liZoomOut .5s ease-in both; }
+  /* Marquee strips on the top LED: yellow on black. Top scrolls left, bottom scrolls right. */
+  .li-mq { position: absolute; left: 0; width: 1920px; height: 44px; background: #000; overflow: hidden;
+           font-family: 'Teko', sans-serif; font-weight: 700; font-size: 34px; line-height: 1; color: #ffe800; text-transform: uppercase; white-space: nowrap; }
+  #li-mq-top { top: 0; border-bottom: 3px solid #ffe800; }
+  #li-mq-bottom { top: 436px; border-top: 3px solid #ffe800; }
+  .li-mq-track { position: absolute; left: 0; top: 0; height: 100%; display: flex; align-items: center; will-change: transform; }
+  .li-mq-track span { display: block; letter-spacing: .08em; padding-right: .5em; transform: translateY(0.1em); }
+  @keyframes liMqLeft  { from { transform: translateX(0); } to { transform: translateX(calc(var(--mq-w, 600px) * -1)); } }
+  @keyframes liMqRight { from { transform: translateX(calc(var(--mq-w, 600px) * -1)); } to { transform: translateX(0); } }
+  #li-mq-top .li-mq-track { animation: liMqLeft var(--mq-dur, 14s) linear infinite; }
+  #li-mq-bottom .li-mq-track { animation: liMqRight var(--mq-dur, 14s) linear infinite; }
+  @keyframes liMqInTop { from { transform: translateY(-48px); } to { transform: none; } }
+  @keyframes liMqInBot { from { transform: translateY(48px); } to { transform: none; } }
+  #led-intro-page.li-animin #li-mq-top { animation: liMqInTop .5s cubic-bezier(.2,.9,.3,1) both; }
+  #led-intro-page.li-animin #li-mq-bottom { animation: liMqInBot .5s cubic-bezier(.2,.9,.3,1) .1s both; }
+  #led-intro-page.li-animout #li-mq-top { animation: liMqInTop .4s ease-in reverse both; }
+  #led-intro-page.li-animout #li-mq-bottom { animation: liMqInBot .4s ease-in reverse both; }
+  #led-intro-page:not(.li-animin):not(.li-animout) .li-mq { opacity: 0; }
 </style>
 </head>
 <body>
@@ -136,6 +240,30 @@
     <div class="led-feat-logo" id="led-feat-right-logo"><img alt=""></div>
     <div class="led-text led-feat-name" id="led-feat-right-name"><span></span></div>
     <div class="led-text led-feat-info" id="led-feat-right-info"><span></span></div>
+  </div>
+  <div id="led-intro-page">
+    <div id="li-base"></div>
+    <div id="li-top-clip">
+      <video id="li-bg" src="/assets/gbrc_loopbg.webm" muted loop playsinline preload="auto"></video>
+      <div id="li-vignette"></div>
+      <div id="li-logo-big"><img alt=""></div>
+    <div class="li-card" id="li-card-1" style="--i:0"></div><div class="li-photo" id="li-photo-1" style="--i:0"><img alt=""></div><div class="li-ign" id="li-ign-1" style="--i:0"><span></span></div>
+    <div class="li-card" id="li-card-2" style="--i:1"></div><div class="li-photo" id="li-photo-2" style="--i:1"><img alt=""></div><div class="li-ign" id="li-ign-2" style="--i:1"><span></span></div>
+    <div class="li-card" id="li-card-3" style="--i:2"></div><div class="li-photo" id="li-photo-3" style="--i:2"><img alt=""></div><div class="li-ign" id="li-ign-3" style="--i:2"><span></span></div>
+    <div class="li-card" id="li-card-4" style="--i:3"></div><div class="li-photo" id="li-photo-4" style="--i:3"><img alt=""></div><div class="li-ign" id="li-ign-4" style="--i:3"><span></span></div>
+    <div class="li-card" id="li-card-5" style="--i:4"></div><div class="li-photo" id="li-photo-5" style="--i:4"><img alt=""></div><div class="li-ign" id="li-ign-5" style="--i:4"><span></span></div>
+      <div class="li-mq" id="li-mq-top"><div class="li-mq-track"></div></div>
+      <div class="li-mq" id="li-mq-bottom"><div class="li-mq-track"></div></div>
+      <div id="li-flash"></div>
+    </div>
+    <div class="li-bpanel" id="li-panel-l"></div>
+    <div class="li-blogo" id="li-logo-l"><img alt=""></div>
+    <div class="li-bname" id="li-name-l"><span></span></div>
+    <div class="li-bregion" id="li-region-l"><span></span></div>
+    <div class="li-bpanel" id="li-panel-r"></div>
+    <div class="li-blogo" id="li-logo-r"><img alt=""></div>
+    <div class="li-bname" id="li-name-r"><span></span></div>
+    <div class="li-bregion" id="li-region-r"><span></span></div>
   </div>
 </div>
 
@@ -182,11 +310,14 @@ function ledEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => (
 /* Standings (Grand Finals overall — same source as Overall Ranking) + the
    operator's arrangement from the dashboard's TABLE TEAMS tab. */
 async function ledFetch() {
-  const [st, tbl, zd] = await Promise.all([
+  const [st, tbl, zd, ms] = await Promise.all([
     fetch('/api/live-sheet-overall-standings', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
     fetch('/api/led-table', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
     fetch('/api/in-the-zone', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch('/match/state', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
   ]);
+  /* Showmatch stage: its own squads (no logos, any count). Everything else is the 10-squad Grand Finals layout. */
+  const sm = /^show\s*match$/i.test(String((ms && ms.stage) || (tbl && tbl.stage) || '').trim());
   /* In The Zone (ticked in the IN THE ZONE tab): zone = yellow container, won = red. */
   const zone = new Set(((zd && zd.zone) || []).map(n => String(n).trim().toLowerCase()));
   const won = new Set(((zd && zd.won) || []).map(n => String(n).trim().toLowerCase()));
@@ -195,23 +326,42 @@ async function ledFetch() {
   const find = n => { const t = byName.get(String(n || '').trim().toLowerCase()) || (n ? { name: n, rank: 0, totalKills: 0, totalScore: 0 } : null);
                       if (t) { const k = String(t.name).trim().toLowerCase(); t.inZone = zone.has(k); t.won = t.inZone && won.has(k); } return t; };
   const arranged = tbl && tbl.arranged;
-  const order = arranged ? tbl.order.map(find) : teams.slice(0, 10).map(t => find(t.name));
-  while (order.length < 10) order.push(null);
   let featured = arranged ? tbl.featured.map(find) : [];
   if (!featured[0] && !featured[1] && !arranged) featured = teams.slice(0, 2).map(t => find(t.name));
   while (featured.length < 2) featured.push(null);
-  return { order, featured };
+  if (sm) {
+    /* Squads that are actually on the Showmatch sheet right now (a stale saved name is dropped). */
+    const onSheet = new Set(((zd && zd.teams) || teams).map(t => String(t.name).trim().toLowerCase()));
+    const ok = n => n && onSheet.has(String(n).trim().toLowerCase());
+    let left = [], right = [];
+    if (arranged) {
+      left = tbl.order.slice(0, 5).filter(ok).map(find);
+      right = tbl.order.slice(5, 10).filter(ok).map(find);
+    }
+    if (!left.length && !right.length) {   /* nothing (valid) arranged for this stage: even split of the sheet's squads */
+      const all = teams.slice(0, 10).map(t => find(t.name));
+      const half = Math.ceil(all.length / 2);
+      left = all.slice(0, half); right = all.slice(half);
+    }
+    featured = featured.map(t => (t && ok(t.name)) ? t : null);
+    if (!featured[0] && !featured[1]) featured = teams.slice(0, 2).map(t => find(t.name));
+    while (featured.length < 2) featured.push(null);
+    return { sm, left, right, featured };
+  }
+  const order = arranged ? tbl.order.map(find) : teams.slice(0, 10).map(t => find(t.name));
+  while (order.length < 10) order.push(null);
+  return { sm, left: order.slice(0, 5), right: order.slice(5, 10), featured };
 }
 
-function ledBuildRow(t, i) {
+function ledBuildRow(t, i, sm) {
   const row = document.createElement('div');
-  row.className = 'led-row' + (t.rank === 1 && Number(t.totalScore) > 0 ? ' led-top' : '') + (t.inZone ? (t.won ? ' led-won' : ' led-zone') : '');
+  row.className = 'led-row' + (sm ? ' led-nologo' : '') + (t.rank === 1 && Number(t.totalScore) > 0 ? ' led-top' : '') + (t.inZone ? (t.won ? ' led-won' : ' led-zone') : '');
   row.style.top = (4 + i * 95) + 'px';
   row.innerHTML =
     '<div class="led-row-bg"></div><div class="led-row-tab"></div><div class="led-row-stats"></div>' +
     '<div class="led-row-divider" style="left:432px"></div>' +
     '<div class="led-cell led-rc-rank"><span>' + (t.rank || '') + '</span></div>' +
-    '<div class="led-cell led-rc-logo"><img alt="" src="/logos/' + encodeURIComponent(t.name) + '.png" onerror="this.style.display=\'none\'"></div>' +
+    (sm ? '' : '<div class="led-cell led-rc-logo"><img alt="" src="/logos/' + encodeURIComponent(t.name) + '.png" onerror="this.style.display=\'none\'"></div>') +
     '<div class="led-cell led-rc-name"><span>' + ledEsc(t.name) + '</span></div>' +
     '<div class="led-cell led-rc-lbl led-rc-lbl-elim"><span>ELIM</span></div>' +
     '<div class="led-cell led-rc-lbl led-rc-lbl-total"><span>TOTAL</span></div>' +
@@ -220,13 +370,16 @@ function ledBuildRow(t, i) {
   return row;
 }
 
-function ledFillColumn(id, teams) {
+function ledFillColumn(id, teams, sm) {
   const col = document.getElementById(id);
   col.innerHTML = '';
-  teams.forEach((t, i) => { if (t) col.appendChild(ledBuildRow(t, i)); });
+  /* Showmatch: rows are compact (no gaps) and the block is centred in the panel, so 4+3 or 5+4 squads both sit evenly. */
+  const off = sm ? (5 - teams.filter(Boolean).length) * 95 / 2 : 0;
+  let k = 0;
+  teams.forEach((t, i) => { if (t) { const r = ledBuildRow(t, i, sm); if (sm) r.style.top = (4 + off + k * 95) + 'px'; k++; col.appendChild(r); } });
 }
 
-function ledSetFeatured(side, t) {
+function ledSetFeatured(side, t, sm) {
   const $ = k => document.getElementById('led-feat-' + side + '-' + k);
   const box = $('box'), logo = $('logo'), name = $('name'), info = $('info');
   const els = [box, logo, name, info];
@@ -239,8 +392,10 @@ function ledSetFeatured(side, t) {
   name.style.display = 'flex'; info.style.display = 'flex';
   name.querySelector('span').textContent = t.name;
   info.querySelector('span').textContent = (t.rank ? 'RANK #' + t.rank + '  ·  ' : '') + ledFmt(t.totalKills) + ' ELIM  ·  ' + ledFmt(t.totalScore) + ' PTS';
+  [name, info].forEach(e => e.classList.toggle('led-nologo', !!sm));
   const img = logo.querySelector('img');
   logo.style.display = 'none';
+  if (sm) return;   /* showmatch squads have no logos */
   img.onload = () => { logo.style.display = 'block'; };
   img.onerror = () => { logo.style.display = 'none'; };
   img.src = '/logos/' + encodeURIComponent(t.name) + '.png';
@@ -254,10 +409,10 @@ function ledFitAll() {
 }
 
 function ledApply(d) {
-  ledFillColumn('led-col-left',  d.order.slice(0, 5));
-  ledFillColumn('led-col-right', d.order.slice(5, 10));
-  ledSetFeatured('left',  d.featured[0]);
-  ledSetFeatured('right', d.featured[1]);
+  ledFillColumn('led-col-left',  d.left, d.sm);
+  ledFillColumn('led-col-right', d.right, d.sm);
+  ledSetFeatured('left',  d.featured[0], d.sm);
+  ledSetFeatured('right', d.featured[1], d.sm);
   ledFitAll();   /* page is display:block by now, so there is real layout to measure */
 }
 
@@ -298,10 +453,140 @@ function hideIngameLedScene() {
 }
 window.showIngameLedScene = showIngameLedScene;
 window.hideIngameLedScene = hideIngameLedScene;
-window.previewTrigger = function (event, action) {
+window.previewTrigger = function (event, action, team) {
+  if (event === 'led_intro') { if (action === 'show' && team) showLedIntro(team); else hideLedIntro(); return; }
   if (event !== 'ingame_led') return;
   if (action === 'show') showIngameLedScene(); else hideIngameLedScene();
 };
+
+
+/* ── TEAM INTRODUCTION scene ───────────────────────────────────────── */
+const liPage = document.getElementById('led-intro-page');
+const liBg = document.getElementById('li-bg');
+const LI_IN_MS = 1600, LI_OUT_MS = 700;
+let liCurrent = null;       /* name of the squad currently on the wall */
+let liToken = 0;            /* bumps on every show/hide — stale async steps bail out */
+const liSleep = ms => new Promise(r => setTimeout(r, ms));
+function liImgSet(img, src, fallback) {
+  img.style.display = '';
+  img.onerror = () => { if (fallback && !img.src.endsWith(fallback)) img.src = fallback; else { img.onerror = null; img.style.display = 'none'; } };
+  img.src = src;
+}
+
+async function liFetchTeam(name) {
+  const d = await fetch('/api/team-lineup', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null);
+  const key = String(name).trim().toLowerCase();
+  const t = d && (d.teams || []).find(x => String(x.name).trim().toLowerCase() === key);
+  return { name, region: (t && t.region) || '', players: ((t && t.players) || []).slice(0, 5) };
+}
+
+/* Name box: 84px max on one line; wraps to two rows (same size) if it doesn't fit, shrinking only as a last resort. */
+function liFitName(el) {
+  const span = el.querySelector('span');
+  const run = () => {
+    let size = 84;
+    el.style.fontSize = size + 'px'; el.style.lineHeight = '1';
+    /* natural one-line width first (inline-block so a flex item can't squeeze it) */
+    span.style.display = 'inline-block'; span.style.whiteSpace = 'nowrap'; span.style.width = ''; span.style.textWrap = '';
+    if (span.offsetWidth <= el.clientWidth) { span.style.display = ''; span.style.whiteSpace = ''; return; }
+    /* too wide: wrap onto rows at the same size, shrink only until the rows fit the box height */
+    el.style.lineHeight = '0.88';
+    span.style.display = 'block'; span.style.whiteSpace = 'normal'; span.style.width = el.clientWidth + 'px'; span.style.textWrap = 'balance';
+    while ((span.offsetHeight > el.clientHeight - 6 || span.scrollWidth > el.clientWidth) && size > 28) el.style.fontSize = (--size) + 'px';
+  };
+  run();
+  if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(run);
+}
+function liFitLine(el, max, min) {
+  const run = () => { let s = max; el.style.fontSize = s + 'px'; while (el.scrollWidth > el.clientWidth && s > min) el.style.fontSize = (--s) + 'px'; };
+  run();
+  if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(run);
+}
+
+function liApply(t) {
+  const $ = id => document.getElementById(id);
+  liImgSet($('li-logo-big').querySelector('img'), '/logos/' + encodeURIComponent(t.name) + '.png');
+  ['l', 'r'].forEach(k => {
+    liImgSet($('li-logo-' + k).querySelector('img'), '/logos/' + encodeURIComponent(t.name) + '.png');
+    $('li-name-' + k).querySelector('span').textContent = t.name;
+    $('li-region-' + k).querySelector('span').textContent = t.region;
+  });
+  const n = t.players.length, shift = (5 - n) * 192;   /* centre a 4-player squad */
+  for (let i = 0; i < 5; i++) {
+    const has = i < n;
+    ['li-card-', 'li-photo-', 'li-ign-'].forEach(p => {
+      const e = $(p + (i + 1)); e.style.display = has ? '' : 'none'; e.style.translate = shift ? shift + 'px 0' : '';
+    });
+    if (has) {
+      $('li-ign-' + (i + 1)).querySelector('span').textContent = t.players[i];
+      liImgSet($('li-photo-' + (i + 1)).querySelector('img'),
+        '/photos/FRONT/' + encodeURIComponent(t.name) + '/' + encodeURIComponent(t.players[i]) + '.png', '/photos/placeholder.png');
+    }
+  }
+}
+
+/* Marquee: one text unit repeated enough times to cover the strip twice over, so the loop is seamless. */
+const LI_MQ_TEXT = 'FIRST TO LAND - LAST TO STAND - ';
+function liBuildMarquee() {
+  liPage.querySelectorAll('.li-mq').forEach(strip => {
+    const track = strip.querySelector('.li-mq-track');
+    track.innerHTML = '';
+    const probe = document.createElement('span'); probe.textContent = LI_MQ_TEXT; track.appendChild(probe);
+    const unit = probe.getBoundingClientRect().width / (liPage.getBoundingClientRect().width / 1920 || 1);
+    if (!unit) return;
+    const n = Math.ceil(strip.clientWidth / unit) + 2;
+    for (let i = 1; i < n; i++) { const sp = document.createElement('span'); sp.textContent = LI_MQ_TEXT; track.appendChild(sp); }
+    track.style.setProperty('--mq-w', unit + 'px');
+    track.style.setProperty('--mq-dur', (unit / 90) + 's');   /* ~90px/s */
+  });
+}
+function liFitAll() {
+  liBuildMarquee();
+  liPage.querySelectorAll('.li-bname').forEach(e => liFitName(e));
+  liPage.querySelectorAll('.li-bregion').forEach(e => liFitLine(e, 36, 20));
+  liPage.querySelectorAll('.li-ign').forEach(e => liFitLine(e, 38, 20));
+}
+function liRestart(cls) {   /* retrigger a CSS animation set */
+  liPage.classList.remove('li-animin', 'li-animout');
+  void liPage.offsetWidth;
+  liPage.classList.add(cls);
+}
+
+async function liOut(token) {
+  liRestart('li-animout');
+  await liSleep(LI_OUT_MS);
+  if (token !== liToken) return false;
+  liPage.classList.remove('li-on', 'li-animout');
+  liBg.pause();     /* never leave a 1080p loop decoding while hidden */
+  liCurrent = null;
+  return true;
+}
+async function showLedIntro(name) {
+  const token = ++liToken;
+  const dataP = liFetchTeam(name);
+  if (liCurrent) { if (!(await liOut(token))) return; }     /* swap: previous squad plays its out first */
+  const t = await dataP;
+  if (token !== liToken) return;
+  liApply(t);
+  liCurrent = name;
+  liPage.classList.remove('li-animin', 'li-animout');
+  liPage.classList.add('li-on');
+  try { liBg.play(); } catch (e) {}
+  try { await Promise.all([document.fonts.load('700 84px Teko'), document.fonts.load('600 28px Teko')]); } catch (e) {}   /* lazy-loaded: measure against the real face */
+  liFitAll();    /* now display:block — real layout to measure */
+  await Promise.all([...liPage.querySelectorAll('img')].filter(i => i.src && i.style.display !== 'none').map(i => i.complete ? 0 : new Promise(r => { i.addEventListener('load', r); i.addEventListener('error', r); setTimeout(r, 1500); })));
+  if (token !== liToken) return;
+  liFitAll();
+  liRestart('li-animin');
+}
+async function hideLedIntro() {
+  const token = ++liToken;
+  if (!liCurrent && !liPage.classList.contains('li-on')) return;
+  await liOut(token);
+}
+window.showLedIntro = showLedIntro;
+window.hideLedIntro = hideLedIntro;
+window.showLedIntroDemo = () => showLedIntro('ADMT PYRITE');   /* Edit tab: needs a squad on screen to position things */
 
 /* Per-element position/size overrides saved from the dashboard Edit tab. */
 fetch('/api/overlay-styles?file=ledoverlay', { cache: 'no-store' }).then(r => r.json()).then(styles => {
@@ -319,6 +604,11 @@ if (!isPreviewFrame) {
     const msg = JSON.parse(e.data);
     if (msg.action === 'show') showIngameLedScene(); else hideIngameLedScene();
   });
+  sse.addEventListener('led_intro', (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.action === 'show' && msg.name) showLedIntro(msg.name); else hideLedIntro();
+  });
+  fetch('/led/intro/state', { cache: 'no-store' }).then(r => r.json()).then(st => { if (st && st.name) showLedIntro(st.name); }).catch(() => {});
   /* Normally on: restore the real state on load (default shown if the fetch fails). */
   fetch('/overlay/check-overlays', { cache: 'no-store' }).then(r => r.json()).catch(() => ({}))
     .then(s => { if (s.ingame_led !== false) showIngameLedScene(); });

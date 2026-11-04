@@ -75,16 +75,18 @@
 </div>
 
 <div class="panel feat">
-  <div class="panel-head"><span>FEATURED · BOTTOM LED</span><small>logo + name</small></div>
+  <div class="panel-head"><span>FEATURED · BOTTOM LED</span><small>front LED · pick any squad, or empty</small></div>
   <div class="slots" id="slots-feat"></div>
 </div>
 
 <div class="note">
   Arrange the squads shown on the <b>Ingame LED</b> scene (<b>/html/ledoverlay.html</b>): 5 on the left panel, 5 on the right,
   and the 2 featured squads on the bottom strip (left / right). Each card shows the squad's <b>current</b> Grand Finals rank,
-  elimination points and total points — this tab only decides <b>where</b> a squad sits. A squad can only hold one panel slot
+  elimination points and total points — this tab only decides <b>where</b> a squad sits. A squad can only hold one panel slot (picking one that is already placed swaps the two)
   (a featured squad may also be on a panel). Changes save automatically and reach the overlay within a few seconds.
-  Until you arrange it, the LED follows the standings order.
+  Until you arrange it, the LED follows the standings order.<br>
+  <b>Showmatch</b> stage: this tab lists the Showmatch squads (any number, up to 10; no logos) and keeps its own arrangement,
+  separate from Grand Finals. Pick the squad for each slot exactly like Grand Finals. Empty slots are skipped and each side is centred, so 7 squads sit as 4 + 3.
 </div>
 
 <script>
@@ -112,13 +114,18 @@
     Array.prototype.forEach.call(document.querySelectorAll('select'), function (s) {
       s.addEventListener('change', function () {
         var i = +s.dataset.idx;
-        if (s.dataset.kind === 'order') order[i] = s.value; else featured[i] = s.value;
+        if (s.dataset.kind === 'order') {
+          /* Picking a squad that already holds another slot swaps the two (the other slot gets whatever this one had). */
+          var at = s.value ? order.indexOf(s.value) : -1;
+          if (at !== -1 && at !== i) order[at] = order[i];
+          order[i] = s.value;
+        } else featured[i] = s.value;
         refresh(); queueSave();
       });
     });
   }
 
-  /* One squad, one panel slot — a squad picked anywhere in the order is disabled everywhere else in it. */
+  /* One squad, one panel slot — picking a squad that is already placed swaps the two slots. */
   function refresh() {
     var taken = {};
     order.forEach(function (n, i) { if (n) taken[n] = i; });
@@ -131,14 +138,13 @@
         var o = document.createElement('option'); o.value = t;
         var at = isOrder ? taken[t] : undefined;
         var busy = isOrder && at !== undefined && t !== mine;
-        o.textContent = busy ? t + '   (slot ' + (at + 1) + ')' : t;
-        o.disabled = busy;
+        o.textContent = busy ? t + '   (slot ' + (at + 1) + ' · swap)' : t;
         s.appendChild(o);
       });
       s.value = mine || '';
     });
     order.forEach(function (n, i) {
-      var r = el('rank-' + i); if (r) r.textContent = n && ranks[n.toLowerCase()] ? '#' + ranks[n.toLowerCase()] : '';
+      var r = el('rank-' + i); if (r) r.textContent = n && ranks[n.toLowerCase()] ? 'live #' + ranks[n.toLowerCase()] : '';
     });
   }
 
@@ -165,8 +171,15 @@
       teams = (zone.teams || []).map(function (t) { return t.name; });
       ranks = {}; st.forEach(function (t) { ranks[String(t.name).toLowerCase()] = t.rank; });
       var byRank = st.map(function (t) { return t.name; });
-      order = tbl.arranged ? tbl.order.slice() : byRank.slice(0, 10);
-      featured = tbl.arranged ? tbl.featured.slice() : byRank.slice(0, 2);
+      var showmatch = /show\s*match/i.test(zone.stage || '');
+      if (tbl.arranged) { order = tbl.order.slice(); featured = tbl.featured.slice(); }
+      else if (showmatch) {
+        /* Showmatch: any number of squads, sheet order, split evenly (left gets the extra one) — e.g. 7 = 4 + 3. */
+        var half = Math.ceil(Math.min(teams.length, 10) / 2), l = teams.slice(0, half), r = teams.slice(half, 10);
+        while (l.length < 5) l.push(''); while (r.length < 5) r.push('');
+        order = l.slice(0, 5).concat(r.slice(0, 5));
+        featured = teams.slice(0, 2);
+      } else { order = byRank.slice(0, 10); featured = byRank.slice(0, 2); }
       while (order.length < 10) order.push('');
       while (featured.length < 2) featured.push('');
       /* A saved name no longer on the sheet still has to show, or saving would silently drop it. */

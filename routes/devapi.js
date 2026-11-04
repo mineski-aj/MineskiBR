@@ -400,8 +400,11 @@ router.post('/api/fullscreen-folders', (req, res) => {
     // a feature lives in at most one folder
     keys: (Array.isArray(f.keys) ? f.keys : []).filter((k) => typeof k === 'string' && !seen.has(k) && seen.add(k)),
   }));
-  fs.writeFileSync(projects.getProjectScopedFilePath(FULLSCREEN_FOLDERS_FILE), JSON.stringify({ folders }, null, 2));
-  res.json({ ok: true, folders });
+  // FAVORITES: permanent pseudo-folder — an ordered key list that may overlap a folder's keys.
+  const favorites = [...new Set((Array.isArray(req.body.favorites) ? req.body.favorites : []).filter((k) => typeof k === 'string'))];
+  const favoritesOpen = req.body.favoritesOpen !== false;
+  fs.writeFileSync(projects.getProjectScopedFilePath(FULLSCREEN_FOLDERS_FILE), JSON.stringify({ folders, favorites, favoritesOpen }, null, 2));
+  res.json({ ok: true, folders, favorites, favoritesOpen });
 });
 
 // Game API base URL — GET to read, POST { url } to update

@@ -295,7 +295,26 @@ function sbFitTeamName(row) {
   var hasLogo = logo && logo.style.display !== 'none';
   /* Showmatch drops the country tag, so the name box is wider (see .sb-no-country in ingame.css). */
   var maxWidth = SB_SCORE_TEAM_WIDTH + (sbIsShowmatch() ? 34 : 0) - (hasLogo ? SB_SCORE_LOGO_SPACE : 0);
+  var teamBox = nameEl.parentNode;
+  nameEl.style.whiteSpace = 'nowrap';
+  nameEl.style.maxWidth = '';
+  nameEl.style.lineHeight = '';
+  if (teamBox) teamBox.style.height = '';
   sbFitText(nameEl, maxWidth, 27.42);
+  /* Doesn't fit one row at full size -> use the biggest size at which
+     the name fits in two rows (longest word must fit the width, 2 lines in 60px). */
+  if (parseFloat(nameEl.style.fontSize) < 27.42) {
+    nameEl.style.whiteSpace = 'normal';
+    nameEl.style.maxWidth = maxWidth + 'px';
+    nameEl.style.lineHeight = '0.85';
+    if (teamBox) teamBox.style.height = '60px';
+    var size = 27.42;
+    nameEl.style.fontSize = size + 'px';
+    while (size > 6 && (nameEl.scrollWidth > maxWidth || nameEl.offsetHeight > 58)) {
+      size -= 0.5;
+      nameEl.style.fontSize = size + 'px';
+    }
+  }
 }
 
 function sbBuildScoreRow() {

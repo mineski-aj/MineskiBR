@@ -52,4 +52,63 @@ router.post('/api/in-the-zone', function (req, res) {
   res.json(Object.assign({ ok: true }, inTheZone.set(req.body || {})));
 });
 
+// ── Zowned Points (the overlay's number) ────────────────────────────────
+// GET /api/zowned-points → { points, source:'manual'|'fallback'|'none', leader:{name,total}|null,
+//                           mapsCounted, inZoneCount }.
+// manual   = the In The Zone tab's threshold.
+// fallback = no threshold set: the best Grand Finals team total through Map 6, plus 10
+//            (the Zone Point rule) — only once all six maps have a result.
+// A team's score for a map = its leader row's TKP (team kill points) + PS (placement score).
+function colStart(headerGroups, label) {
+  let offset = 0;
+  for (let i = 0; i < (headerGroups || []).length; i++) {
+    if (headerGroups[i].label === label) return offset;
+    offset += headerGroups[i].span;
+  }
+  return null;
+}
+function leaderAfterMap(n) {
+  const sheet = externalTally.get().sheets.find(function (s) { return GF_SHEET_RE.test(String(s.name).trim()); });
+  if (!sheet) return { leader: null, mapsCounted: 0 };
+  const sq = colStart(sheet.headerGroups, 'Squad');
+  const squadCol = sq === null ? 0 : sq;
+  const sub = sheet.subHeader || [];
+  const mapCols = [];
+  for (let k = 1; k <= n; k++) {
+    const start = colStart(sheet.headerGroups, 'Map ' + k);
+    if (start === null) continue;
+    const find = function (lab) {
+      for (let c = start; c < start + 5; c++) if (String(sub[c] == null ? '' : sub[c]).trim() === lab) return c;
+      return -1;
+    };
+    mapCols.push({ p: find('P'), tkp: find('TKP'), ps: find('PS') });
+  }
+  const totals = new Map();
+  const played = new Set();
+  (sheet.dataRows || []).forEach(function (row) {
+    const name = String(row[squadCol] == null ? '' : row[squadCol]).trim();
+    if (!name) return;
+    let t = totals.get(name) || 0;
+    mapCols.forEach(function (m, i) {
+      if (m.p >= 0 && typeof row[m.p] === 'number') played.add(i);
+      if (m.tkp >= 0 && typeof row[m.tkp] === 'number') t += row[m.tkp];
+      if (m.ps >= 0 && typeof row[m.ps] === 'number') t += row[m.ps];
+    });
+    totals.set(name, t);
+  });
+  let leader = null;
+  totals.forEach(function (total, name) {
+    if (!leader || total > leader.total) leader = { name: name, total: Math.round(total * 100) / 100 };
+  });
+  return { leader: leader, mapsCounted: played.size };
+}
+router.get('/api/zowned-points', function (req, res) {
+  const z = inTheZone.get();
+  const r = leaderAfterMap(6);
+  let points = null, source = 'none';
+  if (z.threshold !== null) { points = z.threshold; source = 'manual'; }
+  else if (r.leader && r.mapsCounted >= 6) { points = Math.round((r.leader.total + 10) * 100) / 100; source = 'fallback'; }
+  res.set('Cache-Control', 'no-store').json({ points: points, source: source, leader: r.leader, mapsCounted: r.mapsCounted, inZoneCount: z.zone.length });
+});
+
 module.exports = router;

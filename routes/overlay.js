@@ -657,6 +657,76 @@ router.get('/overlay/prize_pool/hide', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
+// GET /overlay/zowned_points/show — rank-header family (same as Prize Pool): activeFeature + event only
+router.get('/overlay/zowned_points/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'zownedpoints';
+  state.overlayClients.forEach(c => { try { c.write('event: zowned_points\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/zowned_points/hide
+router.get('/overlay/zowned_points/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: zowned_points\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/zone_bounty/show — standalone Zone Bounty explainer (no shared header)
+router.get('/overlay/zone_bounty/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'zonebounty';
+  state.overlayClients.forEach(c => { try { c.write('event: zone_bounty\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/zone_bounty/hide
+router.get('/overlay/zone_bounty/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: zone_bounty\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/zone_rush/show — standalone Zone Rush explainer (no shared header)
+router.get('/overlay/zone_rush/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'zonerush';
+  state.overlayClients.forEach(c => { try { c.write('event: zone_rush\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/zone_rush/hide
+router.get('/overlay/zone_rush/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: zone_rush\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/endgame_protocol/show — standalone Endgame Protocol explainer (no shared header)
+router.get('/overlay/endgame_protocol/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'endgameprotocol';
+  state.overlayClients.forEach(c => { try { c.write('event: endgame_protocol\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/endgame_protocol/hide
+router.get('/overlay/endgame_protocol/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: endgame_protocol\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/points_system/show — standalone Points System explainer (no shared header)
+router.get('/overlay/points_system/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'pointssystem';
+  state.overlayClients.forEach(c => { try { c.write('event: points_system\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/points_system/hide
+router.get('/overlay/points_system/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: points_system\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
 // GET /overlay/map_winner/show — rank-header family (same as Prize Pool
 // above): just activeFeature + the feature's own SSE event.
 router.get('/overlay/map_winner/show', (req, res) => {
@@ -922,7 +992,7 @@ router.get('/overlay/features', (req, res) => {
 });
 
 // GET /overlay/feature/:feature/enable|disable
-const VALID_FEATURES = ['killevents','debugphotos'];
+const VALID_FEATURES = ['killevents','killevents_v2','debugphotos'];
 router.get('/overlay/feature/:feature/:action', (req, res) => {
   const { feature, action } = req.params;
   if (!VALID_FEATURES.includes(feature) || !['enable','disable'].includes(action)) {

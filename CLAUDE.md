@@ -42,6 +42,11 @@ caller expected, until the restart actually happened.
   smaller and simpler than a full scene, and multiple tags can in
   principle be on screen at once since they don't share `Fullscreen.html`'s
   mutually-exclusive `activeFeature` slot. New tags get added here.
+- `html/ledoverlay.html` — the Grand Finals **LED wall** page (not a
+  1920x1080 broadcast overlay — see "LED overlay" below for its own
+  canvas/scale rules). Two scenes: **Ingame LED** (standings cards) and
+  **Team Introduction**. Routes in `routes/led.js`, per-stage squad
+  arrangement in `lib/ledTable.js`, the 10 intro squads in `lib/ledIntro.js`.
 - `html/dashboard.html` — control panel: SHOW/HIDE/PREVIEW buttons per
   feature, plus the **Edit tab** (drag/resize/font-size editor for every
   overlay element, persisted to `overlay_styles.json` via
@@ -676,6 +681,24 @@ next to it are bespoke, one-off dashboard blocks built specifically for
 kill events' fixed enumerable video list — not a reusable pattern to
 copy for a different feature.
 
+**Kill Events V2** (`featureToggles.killevents_v2`, default OFF; the "◇ V2 Off / ◆ V2 On"
+button sits next to "● Enabled" in the Control tab's Kill Events row — `ft.v2Feature` in
+`dashboard.html`'s feature-toggle renderer). Same detection/queue as V1 (`overlay-killevents.js`),
+but `playV2()` plays the two alpha WebMs in `assets/ingame/CODM_GBRC_KILLEVENTS_Mercenary Event.webm`
+(tier 1, 1580x505 frame) / `...Ultimate Mercenary.webm` (tier 2, 1169x312 frame), each scaled so its
+**visible banner (not the padded frame)** is 710px wide at x=698 (the whole group is the original 1060px
+design x0.67, anchored bottom-centre) with its bottom edge on top of an
+HTML black name/kills strip that is flush with the canvas bottom (y 1018-1080); the player photo
+overlaps the banner. HTML pieces (`#ke2-strip/-photo/-name/-kills`) are timed to the webm's measured
+timeline (wipes in 0→0.6s, holds, wipes out 4.38→4.95s, 5.1s total): the sequence starts on the
+video's `play()` promise, out at `WEBM_OUT_AT`, cleanup at `WEBM_END` — all `setTimeout`, never
+`animationend`. Each webm has its own Edit-tab entry (`ke2-video-1` Mercenary / `ke2-video-2`
+Ultimate) because their sizes differ. V2 is only a flag read at play time (no new SSE event, so no
+`KNOWN_EVENTS`/worker bump) — **but the dashboard treats a missing feature key as "enabled", so V2
+uses an explicit `=== true` check everywhere** (a new default-OFF toggle must do the same). The
+Control-tab preview iframe skips SSE, so the dashboard passes its own V2 state into
+`keTest(tier, null, forceV2)`. `routes/overlay.js`/`lib/state.js` changed → restart needed.
+
 ## Control-tab Preview — keep it fully isolated from real broadcast state
 
 The Control tab's `#preview-iframe` lets you see a scene without
@@ -990,6 +1013,112 @@ with `setFlagCode(el, code, maxSize)` in `Fullscreen.html` (it shrinks to fit;
 call it once the scene is display:block). Give its Edit-tab default a
 `fontSize`. The `/assets/flag/` folder is now unused.
 
+## LED overlay (`html/ledoverlay.html`) — read before touching it
+
+**Canvas / scale.** The LED template (`assets/ledoverlay/ledtemplate.png`)
+is 3072x1024 originally (top LED 3072x768 + bottom 256). The page lays it
+out at **x0.625 → 1920x640**, anchored top-left of a transparent
+1920x1080 page: **top LED = y 0-480**, bottom LEDs = y 480-640 (two blue
+panels, x 372-852 and x 1067-1547, 480x160 each; the rest is black "DEAD"
+zones). When the user says "the top LED is 768px" they mean the template's
+original pixels = 480 here — don't resize anything to 768. Everything
+the top LED draws must be **hard-clipped at y=480** so it can never bleed
+onto the bottom LEDs (rise/drop animations included).
+
+**Two scenes live in this one file:**
+- **Ingame LED** (`#ingame-led-page`, `checkOverlays.ingame_led`, event
+  `ingame_led`) — 5 team cards left + 5 right, 2 featured panels on the
+  front (bottom) LED. Always-on by default (restore-on-load shows it).
+- **Team Introduction** (`#led-intro-page`, event `led_intro`) — a full
+  takeover layered ABOVE the Ingame LED (own opaque black base, z-index
+  10, so the Ingame page underneath needs no coupling). Top LED: giant
+  feathered logo behind 5 slanted player cards (`/photos/FRONT/<team>/<ign>.png`,
+  `/api/team-lineup` for the roster; 4-player squads are centred via the
+  independent CSS `translate` property), yellow-on-black marquee strips
+  (top scrolls left, bottom scrolls right, `FIRST TO LAND - LAST TO STAND -`).
+  Bottom LEDs: BOTH blue panels show the team (left dark, right yellow):
+  logo plate, country code text (no flags), name — 2 rows if it doesn't fit.
+  Everything top-LED sits inside `#li-top-clip` (a 1920x480 `overflow:hidden`
+  wrapper at 0,0 — children keep canvas coordinates, so Edit-tab positions
+  still work).
+
+**Team Introduction wiring (not the 6-layer Fullscreen chain, not
+checkOverlays — its own small shape):** the 10 Grand Finals squads are
+hardcoded in `lib/ledIntro.js` (name + slug). Routes in `routes/led.js`:
+`GET /led/intro/<slug>/show|hide`, `/led/intro/hide` (whoever is up),
+`/led/intro/list`, `/led/intro/state` (restore-on-load). One SSE event,
+`led_intro`, payload `{action, slug, name}`. Showing a different squad
+while one is up plays the outgoing squad's OUT animation first, then the
+new one's IN (a `liToken` counter makes every stale async step bail out).
+The Control-tab block is bespoke (`ov.teamIntro` in `dashboard.html`'s
+`buildControlBody`) — one row per squad with Show / Hide / copy-routes /
+◈ Preview. **Preview goes through `previewTrigger('led_intro', 'show',
+teamName)`** (third arg = team) straight into the preview iframe — no
+server call. The Edit tab config is `led_intro` (`LI_DEFAULTS`/
+`LI_ELEMENTS`, `showFn: 'showLedIntroDemo'` — Edit needs a squad on screen,
+so that wrapper shows ADMT PYRITE). Adding/removing a Grand Finals squad
+means editing `lib/ledIntro.js` (+ restart).
+
+**Showmatch stage** (Match Board stage = Showmatch, detected from
+`/match/state`'s `stage`, same regex as `routes/inTheZone.js`): the Ingame
+LED shows the Showmatch sheet's squads instead of the 10 GF ones —
+**no logos anywhere** (cards and front panels; name takes the logo's space),
+any squad count (≤10): `left = ceil(n/2)`, rows are compacted and each
+column is vertically centred (7 squads = 4 + 3). The featured front
+panels hide the logo and centre their text (`.led-nologo`: `content-box` +
+symmetric `padding: 0 66px` + `translate` — NOT a one-sided padding, a
+flex-centred box centres on the *content* box, not the padding). A saved
+name that isn't on the current stage's sheet is silently dropped; if
+nothing valid is arranged it falls back to an even split of the sheet.
+
+**Table Teams tab (arranging the Ingame LED).** The Playoffs tab becomes
+"Table Teams" (`html/table-teams-dashboard.html`) when the stage is Grand
+Finals **or Showmatch** (`applyPlayoffsTabStage` in `dashboard.html`).
+The arrangement is **per stage**: `lib/ledTable.js` picks `led_table.json`
+(Grand Finals) or `led_table_showmatch.json` (Showmatch) from the match
+state's stage — switching stage never shows the other stage's squads.
+Picking a squad that already holds another slot **swaps** the two (the
+dropdown no longer disables placed squads). First load with nothing
+saved auto-saves the default arrangement so the LED stops following live
+standings.
+
+**Gotchas that actually bit this file (all silent):**
+- **Teko is lazy-loaded.** `document.fonts.status` is already `'loaded'`
+  when nothing has used the face yet, so a fit run on first show measures
+  *fallback-font* glyphs and gets the wrong size/wrap. Before any fit,
+  `await document.fonts.load('700 84px Teko')` (and the other weights/sizes
+  used) — see `showLedIntro`.
+- **Measuring a flex item's natural width:** a `display:block` span inside
+  a `display:flex` box can't be squeezed, but reading `scrollWidth` on the
+  flex container then lies. Measure the span as `inline-block;
+  white-space:nowrap` and read `offsetWidth`; only then switch to wrapped
+  mode (`liFitName`).
+- **Don't hide on `animationend`** here either — `liOut` is
+  `setTimeout`-paced and token-guarded. The page keeps its looping
+  `<video>` paused while hidden (`liBg.pause()`).
+- **A page loaded with `?preview=1`** (`isPreviewFrame`) skips real SSE and
+  the restore fetches; its Ingame scene is only shown by
+  `previewTrigger('ingame_led','show')` (the Control tab's `autoPreviewEvent`
+  does that on load). A headless test that forgets this sees a blank page.
+- `routes/led.js` and `lib/ledTable.js`/`lib/ledIntro.js` are **not
+  hot-reloaded** — restart needed (confirm first, don't kill the user's
+  server). Until the restart, saving from the Table Teams tab while the
+  stage is Showmatch would write the **Grand Finals** file. `led_intro` was
+  added to `KNOWN_EVENTS` with `OVERLAY_WORKER_VERSION` bumped to 53 — any
+  further new LED event needs the same pair of edits.
+- Edit-tab selectors for this page are `led-*` (Ingame, `led_ingame`
+  config) and `li-*` (Team Introduction, `led_intro` config); both write to
+  the `ledoverlay` style bucket. Any rename must change the DOM,
+  `*_DEFAULTS` and `*_ELEMENTS` together; grep them against the markup
+  after (stale `li-*` selectors from the single-panel layout were
+  replaced by `li-panel-l/r`, `li-logo-l/r`, `li-name-l/r`, `li-region-l/r`).
+- **Testing this page without a Playwright dependency:** drive headless
+  Edge over CDP as in "Verifying changes with a real browser", screenshot
+  `clip:{x:0,y:0,width:1920,height:640}`, and call
+  `previewTrigger(...)` — stub `window.fetch` for `/api/in-the-zone`,
+  `/api/live-sheet-overall-standings`, `/api/led-table` to simulate other
+  squad counts (e.g. 7) without touching real state.
+
 ## Data & assets
 
 - Player/match data: `hlFetchMvp()` / `hlExtractPlayer()` hit the
@@ -1076,6 +1205,70 @@ call it once the scene is display:block). Give its Edit-tab default a
   a shrink-to-fit pass or an Edit-tab resize. Apply this to any *new*
   tight-box Teko element that reads as top-heavy; don't retrofit it onto
   existing roomier Teko boxes that look fine as-is.
+
+## Recent additions (Nov 2026) — things a fresh chat won't know
+
+- **Control-tab Fullscreen FAVORITES folder** (`dashboard.html`,
+  `buildFullscreenFolderedList`). A permanent, non-renamable/non-deletable
+  pseudo-folder, always first. Starred features live in
+  `fullscreenFavorites` (ordered key list) — SEPARATE from
+  `fullscreenFolders` because folders are single-membership (server dedupes
+  keys across folders) while a starred scene may also sit in one user
+  folder. ☆/★ button sits left of 🗄 Archive in `renderFeatureRow` (inside
+  `.fs-hdr-btns`, which also holds ▲ ▼ reorder buttons for rows in
+  folders/Favorites; drag-reorder also works; Favorites only reorders
+  internally, never accepts/gives drops to real folders). Archiving now asks
+  `window.confirm` (Restore doesn't). Because a feature can render twice
+  (Favorites + its folder), `fullscreenFeatureBtns[key]` and
+  `previewToggleRegistry[event]` are now **arrays**, and
+  `fullscreenFeatureBtns` is reset in `buildControlBody` — keep that when
+  adding per-row state registries. Persistence: `POST /api/fullscreen-folders`
+  now also takes `favorites` + `favoritesOpen` (`routes/devapi.js` — **needs
+  a server restart to take effect**; until then favorites only live in
+  `localStorage['fs_favorites']`, which the client also mirrors always).
+- **LED Overlay Control preview** (`ledoverlay.html`): its `?preview=1`
+  instance skips real SSE/restore, so the `OVERLAYS` entry has
+  `autoPreviewEvent: 'ingame_led'` — `selectOverlay()` calls
+  `previewTrigger(event,'show')` on iframe load. Use that field for any
+  other always-on page that needs auto-show in the preview.
+- **ingame.html scoreboard team names** (`js/overlay-scoreboard.js`
+  `sbFitTeamName`): single row shrink-to-fit from 27.42px; if it can't fit
+  one row at full size it wraps to TWO rows (box grows 30→60px,
+  line-height .85) at the biggest size that fits — no single-row floor.
+- **Waiting TVC sponsor spot** (`Fullscreen.html`, `wtvcSponLoop`): three
+  independent `data-sponsorbox` elements `#wtvc-spon-tag` (black
+  parallelogram), `#wtvc-spon-tag-text` (category text window — new text
+  pushes in from TOP, old pushed down), `#wtvc-spon-logo` (logo pushes in
+  from RIGHT, old out LEFT). REGULAR (non-`/white`) logos, same
+  `/api/sponsors` playlist/timings. Started/stopped in
+  `showWaitingScreen`/`hideWaitingScreen`; registered in
+  `WTVC_DEFAULTS/ELEMENTS` (dashboard). Positions were estimated from a
+  screenshot — expect Edit-tab tuning.
+- **Waiting Timer sponsor box** (`#wt-sponsorbox`, 382×182 flush to the
+  right edge at left 1538/top 880): copy of the Rank Header's
+  `#rnk-sponsorbox` shape but WHITE plate, dark label, regular logos.
+  `makeSponsorLoop(imgId, labelId, max, min, regularLogos)` has a new 5th
+  arg — `true` skips the `sponsorWhiteSrc` mapping. Registered in
+  `WT_DEFAULTS/ELEMENTS`.
+- **`html/ENTVC.html` does NOT exist in the repo right now** (only
+  `Fullscreen.html` under `html/`), despite the mirroring rule above. Waiting
+  TVC changes made this session were therefore NOT mirrored. If ENTVC lives
+  elsewhere / comes back, port the Waiting TVC sponsor spot to it.
+- **LowerThirds.html Comment tag**: all fonts are Teko now (name Bold 84px
+  max, text SemiBold 50px max, platform 34px; `Teko-Bold.ttf` face added),
+  GBRC emblem centered in the white panel (`#cm-emblem` left 180).
+- **Tournament Schedule art**: `assets/fullscreeners/tournament schedule.png`
+  was replaced with the Ayala Malls Manila Bay venue version (user-supplied
+  full 1920×1080 export — the whole PNG gets replaced, not composited).
+  Old one is in git.
+- **LED canvas geometry** (`ledoverlay.html`, 1920×640 of the 1080 canvas):
+  the template `assets/ledoverlay/ledtemplate.png` is 3072×1024, so ×0.625 —
+  the "top LED = 768px" in template pixels is **480px** here; bottom strip
+  = 160px (y 480–640). Intro page's `li-*` elements (cards/photos/flash/
+  vignette) can bleed into the bottom strip — an unfinished request was to
+  clip the top (480px) and show the team name in BOTH bottom blue panels
+  (left + right) with a cleaner layout, and to fix the left name clipping
+  (`#li-name span` has `translateY(.12em)` that clips 2-row names). Not done.
 
 ## Master checklist — adding any new feature (this is a moving target — use this every time, don't rely on memory)
 
