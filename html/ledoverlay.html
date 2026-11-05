@@ -34,6 +34,9 @@
     opacity: 0; transition: opacity 400ms ease;
   }
   #ingame-led-page.led-on { display: block; }
+  /* Team Intro is fully opaque over it — while an intro is up the Ingame page is removed from rendering
+     (and its video paused, see liSuspendIngame) instead of being drawn + decoded invisibly underneath. */
+  #ingame-led-page.led-suspended { display: none !important; }
   #ingame-led-page.led-visible { opacity: 1; }
 
   /* Solid black behind everything — the LED's dead/game areas stay black. */
@@ -137,8 +140,9 @@
   #li-logo-big img { width: 100%; height: 100%; object-fit: contain; -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 52%, transparent 100%); mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 52%, transparent 100%); }
   .li-card { position: absolute; top: 56px; width: 340px; height: 380px; background: linear-gradient(180deg, rgba(10,10,10,.0) 0%, rgba(10,10,10,.78) 100%);
              clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%); border-bottom: 6px solid #ffe800; }
+  .li-card, .li-photo, #li-logo-big, #li-flash { will-change: transform, opacity; }
   .li-photo { position: absolute; top: -4px; width: 440px; height: 440px; display: flex; align-items: flex-end; justify-content: center; }
-  .li-photo img { width: 100%; height: 100%; object-fit: contain; object-position: bottom; display: block; filter: drop-shadow(0 6px 10px rgba(0,0,0,.6)); }
+  .li-photo img { width: 100%; height: 100%; object-fit: contain; object-position: bottom; display: block; }
   .li-ign { position: absolute; top: 388px; width: 300px; height: 44px; display: flex; align-items: center; justify-content: center; text-align: center;
             font-family: 'Teko', sans-serif; font-weight: 700; font-size: 38px; line-height: 1; color: #fff; text-transform: uppercase; white-space: nowrap; overflow: hidden;
             text-shadow: 0 2px 6px rgba(0,0,0,.9); }
@@ -171,15 +175,15 @@
 
   @keyframes liRise  { 0% { transform: translateY(520px) skewX(-8deg); opacity: 0; } 60% { opacity: 1; } 78% { transform: translateY(-16px) skewX(1deg); } 100% { transform: none; opacity: 1; } }
   @keyframes liDrop  { 0% { transform: none; opacity: 1; } 100% { transform: translateY(560px) skewX(8deg); opacity: 0; } }
-  @keyframes liZoomIn  { 0% { transform: scale(2.2); opacity: 0; filter: blur(14px); } 65% { opacity: 1; } 100% { transform: none; opacity: 1; filter: none; } }
-  @keyframes liZoomOut { 0% { transform: none; opacity: 1; } 100% { transform: scale(.6); opacity: 0; filter: blur(10px); } }
+  @keyframes liZoomIn  { 0% { transform: scale(1.5); opacity: 0; } 65% { opacity: 1; } 100% { transform: none; opacity: 1; } }
+  @keyframes liZoomOut { 0% { transform: none; opacity: 1; } 100% { transform: scale(.8); opacity: 0; } }
   @keyframes liWipeL { 0% { clip-path: inset(0 100% 0 0); } 100% { clip-path: inset(0); } }
   @keyframes liWipeR { 0% { clip-path: inset(0 0 0 100%); } 100% { clip-path: inset(0); } }
   @keyframes liWipeIn  { 0% { clip-path: polygon(0 0, 0 0, 0 100%, 0 100%); } 100% { clip-path: polygon(0 0, 100% 0, calc(100% - 22px) 100%, 0 100%); } }
   @keyframes liWipeInTag { 0% { clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%); } 100% { clip-path: polygon(22px 0, 100% 0, 100% 100%, 0 100%); } }
   @keyframes liFadeUp  { 0% { transform: translateY(26px); opacity: 0; } 100% { transform: none; opacity: 1; } }
   @keyframes liFadeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
-  @keyframes liSweep   { 0% { left: -500px; opacity: 0; } 12% { opacity: 1; } 100% { left: 1960px; opacity: 0; } }
+  @keyframes liSweep   { 0% { transform: translateX(0) skewX(-20deg); opacity: 0; } 12% { opacity: 1; } 100% { transform: translateX(2460px) skewX(-20deg); opacity: 0; } }
   @keyframes liPunch   { 0% { opacity: 0; } 8% { opacity: .55; } 100% { opacity: 0; } }
 
   #led-intro-page.li-animin .li-card, #led-intro-page.li-animin .li-photo { animation: liRise .75s cubic-bezier(.2,.9,.3,1) both; animation-delay: calc(var(--i, 0) * 85ms + 150ms); }
@@ -223,7 +227,7 @@
 <div id="stage">
   <div id="ingame-led-page">
     <div id="led-base"></div>
-    <video id="led-bg" src="/assets/gbrc_loopbg.webm" muted loop playsinline preload="auto"></video>
+    <video id="led-bg" src="/assets/gbrc_loopbg_led640.webm" muted loop playsinline preload="auto"></video>
     <div class="led-mask" id="led-mask-game"></div>
     <div class="led-mask" id="led-mask-dead1"></div>
     <div class="led-mask" id="led-mask-dead2"></div>
@@ -244,7 +248,7 @@
   <div id="led-intro-page">
     <div id="li-base"></div>
     <div id="li-top-clip">
-      <video id="li-bg" src="/assets/gbrc_loopbg.webm" muted loop playsinline preload="auto"></video>
+      <video id="li-bg" src="/assets/gbrc_loopbg_led480.webm" muted loop playsinline preload="auto"></video>
       <div id="li-vignette"></div>
       <div id="li-logo-big"><img alt=""></div>
     <div class="li-card" id="li-card-1" style="--i:0"></div><div class="li-photo" id="li-photo-1" style="--i:0"><img alt=""></div><div class="li-ign" id="li-ign-1" style="--i:0"><span></span></div>
@@ -434,7 +438,7 @@ async function showIngameLedScene() {
   ledLastKey = JSON.stringify(data);
   ledPage.classList.add('led-on');
   ledApply(data);
-  try { ledBg.play(); } catch (e) {}
+  if (!ledPage.classList.contains('led-suspended')) { try { ledBg.play(); } catch (e) {} }
   void ledPage.offsetWidth;
   ledPage.classList.add('led-visible');
   clearInterval(ledPollTimer);
@@ -515,7 +519,7 @@ function liApply(t) {
   for (let i = 0; i < 5; i++) {
     const has = i < n;
     ['li-card-', 'li-photo-', 'li-ign-'].forEach(p => {
-      const e = $(p + (i + 1)); e.style.display = has ? '' : 'none'; e.style.translate = shift ? shift + 'px 0' : '';
+      const e = $(p + (i + 1)); e.style.display = has ? '' : 'none'; e.style.marginLeft = shift ? shift + 'px' : '';
     });
     if (has) {
       $('li-ign-' + (i + 1)).querySelector('span').textContent = t.players[i];
@@ -552,6 +556,14 @@ function liRestart(cls) {   /* retrigger a CSS animation set */
   liPage.classList.add(cls);
 }
 
+function liSuspendIngame() {
+  ledPage.classList.add('led-suspended');
+  ledBg.pause();
+}
+function liResumeIngame() {
+  ledPage.classList.remove('led-suspended');
+  if (ledShown) { try { ledBg.play(); } catch (e) {} }
+}
 async function liOut(token) {
   liRestart('li-animout');
   await liSleep(LI_OUT_MS);
@@ -571,10 +583,13 @@ async function showLedIntro(name) {
   liCurrent = name;
   liPage.classList.remove('li-animin', 'li-animout');
   liPage.classList.add('li-on');
+  liSuspendIngame();
   try { liBg.play(); } catch (e) {}
   try { await Promise.all([document.fonts.load('700 84px Teko'), document.fonts.load('600 28px Teko')]); } catch (e) {}   /* lazy-loaded: measure against the real face */
   liFitAll();    /* now display:block — real layout to measure */
   await Promise.all([...liPage.querySelectorAll('img')].filter(i => i.src && i.style.display !== 'none').map(i => i.complete ? 0 : new Promise(r => { i.addEventListener('load', r); i.addEventListener('error', r); setTimeout(r, 1500); })));
+  /* decode now (1000x1000 PNGs) — otherwise the first frames of the IN decode them on the main thread = visible hitch */
+  await Promise.all([...liPage.querySelectorAll('img')].filter(i => i.src && i.style.display !== 'none').map(i => i.decode ? i.decode().catch(() => {}) : 0));
   if (token !== liToken) return;
   liFitAll();
   liRestart('li-animin');
@@ -582,7 +597,7 @@ async function showLedIntro(name) {
 async function hideLedIntro() {
   const token = ++liToken;
   if (!liCurrent && !liPage.classList.contains('li-on')) return;
-  await liOut(token);
+  if (await liOut(token)) liResumeIngame();   /* a swap (show of another squad) keeps it suspended */
 }
 window.showLedIntro = showLedIntro;
 window.hideLedIntro = hideLedIntro;
