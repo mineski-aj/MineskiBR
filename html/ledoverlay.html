@@ -376,13 +376,37 @@ function ledBuildRow(t, i, sm) {
   return row;
 }
 
+/* Patch rows IN PLACE (same DOM nodes, same <img>) instead of rebuilding them: a fresh <img> every
+   4s data change makes vMix's old CEF blank the logo while it re-decodes = visible flicker. */
+function ledPatchRow(row, t, i, sm) {
+  const cls = 'led-row' + (sm ? ' led-nologo' : '') + (t.rank === 1 && Number(t.totalScore) > 0 ? ' led-top' : '') + (t.inZone ? (t.won ? ' led-won' : ' led-zone') : '');
+  if (row.className !== cls) row.className = cls;
+  const setTxt = (sel, v) => { const sp = row.querySelector(sel + ' span'); if (sp && sp.textContent !== v) sp.textContent = v; };
+  setTxt('.led-rc-rank', String(t.rank || ''));
+  setTxt('.led-rc-name', String(t.name));
+  setTxt('.led-rc-elim', String(ledFmt(t.totalKills)));
+  setTxt('.led-rc-total', String(ledFmt(t.totalScore)));
+  const img = row.querySelector('.led-rc-logo img');
+  if (img) {
+    const src = '/logos/' + encodeURIComponent(t.name) + '.png';
+    if (img.getAttribute('data-n') !== t.name) { img.setAttribute('data-n', t.name); img.style.display = ''; img.src = src; }
+  }
+}
+
 function ledFillColumn(id, teams, sm) {
   const col = document.getElementById(id);
-  col.innerHTML = '';
   /* Showmatch: rows are compact (no gaps) and the block is centred in the panel, so 4+3 or 5+4 squads both sit evenly. */
   const off = sm ? (5 - teams.filter(Boolean).length) * 95 / 2 : 0;
-  let k = 0;
-  teams.forEach((t, i) => { if (t) { const r = ledBuildRow(t, i, sm); if (sm) r.style.top = (4 + off + k * 95) + 'px'; k++; col.appendChild(r); } });
+  const list = [];
+  teams.forEach((t, i) => { if (t) list.push([t, i]); });
+  if (col.getAttribute('data-sm') !== (sm ? '1' : '0')) { col.innerHTML = ''; col.setAttribute('data-sm', sm ? '1' : '0'); }
+  while (col.children.length > list.length) col.removeChild(col.lastChild);
+  list.forEach(([t, i], k) => {
+    let r = col.children[k];
+    if (!r) { r = ledBuildRow(t, i, sm); col.appendChild(r); const im = r.querySelector('.led-rc-logo img'); if (im) im.setAttribute('data-n', t.name); }
+    else ledPatchRow(r, t, i, sm);
+    r.style.top = sm ? (4 + off + k * 95) + 'px' : (4 + i * 95) + 'px';
+  });
 }
 
 function ledSetFeatured(side, t, sm) {
@@ -400,8 +424,11 @@ function ledSetFeatured(side, t, sm) {
   info.querySelector('span').textContent = (t.rank ? 'RANK #' + t.rank + '  ·  ' : '') + ledFmt(t.totalKills) + ' ELIM  ·  ' + ledFmt(t.totalScore) + ' PTS';
   [name, info].forEach(e => e.classList.toggle('led-nologo', !!sm));
   const img = logo.querySelector('img');
+  if (sm) { logo.style.display = 'none'; return; }   /* showmatch squads have no logos */
+  /* Same team as last time: leave the logo alone (no hide/reload = no flicker). */
+  if (img.getAttribute('data-n') === t.name && img.complete && img.naturalWidth) { logo.style.display = 'block'; return; }
   logo.style.display = 'none';
-  if (sm) return;   /* showmatch squads have no logos */
+  img.setAttribute('data-n', t.name);
   img.onload = () => { logo.style.display = 'block'; };
   img.onerror = () => { logo.style.display = 'none'; };
   img.src = '/logos/' + encodeURIComponent(t.name) + '.png';
