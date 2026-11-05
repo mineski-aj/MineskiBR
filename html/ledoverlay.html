@@ -298,10 +298,12 @@ function ledFit(el, maxSize, minSize) {
 const LED_NAME_MAX = 30, LED_NAME_MIN = 16;
 function ledFitNameMeasure(el) {
   let size = LED_NAME_MAX;
-  el.style.whiteSpace = 'nowrap'; el.style.lineHeight = '1'; el.style.fontSize = size + 'px';
-  if (el.scrollWidth <= el.clientWidth) return;
   const span = el.querySelector('span');
-  el.style.whiteSpace = 'normal'; el.style.lineHeight = '0.9'; span.style.textWrap = 'balance';
+  el.style.whiteSpace = 'nowrap'; el.style.lineHeight = '1'; el.style.fontSize = size + 'px';
+  span.style.width = ''; span.style.textWrap = '';
+  if (el.scrollWidth <= el.clientWidth) return;
+  /* explicit width (not left to flex shrinking) so the wrap works the same in older embedded browsers like vMix's */
+  el.style.whiteSpace = 'normal'; el.style.lineHeight = '0.9'; span.style.width = el.clientWidth + 'px'; span.style.textWrap = 'balance';
   while ((span.scrollWidth > el.clientWidth || span.offsetHeight > el.clientHeight - 6) && size > LED_NAME_MIN) el.style.fontSize = (--size) + 'px';
 }
 function ledFitName(el) {
@@ -412,6 +414,17 @@ function ledFitAll() {
   ledPage.querySelectorAll('.led-feat-info').forEach(el => ledFit(el, 28, 16));
 }
 
+/* Teko/Anton are lazy-loaded: until something has used a face, document.fonts.status already says
+   'loaded', so a fit run measures FALLBACK glyphs (narrower) and a long name stays on one row.
+   vMix's browser hits this far more than a desktop one — load every face used BEFORE measuring,
+   and re-fit once more whenever a font finishes loading. */
+let ledFontsP = null;
+function ledFontsReady() {
+  if (!ledFontsP) ledFontsP = Promise.all(['700 30px Teko', '600 28px Teko', '700 46px Teko', '56px Anton'].map(f => document.fonts.load(f))).catch(() => {});
+  return ledFontsP;
+}
+if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', () => { if (ledShown && ledPage.classList.contains('led-on')) ledFitAll(); });
+
 function ledApply(d) {
   ledFillColumn('led-col-left',  d.left, d.sm);
   ledFillColumn('led-col-right', d.right, d.sm);
@@ -426,6 +439,8 @@ async function ledRefresh() {
   const d = await ledFetch();
   const key = JSON.stringify(d);
   if (key === ledLastKey) return;
+  await ledFontsReady();
+  if (!ledShown) return;
   ledLastKey = key;
   ledApply(d);
 }
@@ -433,7 +448,7 @@ async function ledRefresh() {
 async function showIngameLedScene() {
   ledShown = true;
   ledLastKey = null;
-  const data = await ledFetch();
+  const [data] = await Promise.all([ledFetch(), ledFontsReady()]);
   if (!ledShown) return;
   ledLastKey = JSON.stringify(data);
   ledPage.classList.add('led-on');
