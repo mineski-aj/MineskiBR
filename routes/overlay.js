@@ -1078,10 +1078,39 @@ router.get('/overlay/lowerthird/team_h2h/hide', (req, res) => {
   lowerThirdBroadcast({ action: 'hide', type: 'teamh2h' });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
+// Team Name Tag (LowerThirds.html) — one show/hide route pair per Grand Finals squad
+// (lib/ledIntro.js list). Same 'lowerthird' SSE event, type 'teamtag' + the squad's name.
+// Showing another squad while one is up makes the page play OUT then IN (swap).
+// A squad's /hide only hides the tag if THAT squad is the one up.
+const ledIntroTeams = require('../lib/ledIntro');
+let teamTagActive = null;   // slug on air (in-memory; not restored across server restarts)
+router.get('/overlay/lowerthird/teamtag/list', (req, res) => {
+  res.set({ "Cache-Control": "no-store" }).json({ teams: ledIntroTeams.list(), active: teamTagActive });
+});
+router.get('/overlay/lowerthird/teamtag/hide', (req, res) => {
+  teamTagActive = null;
+  lowerThirdBroadcast({ action: 'hide', type: 'teamtag' });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+router.get('/overlay/lowerthird/teamtag/:slug/show', (req, res) => {
+  const t = ledIntroTeams.bySlug(req.params.slug);
+  if (!t) return res.status(404).json({ ok: false, error: 'unknown team' });
+  teamTagActive = t.slug;
+  lowerThirdBroadcast({ action: 'show', type: 'teamtag', name: t.name, slug: t.slug });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show", team: t.name });
+});
+router.get('/overlay/lowerthird/teamtag/:slug/hide', (req, res) => {
+  const t = ledIntroTeams.bySlug(req.params.slug);
+  if (!t) return res.status(404).json({ ok: false, error: 'unknown team' });
+  if (teamTagActive === t.slug) teamTagActive = null;
+  lowerThirdBroadcast({ action: 'hide', type: 'teamtag', name: t.name, slug: t.slug });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide", team: t.name });
+});
 router.get('/overlay/lowerthird/hideall', (req, res) => {
   state.checkOverlays.lowerthird_comment = false;
   state.checkOverlays.lowerthird_player_h2h = false;
   state.checkOverlays.lowerthird_team_h2h = false;
+  teamTagActive = null;
   lowerThirdBroadcast({ action: 'hideall' });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hideall" });
 });

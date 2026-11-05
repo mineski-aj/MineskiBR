@@ -2169,6 +2169,7 @@
         { name: 'Player H2H L3', show: '/overlay/lowerthird/player_h2h/show', hide: '/overlay/lowerthird/player_h2h/hide', checkKey: 'lowerthird_player_h2h', h2hSelect: true },
         { name: 'Team H2H L3', show: '/overlay/lowerthird/team_h2h/show', hide: '/overlay/lowerthird/team_h2h/hide', checkKey: 'lowerthird_team_h2h', teamH2hSelect: true },
       ],
+      teamTag: true,   /* Team Name Tag: per-squad Show/Hide/Preview rows (see buildControlBody) */
     },
     {
       id: 'ingame_scoreboard',
@@ -2845,6 +2846,47 @@
           tiWrap.appendChild(fr);
         });
         tiWrap.appendChild(el('div', 'features-label', ''));
+      }).catch(function () {});
+    }
+
+    /* Team Name Tag (LowerThirds.html) — one Show/Hide row per Grand Finals squad. Showing another
+       squad while one is up swaps them on screen. ◈ Preview is local to the preview iframe only. */
+    if (ov.teamTag) {
+      if (body.children.length) body.appendChild(el('div', 'divider'));
+      body.appendChild(el('div', 'features-label', 'Team Name Tag'));
+      var ttWrap = el('div', 'ti-wrap');
+      body.appendChild(ttWrap);
+      var ttAll = el('div', 'btn-row');
+      ttAll.appendChild(btn('Hide Name Tag', 'btn-hide', function () { hit('/overlay/lowerthird/teamtag/hide', body); }));
+      var ttAllCopy = document.createElement('button');
+      ttAllCopy.className = 'btn btn-copy';
+      ttAllCopy.innerHTML = '<span class="copy-icon">⧉</span> hide';
+      ttAllCopy.addEventListener('click', function () { copyRoute('/overlay/lowerthird/teamtag/hide', 'Hide Name Tag route', ttAllCopy); });
+      ttAll.appendChild(ttAllCopy);
+      ttWrap.appendChild(ttAll);
+      fetch('/overlay/lowerthird/teamtag/list', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+        (d.teams || []).forEach(function (t) {
+          var fr = el('div', 'feature-row');
+          var hd = el('div', 'feature-header');
+          hd.appendChild(el('div', 'feature-name', t.name));
+          fr.appendChild(hd);
+          var fb = el('div', 'feature-btns');
+          var showPath = '/overlay/lowerthird/teamtag/' + t.slug + '/show', hidePath = '/overlay/lowerthird/teamtag/' + t.slug + '/hide';
+          fb.appendChild(btn('Show', 'btn-show', function () { hit(showPath, body); }));
+          fb.appendChild(btn('Hide', 'btn-hide', function () { hit(hidePath, body); }));
+          [['show', showPath], ['hide', hidePath]].forEach(function (pair) {
+            var cb = document.createElement('button');
+            cb.className = 'btn btn-copy';
+            cb.innerHTML = '<span class="copy-icon">⧉</span> ' + pair[0];
+            cb.addEventListener('click', function () { copyRoute(pair[1], t.name + ' name tag ' + pair[0] + ' route', cb); });
+            fb.appendChild(cb);
+          });
+          fb.appendChild(btn('◈ Preview', 'btn-action', function () {
+            try { previewIframe.contentWindow.previewTrigger('teamtag', 'show', t.name); } catch (e) {}
+          }));
+          fr.appendChild(fb);
+          ttWrap.appendChild(fr);
+        });
       }).catch(function () {});
     }
 
@@ -4699,6 +4741,28 @@
     LI_ELEMENTS.push({ group: 'LI IGN ' + n, id: '#li-ign-' + n, name: 'Player ' + n + ' — IGN' });
   });
 
+  /* ── Team Name Tag (LowerThirds.html) — tt-* selectors. ── */
+  var TT_DEFAULTS = {
+    '#tt-bar':      { left: 190, top: 884, width: 790, height: 104 },
+    '#tt-accent':   { left: 190, top: 988, width: 790, height: 10 },
+    '#tt-logobox':  { left: 120, top: 846, width: 150, height: 150 },
+    '#tt-logo':     { left: 140, top: 866, width: 110, height: 110 },
+    '#tt-code-bg':  { left: 300, top: 850, width: 120, height: 34 },
+    '#tt-code':     { left: 300, top: 850, width: 120, height: 34, fontSize: 30 },
+    '#tt-name':     { left: 305, top: 884, width: 650, height: 104, fontSize: 58 },
+    '#tt-stats':    { left: 305, top: 884, width: 650, height: 104, fontSize: 54 },
+  };
+  var TT_ELEMENTS = [
+    { group: 'TT Bar', id: '#tt-bar', name: 'Black Bar (slanted)' },
+    { group: 'TT Accent', id: '#tt-accent', name: 'Yellow Base Strip' },
+    { group: 'TT Logo Box', id: '#tt-logobox', name: 'Logo Block (slanted)' },
+    { group: 'TT Logo', id: '#tt-logo', name: 'Team Logo' },
+    { group: 'TT Code BG', id: '#tt-code-bg', name: 'Country Chip (yellow)' },
+    { group: 'TT Code', id: '#tt-code', name: 'Country Code' },
+    { group: 'TT Name', id: '#tt-name', name: 'Team Name' },
+    { group: 'TT Stats', id: '#tt-stats', name: 'Stats Line (AVG RANK | TOTAL ELIMS)' },
+  ];
+
   /* ── Team H2H L3 (LowerThirds.html) — tm-* selectors. ── */
   var TM_DEFAULTS = {
     '#tm-box': { left: 330, top: 770, width: 1260, height: 270 },
@@ -6184,6 +6248,15 @@
       elements:    PL_ELEMENTS,
       defaults:    PL_DEFAULTS,
       showFn:      'showPlayerH2HL3',
+    },
+    lowerthirds_teamtag: {
+      label:       'Team Name Tag · Lower Thirds',
+      file:        'LowerThirds.html',
+      styleFile:   'lowerthirds',
+      defaultsKey: 'sb_edit_defaults_lowerthirds_teamtag',
+      elements:    TT_ELEMENTS,
+      defaults:    TT_DEFAULTS,
+      showFn:      'showTeamTagDemo',
     },
     lowerthirds_teamh2h: {
       label:       'Team H2H L3 · Lower Thirds',

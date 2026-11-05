@@ -8666,6 +8666,7 @@
       'Rebirth Island': 'rebirth',
     };
     const wtvcBgVideo = document.getElementById('wtvc-bg-video');
+    let wtvcStageName = ''; /* Match Board stage — Grand Finals/Showmatch never use the top-team yellow backer */
     let wtvcStandings = null; /* raw /api/waiting-tvc-standings payload — either { mode:'qualifiers', pages:[{sheet,teams}x5] } or { mode:'live', teams } */
     let wtvcTeamsKey = null;
     let wtvcMapsKey = null;
@@ -8697,7 +8698,10 @@
       /* Groupstage (the 40-team list): the whole top 20 gets the yellow
          backer — but only teams that actually have a score, so a team
          inside the top 20 on tiebreak alone isn't wrongly highlighted. */
-      const useTopBacker = (wtvcStandings && wtvcStandings.mode === 'groupstage')
+      /* Grand Finals / Showmatch: the yellow container is reserved for In-The-Zone squads
+         (see the overall-ranking board), never for "whoever is on top". */
+      const wtvcZoneStage = /grand\s*finals/i.test(wtvcStageName) || /^show\s*match$/i.test(String(wtvcStageName).trim());
+      const useTopBacker = wtvcZoneStage ? false : (wtvcStandings && wtvcStandings.mode === 'groupstage')
         ? (rank <= 20 && hasScore)
         : rnkIsQualifiers()
           ? ((rank === 1 || rank === 2) && hasScore)
@@ -9097,8 +9101,9 @@
       // cycling looked completely dead, stuck on page 1.
       const teamsKey = JSON.stringify(
         standings && standings.mode === 'qualifiers' ? standings.pages : (standings && standings.teams)
-      );
+      ) + '|' + ((data.ms && data.ms.stage) || '');
       const ms = data.ms;
+      wtvcStageName = (ms && ms.stage) || '';
       const maps = brMapRows(ms);
       const mapsKey = JSON.stringify(maps);
       const speedMs = Math.max(1, (data.pageSpeed && data.pageSpeed.seconds) || 5) * 1000;
