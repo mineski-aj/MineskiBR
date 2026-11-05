@@ -183,7 +183,8 @@ var _sbTodayMaps = [];
    (/match/state's todayMaps, 1-indexed by `match`). */
 function sbCurrentMapName() {
   var m = _sbTodayMaps[_sbMatchNum - 1];
-  return (m && m.mapName) ? String(m.mapName).trim() : '';
+  var n = (m && m.mapName) ? String(m.mapName).trim() : '';
+  return /^rebirth\s+island$/i.test(n) ? 'Rebirth' : n;   // shortened to fit the bug
 }
 
 /* Playoffs: Match Board's map list is the Playoffs sheet's own blocks, so
@@ -212,8 +213,8 @@ function sbUpdateMh1Tally() {
      Stage line above it), so lead with the current map's NAME instead —
      "Isolated | Map 1". Falls back to the tab name when Match Board has
      no map picked for this match number yet. */
-  /* Showmatch behaves the same: its one live tab is just "Showmatch" again. */
-  var playoffMap = /playoffs|show\s*match/i.test(_sbStage) ? sbCurrentMapName() : '';
+  /* Showmatch and Grand Finals behave the same: their live tab is just the stage name again. */
+  var playoffMap = /playoffs|show\s*match|grand\s*finals/i.test(_sbStage) ? sbCurrentMapName() : '';
   if (playoffMap) parts.push(playoffMap);
   else if (_sbLiveTallyTab) parts.push(_sbLiveTallyTab);
   /* Qualifiers: the live tally tab (e.g. "Qualifier 1") already IS the

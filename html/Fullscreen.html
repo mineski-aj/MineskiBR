@@ -9795,6 +9795,11 @@
     function rnkIsQualifiers() {
       return /qualifier/i.test(_rnkStage);
     }
+    /* Grand Finals: the yellow "rank 1" container is reserved for In-The-Zone squads, and Map
+       Ranking / Slot Teams drop their Group column. */
+    function rnkIsGrandFinals() {
+      return /grand\s*finals/i.test(String(_rnkStage));
+    }
     function rnkIsShowmatch() {
       return /^show\s*match$/i.test(String(_rnkStage).trim());
     }
@@ -10068,7 +10073,7 @@
       row.className = 'ovr-row rnk-anim-item' + (q.inZone && q.won ? ' ovr-won' : '');
       /* In The Zone (Grand Finals only, flagged in the IN THE ZONE tab) forces
          the yellow container + the black Z! box. */
-      const bgSrc = q.inZone ? (q.won ? '/assets/Overall%20Ranking/teamscoreboard_rank1_red.png' : '/assets/Overall%20Ranking/teamscoreboard_rank1.png') : rnkRowBgSrc(q.rank, q.totalScore, q.yellowMax);
+      const bgSrc = q.inZone ? (q.won ? '/assets/Overall%20Ranking/teamscoreboard_rank1_red.png' : '/assets/Overall%20Ranking/teamscoreboard_rank1.png') : (q.gf ? '/assets/Overall%20Ranking/teamscoreboard.png' : rnkRowBgSrc(q.rank, q.totalScore, q.yellowMax));
       row.innerHTML =
         '<img class="ovr-row-bg" src="' + bgSrc + '" alt="">' +
         (q.inZone ? (q.won ? '<div class="ovr-zone-badge ovr-crown"><svg viewBox="0 0 26 20"><path d="M1 4l6 5 6-8 6 8 6-5-2.5 14h-19z"/><rect x="3.5" y="16" width="19" height="3"/></svg></div>' : '<div class="ovr-zone-badge"><span>Z!</span></div>') : '') +
@@ -10209,7 +10214,7 @@
       const stageEl = document.querySelector('#rnk-header-stageday .rnk-stage');
       const stage = ((stageEl && stageEl.textContent) || '').trim().toUpperCase();
       /* Showmatch also drops Group (and the country tag), so it uses the compact column layout. */
-      return stage === 'QUALIFIERS' || stage === 'SHOWMATCH';
+      return stage === 'QUALIFIERS' || stage === 'SHOWMATCH' || /GRAND\s*FINALS/.test(stage);
     }
     // Non-compact keeps Group but drops GW entirely (removed by request —
     // this map's own game-win count wasn't wanted here), re-centering
@@ -10276,7 +10281,8 @@
          that rank actually has a score, so an all-zero board doesn't look
          like a result. Map Ranking-only: rank 2 is never special outside
          Qualifiers, where rnkRowBgSrc's plain rank===1 check applies. */
-      const mrkBgSrc = (rnkIsQualifiers() && q.rank === 2 && Number(q.totalScore) > 0)
+      const mrkBgSrc = rnkIsGrandFinals() ? '/assets/Overall%20Ranking/teamscoreboard.png'
+        : (rnkIsQualifiers() && q.rank === 2 && Number(q.totalScore) > 0)
         ? '/assets/Overall%20Ranking/teamscoreboard_rank1.png'
         : rnkRowBgSrc(q.rank, q.totalScore);
       let html = '<img class="mrk-row-bg" src="' + mrkBgSrc + '" alt="">';
@@ -10394,7 +10400,8 @@
       );
       const row = document.createElement('div');
       row.className = 'slt-row rnk-anim-item';
-      const sltBgSrc = (rnkIsQualifiers() && q.rank === 2 && Number(q.totalScore) > 0)
+      const sltBgSrc = rnkIsGrandFinals() ? '/assets/Overall%20Ranking/teamscoreboard.png'
+        : (rnkIsQualifiers() && q.rank === 2 && Number(q.totalScore) > 0)
         ? '/assets/Overall%20Ranking/teamscoreboard_rank1.png'
         : rnkRowBgSrc(q.rank, q.totalScore);
       let html = '<img class="slt-row-bg" src="' + sltBgSrc + '" alt="">';
