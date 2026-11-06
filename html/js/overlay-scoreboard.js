@@ -289,6 +289,13 @@ function sbIsQualifiers() {
    173px team box — the full width when there's no logo (current state,
    e.g. Qualifiers), or minus the logo's own space once one loads. Reruns
    on every logo onload/onerror too, since that changes the budget. */
+/* DISPLAY ONLY: LEAP MAIN is written with the reversed E (Ǝ) like the player IGNs. The fonts have no Ǝ glyph,
+   so it is a mirrored "E" in the same font. Never use this for /logos/ or /photos/ URLs, those keep the sheet name. */
+function teamNameHtml(n) {
+  return String(n == null ? '' : n).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; })
+    .replace(/^LEAP MAIN$/i, 'L<span style="display:inline-block;transform:scaleX(-1)">E</span>AP MAIN');
+}
+
 function sbFitTeamName(row) {
   var nameEl = row.querySelector('.ssr-team-name');
   if (!nameEl) return;
@@ -396,7 +403,7 @@ function sbFillScoreRow(row, team, qualifiers) {
   var teamName = (team && team.name) || '';
   var teamLogo = row.querySelector('.ssr-team-logo');
   var teamNameEl = row.querySelector('.ssr-team-name');
-  if (teamNameEl) teamNameEl.textContent = teamName;
+  if (teamNameEl) teamNameEl.innerHTML = teamNameHtml(teamName);
   if (teamLogo) {
     if (teamName) {
       if (teamLogo.dataset.team !== teamName) {

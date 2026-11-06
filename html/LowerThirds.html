@@ -464,6 +464,12 @@ async function tmFetch() {
   try { const r = await fetch('/api/team-h2h', { cache: 'no-store' }); return r.ok ? await r.json() : null; }
   catch (e) { return null; }
 }
+/* DISPLAY ONLY: LEAP MAIN is written with the reversed E (Ǝ) like the player IGNs. The fonts have no Ǝ glyph,
+   so it is a mirrored "E" in the same font. Never use this for /logos/ or /photos/ URLs, those keep the sheet name. */
+function teamNameHtml(n) {
+  return String(n == null ? '' : n).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; })
+    .replace(/^LEAP MAIN$/i, 'L<span style="display:inline-block;transform:scaleX(-1)">E</span>AP MAIN');
+}
 function tmApply(data) {
   const a = data && data.a, b = data && data.b;
   [['a', a], ['b', b]].forEach(([side, t]) => {
@@ -473,7 +479,7 @@ function tmApply(data) {
     sp.textContent = '';
     if (t) {
       if (t.country) { const cc = document.createElement('span'); cc.className = 'tm-cc'; cc.textContent = t.country + ' - '; sp.appendChild(cc); }
-      sp.appendChild(document.createTextNode(t.name || ''));
+      { const nm = document.createElement('span'); nm.innerHTML = teamNameHtml(t.name); sp.appendChild(nm); }
     }
     lowerThirdFitMulti(tag, 34, 12);
   });
@@ -514,7 +520,7 @@ async function fetchCurrentComment() {
    Runner: line1 = scrolling text, line2 = label (e.g. "UPDATE"). */
 function applyLowerThird(type, d) {
   const cfg = LT[type];
-  cfg.fields.forEach(([id, k]) => { document.getElementById(id).textContent = (d[k] || '').toString(); });
+  cfg.fields.forEach(([id, k]) => { const el = document.getElementById(id), v = (d[k] || '').toString(); if (type === 'teamtag' && k === 'name') el.innerHTML = teamNameHtml(v); else el.textContent = v; });
   if (type === 'comment') {
     const plat = document.getElementById('cm-platform');
     plat.className = 'lt-text ' + (d.platform || '').toLowerCase().replace(/[^a-z0-9]/g, '');

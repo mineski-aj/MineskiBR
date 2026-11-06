@@ -315,6 +315,12 @@ function ledFitName(el) {
   if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(() => ledFitNameMeasure(el));
 }
 function ledFmt(n) { return String(Math.round((Number(n) || 0) * 100) / 100); }
+/* DISPLAY ONLY: LEAP MAIN is written with the reversed E (Ǝ) like the player IGNs. The fonts have no Ǝ glyph,
+   so it is a mirrored "E" in the same font. Never use this for /logos/ or /photos/ URLs, those keep the sheet name. */
+function teamNameHtml(n) {
+  return String(n == null ? '' : n).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; })
+    .replace(/^LEAP MAIN$/i, 'L<span style="display:inline-block;transform:scaleX(-1)">E</span>AP MAIN');
+}
 function ledEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
 /* Standings (Grand Finals overall — same source as Overall Ranking) + the
@@ -372,7 +378,7 @@ function ledBuildRow(t, i, sm) {
     '<div class="led-row-divider" style="left:432px"></div>' +
     '<div class="led-cell led-rc-rank"><span>' + (t.rank || '') + '</span></div>' +
     (sm ? '' : '<div class="led-cell led-rc-logo"><img alt="" src="/logos/' + encodeURIComponent(t.name) + '.png" onerror="this.style.display=\'none\'"></div>') +
-    '<div class="led-cell led-rc-name"><span>' + ledEsc(t.name) + '</span></div>' +
+    '<div class="led-cell led-rc-name"><span>' + teamNameHtml(t.name) + '</span></div>' +
     '<div class="led-cell led-rc-lbl led-rc-lbl-elim"><span>ELIM</span></div>' +
     '<div class="led-cell led-rc-lbl led-rc-lbl-total"><span>TOTAL</span></div>' +
     '<div class="led-cell led-rc-elim"><span>' + ledFmt(t.totalKills) + '</span></div>' +
@@ -385,7 +391,7 @@ function ledBuildRow(t, i, sm) {
 function ledPatchRow(row, t, i, sm) {
   const cls = 'led-row' + (sm ? ' led-nologo' : '') + (t.rank === 1 && Number(t.totalScore) > 0 ? ' led-top' : '') + (t.inZone ? (t.won ? ' led-won' : ' led-zone') : '');
   if (row.className !== cls) row.className = cls;
-  const setTxt = (sel, v) => { const sp = row.querySelector(sel + ' span'); if (sp && sp.textContent !== v) sp.textContent = v; };
+  const setTxt = (sel, v) => { const sp = row.querySelector(sel + ' span'); if (!sp) return; if (sel === '.led-rc-name') { const h = teamNameHtml(v); if (sp.dataset.h !== h) { sp.dataset.h = h; sp.innerHTML = h; } } else if (sp.textContent !== v) sp.textContent = v; };
   setTxt('.led-rc-rank', String(t.rank || ''));
   setTxt('.led-rc-name', String(t.name));
   setTxt('.led-rc-elim', String(ledFmt(t.totalKills)));
@@ -424,7 +430,7 @@ function ledSetFeatured(side, t, sm) {
   [name, info].forEach(e => e.classList.toggle('led-won-txt', !!t.won));
   box.style.display = 'block';
   name.style.display = 'flex'; info.style.display = 'flex';
-  name.querySelector('span').textContent = t.name;
+  name.querySelector('span').innerHTML = teamNameHtml(t.name);
   info.querySelector('span').textContent = (t.rank ? 'RANK #' + t.rank + '  ·  ' : '') + ledFmt(t.totalKills) + ' ELIM  ·  ' + ledFmt(t.totalScore) + ' PTS';
   [name, info].forEach(e => e.classList.toggle('led-nologo', !!sm));
   const img = logo.querySelector('img');
@@ -558,7 +564,7 @@ function liApply(t) {
   liImgSet($('li-logo-big').querySelector('img'), '/logos/' + encodeURIComponent(t.name) + '.png');
   ['l', 'r'].forEach(k => {
     liImgSet($('li-logo-' + k).querySelector('img'), '/logos/' + encodeURIComponent(t.name) + '.png');
-    $('li-name-' + k).querySelector('span').textContent = t.name;
+    $('li-name-' + k).querySelector('span').innerHTML = teamNameHtml(t.name);
     $('li-region-' + k).querySelector('span').textContent = t.region;
   });
   const n = t.players.length, shift = (5 - n) * 192;   /* centre a 4-player squad */
