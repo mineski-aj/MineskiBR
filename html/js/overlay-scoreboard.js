@@ -795,8 +795,10 @@ try {
        displayed scaled: the Edit tab preview, a vMix source that isn't exactly 1920x1080) and offsetWidth, which rounds. */
     var cs = getComputedStyle(frame);
     var bw = parseFloat(cs.borderLeftWidth) || 0;
-    nameBox.style.left = ((parseFloat(cs.left) || 0) + bw) + 'px';
-    nameBox.style.width = Math.max(0, (parseFloat(cs.width) || 0) - 2 * bw) + 'px';
+    /* 'important' on the inline style: beats any stale left/width an older Edit-tab save left in overlay_styles.json
+       (those are !important too — they broke this once, after the box stopped having X/Width fields). */
+    nameBox.style.setProperty('left', ((parseFloat(cs.left) || 0) + bw) + 'px', 'important');
+    nameBox.style.setProperty('width', Math.max(0, (parseFloat(cs.width) || 0) - 2 * bw) + 'px', 'important');
   }
   function fitAll() { syncName(); fitBox(tip, tipSpan); fitBox(nameBox, nameSpan); }
   window.sbZoneTip = function (team) {
