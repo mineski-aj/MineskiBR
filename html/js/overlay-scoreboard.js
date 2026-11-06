@@ -791,10 +791,12 @@ try {
      Y and height are edited. Runs before every fit, so resizing the frame or its border in Edit carries the box with it. */
   function syncName() {
     if (!frame) return;
-    var bw = parseFloat(getComputedStyle(frame).borderLeftWidth) || 0;
-    var fr = frame.getBoundingClientRect();   /* exact (offsetWidth rounds to whole px) */
-    nameBox.style.left = (fr.left + bw) + 'px';
-    nameBox.style.width = Math.max(0, fr.width - 2 * bw) + 'px';
+    /* CSS px from computed style — NOT getBoundingClientRect(), which is in scaled screen px (wrong whenever the page is
+       displayed scaled: the Edit tab preview, a vMix source that isn't exactly 1920x1080) and offsetWidth, which rounds. */
+    var cs = getComputedStyle(frame);
+    var bw = parseFloat(cs.borderLeftWidth) || 0;
+    nameBox.style.left = ((parseFloat(cs.left) || 0) + bw) + 'px';
+    nameBox.style.width = Math.max(0, (parseFloat(cs.width) || 0) - 2 * bw) + 'px';
   }
   function fitAll() { syncName(); fitBox(tip, tipSpan); fitBox(nameBox, nameSpan); }
   window.sbZoneTip = function (team) {
