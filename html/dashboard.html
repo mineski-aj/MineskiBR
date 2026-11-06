@@ -4666,9 +4666,11 @@
   /* ── Zoned tooltip (ingame.html) — one element; saved in the ingame_events style bucket (the one ingame.html applies). ── */
   var ZT_DEFAULTS = {
     '#sb-zonetip': { left: 0, top: 804, width: 364, height: 64 },
+    '#sb-zonerect': { left: 0, top: 804, width: 113.78, height: 64, fontSize: 4 },   /* fontSize = border thickness (see ingame.css) */
   };
   var ZT_ELEMENTS = [
     { group: 'Zoned Tooltip', id: '#sb-zonetip', name: 'Zoned Tooltip (IN THE ZONE tag, above the lower-left bug)' },
+    { group: 'Zone Frame', id: '#sb-zonerect', name: 'Zone Frame — 16:9 yellow border (Font Size = border thickness; use the aspect lock to keep 16:9)' },
   ];
 
   var KE_ELEMENTS = [
@@ -6139,7 +6141,7 @@
       showFn:      'keShowDemo',
     },
     ingame_zonetip: {
-      label:       'Zoned Tooltip · Ingame',
+      label:       'Zoned Tooltip & Frame · Ingame',
       file:        'ingame.html',
       styleFile:   'ingame_events',
       defaultsKey: 'sb_edit_defaults_ingame_zonetip',
@@ -7227,7 +7229,7 @@
 
       var lbl = document.createElement('div');
       lbl.className = 'edit-ctrl-label';
-      lbl.textContent = prop.label;
+      lbl.textContent = (prop.key === 'fontSize' && id === '#sb-zonerect') ? 'Border Size' : prop.label;   /* the frame's border is 1em, so its font-size IS the border thickness */
 
       var minus = document.createElement('button');
       minus.className = 'edit-step-btn';
