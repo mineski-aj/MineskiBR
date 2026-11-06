@@ -354,7 +354,7 @@
       "name": "replay out",
       "duration": 250,
       "bg": 3040,
-      "artFill": 0,
+      "artFill": 3040,
       "artOption": 0,
       "boxes": [
         {
@@ -371,7 +371,7 @@
         },
         {
           "enabled": true,
-          "source": 15,
+          "source": 21,
           "x": -372,
           "y": -124,
           "size": 730,
