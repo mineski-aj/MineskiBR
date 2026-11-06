@@ -2194,6 +2194,8 @@
       name: 'LED Overlay',
       file: 'ledoverlay.html',
       autoPreviewEvent: 'ingame_led',
+      finalsMvp: true,   /* Finals MVP: one Show/Hide/Preview row, player = the Dynamic tab's MVP pick */
+      championLed: true,   /* Champion LED: per-squad Show/Hide/Preview rows, same shape as teamIntro */
       teamIntro: true,   /* Team Introduction: per-squad Show/Hide/Preview rows (see buildControlBody) */
       checkToggles: [
         { name: 'Ingame LED', key: 'ingame_led' },
@@ -2809,27 +2811,27 @@
     /* Team Introduction (LED) — one Show/Hide row per Grand Finals squad. Show hits the real
        /led/intro/<slug>/show route (LED wall, swaps the previous squad out); ◈ Preview only drives
        the loaded preview iframe locally — no server call, nothing reaches the real LED. */
-    if (ov.teamIntro) {
+    function buildLedSquadRows(title, hideLabel, base, event) {
       if (body.children.length) body.appendChild(el('div', 'divider'));
-      body.appendChild(el('div', 'features-label', 'Team Introduction'));
+      body.appendChild(el('div', 'features-label', title));
       var tiWrap = el('div', 'ti-wrap');
       body.appendChild(tiWrap);
       var tiAll = el('div', 'btn-row');
-      tiAll.appendChild(btn('Hide Intro', 'btn-hide', function () { hit('/led/intro/hide', body); }));
+      tiAll.appendChild(btn(hideLabel, 'btn-hide', function () { hit(base + '/hide', body); }));
       var tiAllCopy = document.createElement('button');
       tiAllCopy.className = 'btn btn-copy';
       tiAllCopy.innerHTML = '<span class="copy-icon">⧉</span> hide';
-      tiAllCopy.addEventListener('click', function () { copyRoute('/led/intro/hide', 'Hide Intro route', tiAllCopy); });
+      tiAllCopy.addEventListener('click', function () { copyRoute(base + '/hide', hideLabel + ' route', tiAllCopy); });
       tiAll.appendChild(tiAllCopy);
       tiWrap.appendChild(tiAll);
-      fetch('/led/intro/list', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+      fetch(base + '/list', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
         (d.teams || []).forEach(function (t) {
           var fr = el('div', 'feature-row');
           var hd = el('div', 'feature-header');
           hd.appendChild(el('div', 'feature-name', t.name));
           fr.appendChild(hd);
           var fb = el('div', 'feature-btns');
-          var showPath = '/led/intro/' + t.slug + '/show', hidePath = '/led/intro/' + t.slug + '/hide';
+          var showPath = base + '/' + t.slug + '/show', hidePath = base + '/' + t.slug + '/hide';
           fb.appendChild(btn('Show', 'btn-show', function () { hit(showPath, body); }));
           fb.appendChild(btn('Hide', 'btn-hide', function () { hit(hidePath, body); }));
           [['show', showPath], ['hide', hidePath]].forEach(function (pair) {
@@ -2840,7 +2842,7 @@
             fb.appendChild(cb);
           });
           fb.appendChild(btn('◈ Preview', 'btn-action', function () {
-            try { previewIframe.contentWindow.previewTrigger('led_intro', 'show', t.name); } catch (e) {}
+            try { previewIframe.contentWindow.previewTrigger(event, 'show', t.name); } catch (e) {}
           }));
           fr.appendChild(fb);
           tiWrap.appendChild(fr);
@@ -2848,6 +2850,39 @@
         tiWrap.appendChild(el('div', 'features-label', ''));
       }).catch(function () {});
     }
+    /* Finals MVP (LED) — one Show/Hide pair. The player is whoever is picked in the Dynamic tab's MVP picker
+       (the server reads it at Show time and answers 409 if nobody is picked). ◈ Preview is local to the preview iframe. */
+    if (ov.finalsMvp) {
+      if (body.children.length) body.appendChild(el('div', 'divider'));
+      body.appendChild(el('div', 'features-label', 'Finals MVP'));
+      var fmWrap = el('div', 'ti-wrap');
+      body.appendChild(fmWrap);
+      var fmRow = el('div', 'feature-row');
+      var fmHd = el('div', 'feature-header');
+      var fmName = el('div', 'feature-name', 'Finals MVP — loading pick…');
+      fmHd.appendChild(fmName);
+      fmRow.appendChild(fmHd);
+      fetch('/api/map-mvp-selection', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+        fmName.textContent = d && d.player ? 'Finals MVP — ' + d.player + ' (' + d.team + ')' : 'Finals MVP — no player picked in the Dynamic tab';
+      }).catch(function () { fmName.textContent = 'Finals MVP'; });
+      var fmBtns = el('div', 'feature-btns');
+      fmBtns.appendChild(btn('Show', 'btn-show', function () { hit('/led/finalsmvp/show', body); }));
+      fmBtns.appendChild(btn('Hide', 'btn-hide', function () { hit('/led/finalsmvp/hide', body); }));
+      [['show', '/led/finalsmvp/show'], ['hide', '/led/finalsmvp/hide']].forEach(function (pair) {
+        var cb = document.createElement('button');
+        cb.className = 'btn btn-copy';
+        cb.innerHTML = '<span class="copy-icon">⧉</span> ' + pair[0];
+        cb.addEventListener('click', function () { copyRoute(pair[1], 'Finals MVP ' + pair[0] + ' route', cb); });
+        fmBtns.appendChild(cb);
+      });
+      fmBtns.appendChild(btn('◈ Preview', 'btn-action', function () {
+        try { previewIframe.contentWindow.previewTrigger('led_finals_mvp', 'show'); } catch (e) {}
+      }));
+      fmRow.appendChild(fmBtns);
+      fmWrap.appendChild(fmRow);
+    }
+    if (ov.teamIntro) buildLedSquadRows('Team Introduction', 'Hide Intro', '/led/intro', 'led_intro');
+    if (ov.championLed) buildLedSquadRows('Champion LED', 'Hide Champion', '/led/champion', 'led_champion');
 
     /* Team Name Tag (LowerThirds.html) — one Show/Hide row per Grand Finals squad. Showing another
        squad while one is up swaps them on screen. ◈ Preview is local to the preview iframe only. */
@@ -4741,6 +4776,64 @@
     LI_ELEMENTS.push({ group: 'LI IGN ' + n, id: '#li-ign-' + n, name: 'Player ' + n + ' — IGN' });
   });
 
+  /* ── Champion LED (ledoverlay.html) — lc-* selectors, same 1920x640 LED canvas. ── */
+  var LC_DEFAULTS = {
+    '#lc-bg': { left: 0, top: 0, width: 1920, height: 480 },
+    '#lc-mq-top': { left: 0, top: 0, width: 1920, height: 44, fontSize: 34 },
+    '#lc-mq-bottom': { left: 0, top: 436, width: 1920, height: 44, fontSize: 34 },
+    '#lc-word': { left: 30, top: 20, width: 1860, height: 440 },
+    '#lc-panel-l': { left: 372, top: 480, width: 480, height: 160 },
+    '#lc-logo-l': { left: 388, top: 500, width: 120, height: 120 },
+    '#lc-name-l': { left: 524, top: 490, width: 316, height: 140, fontSize: 84 },
+    '#lc-panel-r': { left: 1067, top: 480, width: 480, height: 160 },
+    '#lc-logo-r': { left: 1411, top: 500, width: 120, height: 120 },
+    '#lc-name-r': { left: 1083, top: 490, width: 316, height: 140, fontSize: 84 },
+  };
+  var LC_ELEMENTS = [
+    { group: 'LC Background', id: '#lc-bg', name: 'Background (looping webm)' },
+    { group: 'LC Marquee Top', id: '#lc-mq-top', name: 'Marquee — Top (scrolls left)' },
+    { group: 'LC Marquee Bottom', id: '#lc-mq-bottom', name: 'Marquee — Bottom (scrolls right)' },
+    { group: 'LC Word', id: '#lc-word', name: 'CHAMPION word (auto-sizes to fill)' },
+    { group: 'LC Panel L', id: '#lc-panel-l', name: 'Left LED — Panel' },
+    { group: 'LC Logo L', id: '#lc-logo-l', name: 'Left LED — Logo' },
+    { group: 'LC Name L', id: '#lc-name-l', name: 'Left LED — Team Name (2 rows if long)' },
+    { group: 'LC Panel R', id: '#lc-panel-r', name: 'Right LED — Panel' },
+    { group: 'LC Logo R', id: '#lc-logo-r', name: 'Right LED — Logo' },
+    { group: 'LC Name R', id: '#lc-name-r', name: 'Right LED — Team Name (2 rows if long)' },
+  ];
+  [1, 2, 3, 4, 5].forEach(function (n) {
+    LC_DEFAULTS['#lc-photo-' + n] = { left: [50, 370, 690, 1010, 1330][n - 1], top: -46, width: 540, height: 540 };
+    LC_ELEMENTS.push({ group: 'LC Photo ' + n, id: '#lc-photo-' + n, name: 'Player ' + n + ' — Photo' });
+  });
+
+  /* ── Finals MVP (ledoverlay.html) — fm-* selectors: Champion LED's duplicate with one player. ── */
+  var FM_DEFAULTS = {
+    '#fm-bg': { left: 0, top: 0, width: 1920, height: 480 },
+    '#fm-mq-top': { left: 0, top: 0, width: 1920, height: 44, fontSize: 34 },
+    '#fm-mq-bottom': { left: 0, top: 436, width: 1920, height: 44, fontSize: 34 },
+    '#fm-word': { left: 30, top: 20, width: 1860, height: 440 },
+    '#fm-photo': { left: 690, top: -46, width: 540, height: 540 },
+    '#fm-panel-l': { left: 372, top: 480, width: 480, height: 160 },
+    '#fm-logo-l': { left: 388, top: 500, width: 120, height: 120 },
+    '#fm-name-l': { left: 524, top: 490, width: 316, height: 140, fontSize: 84 },
+    '#fm-panel-r': { left: 1067, top: 480, width: 480, height: 160 },
+    '#fm-logo-r': { left: 1411, top: 500, width: 120, height: 120 },
+    '#fm-name-r': { left: 1083, top: 490, width: 316, height: 140, fontSize: 84 },
+  };
+  var FM_ELEMENTS = [
+    { group: 'FM Background', id: '#fm-bg', name: 'Background (looping webm)' },
+    { group: 'FM Marquee Top', id: '#fm-mq-top', name: 'Marquee — Top (scrolls left)' },
+    { group: 'FM Marquee Bottom', id: '#fm-mq-bottom', name: 'Marquee — Bottom (scrolls right)' },
+    { group: 'FM Word', id: '#fm-word', name: 'FINALS MVP word (auto-sizes to fill)' },
+    { group: 'FM Photo', id: '#fm-photo', name: 'MVP Player — Photo' },
+    { group: 'FM Panel L', id: '#fm-panel-l', name: 'Left LED — Panel' },
+    { group: 'FM Logo L', id: '#fm-logo-l', name: 'Left LED — Logo' },
+    { group: 'FM Name L', id: '#fm-name-l', name: 'Left LED — Team Name (2 rows if long)' },
+    { group: 'FM Panel R', id: '#fm-panel-r', name: 'Right LED — Panel' },
+    { group: 'FM Logo R', id: '#fm-logo-r', name: 'Right LED — Logo' },
+    { group: 'FM Name R', id: '#fm-name-r', name: 'Right LED — Team Name (2 rows if long)' },
+  ];
+
   /* ── Team Name Tag (LowerThirds.html) — tt-* selectors. ── */
   var TT_DEFAULTS = {
     '#tt-bar':      { left: 190, top: 884, width: 790, height: 104 },
@@ -6239,6 +6332,24 @@
       elements:    LI_ELEMENTS,
       defaults:    LI_DEFAULTS,
       showFn:      'showLedIntroDemo',
+    },
+    led_champion: {
+      label:       'Champion LED · LED Overlay',
+      file:        'ledoverlay.html',
+      styleFile:   'ledoverlay',
+      defaultsKey: 'sb_edit_defaults_led_champion',
+      elements:    LC_ELEMENTS,
+      defaults:    LC_DEFAULTS,
+      showFn:      'showLedChampionDemo',
+    },
+    led_finals_mvp: {
+      label:       'Finals MVP · LED Overlay',
+      file:        'ledoverlay.html',
+      styleFile:   'ledoverlay',
+      defaultsKey: 'sb_edit_defaults_led_finals_mvp',
+      elements:    FM_ELEMENTS,
+      defaults:    FM_DEFAULTS,
+      showFn:      'showFinalsMvpDemo',
     },
     lowerthirds_playerh2h: {
       label:       'Player H2H L3 · Lower Thirds',
