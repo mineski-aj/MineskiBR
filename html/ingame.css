@@ -101,7 +101,7 @@
   #sb-zonerect {
     position: absolute; left: 0; top: 804px; width: 113.78px; height: 64px; z-index: 31;
     font-size: 4px; border: 1em solid #ffe800; background: transparent; pointer-events: none;
-    opacity: 0; transition: opacity .4s ease, top .4s ease;
+    opacity: 0; transition: top .4s ease;   /* NO opacity transition: the frame cuts in/out, it never fades */
   }
   #sb-zonerect.sb-zr-on { opacity: 1; }
   body:not(.sponsorboxes-off) #sb-zonerect { top: 748px; }
