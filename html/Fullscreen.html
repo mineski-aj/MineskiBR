@@ -13470,9 +13470,9 @@
       }
     }
 
-    /* /photos/FRONT/<team name>/<player name>.png */
-    function mwnPhotoUrl(team, name) {
-      return '/photos/FRONT/' + encodeURIComponent(team) + '/' + encodeURIComponent(name) + '.png';
+    /* /photos/VICTORY/<team name>/<player name>.png (falls back to FRONT if a team has no VICTORY pose) */
+    function mwnPhotoUrl(team, name, pose) {
+      return '/photos/' + (pose || 'VICTORY') + '/' + encodeURIComponent(team) + '/' + encodeURIComponent(name) + '.png';
     }
 
     let mwnPhotoSeq = 0; /* newest render wins if the live poll re-renders mid-load */
@@ -13489,7 +13489,10 @@
         if (!name) { settled.push(Promise.resolve(false)); continue; }
         settled.push(new Promise(resolve => {
           img.onload = () => { img.style.display = 'block'; resolve(true); };
-          img.onerror = () => { img.style.display = 'none'; resolve(false); };
+          img.onerror = () => {
+            if (!img.src.includes('/photos/FRONT/')) { img.src = mwnPhotoUrl(teamName, name, 'FRONT'); return; }
+            img.style.display = 'none'; resolve(false);
+          };
           img.src = mwnPhotoUrl(teamName, name);
         }));
       }

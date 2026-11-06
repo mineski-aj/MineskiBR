@@ -565,8 +565,18 @@ function liApply(t) {
     });
     if (has) {
       $('li-ign-' + (i + 1)).querySelector('span').textContent = t.players[i];
-      liImgSet($('li-photo-' + (i + 1)).querySelector('img'),
-        '/photos/FRONT/' + encodeURIComponent(t.name) + '/' + encodeURIComponent(t.players[i]) + '.png', '/photos/placeholder.png');
+      /* SIGNATURE pose first; squads without one fall back to FRONT, then the placeholder. */
+      const liPh = encodeURIComponent(t.name) + '/' + encodeURIComponent(t.players[i]) + '.png';
+      const liImg = $('li-photo-' + (i + 1)).querySelector('img');
+      liImg.style.display = '';
+      let liTry = 0;
+      liImg.onerror = () => {
+        liTry++;
+        if (liTry === 1) liImg.src = '/photos/FRONT/' + liPh;
+        else if (liTry === 2) liImg.src = '/photos/placeholder.png';
+        else { liImg.onerror = null; liImg.style.display = 'none'; }
+      };
+      liImg.src = '/photos/SIGNATURE/' + liPh;
     }
   }
 }
