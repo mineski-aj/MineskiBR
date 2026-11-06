@@ -4182,29 +4182,30 @@
 
     /* Player photo container (above the team container) — the winning
        team's players from /photos/FRONT/<team name>/<name>.png. Photos overlap, are
-       clipped by the container (overflow:hidden), and stack with the
+       clipped top/bottom only by the container, and stack with the
        middle player in front, 2 & 4 next, 1 & 5 furthest back. */
     #mwn-photos-back {
       position: absolute;
       left: 40px; top: 261px; width: 1378px; height: 458px;
       background: url('/assets/Map%20Winner/photowinner_back.png') no-repeat 0 0 / 100% 100%;
-      overflow: hidden;
+      overflow: visible;
+      clip-path: inset(0 -400px 0 -400px); /* clip top/bottom only — never the sides */
     }
     .mwn-photo {
       position: absolute;
-      top: -25px; width: 340px; height: 493px;
-      object-fit: cover; object-position: center top;
+      top: -25px; width: 493px; height: 493px;
+      object-fit: contain; object-position: center bottom;
       display: none;
     }
     /* Entrance: photos start hidden + nudged down (-pre), then ease out to
        their real position (-anim adds the transition) — see mwnRevealPhotos. */
     .mwn-photo.mwn-photo-pre  { opacity: 0; transform: translateY(90px); transition: none; }
     .mwn-photo.mwn-photo-anim { transition: transform 450ms cubic-bezier(0.16, 1, 0.3, 1), opacity 250ms ease-out; }
-    #mwn-photo-1 { left: 57px;    z-index: 1; }
-    #mwn-photo-2 { left: 294.5px; z-index: 2; }
-    #mwn-photo-3 { left: 532px;   z-index: 3; }
-    #mwn-photo-4 { left: 769.5px; z-index: 2; }
-    #mwn-photo-5 { left: 1007px;  z-index: 1; }
+    #mwn-photo-1 { left: -19.5px;    z-index: 1; }
+    #mwn-photo-2 { left: 218px; z-index: 2; }
+    #mwn-photo-3 { left: 455.5px; z-index: 3; }
+    #mwn-photo-4 { left: 693px;   z-index: 2; }
+    #mwn-photo-5 { left: 930.5px; z-index: 1; }
 
     /* Stat details container (right side) — TOTAL POINTS / RANK POINTS /
        KILL POINTS of the team that placed #1 on the current map. Children
