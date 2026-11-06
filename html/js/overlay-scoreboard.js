@@ -54,6 +54,11 @@
     '<div id="sb-sponsor-viewport"><canvas id="sb-sponsor-img"></canvas></div>';
   scene.appendChild(sbar);
 
+  /* Zone frame (see ingame.css #sb-zonerect) — shown/hidden together with the zoned tooltip (window.sbZoneTip). */
+  var zr = document.createElement('div');
+  zr.id = 'sb-zonerect';
+  scene.appendChild(zr);
+
   /* Team scoreboard plate (right side) — column header + rows are filled
      in by sbRenderScoreboard/sbPollTeamScores below. */
   var scoreBack = document.createElement('div');
@@ -766,6 +771,7 @@ try {
   tip.innerHTML = '<img id="sb-zonetip-logo" alt=""><div id="sb-zonetip-text"><div id="sb-zonetip-name"><span></span></div><div id="sb-zonetip-label"><span>IN THE ZONE</span></div></div>';
   scene.appendChild(tip);
   var logo = tip.querySelector('#sb-zonetip-logo'), nameBox = tip.querySelector('#sb-zonetip-name'), nameSpan = nameBox.querySelector('span');
+  var frame = document.getElementById('sb-zonerect');
   var token = 0;
   function fit() {   /* shrink-to-fit the team name (the tip is always laid out, just transparent) */
     var size = 30;
@@ -774,12 +780,12 @@ try {
   }
   window.sbZoneTip = function (team) {
     var t = ++token;
-    if (!team) { tip.classList.remove('zt-in'); return; }
+    if (!team) { tip.classList.remove('zt-in'); if (frame) frame.classList.remove('sb-zr-on'); return; }
     logo.style.display = '';
     logo.onerror = function () { logo.style.display = 'none'; };
     logo.src = '/logos/' + encodeURIComponent(team) + '.png';
     nameSpan.innerHTML = teamNameHtml(team);
-    var go = function () { if (t !== token) return; fit(); tip.classList.remove('zt-in'); void tip.offsetWidth; tip.classList.add('zt-in'); };
+    var go = function () { if (t !== token) return; fit(); tip.classList.remove('zt-in'); void tip.offsetWidth; tip.classList.add('zt-in'); if (frame) frame.classList.add('sb-zr-on'); };
     /* Teko is lazy-loaded: measure against the real face, not the fallback */
     (document.fonts && document.fonts.load ? document.fonts.load('700 30px Teko') : Promise.resolve()).then(go, go);
   };

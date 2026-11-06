@@ -94,6 +94,17 @@
   }
   #sb-zonetip.zt-in { opacity: 1; transform: none; }
   body:not(.sponsorboxes-off) #sb-zonetip { top: 748px; }
+  /* ── Zone frame — transparent 16:9 rectangle with a yellow border, flush left, sitting where the tooltip's top is
+     (114x64 = the 64px between the top of the bug's banner strip and the tooltip's top). Border thickness = this
+     element's font-size (border is 1em), so the Edit tab's single "Border Size" field controls it. Shown and hidden together
+     with the zoned tooltip (.sb-zr-on, toggled in sbZoneTip) and follows the bug's sponsor-bar shift like the tooltip. ── */
+  #sb-zonerect {
+    position: absolute; left: 0; top: 804px; width: 113.78px; height: 64px; z-index: 31;
+    font-size: 4px; border: 1em solid #ffe800; background: transparent; pointer-events: none;
+    opacity: 0; transition: opacity .4s ease, top .4s ease;
+  }
+  #sb-zonerect.sb-zr-on { opacity: 1; }
+  body:not(.sponsorboxes-off) #sb-zonerect { top: 748px; }
   #sb-zonetip-logo { width: 46px; height: 46px; flex: none; object-fit: contain; background: #fff; border-radius: 8px; padding: 3px; }
   #sb-zonetip-text { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; text-transform: uppercase; }
   #sb-zonetip-name { height: 32px; display: flex; align-items: center; font-size: 30px; white-space: nowrap; overflow: hidden; }
