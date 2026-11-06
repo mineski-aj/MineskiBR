@@ -762,34 +762,53 @@ try {
   });
 } catch (err) {}
 
-/* ── Zoned tooltip — small "IN THE ZONE" tag above the lower-left bug, driven by /zonedN (routes/inTheZone.js).
-   The server already decided: a 'show' event means that team IS in the zone, 'hide' means show nothing. ── */
+/* ── Zoned tooltip — "IN THE ZONE" tag above the lower-left bug + the team name in a black box inside the zone frame,
+   driven by /zonedN (routes/inTheZone.js). The server already decided: a 'show' event means that team IS in the zone,
+   'hide' means show nothing. Element font-sizes (editable in the Edit tab) are MAX sizes; the inner span shrinks to fit. ── */
 (function zoneTip() {
   var scene = document.getElementById('scene');
   var tip = document.createElement('div');
   tip.id = 'sb-zonetip';
-  tip.innerHTML = '<img id="sb-zonetip-logo" alt=""><div id="sb-zonetip-text"><div id="sb-zonetip-name"><span></span></div><div id="sb-zonetip-label"><span>IN THE ZONE</span></div></div>';
+  tip.innerHTML = '<span>IN THE ZONE</span>';
   scene.appendChild(tip);
-  var logo = tip.querySelector('#sb-zonetip-logo'), nameBox = tip.querySelector('#sb-zonetip-name'), nameSpan = nameBox.querySelector('span');
+  var nameBox = document.createElement('div');
+  nameBox.id = 'sb-zonename';
+  nameBox.innerHTML = '<span></span>';
+  scene.appendChild(nameBox);
+  var nameSpan = nameBox.querySelector('span'), tipSpan = tip.querySelector('span');
   var frame = document.getElementById('sb-zonerect');
-  var token = 0;
-  function fit() {   /* shrink-to-fit the team name (the tip is always laid out, just transparent) */
-    var size = 30;
-    nameBox.style.fontSize = size + 'px';
-    while (nameSpan.scrollWidth > nameBox.clientWidth && size > 14) nameBox.style.fontSize = (--size) + 'px';
+  var token = 0, shown = false;
+  /* Shrink the span (not the box — the Edit tab's !important font-size on the box would beat an inline one) until it fits. */
+  function fitBox(box, span) {
+    span.style.fontSize = '';
+    var cs = getComputedStyle(box);
+    var max = parseFloat(cs.fontSize) || 20, size = max;
+    var avail = box.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+    span.style.fontSize = size + 'px';
+    while (span.offsetWidth > avail && size > 5) span.style.fontSize = (size -= 0.5) + 'px';
   }
+  function fitAll() { fitBox(tip, tipSpan); fitBox(nameBox, nameSpan); }
   window.sbZoneTip = function (team) {
     var t = ++token;
-    if (!team) { tip.classList.remove('zt-in'); if (frame) frame.classList.remove('sb-zr-on'); return; }
-    logo.style.display = '';
-    logo.onerror = function () { logo.style.display = 'none'; };
-    logo.src = '/logos/' + encodeURIComponent(team) + '.png';
+    if (!team) {
+      shown = false;
+      tip.classList.remove('zt-in'); nameBox.classList.remove('sb-zr-on'); if (frame) frame.classList.remove('sb-zr-on');
+      return;
+    }
     nameSpan.innerHTML = teamNameHtml(team);
-    var go = function () { if (t !== token) return; fit(); tip.classList.remove('zt-in'); void tip.offsetWidth; tip.classList.add('zt-in'); if (frame) frame.classList.add('sb-zr-on'); };
+    var go = function () {
+      if (t !== token) return;
+      fitAll();
+      tip.classList.remove('zt-in'); void tip.offsetWidth; tip.classList.add('zt-in');
+      nameBox.classList.add('sb-zr-on'); if (frame) frame.classList.add('sb-zr-on');
+      shown = true;
+    };
     /* Teko is lazy-loaded: measure against the real face, not the fallback */
     (document.fonts && document.fonts.load ? document.fonts.load('700 30px Teko') : Promise.resolve()).then(go, go);
   };
-  window.sbZoneTipDemo = function () { window.sbZoneTip('POISON IVY GIZY'); };   /* Edit tab: needs the tooltip on screen to position it */
+  window.sbZoneTipDemo = function () { window.sbZoneTip('GNR ESPORTS LEGACY OMEN'); };   /* Edit tab: needs it on screen — the longest team name */
+  /* The Edit tab changes sizes through injected CSS, which no observer sees: in the preview frame just re-fit regularly. */
+  if (/[?&]preview=1(?:&|$)/.test(window.location.search)) setInterval(function () { if (shown) fitAll(); }, 400);
   try {
     createOverlaySSE().addEventListener('zoned_tip', function (e) {
       try { var d = JSON.parse(e.data); window.sbZoneTip(d.action === 'show' ? d.team : null); } catch (err) {}

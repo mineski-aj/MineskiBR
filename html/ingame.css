@@ -82,18 +82,21 @@
   body.sponsorboxes-off [data-sponsorbox] { display: none !important; }
   body:not(.sponsorboxes-off) #sb-mainheader1 { top: 865px; }
   body:not(.sponsorboxes-off) #sb-header1 { top: 812px; }
-  /* ── Zoned tooltip — pops in FLUSH on top of the lower-left bug (its bottom edge = #sb-header1's top edge, so it follows the bug's
-     56px sponsor-bar shift). Triggered by /zonedN (see routes/inTheZone.js); the toggle is just the .zt-in class. ── */
+  /* ── Zoned tooltip — just the "IN THE ZONE" tag, FLUSH on top of the lower-left bug (its bottom edge = #sb-header1's top edge, so it
+     follows the bug's 56px sponsor-bar shift). Triggered by /zonedN (see routes/inTheZone.js); the toggle is the .zt-in class.
+     Font-size is the MAX size (the inner span shrinks to fit the box, see zoneTip in overlay-scoreboard.js). ── */
   #sb-zonetip {
     position: absolute; left: 0; top: 804px; width: 364px; height: 64px; z-index: 32;
-    display: flex; align-items: center; gap: 10px; padding: 0 14px 0 10px;
-    background: #ffe800; border-bottom: 4px solid #0a0a0a; color: #0a0a0a;
+    display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 12px;
+    background: #ffe800; border-bottom: 4px solid #0a0a0a; color: #0a0a0a; overflow: hidden;
+    font-family: 'Teko', sans-serif; font-weight: 700; font-size: 40px; line-height: 1; text-transform: uppercase; white-space: nowrap;
     opacity: 0; transform: translateY(16px) scale(.94); transform-origin: 0 100%;
     transition: opacity .22s ease, transform .3s cubic-bezier(.2,.9,.3,1.2), top .4s ease;
     pointer-events: none;
   }
   #sb-zonetip.zt-in { opacity: 1; transform: none; }
   body:not(.sponsorboxes-off) #sb-zonetip { top: 748px; }
+  #sb-zonetip span, #sb-zonename span { display: inline-block; transform: translateY(0.12em); }
   /* ── Zone frame — transparent 16:9 rectangle with a yellow border, flush left, sitting where the tooltip's top is
      (114x64 = the 64px between the top of the bug's banner strip and the tooltip's top). Border thickness = this
      element's font-size (border is 1em), so the Edit tab's single "Border Size" field controls it. Shown and hidden together
@@ -105,12 +108,17 @@
   }
   #sb-zonerect.sb-zr-on { opacity: 1; }
   body:not(.sponsorboxes-off) #sb-zonerect { top: 748px; }
-  #sb-zonetip-logo { width: 46px; height: 46px; flex: none; object-fit: contain; background: #fff; border-radius: 8px; padding: 3px; }
-  #sb-zonetip-text { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; text-transform: uppercase; }
-  #sb-zonetip-name { height: 32px; display: flex; align-items: center; font-size: 30px; white-space: nowrap; overflow: hidden; }
-  #sb-zonetip-name span { display: block; transform: translateY(0.12em); }
-  #sb-zonetip-label { height: 20px; display: flex; align-items: center; font-size: 19px; letter-spacing: .12em; opacity: .75; }
-  #sb-zonetip-label span { display: block; transform: translateY(0.12em); }
+  /* Team name — black container, yellow Teko, inside the frame's lower-left. Cuts in/out with the frame. Font-size = MAX
+     (the inner span shrinks to fit the box, so the longest team name always fits). Its own element: move/resize freely in Edit. */
+  #sb-zonename {
+    position: absolute; left: 4px; top: 842px; width: 106px; height: 22px; z-index: 31;
+    display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden;
+    background: #0a0a0a; color: #ffe800;
+    font-family: 'Teko', sans-serif; font-weight: 700; font-size: 22px; line-height: 1; text-transform: uppercase; white-space: nowrap;
+    opacity: 0; transition: top .4s ease; pointer-events: none;
+  }
+  #sb-zonename.sb-zr-on { opacity: 1; }
+  body:not(.sponsorboxes-off) #sb-zonename { top: 786px; }
   /* Category tag — changes with the logo's category; the old tag is
      pushed down and out while the new one drops in from the top (see
      sbSetSponsorTag). Each tag is its own absolutely-stacked layer. */
