@@ -22,6 +22,23 @@ function stageSheetRe() {
   return SHOWMATCH_RE.test(String(matchState.get().stage || '').trim()) ? SHOWMATCH_RE : GF_SHEET_RE;
 }
 
+// The In The Zone tab's row order (and so what /zoned1../zoned10 mean: 1 = first row). Grand Finals squads are listed in
+// this fixed order instead of the tally sheet's; a squad not named here (a new/renamed team, or the Showmatch squads)
+// follows after, in sheet order, so nothing ever disappears from the list. Names are matched case-insensitively.
+const GF_ORDER = [
+  'POISON IVY GIZY', 'ADMT PYRITE', 'CHANGE WORLD', 'ASC', 'REVENANT ECLIPSE',
+  'GNR ESPORTS LEGACY OMEN', 'M12 sYn MAIN', 'LEAP MAIN', 'ROYAL GEMINI JA LN', 'ADMT MAIN',
+];
+function orderTeams(list) {
+  const rank = function (t) {
+    const i = GF_ORDER.findIndex(function (n) { return n.toLowerCase() === t.name.toLowerCase(); });
+    return i === -1 ? GF_ORDER.length : i;
+  };
+  return list.map(function (t, i) { return { t: t, i: i, r: rank(t) }; })
+    .sort(function (a, b) { return a.r - b.r || a.i - b.i; })
+    .map(function (x) { return x.t; });
+}
+
 function grandFinalsTeams() {
   const re = stageSheetRe();
   const sheet = externalTally.get().sheets.find(function (s) { return re.test(String(s.name).trim()); });
@@ -41,7 +58,7 @@ function grandFinalsTeams() {
     const t = scores.get(name);
     out.push({ name: name, region: (t && t.region) || '', totalScore: t ? t.totalScore : 0 });
   });
-  return out;
+  return orderTeams(out);
 }
 
 router.get('/api/in-the-zone', function (req, res) {

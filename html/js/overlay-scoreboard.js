@@ -787,7 +787,16 @@ try {
     span.style.fontSize = size + 'px';
     while (span.offsetWidth > avail && size > 5) span.style.fontSize = (size -= 0.5) + 'px';
   }
-  function fitAll() { fitBox(tip, tipSpan); fitBox(nameBox, nameSpan); }
+  /* The team-name box always spans the frame border to border (inside the border): left/width follow the frame, so only its
+     Y and height are edited. Runs before every fit, so resizing the frame or its border in Edit carries the box with it. */
+  function syncName() {
+    if (!frame) return;
+    var bw = parseFloat(getComputedStyle(frame).borderLeftWidth) || 0;
+    var fr = frame.getBoundingClientRect();   /* exact (offsetWidth rounds to whole px) */
+    nameBox.style.left = (fr.left + bw) + 'px';
+    nameBox.style.width = Math.max(0, fr.width - 2 * bw) + 'px';
+  }
+  function fitAll() { syncName(); fitBox(tip, tipSpan); fitBox(nameBox, nameSpan); }
   window.sbZoneTip = function (team) {
     var t = ++token;
     if (!team) {

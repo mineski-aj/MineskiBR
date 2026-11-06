@@ -4666,12 +4666,12 @@
   /* ── Zoned tooltip (ingame.html) — one element; saved in the ingame_events style bucket (the one ingame.html applies). ── */
   var ZT_DEFAULTS = {
     '#sb-zonetip': { left: 0, top: 804, width: 364, height: 64, fontSize: 40 },   /* fontSize = max size, shrinks to fit */
-    '#sb-zonename': { left: 4, top: 842, width: 106, height: 22, fontSize: 22 },   /* fontSize = max size, shrinks to fit */
+    '#sb-zonename': { top: 842, height: 22, fontSize: 22 },   /* no left/width: the box spans the frame border to border automatically; fontSize = max size, shrinks to fit */
     '#sb-zonerect': { left: 0, top: 804, width: 113.78, height: 64, fontSize: 4 },   /* fontSize = border thickness (see ingame.css) */
   };
   var ZT_ELEMENTS = [
     { group: 'Zoned Tooltip', id: '#sb-zonetip', name: 'Zoned Tooltip ("IN THE ZONE" tag, above the lower-left bug)' },
-    { group: 'Zone Team Name', id: '#sb-zonename', name: 'Zone Team Name — black box, yellow Teko (Font Size = max, shrinks to fit)' },
+    { group: 'Zone Team Name', id: '#sb-zonename', name: 'Zone Team Name — black box, border to border of the frame (edit Y + height; Font Size = max, shrinks to fit)' },
     { group: 'Zone Frame', id: '#sb-zonerect', name: 'Zone Frame — 16:9 yellow border (Font Size = border thickness; use the aspect lock to keep 16:9)' },
   ];
 
