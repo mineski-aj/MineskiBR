@@ -81,6 +81,7 @@ function sbHandleToggle(shown) {
     var h1     = document.getElementById('sb-header1');
     var sbBack = document.getElementById('sb-scoreboard-back');
     var sbar   = document.getElementById('sb-sponsorbar');
+    if (window.sbZoneTip) window.sbZoneTip(null);   /* the tooltip sits on the bug: it goes with the scoreboard */
     if (sbar)   sbar.classList.remove('sb-slide-in');
     if (mh1)    mh1.classList.remove('sb-slide-in');
     if (h1)     h1.classList.remove('sb-slide-in');
@@ -755,3 +756,40 @@ try {
     try { sbApplySponsorsEnabled(!!JSON.parse(e.data).enabled); } catch (err) {}
   });
 } catch (err) {}
+
+/* ── Zoned tooltip — small "IN THE ZONE" tag above the lower-left bug, driven by /zonedN (routes/inTheZone.js).
+   The server already decided: a 'show' event means that team IS in the zone, 'hide' means show nothing. ── */
+(function zoneTip() {
+  var scene = document.getElementById('scene');
+  var tip = document.createElement('div');
+  tip.id = 'sb-zonetip';
+  tip.innerHTML = '<img id="sb-zonetip-logo" alt=""><div id="sb-zonetip-text"><div id="sb-zonetip-name"><span></span></div><div id="sb-zonetip-label"><span>IN THE ZONE</span></div></div>';
+  scene.appendChild(tip);
+  var logo = tip.querySelector('#sb-zonetip-logo'), nameBox = tip.querySelector('#sb-zonetip-name'), nameSpan = nameBox.querySelector('span');
+  var token = 0;
+  function fit() {   /* shrink-to-fit the team name (the tip is always laid out, just transparent) */
+    var size = 30;
+    nameBox.style.fontSize = size + 'px';
+    while (nameSpan.scrollWidth > nameBox.clientWidth && size > 14) nameBox.style.fontSize = (--size) + 'px';
+  }
+  window.sbZoneTip = function (team) {
+    var t = ++token;
+    if (!team) { tip.classList.remove('zt-in'); return; }
+    logo.style.display = '';
+    logo.onerror = function () { logo.style.display = 'none'; };
+    logo.src = '/logos/' + encodeURIComponent(team) + '.png';
+    nameSpan.innerHTML = teamNameHtml(team);
+    var go = function () { if (t !== token) return; fit(); tip.classList.remove('zt-in'); void tip.offsetWidth; tip.classList.add('zt-in'); };
+    /* Teko is lazy-loaded: measure against the real face, not the fallback */
+    (document.fonts && document.fonts.load ? document.fonts.load('700 30px Teko') : Promise.resolve()).then(go, go);
+  };
+  window.sbZoneTipDemo = function () { window.sbZoneTip('POISON IVY GIZY'); };   /* Edit tab: needs the tooltip on screen to position it */
+  try {
+    createOverlaySSE().addEventListener('zoned_tip', function (e) {
+      try { var d = JSON.parse(e.data); window.sbZoneTip(d.action === 'show' ? d.team : null); } catch (err) {}
+    });
+  } catch (err) {}
+  /* restore-on-load: a tab that (re)loads while a tooltip is up comes up showing it */
+  fetch('/overlay/zoned-state', { cache: 'no-store' }).then(function (r) { return r.json(); })
+    .then(function (st) { if (st && st.team) window.sbZoneTip(st.team); }).catch(function () {});
+})();

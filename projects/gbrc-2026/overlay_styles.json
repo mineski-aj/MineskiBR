@@ -1,1 +1,10 @@
-{}
+{
+  "ingame_events": {
+    "#sb-zonetip": {
+      "left": "0px",
+      "top": "515px",
+      "width": "364px",
+      "height": "64px"
+    }
+  }
+}

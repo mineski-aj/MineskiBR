@@ -111,4 +111,45 @@ router.get('/api/zowned-points', function (req, res) {
   res.set('Cache-Control', 'no-store').json({ points: points, source: source, leader: r.leader, mapsCounted: r.mapsCounted, inZoneCount: z.zone.length });
 });
 
+// ── Zoned tooltip (ingame.html) ─────────────────────────────────────────
+// GET /zoned1 … /zoned10 (also /overlay/zoned1 … /overlay/zoned10): the Nth team of the In The Zone tab's list
+// (same order as /api/in-the-zone `teams`, e.g. 1 = the first row). If that team is ticked "In The Zone" a small
+// tooltip pops in above the ingame lower-left bug; if it isn't (or there is no Nth team) the tooltip is hidden and
+// nothing shows. Triggering another number replaces the tooltip. Optional ?sec=8 auto-hides it after 8 seconds.
+// GET /zonedhide (also /overlay/zonedhide) hides it. SSE event: zoned_tip { action, team, n }.
+// GET /overlay/zoned-state restores a freshly (re)loaded ingame.html.
+const state = require('../lib/state');
+state.zonedTip = state.zonedTip || { team: null, n: null };
+let zonedTimer = null;
+function zonedSend(payload) {
+  const line = 'event: zoned_tip\ndata: ' + JSON.stringify(payload) + '\n\n';
+  state.overlayClients.forEach(function (c) { try { c.write(line); } catch (e) {} });
+}
+function zonedSet(team, n, sec) {
+  clearTimeout(zonedTimer);
+  if (!team) {
+    state.zonedTip = { team: null, n: null };
+    zonedSend({ action: 'hide' });
+    return;
+  }
+  state.zonedTip = { team: team, n: n };
+  zonedSend({ action: 'show', team: team, n: n });
+  if (sec > 0) zonedTimer = setTimeout(function () { zonedSet(null); }, sec * 1000);
+}
+const noStoreZ = { 'Cache-Control': 'no-store' };
+router.get(/^\/(?:overlay\/)?zoned(10|[1-9])$/, function (req, res) {   // regex route: Express 5 has no inline :n(regex)
+  const n = parseInt(req.params[0], 10);
+  const team = grandFinalsTeams()[n - 1] || null;
+  const zone = new Set(inTheZone.get().zone.map(function (x) { return String(x).trim().toLowerCase(); }));
+  const inZone = !!(team && zone.has(team.name.trim().toLowerCase()));
+  const sec = Math.max(0, Math.min(120, parseFloat(req.query.sec) || 0));
+  zonedSet(inZone ? team.name : null, n, sec);
+  res.set(noStoreZ).json({ ok: true, n: n, team: team ? team.name : null, inZone: inZone, action: inZone ? 'show' : 'hide' });
+});
+router.get(['/zonedhide', '/overlay/zonedhide'], function (req, res) {
+  zonedSet(null);
+  res.set(noStoreZ).json({ ok: true, action: 'hide' });
+});
+router.get('/overlay/zoned-state', function (req, res) { res.set(noStoreZ).json(state.zonedTip); });
+
 module.exports = router;
