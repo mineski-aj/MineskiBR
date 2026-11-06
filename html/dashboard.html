@@ -2178,6 +2178,20 @@
       checkToggles: [
         { name: 'Scoreboard', key: 'scoreboard' },
       ],
+      /* Zoned tooltip: /overlay/zoned1..10 = the Nth team of the In The Zone tab; shows only if that team is in the zone, else hides. */
+      extraActions: [
+        { label: 'Zoned 1', action: '/overlay/zoned1' },
+        { label: 'Zoned 2', action: '/overlay/zoned2' },
+        { label: 'Zoned 3', action: '/overlay/zoned3' },
+        { label: 'Zoned 4', action: '/overlay/zoned4' },
+        { label: 'Zoned 5', action: '/overlay/zoned5' },
+        { label: 'Zoned 6', action: '/overlay/zoned6' },
+        { label: 'Zoned 7', action: '/overlay/zoned7' },
+        { label: 'Zoned 8', action: '/overlay/zoned8' },
+        { label: 'Zoned 9', action: '/overlay/zoned9' },
+        { label: 'Zoned 10', action: '/overlay/zoned10' },
+        { label: 'Hide Zoned', action: '/overlay/zonedhide' },
+      ],
       featureToggleLabel: 'Ingame Events',
       featureToggles: [
         /* Kill Events: popup at 5 kills (MERCENARY!) / 10 kills (ULTIMATE MERCENARY!).
@@ -4649,6 +4663,14 @@
   ];
   var KE2M_DEFAULTS = { '#ke2-video-1': { left: 688, top: 808, width: 730, height: 234 } };
   var KE2M_ELEMENTS = [ { group: 'KE2 Mercenary', id: '#ke2-video-1', name: 'V2 Mercenary Banner (webm)' } ];
+  /* ── Zoned tooltip (ingame.html) — one element; saved in the ingame_events style bucket (the one ingame.html applies). ── */
+  var ZT_DEFAULTS = {
+    '#sb-zonetip': { left: 0, top: 804, width: 364, height: 64 },
+  };
+  var ZT_ELEMENTS = [
+    { group: 'Zoned Tooltip', id: '#sb-zonetip', name: 'Zoned Tooltip (IN THE ZONE tag, above the lower-left bug)' },
+  ];
+
   var KE_ELEMENTS = [
     { group: 'KE Glow', id: '#ke-glow', name: 'Back Glow' },
     { group: 'KE Bar', id: '#ke-bar', name: 'Black Bar' },
@@ -6115,6 +6137,15 @@
       elements:    KE_ELEMENTS,
       defaults:    KE_DEFAULTS,
       showFn:      'keShowDemo',
+    },
+    ingame_zonetip: {
+      label:       'Zoned Tooltip · Ingame',
+      file:        'ingame.html',
+      styleFile:   'ingame_events',
+      defaultsKey: 'sb_edit_defaults_ingame_zonetip',
+      elements:    ZT_ELEMENTS,
+      defaults:    ZT_DEFAULTS,
+      showFn:      'sbZoneTipDemo',
     },
     ingame_killevents_v2: {
       label:       'Kill Events V2 (Ultimate) · Ingame',
