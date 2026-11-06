@@ -13473,7 +13473,7 @@
 
     /* /photos/VICTORY/<team name>/<player name>.png (falls back to FRONT if a team has no VICTORY pose) */
     function mwnPhotoUrl(team, name, pose) {
-      return '/photos/' + (pose || 'VICTORY') + '/' + encodeURIComponent(team) + '/' + encodeURIComponent(name) + '.png';
+      return '/photos/' + (pose || 'VICTORY') + '/' + encodeURIComponent(team) + '/' + encodeURIComponent(name) + '.png?v=20261106b'; /* ?v= busts the 1-day image cache; bump when photos are re-cut */
     }
 
     let mwnPhotoSeq = 0; /* newest render wins if the live poll re-renders mid-load */

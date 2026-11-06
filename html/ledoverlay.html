@@ -143,6 +143,10 @@
   .li-card, .li-photo, #li-logo-big, #li-flash { will-change: transform, opacity; }
   .li-photo { position: absolute; top: -4px; width: 440px; height: 440px; display: flex; align-items: flex-end; justify-content: center; }
   .li-photo img { width: 100%; height: 100%; object-fit: contain; object-position: bottom; display: block; }
+  /* SIGNATURE photos are cut with every head the same size and the eyes on one point (489,465 of the 1000px
+     canvas). Scale them up about that point and slide the eyes to where the FRONT fallback photos put theirs
+     (509,323) with a ~1.22x bigger head, so signature and FRONT cards match. FRONT fallbacks get no .li-sig. */
+  .li-photo img.li-sig { transform-origin: 48.9% 46.5%; transform: translate(8.8px, -62.5px) scale(1.22); }
   .li-ign { position: absolute; top: 388px; width: 300px; height: 44px; display: flex; align-items: center; justify-content: center; text-align: center;
             font-family: 'Teko', sans-serif; font-weight: 700; font-size: 38px; line-height: 1; color: #fff; text-transform: uppercase; white-space: nowrap; overflow: hidden;
             text-shadow: 0 2px 6px rgba(0,0,0,.9); }
@@ -566,12 +570,16 @@ function liApply(t) {
     if (has) {
       $('li-ign-' + (i + 1)).querySelector('span').textContent = t.players[i];
       /* SIGNATURE pose first; squads without one fall back to FRONT, then the placeholder. */
-      const liPh = encodeURIComponent(t.name) + '/' + encodeURIComponent(t.players[i]) + '.png';
+      /* ?v= busts Chrome's 1-day image cache (images set from JS aren't revalidated by a hard refresh) —
+         bump LI_PHOTO_V whenever the photo files are re-cut. */
+      const liPh = encodeURIComponent(t.name) + '/' + encodeURIComponent(t.players[i]) + '.png?v=' + LI_PHOTO_V;
       const liImg = $('li-photo-' + (i + 1)).querySelector('img');
       liImg.style.display = '';
+      liImg.classList.add('li-sig');
       let liTry = 0;
       liImg.onerror = () => {
         liTry++;
+        liImg.classList.remove('li-sig');   /* fallback photos keep their own (already correct) size */
         if (liTry === 1) liImg.src = '/photos/FRONT/' + liPh;
         else if (liTry === 2) liImg.src = '/photos/placeholder.png';
         else { liImg.onerror = null; liImg.style.display = 'none'; }
@@ -580,6 +588,8 @@ function liApply(t) {
     }
   }
 }
+
+const LI_PHOTO_V = '20261106e';
 
 /* Marquee: one text unit repeated enough times to cover the strip twice over, so the loop is seamless. */
 const LI_MQ_TEXT = 'FIRST TO LAND - LAST TO STAND - ';

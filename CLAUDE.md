@@ -1119,6 +1119,116 @@ standings.
   `/api/live-sheet-overall-standings`, `/api/led-table` to simulate other
   squad counts (e.g. 7) without touching real state.
 
+## Player photos — how the 5 pose folders are made (read before re-cutting any)
+
+`photos/<POSE>/<Team>/<IGN>.png`, five poses: **FRONT, LEFT, RIGHT, VICTORY,
+SIGNATURE**. Every file is a **1000x1000 transparent RGBA PNG, subject
+bottom-anchored (bottom edge of the subject = y 1000)**. The scripts that
+produced the current set live in `Tools/photo-pipeline/` (they hardcode
+`/Users/ajsarmiento/Downloads/Team Photos/` as the source dir and this repo's
+`photos/` as output — edit `common.py`'s `D`/`R` if that moves; run from a
+scratch dir with a `model/yunet.onnx`, see "Face detector" below). Originals
+before the Nov 2026 re-shoot are in git at commit `db4dafe`.
+
+**Source set** (the shoot delivery): full-body 3944x7008 RGBA cutouts in
+`06_PLAYER ASSET[ 2-5]/<TEAM>/EDITED/<PLAYER>/` — the 5 `ASSET` folders each
+hold a *different* subset of poses, merge them all. Pose from the filename:
+`_M`→FRONT, `_L`→LEFT, `_R`→RIGHT, `WINNING`→VICTORY, `SIGNATURE`→SIGNATURE
+(`_1/_2` = alternates; a `W_O TATTOO` subfolder = no-tattoo alternates).
+Filenames are inconsistent (`ESPORTPOSE`/`ESPORTSPOSE`/`ESPORTS_M`/`POSE_W`/
+`WININGPOSE`/`WINNING POSE`, `..png.png`) — the pose parser in `common.py`
+handles the ones seen so far; **always print files that parse to an unknown
+pose** (that is how `Cw.Mav1er_ESPORTPOSE_W` — really his front — was found).
+Only some teams send VICTORY; the rest legitimately have none.
+
+**Run order for a re-cut** (all from one scratch dir containing the scripts
+and `model/yunet.onnx`): `run.py` (cuts every pose with the base recipe, writes
+`log.json` mapping each output to its source — its old-name matching is
+hardcoded for the Nov 2026 teams; extend the `rn` rename dicts / team handling
+for new ones, and rename the 3 non-legacy teams from the sheet) → `yn2.py`
+(face/eye measurements for SIG+WIN into `yn2.json`; `norm.py` reads the older
+`yn.json` — rename or point it at `yn2.json`) → `norm.py` (VICTORY head-
+normalisation) → `align.py --write` (SIGNATURE eye alignment) → FRONT x0.90
+→ bump the `?v=` cache tags. `run.py` can take >2 min for ~220 photos: run it
+in the background.
+
+**Naming — the file name must be the player's IGN exactly as spelled in the
+tally sheet's Grand Finals tab (`Members IGN` column; the Squad column is the
+team folder).** Special characters count (`LƎAP KLÈPTZY`, `ADMT P Bertó`,
+`royalShaiJALN`, `revenant.NsJOL`, `Cw.Mav1er-.-`). The shoot's folder names
+are ASCII-fied and sometimes a different spelling (`REVENANT FJSOL` is
+`revenant.NsJOL`, `Cw. Kai-.-` is `Cw.Kai-.-`) — **never guess a name, read
+the sheet** (spreadsheet id in `tally_sheet_config.json`; the Google Sheets
+MCP `get_values` on `'Grand Finals'!A1:C70` works when the server is down).
+Teams that existed in old FRONT keep their old team-folder/file names
+(`GNR ESPORTS LEGACY OMEN`, `M12 sYn MAIN`); match old names with fuzzy fold
+(`fold()` in `common.py` strips accents, `Ǝ→E`, `3→E`). Extra alternates are
+saved as `NAME_2.png`, `_3`, `_4` next to the main `NAME.png` (nothing reads
+them yet). A pose a player lacks simply has no file — the overlays fall back
+(below).
+
+**Cut recipe (FRONT / LEFT / RIGHT)** — same as `Tools/TRIM___Portrait_Batch_
+Cropper_V3.html` with bust cut on: bbox of alpha>10, keep the **top 50%** of
+the bbox height at full bbox width, fit into 940 wide (30px side margin) x 960
+tall (40px headspace, 0 bottom margin), centered horizontally, flush to the
+bottom. Resize with LANCZOS on **premultiplied** alpha (un-premultiply after)
+or edges halo. The 50% was reverse-engineered from the old set (best aspect
+fit over 30 pairs). **FRONT is additionally scaled to 90%** (the new set came
+out ~11% bigger than the originals) — apply it when re-cutting FRONT.
+
+**VICTORY** — not fit-to-box: heads must be uniform (arms-up poses otherwise
+shrink the head). Measure each head (below), scale = K / head_size, K = the
+largest value at which the widest-armed photo still fits the 940x960 box
+(nothing cropped). Centered on visible content, bottom-flush. `norm.py`.
+
+**SIGNATURE** — every photo is re-cut from the full source so that **the eye
+midpoint lands on one point, (489, 465) of the 1000px canvas — ASC Alerth's
+(the user's "most neutral" reference) — and head size equals his**
+(`align.py`; `--write` to save, no flag = dry run listing photos whose arms
+would clip). A fixed head size + fixed eye point means one CSS rule fits all of
+them. 5 wide-arm photos clip 26-68px of elbow at this scale (accepted); no
+photo is cut at the top or has a bottom gap. Don't use per-squad scale-ups —
+the user wants heads identical across squads.
+
+**Head-size / eye measurement.** Use OpenCV `FaceDetectorYN` with the YuNet
+model (`face_detection_yunet_2023mar.onnx`, 230KB, from
+`github.com/opencv/opencv_zoo/.../models/face_detection_yunet/`; `cv2` is
+installed) on the top 40% of the source at 0.25x. Metrics: face box h/w,
+eye-to-mouth distance, interocular distance; combine as the **median of the
+four metrics each normalised by its median over the set** (single metrics are
+±10-20% noisy). **Pick the detection with the highest score, NOT the largest
+box** — the largest box is often a shirt logo or a fist (that bug made
+`GNR KevzOMEN` 37% wrong). Do NOT use the top of the bbox as a head-top
+reference: raised hands/arms make it the hand. Haar cascades are too noisy.
+Always verify afterward by re-detecting on the *output* files and checking the
+spread (eye y/x within a few px, head size within ~5%) and by eye on a contact
+sheet — numbers alone were wrong twice.
+
+**Where each folder is used (and its fallbacks):**
+- **LED Team Introduction** (`html/ledoverlay.html`) loads `SIGNATURE`, falls
+  back to `FRONT`, then `placeholder.png`. SIGNATURE `<img>`s get class
+  `li-sig` = `translate(8.8px,-62.5px) scale(1.22)` about (48.9%,46.5%), which
+  moves the fixed signature eye point/head size onto where the FRONT photos
+  have theirs (eyes (509,323), ~1.22x head; measured on M12 Ecart/Aycee/Badi,
+  which the user signed off as "perfect"). The class is removed on fallback so
+  FRONT photos are untouched. If FRONT's look changes, re-measure and update
+  that one rule.
+- **Map Winner** (`html/Fullscreen.html`, `mwnPhotoUrl`) loads `VICTORY`, falls
+  back to `FRONT`. Slots are 493x493 squares (`object-fit: contain`, so the
+  1000px canvas is never side-cropped), overlapping, the container clips only
+  top/bottom (`clip-path: inset(0 -400px)`); defaults mirrored in
+  `dashboard.html`'s `MWN_DEFAULTS`.
+- Everything else (Team Lineup, Eliminations leaders, Head-to-Head, ...) still
+  reads `FRONT` (or `/hires/<POSE>/` for Highlights/Waiting Lobby). `/hires/`
+  has no SIGNATURE folder.
+
+**Browser cache gotcha.** The server caches `/photos/*` for a day and an image
+whose `src` is set from JS is *not* revalidated by a hard refresh, so a re-cut
+can look unchanged for ages. The photo URLs carry `?v=` — **bump
+`LI_PHOTO_V` in `ledoverlay.html` (and the `?v=` string in `mwnPhotoUrl` in
+`Fullscreen.html`) every time the photo files are re-cut.** Add the same to any
+new scene that loads these folders.
+
 ## Data & assets
 
 - Player/match data: `hlFetchMvp()` / `hlExtractPlayer()` hit the
