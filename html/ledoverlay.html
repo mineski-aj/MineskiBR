@@ -501,7 +501,9 @@ async function ledFetch() {
                       if (t) { const k = String(t.name).trim().toLowerCase(); t.inZone = zone.has(k); t.won = t.inZone && won.has(k); } return t; };
   /* Grand Finals: 'standings' mode (default) follows the live standings; 'table' uses the saved Table Teams. Showmatch keeps its own arrangement. */
   const arranged = tbl && tbl.arranged && (sm || tbl.mode === 'table' || tbl.mode === undefined);
-  let featured = arranged ? tbl.featured.map(find) : [];
+  /* The 2 featured (bottom-panel) squads follow the Table Teams pick in EVERY mode — Live Standings only drives the 10 cards. */
+  const savedFeat = !!(tbl && tbl.arranged && (tbl.featured || []).some(Boolean));
+  let featured = (arranged || savedFeat) ? tbl.featured.map(find) : [];
   if (!featured[0] && !featured[1] && !arranged) featured = teams.slice(0, 2).map(t => find(t.name));
   while (featured.length < 2) featured.push(null);
   if (sm) {
