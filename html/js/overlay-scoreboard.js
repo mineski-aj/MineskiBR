@@ -381,13 +381,6 @@ function sbBuildScoreRow() {
   elimSolo.className = 'ssr-elim-solo';
   row.appendChild(elimSolo);
 
-  /* Grand Finals "In The Zone" badge — only displayed on .ssr-zone rows
-     (see ingame.css / sbApplyZone). */
-  var zoneBadge = document.createElement('div');
-  zoneBadge.className = 'ssr-zone-badge';
-  zoneBadge.innerHTML = '<span>Z!</span>';
-  row.appendChild(zoneBadge);
-
   return row;
 }
 
@@ -769,7 +762,7 @@ try {
   var scene = document.getElementById('scene');
   var tip = document.createElement('div');
   tip.id = 'sb-zonetip';
-  tip.innerHTML = '<span>IN THE ZONE</span>';
+  tip.innerHTML = '<span>IN THE ZONE!</span>';
   scene.appendChild(tip);
   var nameBox = document.createElement('div');
   nameBox.id = 'sb-zonename';

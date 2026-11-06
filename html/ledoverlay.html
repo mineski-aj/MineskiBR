@@ -564,19 +564,81 @@ function ledPatchRow(row, t, i, sm) {
   }
 }
 
-function ledFillColumn(id, teams, sm) {
-  const col = document.getElementById(id);
-  /* Showmatch: rows are compact (no gaps) and the block is centred in the panel, so 4+3 or 5+4 squads both sit evenly. */
-  const off = sm ? (5 - teams.filter(Boolean).length) * 95 / 2 : 0;
-  const list = [];
-  teams.forEach((t, i) => { if (t) list.push([t, i]); });
-  if (col.getAttribute('data-sm') !== (sm ? '1' : '0')) { col.innerHTML = ''; col.setAttribute('data-sm', sm ? '1' : '0'); }
-  while (col.children.length > list.length) col.removeChild(col.lastChild);
-  list.forEach(([t, i], k) => {
-    let r = col.children[k];
-    if (!r) { r = ledBuildRow(t, i, sm); col.appendChild(r); const im = r.querySelector('.led-rc-logo img'); if (im) im.setAttribute('data-n', t.name); }
-    else ledPatchRow(r, t, i, sm);
-    r.style.top = sm ? (4 + off + k * 95) + 'px' : (4 + i * 95) + 'px';
+/* Rows are keyed by TEAM (not by slot), so a rank change moves the same DOM node — logo <img> included, no
+   re-decode — and the move is a FLIP slide: `top` jumps straight to the new slot, then a Web Animation
+   plays transform: translate(old - new) -> none. Transform-only = compositor-driven (no layout/paint per
+   frame), no timers, no permanent will-change; fine for vMix's CEF. A team crossing from one column to the
+   other slides diagonally (the row is re-parented, the offset covers the column gap). */
+const LED_MOVE_MS = 800;
+const LED_MOVE_EASE = 'cubic-bezier(0.22, 0.8, 0.26, 1)';
+const ledRows = new Map();   /* team key -> row element */
+let ledSm = null;
+
+function ledMoveRow(row, dx, dy, rankChanged) {
+  if (row._anim) row._anim.cancel();
+  row.style.zIndex = dy > 0 ? 6 : 5;   /* climbers (came from below) slide over the teams they overtake */
+  /* Same column: slide. Other column: never travel across the wall — fade in at the new slot with a small nudge. */
+  const a = dx
+    ? row.animate(
+        [{ opacity: 0, transform: 'translateY(' + (dy > 0 ? 24 : -24) + 'px)' }, { opacity: 1, transform: 'translateY(0)' }],
+        { duration: 550, easing: 'ease-out' })
+    : row.animate(
+        [{ transform: 'translate(0,' + dy + 'px)' }, { transform: 'translate(0,0)' }],
+        { duration: LED_MOVE_MS, easing: LED_MOVE_EASE });
+  row._anim = a;
+  const done = () => { if (row._anim === a) { row._anim = null; row.style.zIndex = ''; } };
+  a.onfinish = done; a.oncancel = done;
+  if (rankChanged) {
+    const rk = row.querySelector('.led-rc-rank');
+    if (rk) rk.animate(
+      [{ opacity: 0, transform: 'scale(.55)' }, { opacity: 1, transform: 'scale(1.25)', offset: .65 }, { opacity: 1, transform: 'scale(1)' }],
+      { duration: LED_MOVE_MS, easing: 'ease-out' });
+  }
+}
+
+function ledPlaceRows(d, animate) {
+  const sm = !!d.sm;
+  const colEls = [document.getElementById('led-col-left'), document.getElementById('led-col-right')];
+  if (ledSm !== sm) {   /* stage layout switched: start clean, no animation */
+    ledRows.forEach(r => { if (r._anim) r._anim.cancel(); });
+    ledRows.clear(); colEls.forEach(c => { c.innerHTML = ''; }); ledSm = sm; animate = false;
+  }
+  const colX = [colEls[0].offsetLeft, colEls[1].offsetLeft];
+  const seen = new Set();
+  [d.left, d.right].forEach((teams, ci) => {
+    const col = colEls[ci];
+    /* Showmatch: rows are compact (no gaps) and the block is centred in the panel, so 4+3 or 5+4 squads both sit evenly. */
+    const off = sm ? (5 - teams.filter(Boolean).length) * 95 / 2 : 0;
+    let k = 0;
+    teams.forEach((t, i) => {
+      if (!t) return;
+      const top = sm ? (4 + off + k * 95) : (4 + i * 95);
+      k++;
+      let key = String(t.name).trim().toLowerCase();
+      if (seen.has(key)) key += '#' + ci + i;
+      seen.add(key);
+      let r = ledRows.get(key);
+      if (!r) {
+        r = ledBuildRow(t, i, sm);
+        const im = r.querySelector('.led-rc-logo img'); if (im) im.setAttribute('data-n', t.name);
+        ledRows.set(key, r); col.appendChild(r);
+        r._ci = ci; r._top = top; r._rank = t.rank;
+        r.style.top = top + 'px';
+        return;
+      }
+      ledPatchRow(r, t, i, sm);
+      const dx = colX[r._ci] - colX[ci], dy = r._top - top;
+      if (r.parentNode !== col) col.appendChild(r);
+      r.style.top = top + 'px';
+      if (animate && (dx || dy)) ledMoveRow(r, dx, dy, r._rank !== t.rank);
+      r._ci = ci; r._top = top; r._rank = t.rank;
+    });
+  });
+  ledRows.forEach((r, key) => {
+    if (seen.has(key)) return;
+    if (r._anim) r._anim.cancel();
+    if (r.parentNode) r.parentNode.removeChild(r);
+    ledRows.delete(key);
   });
 }
 
@@ -623,9 +685,8 @@ function ledFontsReady() {
 }
 if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', () => { if (ledShown && ledPage.classList.contains('led-on')) ledFitAll(); });
 
-function ledApply(d) {
-  ledFillColumn('led-col-left',  d.left, d.sm);
-  ledFillColumn('led-col-right', d.right, d.sm);
+function ledApply(d, animate) {
+  ledPlaceRows(d, !!animate && !!ledPage.classList.contains('led-visible'));
   ledSetFeatured('left',  d.featured[0], d.sm);
   ledSetFeatured('right', d.featured[1], d.sm);
   ledFitAll();   /* page is display:block by now, so there is real layout to measure */
@@ -642,7 +703,7 @@ async function ledRefresh() {
   await ledFontsReady();
   if (!ledShown) return;
   ledLastKey = key;
-  ledApply(d);
+  ledApply(d, true);   /* live update: rank shifts slide */
 }
 
 async function showIngameLedScene() {

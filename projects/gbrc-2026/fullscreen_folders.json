@@ -48,7 +48,7 @@
     {
       "id": "fmw1jvi9s",
       "name": "Ranking",
-      "open": true,
+      "open": false,
       "keys": [
         "map_ranking",
         "overall_ranking",
@@ -60,7 +60,7 @@
     {
       "id": "fmv6rqb0j",
       "name": "Stats",
-      "open": false,
+      "open": true,
       "keys": [
         "group_elim_leaders",
         "group_team_elims",

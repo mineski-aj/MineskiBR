@@ -80,6 +80,8 @@
     overflow: hidden;
   }
   body.sponsorboxes-off [data-sponsorbox] { display: none !important; }
+  /* The small banner strip above the lower-left ID card is removed (kept in the DOM so sbAnimateHeaders keeps working). */
+  #sb-header1 { display: none !important; }
   body:not(.sponsorboxes-off) #sb-mainheader1 { top: 865px; }
   body:not(.sponsorboxes-off) #sb-header1 { top: 812px; }
   /* ── Zoned tooltip — just the "IN THE ZONE" tag, FLUSH on top of the lower-left bug (its bottom edge = #sb-header1's top edge, so it
