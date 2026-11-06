@@ -59,6 +59,7 @@
   <span class="page-title">Table Teams · <span id="stage-label">Grand Finals</span></span>
   <div class="actions">
     <span id="status" class="status">—</span>
+    <button class="btn" id="btn-mode" title="Grand Finals: follow live standings, or use the arrangement below">LED: …</button>
     <button class="btn" id="btn-reset">Reset to standings order</button>
   </div>
 </div>
@@ -190,6 +191,19 @@
       if (!tbl.arranged && byRank.length) post({ order: order, featured: featured });
     }).catch(function () { setStatus('error'); });
   }
+
+  var ledMode = 'standings';
+  function paintMode() {
+    var b = el('btn-mode'); if (!b) return;
+    b.textContent = ledMode === 'table' ? 'LED: Table Teams' : 'LED: Live Standings';
+    b.style.background = ledMode === 'table' ? '#2c4f9e' : '#1f7a4f';
+  }
+  el('btn-mode').addEventListener('click', function () {
+    ledMode = ledMode === 'table' ? 'standings' : 'table'; paintMode();
+    post({ mode: ledMode });
+  });
+  fetch('/api/led-table', { cache: 'no-store' }).then(function (r) { return r.json(); })
+    .then(function (t) { ledMode = t.mode === 'table' ? 'table' : 'standings'; paintMode(); }).catch(paintMode);
 
   el('btn-reset').addEventListener('click', function () {
     if (confirm('Reset the LED to the live standings order? Your arrangement will be lost.')) post({ reset: true }).then(load);

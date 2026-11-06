@@ -341,7 +341,8 @@ async function ledFetch() {
   const byName = new Map(teams.map(t => [String(t.name).trim().toLowerCase(), t]));
   const find = n => { const t = byName.get(String(n || '').trim().toLowerCase()) || (n ? { name: n, rank: 0, totalKills: 0, totalScore: 0 } : null);
                       if (t) { const k = String(t.name).trim().toLowerCase(); t.inZone = zone.has(k); t.won = t.inZone && won.has(k); } return t; };
-  const arranged = tbl && tbl.arranged;
+  /* Grand Finals: 'standings' mode (default) follows the live standings; 'table' uses the saved Table Teams. Showmatch keeps its own arrangement. */
+  const arranged = tbl && tbl.arranged && (sm || tbl.mode === 'table' || tbl.mode === undefined);
   let featured = arranged ? tbl.featured.map(find) : [];
   if (!featured[0] && !featured[1] && !arranged) featured = teams.slice(0, 2).map(t => find(t.name));
   while (featured.length < 2) featured.push(null);
@@ -474,6 +475,8 @@ function ledApply(d) {
 async function ledRefresh() {
   if (!ledShown) return;
   const d = await ledFetch();
+  /* A failed/empty standings fetch must not blank the wall mid-game: keep what is on screen. */
+  if (ledLastKey && !d.left.some(Boolean) && !d.right.some(Boolean)) return;
   const key = JSON.stringify(d);
   if (key === ledLastKey) return;
   await ledFontsReady();

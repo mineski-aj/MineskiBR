@@ -65,6 +65,8 @@ router.get('/api/led-table', (req, res) => {
 
 router.post('/api/led-table', (req, res) => {
   const body = req.body || {};
+  if (body.mode !== undefined) ledTable.setMode(body.mode);   // { mode: 'standings' | 'table' } (may come alone)
+  if (body.mode !== undefined && body.order === undefined && !body.reset) return res.json(Object.assign({ ok: true }, ledTable.get()));
   res.json(Object.assign({ ok: true }, body.reset ? ledTable.reset() : ledTable.set(body)));
 });
 

@@ -280,6 +280,12 @@
     right: 100%;
     top: 0;
     height: 100%;
+    /* Explicit width = row height: vMix's older CEF browser ignores `aspect-ratio`, so the badge
+       collapsed to its text width and looked cropped there (Chrome was fine). */
+    width: var(--ssr-h, 66px);
+    min-width: var(--ssr-h, 66px);
+    flex: 0 0 auto;
+    overflow: visible;
     aspect-ratio: 1 / 1;
     box-sizing: border-box;
     border-bottom: 2px solid #000;
