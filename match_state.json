@@ -72,7 +72,7 @@
   "swapped": false,
   "official": true,
   "week": 1,
-  "day": 2,
+  "day": 1,
   "patch": " ",
   "hosts": [
     "Denisse",
@@ -172,8 +172,8 @@
   "countdownLabelAuto": true,
   "timer": {
     "running": true,
-    "endAt": 1792330148579,
-    "remaining": 989
+    "endAt": 1793930449784,
+    "remaining": 3780
   },
   "map": "Isolated",
   "enCasters": [

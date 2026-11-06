@@ -257,7 +257,7 @@
         },
         {
           "enabled": true,
-          "source": 13,
+          "source": 10,
           "x": 248,
           "y": -4,
           "size": 900,
@@ -314,7 +314,7 @@
         },
         {
           "enabled": true,
-          "source": 13,
+          "source": 10,
           "x": 248,
           "y": -4,
           "size": 900,
@@ -439,9 +439,9 @@
           "cropRight": 8000
         },
         {
-          "enabled": false,
-          "source": 3,
-          "x": 2500,
+          "enabled": true,
+          "source": 10020,
+          "x": 0,
           "y": 0,
           "size": 1000,
           "cropped": false,
@@ -496,9 +496,9 @@
           "cropRight": 8000
         },
         {
-          "enabled": false,
-          "source": 3,
-          "x": 2500,
+          "enabled": true,
+          "source": 10020,
+          "x": 0,
           "y": 0,
           "size": 1000,
           "cropped": false,

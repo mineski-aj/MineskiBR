@@ -3,7 +3,7 @@
     {
       "id": "fmv6rnuld",
       "name": "Waiting",
-      "open": false,
+      "open": true,
       "keys": [
         "waiting_tvc",
         "waiting_timer"
@@ -12,7 +12,7 @@
     {
       "id": "fmw1j0yxg",
       "name": "Pre Show",
-      "open": false,
+      "open": true,
       "keys": [
         "points_system",
         "zone_rush",
@@ -27,7 +27,7 @@
     {
       "id": "fmv6rof9q",
       "name": "PreFLight",
-      "open": false,
+      "open": true,
       "keys": [
         "overall_ranking_2",
         "group_a",
@@ -48,7 +48,7 @@
     {
       "id": "fmw1jvi9s",
       "name": "Ranking",
-      "open": false,
+      "open": true,
       "keys": [
         "map_ranking",
         "overall_ranking",
@@ -60,7 +60,7 @@
     {
       "id": "fmv6rqb0j",
       "name": "Stats",
-      "open": true,
+      "open": false,
       "keys": [
         "group_elim_leaders",
         "group_team_elims",
