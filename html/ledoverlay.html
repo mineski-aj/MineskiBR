@@ -56,7 +56,10 @@
   #led-col-left  { left: 0; }
   #led-col-right { left: 1386px; }
 
-  .led-row { position: absolute; left: 10px; width: 514px; height: 88px; filter: drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
+  .led-row { position: absolute; left: 10px; width: 514px; height: 88px; filter: drop-shadow(0 3px 4px rgba(0,0,0,.35)); transition: filter .5s ease; }
+  /* Eliminated (dashboard ELIM TRACKER tab): the whole container goes dark. */
+  .led-row.led-elim { filter: brightness(.45) saturate(.5) drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
+  .led-feat-box.led-elim, .led-feat-logo.led-elim, .led-feat-name.led-elim, .led-feat-info.led-elim { filter: brightness(.45) saturate(.5); }
   .led-row-bg { position: absolute; left: 0; top: 0; width: 514px; height: 88px;
                 background: linear-gradient(90deg, #ffffff 0%, #f1f1f1 55%, #e2e2e2 100%); border-bottom: 3px solid #0a0a0a; }
   /* In The Zone (Grand Finals) — the white container goes yellow. Won via ZOWNED! goes red. */
@@ -317,8 +320,15 @@
   #fm-panel-r { left: 1067px; background: linear-gradient(135deg, #fff15a, #ffe800 60%, #f5d800); }
   #fm-panel-l::before { background: #ffe800; }
   #fm-panel-r::before { background: #0a0a0a; }
-  #fm-logo-l { left: 388px; top: 500px; width: 120px; height: 120px; }   #fm-name-l { left: 524px; width: 316px; color: #fff; }
-  #fm-name-r { left: 1083px; width: 316px; color: #0a0a0a; }             #fm-logo-r { left: 1411px; top: 500px; width: 120px; height: 120px; }
+  /* Bottom LEDs: the MVP player's name scrolls right -> left across BOTH panels in a loop (no team logo/name here).
+     One window per panel (hard-clips to it, so nothing shows in the dead zone between them); each holds a copy of the
+     SAME track started the same frame and offset so both sit at the same page x — it reads as one continuous strip. */
+  .fm-bmq { position: absolute; top: 480px; width: 480px; height: 160px; overflow: hidden;
+            font-family: 'Teko', sans-serif; font-weight: 700; font-size: 120px; line-height: 1; text-transform: uppercase; white-space: nowrap; }
+  #fm-bmq-l { left: 372px; color: #fff; }   #fm-bmq-r { left: 1067px; color: #0a0a0a; }
+  .fm-bmq-track { position: absolute; top: 0; height: 100%; display: flex; align-items: center; will-change: transform; }
+  .fm-bmq-track span { display: block; transform: translateY(0.1em); }
+  .fm-bmq-sep { flex: none; width: .16em; height: .16em; margin: 0 .5em; background: currentColor; transform: rotate(45deg); }
 
   /* Marquee strips (same look as Team Intro) sit under the word and the players — the photos are the topmost layer. */
   #fm-mq-top { top: 0; border-bottom: 3px solid #ffe800; }
@@ -341,11 +351,11 @@
   #led-fmvp-page.fm-animin .fm-photo { animation: liRise .75s cubic-bezier(.2,.9,.3,1) both; animation-delay: calc(var(--i, 0) * 85ms + 800ms); }
   #led-fmvp-page.fm-animin #fm-panel-l { animation: liWipeL .5s cubic-bezier(.7,0,.2,1) both; animation-delay: .5s; }
   #led-fmvp-page.fm-animin #fm-panel-r { animation: liWipeR .5s cubic-bezier(.7,0,.2,1) both; animation-delay: .65s; }
-  #led-fmvp-page.fm-animin .li-blogo, #led-fmvp-page.fm-animin .li-bname { animation: liFadeUp .45s ease-out both; animation-delay: .95s; }
+  #led-fmvp-page.fm-animin .fm-bmq { animation: liFadeUp .45s ease-out both; animation-delay: .95s; }
   #led-fmvp-page:not(.fm-animin):not(.fm-animout) .fm-photo, #led-fmvp-page:not(.fm-animin):not(.fm-animout) .li-bpanel,
-  #led-fmvp-page:not(.fm-animin):not(.fm-animout) .li-blogo, #led-fmvp-page:not(.fm-animin):not(.fm-animout) .li-bname { opacity: 0; }
+  #led-fmvp-page:not(.fm-animin):not(.fm-animout) .fm-bmq { opacity: 0; }
   #led-fmvp-page.fm-animout .fm-photo { animation: liDrop .5s cubic-bezier(.6,0,.9,.4) both; animation-delay: calc((4 - var(--i, 0)) * 50ms); }
-  #led-fmvp-page.fm-animout .li-bpanel, #led-fmvp-page.fm-animout .li-blogo, #led-fmvp-page.fm-animout .li-bname,
+  #led-fmvp-page.fm-animout .li-bpanel, #led-fmvp-page.fm-animout .fm-bmq,
   #led-fmvp-page.fm-animout #fm-word { animation: liFadeOut .3s ease-in both; }
 </style>
 </head>
@@ -425,11 +435,9 @@
       <div class="fm-photo" id="fm-photo"><img alt=""></div>
     </div>
     <div class="li-bpanel" id="fm-panel-l"></div>
-    <div class="li-blogo" id="fm-logo-l"><img alt=""></div>
-    <div class="li-bname" id="fm-name-l"><span></span></div>
+    <div class="fm-bmq" id="fm-bmq-l"><div class="fm-bmq-track"></div></div>
     <div class="li-bpanel" id="fm-panel-r"></div>
-    <div class="li-blogo" id="fm-logo-r"><img alt=""></div>
-    <div class="li-bname" id="fm-name-r"><span></span></div>
+    <div class="fm-bmq" id="fm-bmq-r"><div class="fm-bmq-track"></div></div>
   </div>
 </div>
 
@@ -484,12 +492,15 @@ function ledEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => (
 /* Standings (Grand Finals overall — same source as Overall Ranking) + the
    operator's arrangement from the dashboard's TABLE TEAMS tab. */
 async function ledFetch() {
-  const [st, tbl, zd, ms] = await Promise.all([
+  const [st, tbl, zd, ms, ed] = await Promise.all([
     fetch('/api/live-sheet-overall-standings', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
     fetch('/api/led-table', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
     fetch('/api/in-the-zone', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
     fetch('/match/state', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch('/api/eliminated', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
   ]);
+  /* Eliminated squads (Elim Tracker tab) — their containers are drawn dark. */
+  const elim = new Set(((ed && ed.teams) || []).map(n => String(n).trim().toLowerCase()));
   /* Showmatch stage: its own squads (no logos, any count). Everything else is the 10-squad Grand Finals layout. */
   const sm = /^show\s*match$/i.test(String((ms && ms.stage) || (tbl && tbl.stage) || '').trim());
   /* In The Zone (ticked in the IN THE ZONE tab): zone = yellow container, won = red. */
@@ -498,7 +509,7 @@ async function ledFetch() {
   const teams = ((st && st.teams) || []).map(t => Object.assign({}, t));
   const byName = new Map(teams.map(t => [String(t.name).trim().toLowerCase(), t]));
   const find = n => { const t = byName.get(String(n || '').trim().toLowerCase()) || (n ? { name: n, rank: 0, totalKills: 0, totalScore: 0 } : null);
-                      if (t) { const k = String(t.name).trim().toLowerCase(); t.inZone = zone.has(k); t.won = t.inZone && won.has(k); } return t; };
+                      if (t) { const k = String(t.name).trim().toLowerCase(); t.inZone = zone.has(k); t.won = t.inZone && won.has(k); t.elim = elim.has(k); } return t; };
   /* Grand Finals: 'standings' mode (default) follows the live standings; 'table' uses the saved Table Teams. Showmatch keeps its own arrangement. */
   const arranged = tbl && tbl.arranged && (sm || tbl.mode === 'table' || tbl.mode === undefined);
   /* The 2 featured (bottom-panel) squads follow the Table Teams pick in EVERY mode — Live Standings only drives the 10 cards. */
@@ -532,7 +543,7 @@ async function ledFetch() {
 
 function ledBuildRow(t, i, sm) {
   const row = document.createElement('div');
-  row.className = 'led-row' + (sm ? ' led-nologo' : '') + (t.rank === 1 && Number(t.totalScore) > 0 ? ' led-top' : '') + (t.inZone ? (t.won ? ' led-won' : ' led-zone') : '');
+  row.className = 'led-row' + (sm ? ' led-nologo' : '') + (t.rank === 1 && Number(t.totalScore) > 0 ? ' led-top' : '') + (t.inZone ? (t.won ? ' led-won' : ' led-zone') : '') + (t.elim ? ' led-elim' : '');
   row.style.top = (4 + i * 95) + 'px';
   row.innerHTML =
     '<div class="led-row-bg"></div><div class="led-row-tab"></div><div class="led-row-stats"></div>' +
@@ -550,7 +561,7 @@ function ledBuildRow(t, i, sm) {
 /* Patch rows IN PLACE (same DOM nodes, same <img>) instead of rebuilding them: a fresh <img> every
    4s data change makes vMix's old CEF blank the logo while it re-decodes = visible flicker. */
 function ledPatchRow(row, t, i, sm) {
-  const cls = 'led-row' + (sm ? ' led-nologo' : '') + (t.rank === 1 && Number(t.totalScore) > 0 ? ' led-top' : '') + (t.inZone ? (t.won ? ' led-won' : ' led-zone') : '');
+  const cls = 'led-row' + (sm ? ' led-nologo' : '') + (t.rank === 1 && Number(t.totalScore) > 0 ? ' led-top' : '') + (t.inZone ? (t.won ? ' led-won' : ' led-zone') : '') + (t.elim ? ' led-elim' : '');
   if (row.className !== cls) row.className = cls;
   const setTxt = (sel, v) => { const sp = row.querySelector(sel + ' span'); if (!sp) return; if (sel === '.led-rc-name') { const h = teamNameHtml(v); if (sp.dataset.h !== h) { sp.dataset.h = h; sp.innerHTML = h; } } else if (sp.textContent !== v) sp.textContent = v; };
   setTxt('.led-rc-rank', String(t.rank || ''));
@@ -651,6 +662,8 @@ function ledSetFeatured(side, t, sm) {
   box.className = 'led-feat-box ' + z;
   [name, info].forEach(e => e.classList.toggle('led-zone', !!t.inZone && !t.won));
   [name, info].forEach(e => e.classList.toggle('led-won-txt', !!t.won));
+  els.forEach(e => e.classList.toggle('led-elim', !!t.elim));
+  box.className = ('led-feat-box ' + z + (t.elim ? ' led-elim' : '')).trim();
   box.style.display = 'block';
   name.style.display = 'flex'; info.style.display = 'flex';
   name.querySelector('span').innerHTML = teamNameHtml(t.name);
@@ -1168,12 +1181,33 @@ function fmIdle(token) {
   fmIdleTimer = setTimeout(step, 1900);   /* after the roulette-in has landed */
 }
 
+/* The player's name, looping right -> left across both bottom LEDs. Waits for Teko, repeats the name until ONE half of
+   the track is wider than the whole wall (so the loop never shows a gap), and scrolls at a constant FM_BMQ_SPEED px/s. */
+const FM_BMQ_SPEED = 260;
+async function fmBuildNameMq(player) {
+  try { await document.fonts.load('700 120px Teko'); } catch (e) {}
+  const name = String(player || '').trim().toUpperCase();
+  const unit = '<span>' + ledEsc(name) + '</span><i class="fm-bmq-sep"></i>';
+  const wins = ['l', 'r'].map(k => document.getElementById('fm-bmq-' + k));
+  const tracks = wins.map(w => w.querySelector('.fm-bmq-track'));
+  tracks[0].style.animation = 'none'; tracks[0].innerHTML = unit;
+  const unitW = tracks[0].scrollWidth || 400;
+  const wall = Math.max.apply(null, wins.map(w => w.offsetLeft + w.offsetWidth));   /* page x of the wall's right edge */
+  const reps = Math.max(1, Math.ceil((wall + 200) / unitW));
+  const half = unitW * reps;
+  const html = unit.repeat(reps * 2);
+  tracks.forEach((tr, i) => {
+    tr.style.animation = 'none';
+    tr.innerHTML = html;
+    tr.style.left = (-wins[i].offsetLeft) + 'px';       /* track x0 = page x0, so both windows show the same strip */
+    tr.style.setProperty('--mq-w', half + 'px');
+  });
+  void fmPage.offsetWidth;
+  const dur = (half / FM_BMQ_SPEED).toFixed(2) + 's';
+  tracks.forEach(tr => { tr.style.animation = 'liMqLeft ' + dur + ' linear infinite'; });   /* same frame = in sync */
+}
 function fmApply(t) {   /* t = { team, player } */
   const $ = id => document.getElementById(id);
-  ['l', 'r'].forEach(k => {
-    liImgSet($('fm-logo-' + k).querySelector('img'), '/logos/' + encodeURIComponent(t.team) + '.png');
-    $('fm-name-' + k).querySelector('span').innerHTML = teamNameHtml(t.team);
-  });
   const img = $('fm-photo').querySelector('img');
   const ph = encodeURIComponent(t.team) + '/' + encodeURIComponent(t.player) + '.png?v=' + LI_PHOTO_V;
   img.style.display = ''; img.classList.add('fm-sig');
@@ -1235,6 +1269,8 @@ async function showFinalsMvp(team, player) {
   try { fmBg.play(); } catch (e) {}
   try { await Promise.all([document.fonts.load('700 100px Teko'), document.fonts.load('700 84px Teko')]); } catch (e) {}
   await fmBuildWord();
+  await fmBuildNameMq(t.player);   /* needs the page on screen (display:block) to measure */
+  if (token !== fmToken) return;
   fmFitAll();
   const imgs = () => [...fmPage.querySelectorAll('img')].filter(i => i.src && i.style.display !== 'none');
   await Promise.all(imgs().map(i => i.complete ? 0 : new Promise(r => { i.addEventListener('load', r); i.addEventListener('error', r); setTimeout(r, 1500); })));

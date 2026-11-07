@@ -144,6 +144,7 @@ app.use(require('./routes/externalTally'));
 app.use(require('./routes/tallyApi'));
 app.use(require('./routes/playoffs'));
 app.use(require('./routes/inTheZone'));
+app.use(require('./routes/eliminated'));
 app.use(require('./routes/ssAnimator'));
 
 // Debug: log unmatched routes

@@ -471,6 +471,7 @@
       font-size: 20px;
       color: #000;
     }
+    .wtvc-row-flag span.wtvc-flag-two { font-size: 16px; line-height: .8; text-align: center; }
     .wtvc-row-logo {
       position: absolute;
       left: 94px; top: 7px;
@@ -1279,6 +1280,9 @@
     .rnk-has-logo .ovr-rc-flag,
     .rnk-has-logo .mrk-rc-flag,
     .rnk-has-logo .grk-rc-flag { left: 140px; width: 38px; }
+    /* TWHK: two stacked rows (TW / HK) so it fits the narrow flag column */
+    .rnk-flag-two.rnk-flag-two { font-size: 20.87px; line-height: .8; } /* same size as the single-row codes (PH...) */
+    .rnk-flag-two span { display: block; line-height: .8; }
 
     /* ── OVERALL RANKING PAGE — the current LIVE tally sheet's own
        running totals across every map played within that one sheet
@@ -1804,6 +1808,7 @@
       display: flex; align-items: center; justify-content: center;
     }
     .mrr-card-winner img { width: 100%; height: 100%; object-fit: contain; }
+    .mrr-card-winner.mrr-logo-backed { background: #121212; } /* = LEAP's own square backer */
     .mrr-card-group .mrr-gm-word { font-weight: 500; font-size: 26px; letter-spacing: 0.18em; }
     .mrr-card-group .mrr-gm-name { font-weight: 700; font-size: 54px; white-space: nowrap; }
     .mrr-card-name {
@@ -7204,7 +7209,7 @@
       <div id="zwp-strip" class="zwp-strip zwp-wipe zwp-d16"></div>
       <div id="zwp-strip-text" class="zwp-strip-t zwp-center zwp-fit zwp-up zwp-d18" data-max="50" data-min="26"><span>ANNOUNCED AFTER MAP 6</span></div>
       <div id="zwp-tile-leader" class="zwp-card zwp-rise zwp-d20"></div>
-      <div id="zwp-tile-leader-label" class="zwp-tlabel zwp-fit zwp-up zwp-d23" data-max="36" data-min="20"><span>MAP 6 LEADER</span></div>
+      <div id="zwp-tile-leader-label" class="zwp-tlabel zwp-fit zwp-up zwp-d23" data-max="36" data-min="20"><span>OVERALL LEADER</span></div>
       <div id="zwp-tile-leader-val" class="zwp-tval zwp-fit zwp-pop zwp-d24" data-max="70" data-min="30"><span>—</span></div>
       <div id="zwp-tile-bonus" class="zwp-card zwp-rise zwp-d23"></div>
       <div id="zwp-tile-bonus-label" class="zwp-tlabel zwp-fit zwp-up zwp-d26" data-max="36" data-min="20"><span>ADDITIONAL TARGET</span></div>
@@ -8718,7 +8723,10 @@
       flag.className = 'wtvc-row-flag';
       const flagTxt = document.createElement('span');
       const region = ((team && team.region) || '').toUpperCase();
-      flagTxt.textContent = region;
+      /* Rows are built in a hidden page (nothing to measure), so TWHK is just
+         stacked TW / HK at a fixed small size instead of shrunk to fit. */
+      if (region === 'TWHK') { flagTxt.innerHTML = 'TW<br>HK'; flagTxt.className = 'wtvc-flag-two'; }
+      else flagTxt.textContent = region;
       flag.appendChild(flagTxt);
       row.appendChild(flag);
 
@@ -8779,7 +8787,19 @@
     /* Winner logo element for a map card, or null when no Winner is picked.
        Stays out of the DOM flow until the logo image actually loads, so a
        team with no /logos/ file shows nothing rather than a broken icon. */
-    function mapWinnerLogoEl(map, className) {
+    /* A logo whose four corners are transparent has no square backer of its own.
+       (Same-origin canvas read; any failure just means "no backer added".) */
+    function logoLacksBacker(im) {
+      try {
+        const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+        const x = c.getContext('2d'); x.drawImage(im, 0, 0);
+        const W = c.width - 1, H = c.height - 1, d = 2;
+        return [[d, d], [W - d, d], [d, H - d], [W - d, H - d]].every(p => x.getImageData(p[0], p[1], 1, 1).data[3] < 128);
+      } catch (e) { return false; }
+    }
+    /* `backer` (Map Rotation only): logos with no square background get a square
+       container in the LEAP logo's own backer colour (#121212, measured). */
+    function mapWinnerLogoEl(map, className, backer) {
       const w = String((map && map.winner) || '').trim();
       if (!w) return null;
       const box = document.createElement('div');
@@ -8787,7 +8807,7 @@
       box.style.display = 'none';
       const im = document.createElement('img');
       im.alt = '';
-      im.onload = () => { box.style.display = 'flex'; };
+      im.onload = () => { if (backer && logoLacksBacker(im)) box.classList.add('mrr-logo-backed'); box.style.display = 'flex'; };
       im.onerror = () => { box.style.display = 'none'; };
       im.src = '/logos/' + encodeURIComponent(w) + '.png';
       box.appendChild(im);
@@ -9980,7 +10000,27 @@
       if (!el) return;
       const span = el.querySelector('span');
       if (span) span.textContent = String(code || '').trim().toUpperCase();
-      if (maxSize) ovrFitText(el, maxSize, Math.max(8, Math.round(maxSize / 2)));
+      if (maxSize) flagFitSpan(el, maxSize, Math.max(8, Math.round(maxSize / 2.2)));
+    }
+    /* Shrink a CENTERED flag/country-code box's text until it fits. Measures the
+       span itself (offsetWidth), NOT the box's scrollWidth: in a centered flex
+       box a too-wide span overflows equally left AND right, and scrollWidth only
+       counts the right overflow — so the old check thought "TWHK" fit while it
+       was clipped on both sides. Skips when the box has no layout yet (hidden
+       scene); `maxSize` defaults to the box's own CSS font-size. */
+    function flagFitSpan(el, maxSize, minSize) {
+      if (!el) return;
+      const span = el.querySelector('span');
+      if (!span) return;
+      if (!maxSize) {
+        if (!el.dataset.fbase) { el.style.fontSize = ''; el.dataset.fbase = parseFloat(getComputedStyle(el).fontSize) || 20; }
+        maxSize = parseFloat(el.dataset.fbase);
+      }
+      minSize = minSize || Math.max(8, Math.round(maxSize / 2.2));
+      let size = maxSize;
+      el.style.fontSize = size + 'px';
+      if (!el.clientWidth) return;
+      while (span.offsetWidth > el.clientWidth && size > minSize) el.style.fontSize = (--size) + 'px';
     }
 
     function ovrFitTextMeasure(el, maxSize, minSize) {
@@ -10056,7 +10096,10 @@
           ' onload="this.parentNode.style.display=\'flex\';this.parentNode.parentNode.classList.add(\'rnk-has-logo\')"' +
           ' onerror="this.parentNode.style.display=\'none\'"></div>'
         : '';
-      return logo + '<div class="' + cellClass + '"><span>' + (region || '').toUpperCase() + '</span></div>';
+      const code = (region || '').toUpperCase();
+      /* TWHK is too wide for the flag column — stack it, "TW" over "HK". */
+      if (code === 'TWHK') return logo + '<div class="' + cellClass + ' rnk-flag-two"><span>TW<br>HK</span></div>';
+      return logo + '<div class="' + cellClass + '"><span>' + code + '</span></div>';
     }
     /* Rank change vs the previous map (q.rankChange from
        /api/live-sheet-overall-standings: > 0 up, < 0 down, 0 same) — "+3" in
@@ -11045,7 +11088,7 @@
           tag.querySelector('.mrr-gm-name').textContent = gm;
           card.appendChild(tag);
         }
-        const winLogo = mapWinnerLogoEl(m, 'mrr-card-winner');
+        const winLogo = mapWinnerLogoEl(m, 'mrr-card-winner', true);
         if (winLogo) { card.classList.add('has-winner'); card.appendChild(winLogo); }
         root.appendChild(card);
         ovrFitText(card.querySelector('.mrr-card-name'), 58.79, 29);
@@ -13198,7 +13241,7 @@
         : d && d.source === 'fallback' && d.leader ? 'MAP 6 LEADER ' + d.leader.total + ' + 10'
         : 'ANNOUNCED AFTER MAP 6');
       const lead = d && d.leader;
-      zwpSet('zwp-tile-leader-label', lead ? 'MAP 6 LEADER · ' + lead.total + ' PTS' : 'MAP 6 LEADER');
+      zwpSet('zwp-tile-leader-label', lead ? 'OVERALL LEADER · ' + lead.total + ' PTS' : 'OVERALL LEADER');
       zwpSet('zwp-tile-leader-val', lead ? lead.name : '—');
       return has ? pts : null;
     }
@@ -13527,11 +13570,12 @@
       if (hasLogo) {
         logoImg.src = '/logos/' + encodeURIComponent(d.name) + '.png';
         logoImg.style.display = 'block';
-        if (hasFlag) { flag.querySelector('span').textContent = flagCode; flag.style.display = 'flex'; }
+        if (hasFlag) { flag.querySelector('span').textContent = flagCode; flag.style.display = 'flex'; flagFitSpan(flag); }
       } else if (hasFlag) {
         /* No logo: the country code takes the logo square instead. */
         logoFlag.querySelector('span').textContent = flagCode;
         logoFlag.style.display = 'flex';
+        flagFitSpan(logoFlag);
       }
       const nameEl = document.getElementById('mwn-name');
       nameEl.querySelector('.mwn-name-text').textContent = d.name;
@@ -13698,7 +13742,7 @@
       logo.style.display = 'none';
       if (hasLogo) { logo.src = logoUrl; logo.style.display = 'block'; }
       flag.style.display = 'none';
-      if (hasFlag) { flag.querySelector('span').textContent = flagCode; flag.style.display = 'flex'; }
+      if (hasFlag) { flag.querySelector('span').textContent = flagCode; flag.style.display = 'flex'; flagFitSpan(flag); }
       mmvpSpan('mmvp-name').textContent = p.name;
       const vals = [
         { id: 'mmvp-elims-value', v: p.kills, suffix: '' },
@@ -15755,10 +15799,10 @@
       logoImg.style.display = logoFlag.style.display = flag.style.display = 'none';
       if (hasLogo) {
         logoImg.src = logoUrl; logoImg.style.display = 'block';
-        if (hasFlag) { flag.querySelector('span').textContent = flagCode; flag.style.display = 'flex'; }
+        if (hasFlag) { flag.querySelector('span').textContent = flagCode; flag.style.display = 'flex'; flagFitSpan(flag); }
       } else if (hasFlag) {
         /* No logo: the country code takes the logo square instead. */
-        logoFlag.querySelector('span').textContent = flagCode; logoFlag.style.display = 'flex';
+        logoFlag.querySelector('span').textContent = flagCode; logoFlag.style.display = 'flex'; flagFitSpan(logoFlag);
       }
       const nameEl = document.getElementById('mhl-winner-name');
       nameEl.querySelector('.mhl-name-text').textContent = w.name;

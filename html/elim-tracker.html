@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="js/cache-bust.js"></script>
+<title>Elim Tracker</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0d0d12; color: #d0d0d8;
+    /* Everything scales off the window width so a tiny operator window stays usable. */
+    font-size: clamp(13px, 2.6vw, 16px);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Sticky header: title + counter + tools stay reachable while the list scrolls. */
+  .bar {
+    position: sticky; top: 0; z-index: 5;
+    background: #0d0d12; border-bottom: 1px solid #222232;
+    padding: 10px clamp(8px, 3vw, 24px);
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+  }
+  .title { font-size: 0.9em; font-weight: 800; color: #fff; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+  .sheet { font-size: 0.7em; font-weight: 700; color: #666; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40vw; }
+  .count { margin-left: auto; font-size: 0.8em; font-weight: 800; color: #ff6b73; letter-spacing: 0.05em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .count.zero { color: #555; }
+  .tools { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 8px; }
+  .tools input[type=search] {
+    flex: 1 1 140px; min-width: 0; background: rgba(255,255,255,0.05); border: 1px solid #252535; border-radius: 8px;
+    color: #fff; padding: 8px 12px; font: inherit; outline: none;
+  }
+  .tools input[type=search]:focus { border-color: #e0141e; }
+  .btn {
+    flex: 0 0 auto; background: #181824; color: #bbb; border: 1px solid #2a2a3a; border-radius: 8px;
+    padding: 8px 12px; font: inherit; font-size: 0.85em; font-weight: 700; cursor: pointer; white-space: nowrap;
+  }
+  .btn:hover { background: #20202f; color: #fff; }
+  .btn.danger:hover { background: #3a0e12; border-color: #e0141e; color: #ff8a90; }
+  .status { flex: 0 0 auto; align-self: center; font-size: 0.7em; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #555; }
+  .status.err { color: #ff4455; } .status.ok { color: #00cc88; }
+
+  /* One column in a small window, more columns as it widens. */
+  .list {
+    display: grid; gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+    padding: clamp(8px, 3vw, 24px);
+  }
+  .team {
+    position: relative; display: flex; align-items: center; gap: 10px; min-width: 0;
+    padding: 10px 12px; min-height: 56px; border: 1px solid #1e1e2c; border-radius: 10px; background: #13131c;
+    cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+  }
+  .team:hover { background: #181824; }
+  .team input { flex: 0 0 auto; width: 26px; height: 26px; accent-color: #e0141e; cursor: pointer; }
+  .team .logo { flex: 0 0 auto; width: 34px; height: 34px; object-fit: contain; background: #000; border-radius: 5px; }
+  .team .name { flex: 1 1 auto; min-width: 0; font-weight: 700; color: #fff; letter-spacing: 0.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .team .region { flex: 0 0 auto; font-size: 0.75em; font-weight: 700; color: #666; }
+  .team .chip {
+    flex: 0 0 auto; font-size: 0.62em; font-weight: 800; letter-spacing: 0.1em; color: #fff; background: #e0141e;
+    padding: 3px 7px; border-radius: 4px; display: none;
+  }
+  .team.out { background: #1a0b0d; border-color: #e0141e; }
+  .team.out .logo, .team.out .name { opacity: 0.45; }
+  .team.out .name { text-decoration: line-through; text-decoration-color: #e0141e; }
+  .team.out .chip { display: block; }
+  .team.hidden { display: none; }
+  .empty { grid-column: 1 / -1; color: #666; padding: 16px 4px; text-align: center; }
+
+  /* Very small windows: drop the extras, keep the tick + name. */
+  @media (max-width: 300px) {
+    .team .region, .team .logo { display: none; }
+    .team .chip { font-size: 0.55em; padding: 2px 5px; }
+    .sheet { display: none; }
+  }
+  @media (max-height: 220px) { .bar { position: static; } }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <span class="title">Elim Tracker</span>
+  <span class="sheet" id="sheet"></span>
+  <span class="count zero" id="count">0 / 0 OUT</span>
+  <div class="tools">
+    <input type="search" id="filter" placeholder="Find team…" autocomplete="off">
+    <button class="btn danger" id="clear" type="button">Clear all</button>
+    <button class="btn" id="copy" type="button">Copy link</button>
+    <span class="status" id="status"></span>
+  </div>
+</div>
+
+<div class="list" id="list"><div class="empty">Loading teams…</div></div>
+
+<script>
+  var out = {};            /* lower-cased squad name -> true while eliminated */
+  var teams = [];          /* [{ name, region }] — the selected tally sheet's squads */
+  var shownKey = '';
+  var pending = 0;         /* in-flight saves — a poll mid-save must not undo a tick */
+  var lastTouch = 0;
+
+  function el(id) { return document.getElementById(id); }
+  function key(n) { return String(n || '').trim().toLowerCase(); }
+  function setStatus(s, msg) { var e = el('status'); e.className = 'status ' + (s || ''); e.textContent = msg || ''; }
+
+  function updateCount() {
+    var n = teams.filter(function (t) { return out[key(t.name)]; }).length;
+    var c = el('count'); c.textContent = n + ' / ' + teams.length + ' OUT'; c.className = 'count' + (n ? '' : ' zero');
+  }
+
+  function paint(row) {
+    var on = !!out[row.dataset.key];
+    row.classList.toggle('out', on);
+    row.querySelector('input').checked = on;
+  }
+
+  function applyFilter() {
+    var q = key(el('filter').value);
+    Array.prototype.forEach.call(el('list').querySelectorAll('.team'), function (r) {
+      r.classList.toggle('hidden', !!q && r.dataset.key.indexOf(q) === -1);
+    });
+  }
+
+  function build() {
+    var box = el('list'); box.innerHTML = '';
+    if (!teams.length) { box.innerHTML = '<div class="empty">No teams on the selected tally sheet yet.</div>'; return; }
+    teams.forEach(function (t) {
+      var row = document.createElement('label');
+      row.className = 'team'; row.dataset.key = key(t.name);
+      var cb = document.createElement('input'); cb.type = 'checkbox';
+      var logo = document.createElement('img'); logo.className = 'logo'; logo.alt = '';
+      logo.src = '/logos/' + encodeURIComponent(t.name) + '.png'; logo.onerror = function () { logo.style.visibility = 'hidden'; };
+      var name = document.createElement('span'); name.className = 'name'; name.textContent = t.name; name.title = t.name;
+      var region = document.createElement('span'); region.className = 'region'; region.textContent = t.region || '';
+      var chip = document.createElement('span'); chip.className = 'chip'; chip.textContent = 'OUT';
+      [cb, logo, name, region, chip].forEach(function (c) { row.appendChild(c); });
+      cb.addEventListener('change', function () { toggle(t.name, cb.checked, row); });
+      box.appendChild(row); paint(row);
+    });
+    applyFilter();
+  }
+
+  function toggle(name, on, row) {
+    out[key(name)] = on; paint(row); updateCount();
+    pending++; lastTouch = Date.now();
+    setStatus('', 'Saving…');
+    fetch('/api/eliminated', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name, eliminated: on }) })
+      .then(function (r) { if (!r.ok) throw new Error(); setStatus('ok', 'Saved'); setTimeout(function () { if (!pending) setStatus('', ''); }, 1200); })
+      .catch(function () { out[key(name)] = !on; paint(row); updateCount(); setStatus('err', 'NOT SAVED — server unreachable (restart needed?)'); })
+      .then(function () { pending--; });
+  }
+
+  /* Squad list = the selected tally sheet (same source the Ingame scoreboard ranks).
+     Alphabetical, so the order never jumps while the standings move. */
+  function load() {
+    return Promise.all([
+      fetch('/api/live-tally-standings', { cache: 'no-store' }).then(function (r) { return r.json(); }),
+      fetch('/api/eliminated', { cache: 'no-store' }).then(function (r) { return r.json(); }),
+    ]).then(function (res) {
+      var st = res[0] || {}, el0 = res[1] || {};
+      var list = ((st.teams) || []).map(function (t) { return { name: String(t.name), region: t.region || '' }; })
+        .sort(function (a, b) { return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0; });
+      if (!pending && Date.now() - lastTouch > 1500) {   /* never overwrite a tick that is still settling */
+        out = {}; (el0.teams || []).forEach(function (n) { out[key(n)] = true; });
+      }
+      var k = list.map(function (t) { return t.name; }).join('|');
+      teams = list;
+      el('sheet').textContent = st.sheet ? st.sheet : '';
+      if (k !== shownKey) { shownKey = k; build(); }
+      else Array.prototype.forEach.call(el('list').querySelectorAll('.team'), paint);
+      updateCount();
+      if (!pending) setStatus('', '');
+    }).catch(function () { setStatus('err', 'Offline — retrying…'); });
+  }
+
+  el('filter').addEventListener('input', applyFilter);
+  el('clear').addEventListener('click', function () {
+    if (!window.confirm('Un-eliminate every team?')) return;
+    out = {}; Array.prototype.forEach.call(el('list').querySelectorAll('.team'), paint); updateCount();
+    pending++; lastTouch = Date.now();
+    fetch('/api/eliminated', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clear: true }) })
+      .then(function (r) { if (!r.ok) throw new Error(); setStatus('ok', 'Cleared'); })
+      .catch(function () { setStatus('err', 'NOT SAVED'); })
+      .then(function () { pending--; });
+  });
+  el('copy').addEventListener('click', function () {
+    var url = location.origin + '/html/elim-tracker.html';
+    var done = function () { setStatus('ok', 'Link copied'); setTimeout(function () { setStatus('', ''); }, 1500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { window.prompt('Copy this link:', url); });
+    else window.prompt('Copy this link:', url);
+  });
+
+  load();
+  setInterval(load, 3000);
+</script>
+</body>
+</html>

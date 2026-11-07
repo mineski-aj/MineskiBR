@@ -48,7 +48,7 @@
     {
       "id": "fmw1jvi9s",
       "name": "Ranking",
-      "open": false,
+      "open": true,
       "keys": [
         "map_ranking",
         "overall_ranking",

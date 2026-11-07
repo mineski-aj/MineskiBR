@@ -1078,6 +1078,17 @@ router.get('/overlay/lowerthird/team_h2h/hide', (req, res) => {
   lowerThirdBroadcast({ action: 'hide', type: 'teamh2h' });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
+// Timer Bug (LowerThirds.html) — top-left 1:00 countdown + current/next map. Every show restarts it.
+router.get('/overlay/lowerthird/timerbug/show', (req, res) => {
+  state.checkOverlays.lowerthird_timerbug = true;
+  lowerThirdBroadcast({ action: 'show', type: 'timerbug' });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+router.get('/overlay/lowerthird/timerbug/hide', (req, res) => {
+  state.checkOverlays.lowerthird_timerbug = false;
+  lowerThirdBroadcast({ action: 'hide', type: 'timerbug' });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
 // Team Name Tag (LowerThirds.html) — one show/hide route pair per Grand Finals squad
 // (lib/ledIntro.js list). Same 'lowerthird' SSE event, type 'teamtag' + the squad's name.
 // Showing another squad while one is up makes the page play OUT then IN (swap).
@@ -1110,6 +1121,7 @@ router.get('/overlay/lowerthird/hideall', (req, res) => {
   state.checkOverlays.lowerthird_comment = false;
   state.checkOverlays.lowerthird_player_h2h = false;
   state.checkOverlays.lowerthird_team_h2h = false;
+  state.checkOverlays.lowerthird_timerbug = false;
   teamTagActive = null;
   lowerThirdBroadcast({ action: 'hideall' });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hideall" });

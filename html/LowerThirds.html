@@ -238,6 +238,22 @@
   .tm-rval { left: 400px; justify-content: flex-start; padding-left: 8px; }
   #tm-tag-a > span, #tm-tag-b > span, .tm-label span, .tm-lval span, .tm-rval span { display: block; transform: translateY(0.1em); }
 
+  /* ───────── TIMER BUG (top-left 1:00 countdown + current map + next map), tb-* ───────── */
+  .tb-anim { opacity: 0; transform: translateX(-80px); transition: opacity 400ms ease, transform 500ms cubic-bezier(.2,.8,.2,1); }
+  #tb-tag.lt-visible .tb-anim { opacity: 1; transform: none; }
+  #tb-tag.lt-visible .tb-d1 { transition-delay: 60ms; }
+  #tb-tag.lt-visible .tb-d2 { transition-delay: 140ms; }
+  #tb-mapnum     { position: absolute; left: 48px;  top: 36px;  width: 190px; height: 36px; background: #e8e8e8; color: #121212;
+                   font-family: 'Teko', sans-serif; font-weight: 600; font-size: 30px; }
+  #tb-timer      { position: absolute; left: 48px;  top: 72px;  width: 190px; height: 82px; background: #121212; color: #fff;
+                   font-family: 'Teko', sans-serif; font-weight: 700; font-size: 70px; font-variant-numeric: tabular-nums; }
+  #tb-next-bg    { position: absolute; left: 238px; top: 72px;  width: 340px; height: 82px; background: #ffe800; }
+  #tb-next-label { position: absolute; left: 238px; top: 76px;  width: 340px; height: 26px; color: #121212;
+                   font-family: 'Teko', sans-serif; font-weight: 600; font-size: 22px; }
+  #tb-next-name  { position: absolute; left: 238px; top: 100px; width: 340px; height: 54px; color: #121212;
+                   font-family: 'Teko', sans-serif; font-weight: 700; font-size: 48px; }
+  #tb-mapnum span, #tb-timer span, #tb-next-label span, #tb-next-name span { display: block; transform: translateY(0.15em); }
+
   /* ───────── Local debug bar (toggle with `) ───────── */
   #lt-debug { position: absolute; left: 0; top: 0; width: 1920px; display: none; gap: 8px; padding: 8px;
               background: rgba(0,0,0,.85); color: #fff; font: 13px 'General Sans', sans-serif; z-index: 99; align-items: center; pointer-events: auto; }
@@ -325,6 +341,15 @@
     <div id="tm-row-3" class="tm-anim tm-from-b tm-d4"><div class="tm-bar"><div class="tm-fill"></div></div><div class="tm-lval lt-text"><span></span></div><div class="tm-rval lt-text"><span></span></div><div class="tm-label lt-text"><span></span></div></div>
   </div>
 
+  <!-- Timer Bug (top-left) -->
+  <div id="tb-tag" class="lt-tag">
+    <div id="tb-mapnum" class="lt-text tb-anim"><span id="tb-mapnum-text"></span></div>
+    <div id="tb-timer" class="lt-text tb-anim tb-d1"><span id="tb-timer-text">01:00</span></div>
+    <div id="tb-next-bg" class="tb-anim tb-d2"></div>
+    <div id="tb-next-label" class="lt-text tb-anim tb-d2"><span>NEXT MAP</span></div>
+    <div id="tb-next-name" class="lt-text tb-anim tb-d2"><span id="tb-next-name-text"></span></div>
+  </div>
+
   <div id="lt-debug">
     <input id="dbg-l1" placeholder="Name / headline / runner text" value="JUAN DELA CRUZ">
     <input id="dbg-l2" placeholder="Title / label" value="SHOUTCASTER">
@@ -334,6 +359,7 @@
     <button onclick="showLowerThird('comment')">▶ Comment (live pick)</button><button onclick="hideLowerThird('comment')">■</button>
     <button onclick="showLowerThird('playerh2h')">▶ Player H2H</button><button onclick="hideLowerThird('playerh2h')">■</button>
     <button onclick="showLowerThird('teamh2h')">▶ Team H2H</button><button onclick="hideLowerThird('teamh2h')">■</button>
+    <button onclick="showLowerThird('timerbug')">▶ Timer Bug</button><button onclick="hideLowerThird('timerbug')">■</button>
   </div>
 </div>
 
@@ -352,7 +378,9 @@ const LT = {
   teamtag: { page: 'tt-tag', fields: [['tt-name-text', 'name'], ['tt-code-text', 'country']], fit: [['tt-name', 'tt-name-text', 58, 28], ['tt-stats', 'tt-stats-text', 54, 30]] },
   playerh2h: { page: 'pl-tag', fields: [], fit: [] },
   teamh2h: { page: 'tm-tag', fields: [], fit: [] },
-  runner:  { page: 'rn-tag', fields: [['rn-label-text', 'line2']], fit: [['rn-label', 'rn-label-text', 36, 20]] },
+  timerbug: { page: 'tb-tag', fields: [['tb-mapnum-text', 'mapLabel'], ['tb-next-name-text', 'nextName']],
+              fit: [['tb-mapnum', 'tb-mapnum-text', 30, 16], ['tb-next-name', 'tb-next-name-text', 48, 24]] },
+  runner: { page: 'rn-tag', fields: [['rn-label-text', 'line2']], fit: [['rn-label', 'rn-label-text', 36, 20]] },
 };
 const ltTimers = {};
 
@@ -527,6 +555,7 @@ function applyLowerThird(type, d) {
     plat.style.display = d.platform ? '' : 'none';
   }
   if (type === 'runner') document.getElementById('rn-track').textContent = d.line1 || '';
+  if (type === 'timerbug') document.getElementById('tb-mapnum').style.visibility = d.mapLabel ? '' : 'hidden';
   if (type === 'teamtag') {
     ttCurrent = d.name || null;
     ttClearSeq();
@@ -535,6 +564,39 @@ function applyLowerThird(type, d) {
     document.getElementById('tt-code-bg').style.visibility = d.country ? '' : 'hidden';
     document.getElementById('tt-logo').src = d.name ? '/logos/' + encodeURIComponent(d.name) + '.png' : '';
   }
+}
+/* ── Timer Bug: hard-coded 1:00 countdown, reset on every Show. Map info comes from /match/state:
+      both the "MAP N" tab and the yellow map name follow todayMaps[match-1] (match = the Match Board's map
+      picker, 1-based), i.e. exactly what the dashboard's Match Board has selected. ── */
+const TB_SECONDS = 60;
+let tbInterval = null;
+function tbRender(s) {
+  document.getElementById('tb-timer-text').textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+}
+function tbStop() { clearInterval(tbInterval); tbInterval = null; }
+function tbStart() {
+  tbStop();
+  const end = Date.now() + TB_SECONDS * 1000;
+  tbRender(TB_SECONDS);
+  tbInterval = setInterval(() => {
+    const s = Math.max(0, Math.ceil((end - Date.now()) / 1000));
+    tbRender(s);
+    if (s <= 0) tbStop();
+  }, 200);
+}
+async function tbMapInfo() {
+  try {
+    const r = await fetch('/match/state', { cache: 'no-store' });
+    const ms = r.ok ? await r.json() : null;
+    const maps = ((ms && ms.todayMaps) || []).slice(0, (ms && ms.todayMapsCount) || 0);
+    const cur = Math.max(1, parseInt(ms && ms.match, 10) || 1);
+    const po = /playoffs/i.test((ms && ms.stage) || '');          // only Playoffs rows carry sheet labels (2.1, 4.2…)
+    const label = (m, i) => (po && m && m.label) ? m.label : String(i + 1);
+    /* Same number the Match Board's Map picker shows ("Map N" = mapRowLabel(maps[match-1])) and the same
+       map the dashboard has selected — tab and yellow name both follow the picker. */
+    const sel = maps[cur - 1];
+    return { mapLabel: 'MAP ' + label(sel, cur - 1), nextName: sel && sel.mapName ? sel.mapName : '' };
+  } catch (e) { return { mapLabel: 'MAP', nextName: '' }; }
 }
 let ttCurrent = null;   // squad currently on the Team Name Tag (a per-squad /hide only hides its own)
 let ttSeqTimers = [];
@@ -584,6 +646,7 @@ async function showLowerThird(type, d) {
     const [st] = await Promise.all([ttFetchStats(d.name), ttPreload(d.name)]);
     d = Object.assign({}, d, { stats: st, country: (st && st.country) || d.country || '' });
   }
+  if (type === 'timerbug') d = Object.assign({}, d, await tbMapInfo());
   d = d || {};
   clearTimeout(ltTimers[type]);
   const page = document.getElementById(cfg.page);
@@ -595,6 +658,7 @@ async function showLowerThird(type, d) {
     cfg.fit.forEach(([b, s, mx, mn]) => lowerThirdFit(document.getElementById(b), document.getElementById(s), mx, mn));
     (cfg.fitMulti || []).forEach(([b, mx, mn]) => lowerThirdFitMulti(document.getElementById(b), mx, mn));
     if (type === 'runner') startRunner(d.speed);
+    if (type === 'timerbug') tbStart();                 // every Show restarts at 1:00
     page.classList.add('lt-visible');
     if (type === 'teamtag') ttStartSeq();
   };
@@ -609,6 +673,7 @@ function hideLowerThird(type) {
   const page = document.getElementById(cfg.page);
   clearTimeout(ltTimers[type]);
   if (type === 'teamtag') { ttCurrent = null; ttClearSeq(); }
+  if (type === 'timerbug') tbStop();
   if (type === 'comment') { clearTimeout(cmSwapTimer); page.classList.remove('cm-swapping'); }
   page.classList.remove('lt-visible');
   ltTimers[type] = setTimeout(() => {
@@ -677,7 +742,7 @@ window.previewTrigger = function (event, action, team) {
     teamh2h: {},
     runner:  { line1: 'WELCOME TO THE MINESKI BROADCAST  •  FOLLOW US ON SOCIALS  •  GRAND FINALS IN MANILA, NOVEMBER 2026', line2: 'UPDATE' },
   };
-  const map = { lowerthird_nametag: 'nametag', lowerthird_super: 'super', lowerthird_runner: 'runner', lowerthird_teamtag: 'teamtag', teamtag: 'teamtag', lowerthird_comment: 'comment', player_h2h: 'playerh2h', lowerthird_playerh2h: 'playerh2h', team_h2h: 'teamh2h', lowerthird_teamh2h: 'teamh2h' };
+  const map = { lowerthird_nametag: 'nametag', lowerthird_super: 'super', lowerthird_runner: 'runner', lowerthird_teamtag: 'teamtag', teamtag: 'teamtag', lowerthird_comment: 'comment', player_h2h: 'playerh2h', lowerthird_playerh2h: 'playerh2h', team_h2h: 'teamh2h', lowerthird_teamh2h: 'teamh2h', lowerthird_timerbug: 'timerbug' };
   const type = map[event] || (LT[event] ? event : null);
   if (!type) return;
   if (action !== 'show') return hideLowerThird(type);
@@ -697,6 +762,7 @@ window.addEventListener('keydown', (e) => {
   if (e.key === '`') document.getElementById('lt-debug').classList.toggle('open');
 });
 window.showTeamTagDemo = () => showLowerThird('teamtag', { name: 'ADMT MAIN' });
+window.showTimerBugDemo = () => showLowerThird('timerbug', {});   // Edit-tab showFn
 window.showPlayerH2HL3 = showPlayerH2HL3; window.showTeamH2HL3 = showTeamH2HL3; // Edit-tab showFn
 
 /* Per-element position/size overrides saved from the dashboard Edit tab. */

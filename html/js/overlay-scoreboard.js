@@ -397,7 +397,13 @@ function sbSetRank(row, rank) {
 function sbFillScoreRow(row, team, qualifiers) {
   var region = ((team && team.region) || '').toUpperCase();
   var flagTxt = row.querySelector('.ssr-flag-text');
-  if (flagTxt) flagTxt.textContent = region;
+  if (flagTxt) {
+    /* TWHK doesn't fit the 29px tag on one line → "TW" over "HK" (CSS .ssr-flag-two shrinks + stacks it). */
+    var two = region === 'TWHK';
+    if (two) { flagTxt.innerHTML = 'TW<br>HK'; }
+    else flagTxt.textContent = region;
+    if (flagTxt.parentNode) flagTxt.parentNode.classList.toggle('ssr-flag-two', two);
+  }
 
   var teamName = (team && team.name) || '';
   var teamLogo = row.querySelector('.ssr-team-logo');
@@ -519,6 +525,29 @@ function sbPollZone() {
 sbPollZone();
 setInterval(sbPollZone, 3500);
 
+/* Elim Tracker (dashboard tab / /html/elim-tracker.html): eliminated squads get
+   the darkened row (.ssr-out). Re-applied on every render too, since rows are
+   keyed by team and rebuilt when a team first appears. */
+var _sbElim = {}; /* lower-cased squad name -> true */
+function sbApplyElim() {
+  Object.keys(_sbRowsByTeam).forEach(function(name) {
+    _sbRowsByTeam[name].classList.toggle('ssr-out', !!_sbElim[String(name).trim().toLowerCase()]);
+  });
+}
+function sbPollElim() {
+  fetch('/api/eliminated', { cache: 'no-store' })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var e = {};
+      ((d && d.teams) || []).forEach(function(n) { e[String(n).trim().toLowerCase()] = true; });
+      _sbElim = e;
+      sbApplyElim();
+    })
+    .catch(function() {});
+}
+sbPollElim();
+setInterval(sbPollElim, 2500);
+
 function sbRenderScoreboard() {
   var back = document.getElementById('sb-scoreboard-back');
   if (!back) return;
@@ -589,6 +618,7 @@ function sbRenderScoreboard() {
 
   sbUpdateScoreHeaderLabels(qualifiers);
   sbApplyZone();
+  sbApplyElim();
 }
 
 function sbPollTeamScores() {

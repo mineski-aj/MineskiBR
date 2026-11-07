@@ -2,22 +2,22 @@
   "ingame_events": {
     "#sb-zonetip": {
       "left": "0px",
-      "top": "625px",
-      "width": "425px",
-      "height": "64px",
+      "top": "714px",
+      "width": "328px",
+      "height": "49px",
       "fontSize": "40px"
     },
     "#sb-zonerect": {
       "left": "0px",
-      "top": "687px",
-      "width": "425px",
-      "height": "233px",
-      "fontSize": "12px"
+      "top": "755px",
+      "width": "329px",
+      "height": "165px",
+      "fontSize": "6px"
     },
     "#sb-zonename": {
-      "top": "863px",
-      "height": "45px",
-      "fontSize": "29px"
+      "top": "886px",
+      "height": "29px",
+      "fontSize": "24px"
     }
   }
 }
