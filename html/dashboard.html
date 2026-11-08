@@ -1938,6 +1938,32 @@
     } catch (err) {}
   });
 
+  /* Map Rotation Day toggle (Control tab): null = auto (Match Board's current day), 1 / 2 = forced.
+     Two always-toggle buttons; clicking the lit one turns it off (back to auto). Server state is the
+     source of truth (/overlay/map-rotation-day), kept live via the `map_rotation_day` SSE event. */
+  var mapRotationDay = null;
+  var mapRotationDayBtns = [];
+  function applyMapRotationDayBtns() {
+    /* Rows are built detached, then inserted — so never prune on isConnected here (that dropped the
+       just-built buttons). Only trim stale entries from old re-renders once the list grows. */
+    if (mapRotationDayBtns.length > 16) mapRotationDayBtns = mapRotationDayBtns.filter(function (b) { return b.el.isConnected; });
+    mapRotationDayBtns.forEach(function (b) {
+      var on = mapRotationDay === b.day;
+      b.el.className = 'btn btn-toggle ' + (on ? 'btn-toggle-on' : 'btn-toggle-off');
+      b.el.textContent = (on ? '● ' : '○ ') + 'Day ' + b.day;
+    });
+  }
+  fetch('/overlay/map-rotation-day', { cache: 'no-store' }).then(function (r) { return r.json(); })
+    .then(function (d) { mapRotationDay = d && (d.day === 1 || d.day === 2) ? d.day : null; applyMapRotationDayBtns(); })
+    .catch(function () {});
+  dashboardSSE.addEventListener('map_rotation_day', function (e) {
+    try {
+      var d = JSON.parse(e.data);
+      mapRotationDay = d.day === 1 || d.day === 2 ? d.day : null;
+      applyMapRotationDayBtns();
+    } catch (err) {}
+  });
+
   dashboardSSE.addEventListener('apitoggle', function (e) {
     try {
       var d = JSON.parse(e.data);
@@ -2126,7 +2152,7 @@
         { name: 'Danger Zone', show: '/overlay/danger_zone/show', hide: '/overlay/danger_zone/hide' },
         { name: 'Qualified Teams 1', show: '/overlay/qualified_teams_1/show', hide: '/overlay/qualified_teams_1/hide' },
         { name: 'Qualified Teams 2', show: '/overlay/qualified_teams_2/show', hide: '/overlay/qualified_teams_2/hide' },
-        { name: 'Map Rotation', show: '/overlay/map_rotation/show', hide: '/overlay/map_rotation/hide' },
+        { name: 'Map Rotation', show: '/overlay/map_rotation/show', hide: '/overlay/map_rotation/hide', dayToggle: true },
         { name: 'Eliminations/Map', show: '/overlay/elims_map/show', hide: '/overlay/elims_map/hide', elimsMapSelect: true },
         { name: 'Total Elim Leaders', show: '/overlay/elim_leaders/show', hide: '/overlay/elim_leaders/hide' },
         { name: 'Group Elim Leaders', show: '/overlay/group_elim_leaders/show', hide: '/overlay/group_elim_leaders/hide' },
@@ -3150,6 +3176,29 @@
       return wrap;
     }
 
+    /* Map Rotation: Day 1 / Day 2 toggles. Neither lit = auto (the current day). */
+    function buildMapRotationDayToggle() {
+      var wrap = el('div', 'mvp-select-row');
+      var lab = el('span', 'edit-ctrl-label', 'Day');
+      lab.title = 'Neither lit = follow the current day';
+      wrap.appendChild(lab);
+      [1, 2].forEach(function (d) {
+        var b = el('button', 'btn btn-toggle btn-toggle-off', '○ Day ' + d);
+        b.addEventListener('click', function () {
+          /* Light the button from the SERVER's reply (authoritative, not a guess) so it stays on even if this
+             tab's SSE worker is stale; the map_rotation_day SSE event still syncs every OTHER tab/button. */
+          fetch('/overlay/map_rotation/day/' + (mapRotationDay === d ? 'auto' : d))
+            .then(function (r) { return r.json(); })
+            .then(function (res) { mapRotationDay = res && (res.day === 1 || res.day === 2) ? res.day : null; applyMapRotationDayBtns(); })
+            .catch(function () {});
+        });
+        mapRotationDayBtns.push({ day: d, el: b });
+        wrap.appendChild(b);
+      });
+      applyMapRotationDayBtns();
+      return wrap;
+    }
+
     function buildElimsMapSelect(base) {
       var wrap = el('div', 'mvp-select-row');
       wrap.appendChild(el('span', 'edit-ctrl-label', 'Map'));
@@ -3309,6 +3358,7 @@
       if (feat.wtvcPageSpeed) fr.appendChild(buildWtvcPageSpeedControl());
       if (feat.h2hSelect) fr.appendChild(buildH2HSelect());
       if (feat.teamH2hSelect) fr.appendChild(buildTeamH2HSelect());
+      if (feat.dayToggle) fr.appendChild(buildMapRotationDayToggle());
       if (feat.elimsMapSelect) fr.appendChild(buildElimsMapSelect(feat.elimsMapSelect === true ? 'elims_map' : feat.elimsMapSelect));
       return fr;
     }
@@ -5710,6 +5760,7 @@
     '#zrh-c3-r4-text': { left: 1385, top: 751, width: 440, height: 80, fontSize: 36 },
     '#zrh-banner': { left: 452, top: 895, width: 1020, height: 80 },
     '#zrh-banner-text': { left: 590, top: 895, width: 744, height: 80, fontSize: 60 },
+    '#zrh-note': { left: 452, top: 986, width: 1020, height: 36, fontSize: 30 },
     '#zrh-banner-trophy-l': { left: 506, top: 913, width: 44, height: 44 },
     '#zrh-banner-trophy-r': { left: 1374, top: 913, width: 44, height: 44 },
   };
@@ -5777,6 +5828,7 @@
     { group: "Zone Rush Card 3 Row 4 Text", id: '#zrh-c3-r4-text', name: "Card 3 · row 4 text" },
     { group: "Zone Rush Banner", id: '#zrh-banner', name: "Banner · yellow bar" },
     { group: "Zone Rush Banner Text", id: '#zrh-banner-text', name: "Banner · text" },
+    { group: "Zone Rush Showmatch Note", id: '#zrh-note', name: "Showmatch note (yellow, under banner)" },
     { group: "Zone Rush Banner Icon L", id: '#zrh-banner-trophy-l', name: "Banner · bolt left" },
     { group: "Zone Rush Banner Icon R", id: '#zrh-banner-trophy-r', name: "Banner · bolt right" },
   ];

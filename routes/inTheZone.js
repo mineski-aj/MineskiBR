@@ -73,7 +73,7 @@ router.post('/api/in-the-zone', function (req, res) {
 // GET /api/zowned-points → { points, source:'manual'|'fallback'|'none', leader:{name,total}|null,
 //                           mapsCounted, inZoneCount }.
 // manual   = the In The Zone tab's threshold.
-// fallback = no threshold set: the best Grand Finals team total through Map 6, plus 10
+// fallback = no threshold set: the best Grand Finals (or Showmatch, per the selected stage) team total through Map 6, plus 10
 //            (the Zone Point rule) — only once all six maps have a result.
 // A team's score for a map = its leader row's TKP (team kill points) + PS (placement score).
 function colStart(headerGroups, label) {
@@ -85,7 +85,9 @@ function colStart(headerGroups, label) {
   return null;
 }
 function leaderAfterMap(n) {
-  const sheet = externalTally.get().sheets.find(function (s) { return GF_SHEET_RE.test(String(s.name).trim()); });
+  // Follows the selected stage's tally tab (Showmatch tab in Showmatch, else Grand Finals).
+  const re = stageSheetRe();
+  const sheet = externalTally.get().sheets.find(function (s) { return re.test(String(s.name).trim()); });
   if (!sheet) return { leader: null, mapsCounted: 0 };
   const sq = colStart(sheet.headerGroups, 'Squad');
   const squadCol = sq === null ? 0 : sq;
@@ -121,11 +123,13 @@ function leaderAfterMap(n) {
 }
 router.get('/api/zowned-points', function (req, res) {
   const z = inTheZone.get();
-  const r = leaderAfterMap(6);
+  // Grand Finals: leader after Map 6; Showmatch: after Map 1.
+  const afterMap = stageSheetRe() === SHOWMATCH_RE ? 1 : 6;
+  const r = leaderAfterMap(afterMap);
   let points = null, source = 'none';
   if (z.threshold !== null) { points = z.threshold; source = 'manual'; }
-  else if (r.leader && r.mapsCounted >= 6) { points = Math.round((r.leader.total + 10) * 100) / 100; source = 'fallback'; }
-  res.set('Cache-Control', 'no-store').json({ points: points, source: source, leader: r.leader, mapsCounted: r.mapsCounted, inZoneCount: z.zone.length });
+  else if (r.leader && r.mapsCounted >= afterMap) { points = Math.round((r.leader.total + 10) * 100) / 100; source = 'fallback'; }
+  res.set('Cache-Control', 'no-store').json({ points: points, source: source, leader: r.leader, mapsCounted: r.mapsCounted, afterMap: afterMap, inZoneCount: z.zone.length });
 });
 
 // ── Zoned tooltip (ingame.html) ─────────────────────────────────────────

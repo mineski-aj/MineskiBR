@@ -315,6 +315,22 @@ router.get('/overlay/map_rotation/hide', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
+// Map Rotation DAY override (dashboard Control tab toggle). null = "auto" = whatever day Match Board
+// says it is; 1 / 2 = force that day's rotation. Not persisted (a restart goes back to auto).
+// GET /overlay/map_rotation/day/1 | /2 | /auto   → set + broadcast SSE event `map_rotation_day` {day}
+// GET /overlay/map-rotation-day                   → { day } (restore-on-load for the dashboard)
+// Fullscreen.html re-reads this on every Map Rotation show, and re-deals the cards live when it changes.
+state.mapRotationDay = state.mapRotationDay === 1 || state.mapRotationDay === 2 ? state.mapRotationDay : null;
+router.get('/overlay/map_rotation/day/:d', (req, res) => {
+  const d = req.params.d === '1' ? 1 : req.params.d === '2' ? 2 : null;
+  state.mapRotationDay = d;
+  state.overlayClients.forEach(c => { try { c.write('event: map_rotation_day\ndata: ' + JSON.stringify({ day: d }) + '\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, day: d });
+});
+router.get('/overlay/map-rotation-day', (req, res) => {
+  res.set({ "Cache-Control": "no-store" }).json({ day: state.mapRotationDay });
+});
+
 // Eliminations/Map — GET/POST the chosen map (dashboard Control tab).
 // POST re-broadcasts on the scene's own event with action 'refresh' so a
 // scene that's already on screen re-ranks without a hide/show.

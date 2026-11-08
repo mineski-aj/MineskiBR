@@ -480,6 +480,8 @@
     }
     .wtvc-row.wtvc-has-logo .wtvc-row-flag { left: 153px; }
     .wtvc-row-logo img { width: 100%; height: 100%; object-fit: contain; }
+    /* transparent logos get a square dark backer (40x40, centred in the 50x40 slot) */
+    .wtvc-row-logo.mrr-logo-backed img { width: 40px; height: 40px; background: #121212; }
     .wtvc-row-name {
       position: absolute;
       top: 1px; height: 52px;
@@ -582,6 +584,7 @@
       display: flex; align-items: center; justify-content: center;
     }
     .wtvc-map-winner img { width: 100%; height: 100%; object-fit: contain; }
+    .wtvc-map-winner.mrr-logo-backed { background: #121212; } /* square backer for transparent logos (same as Map Rotation) */
     .wtvc-map-num {
       position: absolute;
       left: 3px; top: 46px;
@@ -1410,16 +1413,12 @@
     #overall-ranking-page.ovr-gf .ovr-hc-group, #overall-ranking-page.ovr-gf .ovr-rc-group { display: none; }
     #overall-ranking-page.ovr-gf .ovr-rc-name { width: 290px; }
 
-    /* Showmatch: no country tag, region or Group on Overall/Map/Group Ranking —
-       the flag-code cell, the Group column and the divider that followed the flag
-       go away and the team name takes the space (.rnk-sm is set from the stage in
-       rnkApplyMapStage; Map Ranking additionally uses its compact layout). */
-    .rnk-sm .ovr-rc-flag, .rnk-sm .mrk-rc-flag, .rnk-sm .grk-rc-flag,
-    .rnk-sm .ovr-hc-group, .rnk-sm .ovr-rc-group, .rnk-sm .grk-hc-group, .rnk-sm .grk-rc-group,
-    .rnk-sm .ovr-row-divider[style*="left:182px"], .rnk-sm .grk-row-divider[style*="left:182px"],
-    .rnk-sm .mrk-row-divider[style*="left:182px"] { display: none; }
-    .rnk-sm .ovr-rc-name, .rnk-sm .grk-rc-name { left: 144px; width: 338px; }
-    .rnk-sm .mrk-rc-name { left: 144px; width: 240px; }
+    /* Showmatch: country codes are shown again, laid out exactly as normal (same as Grand Finals).
+       Showmatch squads have no Group, so only the Group column goes away — Overall's team name takes
+       its space the same way .ovr-gf does. (.rnk-sm is set from the stage in rnkApplyMapStage; Map
+       Ranking already uses its compact, group-less layout.) */
+    .rnk-sm .ovr-hc-group, .rnk-sm .ovr-rc-group, .rnk-sm .grk-hc-group, .rnk-sm .grk-rc-group { display: none; }
+    .rnk-sm .ovr-rc-name { width: 290px; }
     .ovr-rc-gw    { left: 497px; width: 92px; }
     .ovr-rc-kp    { left: 601px; width: 92px; }
     .ovr-rc-rp    { left: 701px; width: 92px; }
@@ -1755,6 +1754,12 @@
       transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease;
       transform: translate(0, 0) rotate(0deg) scale(var(--mrr-scale, 1));
       opacity: 1;
+    }
+    /* Day toggle flipped live: current cards drop out before the other day is dealt in */
+    .mrr-card.mrr-dealt.mrr-out {
+      transition: transform 300ms ease-in, opacity 260ms ease;
+      transform: translate(0, 60px) rotate(0deg) scale(var(--mrr-scale, 1));
+      opacity: 0;
     }
     .mrr-card-bg, .mrr-card-label {
       position: absolute; top: 0; left: 0; width: 297px; height: 707px;
@@ -4128,6 +4133,9 @@
     #zrh-c3-r4-text { left: 1385px; top: 751px; width: 440px; height: 80px; font-size: 36px; }
     #zrh-banner { left: 452px; top: 895px; width: 1020px; height: 80px; }
     #zrh-banner-text { left: 590px; top: 895px; width: 744px; height: 80px; font-size: 60px; }
+    #zrh-note { left: 452px; top: 986px; width: 1020px; height: 36px; font-size: 30px; }
+    #zone-rush-page #zrh-note { color: #FFE600; font-weight: 600; letter-spacing: .04em;
+      text-shadow: 0 0 3px #0a0a0a, 0 0 3px #0a0a0a, 1px 1px 0 #0a0a0a, -1px -1px 0 #0a0a0a, 1px -1px 0 #0a0a0a, -1px 1px 0 #0a0a0a; } /* yellow on the light page needs the dark outline to read */
     #zrh-banner-trophy-l { left: 506px; top: 913px; width: 44px; height: 44px; }
     #zrh-banner-trophy-r { left: 1374px; top: 913px; width: 44px; height: 44px; }
 
@@ -4171,6 +4179,11 @@
       font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; color: #fff; font-size: 120px;
     }
     #mwn-flag span, #mwn-logo-flag span, #mmvp-flag span, #mhl-winner-flag span, #mhl-winner-logo-flag span { display: block; transform: translateY(0.12em); }
+    /* Showmatch (no player photos): plate moves to the vertical centre of the photo+plate column
+       (photos panel 458px + plate 270px → plate up by 229px), letter replaces the logo. */
+    #mwn-team-back.mwn-showmatch { transform: translateY(-229px); }
+    #mwn-logo-flag.mwn-letter { color: #FFD21F; font-size: 290px; overflow: visible; }
+    #mwn-logo-flag.mwn-letter span { transform: translateY(0.092em); } /* optical centring (measured: default sat ~8px low) */
     #mwn-name {
       position: absolute;
       left: 491px; top: 25px; width: 861px; height: 223px;
@@ -5135,6 +5148,9 @@
       width: 100%; height: 100%; display: none; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap;
       font-family: 'Teko', sans-serif; font-weight: 700; line-height: 1; color: #fff; font-size: 100px;
     }
+    /* Showmatch "Team Alpha".."Team Hotel": big yellow letter in the logo square */
+    #mhl-winner-logo-flag.mhl-letter { color: #FFD21F; font-size: 360px; overflow: visible; }
+    #mhl-winner-logo-flag.mhl-letter span { transform: translateY(0.092em); }
     #mhl-winner-name {
       position: absolute; left: 5px; top: 403px; width: 404px; height: 148px;
       display: flex; align-items: center; justify-content: center; text-align: center;
@@ -7496,6 +7512,7 @@
       <div id="zrh-c3-r4-text" class="zrh-row-text zrh-on-dark zrh-fit zrh-left-in-s zrh-d44" data-max="36" data-min="20"><span>Under 6 maps: Zone Point is <b>fixed at 115</b></span></div>
       <div id="zrh-banner" class="zrh-banner zrh-wipe-c zrh-d44"></div>
       <div id="zrh-banner-text" class="zrh-banner-text zrh-center zrh-fit zrh-up zrh-d47" data-max="60" data-min="34"><span>SIX MAPS. BUILD THE LEAD. CARRY IT FORWARD.</span></div>
+      <div id="zrh-note" class="zrh-text zrh-center zrh-fit zrh-up zrh-d50" data-max="30" data-min="16" style="display:none"><span>*Number of Maps adjusted for Showmatch</span></div>
       <div id="zrh-banner-trophy-l" class="zrh-banner-ico zrh-pop zrh-d49"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div>
       <div id="zrh-banner-trophy-r" class="zrh-banner-ico zrh-pop zrh-d50"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div>
     </div>
@@ -8014,6 +8031,8 @@
           setTimeout(showMapRotationScene, 100);
         } else if (msg.action === 'hide') hideActiveFeature();
       });
+
+      sseSource.addEventListener('map_rotation_day', () => { mrrRefreshDay(); });
 
       sseSource.addEventListener('elims_map', (e) => {
         const msg = JSON.parse(e.data);
@@ -8744,6 +8763,7 @@
       row.appendChild(name);
 
       logoImg.onload = () => {
+        if (logoLacksBacker(logoImg)) logo.classList.add('mrr-logo-backed');
         logo.style.display = 'flex';
         row.classList.add('wtvc-has-logo');
         name.className = 'wtvc-row-name wtvc-name-haslogo';
@@ -8853,7 +8873,7 @@
         card.appendChild(tag);
       }
 
-      const winLogo = mapWinnerLogoEl(map, 'wtvc-map-winner');
+      const winLogo = mapWinnerLogoEl(map, 'wtvc-map-winner', true);
       if (winLogo) { card.classList.add('has-winner'); card.appendChild(winLogo); }
 
       return card;
@@ -9793,9 +9813,10 @@
        Day 1 = maps 1 to 4.2, Day 2 = maps 5 to 8 (by each row's whole-map
        number, so 2.1/2.2 and 4.1/4.2 stay in Day 1). Any other Playoffs day
        or stage shows every row. */
-    function brMapRotationRows(ms) {
+    function brMapRotationRows(ms, dayOverride) {
       const maps = brMapRows(ms);
-      const day = parseInt(ms && ms.day, 10) || 1;
+      /* dayOverride (1|2) = the Control-tab Day toggle; null = follow Match Board's current day */
+      const day = (dayOverride === 1 || dayOverride === 2) ? dayOverride : (parseInt(ms && ms.day, 10) || 1);
       /* Grand Finals: 12 maps over 2 days — Day 1 = maps 1-6, Day 2 = 7-12
          (by position; its rows are plain numbers, no sheet labels). */
       if (/grand\s*finals/i.test((ms && ms.stage) || '')) {
@@ -10081,7 +10102,9 @@
       // #1 by tiebreak alone, and that shouldn't look like a real win.
       // maxRank (optional, default 1) widens that to ranks 1..maxRank —
       // only Overall Ranking passes it (Playoffs: 7), see ovrFetchScoreboard.
-      return (rank >= 1 && rank <= (maxRank || 1) && Number(score) > 0)
+      // Showmatch: the yellow container is reserved for In-The-Zone squads
+      // (Overall Ranking tags those itself, bypassing this function) — never rank-based.
+      return (!rnkIsShowmatch() && rank >= 1 && rank <= (maxRank || 1) && Number(score) > 0)
         ? '/assets/Overall%20Ranking/teamscoreboard_rank1.png'
         : '/assets/Overall%20Ranking/teamscoreboard.png';
     }
@@ -11107,10 +11130,29 @@
 
     async function mrrFetchMaps() {
       try {
-        const res = await fetch(buildUrl('/match/state'), { cache: 'no-store' });
+        const [res, dres] = await Promise.all([
+          fetch(buildUrl('/match/state'), { cache: 'no-store' }),
+          fetch(buildUrl('/overlay/map-rotation-day'), { cache: 'no-store' }).catch(() => null),
+        ]);
         const ms = res.ok ? await res.json() : null;
-        return brMapRotationRows(ms);
+        const dd = dres && dres.ok ? await dres.json().catch(() => null) : null;
+        return brMapRotationRows(ms, dd && dd.day);
       } catch (e) { return []; }
+    }
+
+    /* Day toggle flipped while Map Rotation is on screen: the current cards drop out,
+       then the other day's cards are dealt in. Newest flip wins if toggled quickly. */
+    let mrrDaySeq = 0;
+    async function mrrRefreshDay() {
+      if (activeFeature !== 'maprotation' || !mrrPage.classList.contains('mrr-visible')) return;
+      const seq = ++mrrDaySeq;
+      const dataP = mrrFetchMaps();
+      document.querySelectorAll('#mrr-cards .mrr-card').forEach(c => c.classList.add('mrr-out'));
+      await new Promise(r => setTimeout(r, 320));
+      const maps = await dataP;
+      if (seq !== mrrDaySeq || activeFeature !== 'maprotation') return;
+      mrrRenderCards(maps);
+      mrrPlayAnimation(maps.length);
     }
 
     async function showMapRotationScene() {
@@ -11584,7 +11626,7 @@
         if (fallback && img.getAttribute('src') !== fallback) { img.src = fallback; return; }
         img.style.display = 'none';
       };
-      img.src = src;
+      /* transparent logos get the dark square backer (same as Map Rotation) */ img.style.background = ''; img.onload = () => { img.style.background = logoLacksBacker(img) ? '#121212' : ''; }; img.src = src;
     }
 
     /* Must run AFTER #teammap-page has .tme-on (real layout) — the fit calls
@@ -11707,7 +11749,7 @@
         if (fallback && img.getAttribute('src') !== fallback) { img.src = fallback; return; }
         img.style.display = 'none';
       };
-      img.src = src;
+      /* transparent logos get the dark square backer (same as Map Rotation) */ img.style.background = ''; img.onload = () => { img.style.background = logoLacksBacker(img) ? '#121212' : ''; }; img.src = src;
     }
 
     /* Must run AFTER #zowned-page has .zr-on (real layout) — the fit calls
@@ -11821,7 +11863,7 @@
     function avpSetImg(img, src) {
       img.style.display = '';
       img.onerror = () => { img.style.display = 'none'; };
-      img.src = src;
+      /* transparent logos get the dark square backer (same as Map Rotation) */ img.style.background = ''; img.onload = () => { img.style.background = logoLacksBacker(img) ? '#121212' : ''; }; img.src = src;
     }
 
     /* Must run AFTER #avgplace-page has .avp-on (real layout) — the fit
@@ -11921,7 +11963,7 @@
     function mpaSetImg(img, src) {
       img.style.display = '';
       img.onerror = () => { img.style.display = 'none'; };
-      img.src = src;
+      /* transparent logos get the dark square backer (same as Map Rotation) */ img.style.background = ''; img.onload = () => { img.style.background = logoLacksBacker(img) ? '#121212' : ''; }; img.src = src;
     }
 
     /* Must run AFTER #mapplace-page has .mpa-on (real layout) — the fit
@@ -12600,7 +12642,7 @@
     function tteSetImg(img, src) {
       img.style.display = '';
       img.onerror = () => { img.style.display = 'none'; };
-      img.src = src;
+      /* transparent logos get the dark square backer (same as Map Rotation) */ img.style.background = ''; img.onload = () => { img.style.background = logoLacksBacker(img) ? '#121212' : ''; }; img.src = src;
     }
 
     /* Must run AFTER #totalteam-page has .tte-on (real layout) — the fit calls
@@ -12688,7 +12730,7 @@
     function gteSetImg(img, src) {
       img.style.display = '';
       img.onerror = () => { img.style.display = 'none'; };
-      img.src = src;
+      /* transparent logos get the dark square backer (same as Map Rotation) */ img.style.background = ''; img.onload = () => { img.style.background = logoLacksBacker(img) ? '#121212' : ''; }; img.src = src;
     }
 
     /* Must run AFTER #groupteam-page has .gte-on (real layout) — the fit calls
@@ -12779,7 +12821,7 @@
     function pteSetImg(img, src) {
       img.style.display = '';
       img.onerror = () => { img.style.display = 'none'; };
-      img.src = src;
+      /* transparent logos get the dark square backer (same as Map Rotation) */ img.style.background = ''; img.onload = () => { img.style.background = logoLacksBacker(img) ? '#121212' : ''; }; img.src = src;
     }
 
     /* Must run AFTER #playoffsteam-page has .pte-on (real layout) — the fit calls
@@ -12870,7 +12912,7 @@
     function qteSetImg(img, src) {
       img.style.display = '';
       img.onerror = () => { img.style.display = 'none'; };
-      img.src = src;
+      /* transparent logos get the dark square backer (same as Map Rotation) */ img.style.background = ''; img.onload = () => { img.style.background = logoLacksBacker(img) ? '#121212' : ''; }; img.src = src;
     }
 
     /* Must run AFTER #qualteam-page has .qte-on (real layout) — the fit calls
@@ -13059,9 +13101,55 @@
       zbPage.querySelectorAll('.zb-fit').forEach(el => zbFit(el, parseFloat(el.dataset.max), parseFloat(el.dataset.min)));
     }
 
+    /* Rules-explainer overlays (Zone Bounty / Zone Rush / Endgame Protocol / Points System):
+       the markup holds the Grand Finals wording (Map 6 / 8 / 12). In Showmatch (3 maps) the
+       map numbers and the stage chip are swapped, and swapped back for any other stage.
+       Zowned Points has its own version (zwpApply). Text is set before the scene's fit pass. */
+    const RULES_SM_TEXT = [
+      /* Showmatch = ONE day, 3 maps, and it ends at Map 3 — so no "Day 2" and no "from Map N onward" */
+      ['zb-from',            'FROM MAP 8 ONWARD',                                  'MAP 3 ONLY · THE FINAL MAP'],
+      ['egp-from',           'GRAND FINALS · FROM MAP 8 ONWARD',                   'SHOWMATCH · MAP 3 · THE FINAL MAP'],
+      ['egp-c1-r1-text',     'Applies <b>from Map 8 onward</b>',                   'Applies <b>on Map 3</b>, the final map'],
+      ['egp-c2-r1-text',     '<b>The Grand Finals ends</b> after that map',        '<b>The Showmatch ends</b> after that map'],
+      ['egp-c2-r2-text',     'Remaining maps are <b>cancelled</b>, not played',    'Map 3 is the <b>final map</b>: nothing follows'],
+      ['zrh-from',           'GRAND FINALS · ENDGAME PROTOCOL · DAY 1',            'SHOWMATCH · ENDGAME PROTOCOL'],
+      ['zrh-sub-a',          'Day 1',                                              'Start'],
+      ['zrh-sub-claim',      'CARRY IT TO DAY 2',                                  'CARRY IT TO MAP 3'],
+      ['zrh-c1-r2-text',     'Points <b>carry to Day 2</b>: no reset, no multiplier', 'Points <b>carry over</b>: no reset, no multiplier'],
+      ['zrh-c3-r1-text',     'Nobody starts Day 2 <b>IN THE ZONE</b>: 1st is 10 short', 'Nobody is <b>IN THE ZONE</b> after Map 1: 1st is 10 short'],
+      ['psy-rule3-text',     '<b>Carry-over.</b> Day 1 points carry into Day 2 in full, no reset or handicap', '<b>Carry-over.</b> Points carry from map to map in full, no reset or handicap'],
+      ['zrh-sub-zone',       'MAP 1 TO MAP 6',                                     'MAP 1'],
+      ['zrh-c1-r1-text',     '<b>All six maps</b> played in full and scored',      '<b>Map 1</b> played in full and scored'],
+      ['zrh-c1-r4-text',     'Map 6 standings set the <b>Seeding Rank</b>',        'Map 1 standings set the <b>Seeding Rank</b>'],
+      ['zrh-c2-r1-text',     'Calculated after Map 6 and <b>announced publicly</b>', 'Calculated after Map 1 and <b>announced publicly</b>'],
+      ['zrh-banner-text',    'SIX MAPS. BUILD THE LEAD. CARRY IT FORWARD.',        'MAP 1. BUILD THE LEAD. CARRY IT FORWARD.'],
+      ['psy-rule1-text',     '<b>Applies to all 12 maps</b>, across both Zone Rush and Endgame Protocol', '<b>Applies to all 3 maps</b>, across both Zone Rush and Endgame Protocol'],
+      ['psy-rule5-text',     '<b>Points decide</b> the Zone Point (Map 6 leader + 10), the Map 12 fallback Champion and 2nd to 10th', '<b>Points decide</b> the Zone Point (Map 1 leader + 10), the Map 3 fallback Champion and 2nd to 10th'],
+      ['psy-rule6-text',     '<b>An IN THE ZONE map win</b> from Map 8 makes you Champion, whatever the total', '<b>An IN THE ZONE map win</b> on Map 3 makes you Champion, whatever the total'],
+    ];
+    async function rulesApplyStageText() {
+      let sm = false;
+      try {
+        const ms = await fetch(buildUrl('/match/state'), { cache: 'no-store' }).then(r => r.ok ? r.json() : null);
+        sm = /^show\s*match$/i.test(String((ms && ms.stage) || '').trim());
+      } catch (e) {}
+      RULES_SM_TEXT.forEach(([id, gf, smTxt]) => {
+        const sp = document.querySelector('#' + id + ' span');
+        if (sp) sp.innerHTML = sm ? smTxt : gf;
+      });
+      /* Zone Rush "Under 6 maps: Zone Point is fixed at 115" row (icon + text + the divider above it) — not in Showmatch */
+      ['zrh-c3-r4-icon', 'zrh-c3-r4-text', 'zrh-c3-r3-line'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = sm ? 'none' : '';
+      });
+      /* Zone Rush footnote under the banner — Showmatch only */
+      const zrhNote = document.getElementById('zrh-note');
+      if (zrhNote) zrhNote.style.display = sm ? '' : 'none';
+    }
+
     async function showZoneBountyScene() {
       await transitionTo('zonebounty');
-      if (activeFeature !== 'zonebounty') return; /* superseded mid-await */
+      if (activeFeature !== 'zonebounty') return; /* superseded mid-await */ await rulesApplyStageText(); if (activeFeature !== 'zonebounty') return;
       showBgVideo();
       zbPage.classList.remove('zb-play', 'zb-visible');
       zbPage.classList.add('zb-on'); /* display:block so fit can measure, still opacity 0 */
@@ -13100,7 +13188,7 @@
 
     async function showZoneRushScene() {
       await transitionTo('zonerush');
-      if (activeFeature !== 'zonerush') return; /* superseded mid-await */
+      if (activeFeature !== 'zonerush') return; /* superseded mid-await */ await rulesApplyStageText(); if (activeFeature !== 'zonerush') return;
       showBgVideo();
       zrhPage.classList.remove('zrh-play', 'zrh-visible');
       zrhPage.classList.add('zrh-on'); /* display:block so fit can measure, still opacity 0 */
@@ -13139,7 +13227,7 @@
 
     async function showEndgameProtocolScene() {
       await transitionTo('endgameprotocol');
-      if (activeFeature !== 'endgameprotocol') return; /* superseded mid-await */
+      if (activeFeature !== 'endgameprotocol') return; /* superseded mid-await */ await rulesApplyStageText(); if (activeFeature !== 'endgameprotocol') return;
       showBgVideo();
       egpPage.classList.remove('egp-play', 'egp-visible');
       egpPage.classList.add('egp-on'); /* display:block so fit can measure, still opacity 0 */
@@ -13178,7 +13266,7 @@
 
     async function showPointsSystemScene() {
       await transitionTo('pointssystem');
-      if (activeFeature !== 'pointssystem') return; /* superseded mid-await */
+      if (activeFeature !== 'pointssystem') return; /* superseded mid-await */ await rulesApplyStageText(); if (activeFeature !== 'pointssystem') return;
       showBgVideo();
       psyPage.classList.remove('psy-play', 'psy-visible');
       psyPage.classList.add('psy-on'); /* display:block so fit can measure, still opacity 0 */
@@ -13238,8 +13326,13 @@
       zwpSet('zwp-hero-num', has ? String(Math.round(pts * 100) / 100) : 'TBD');
       zwpSet('zwp-strip-text',
         d && d.source === 'manual' ? 'THE SCORE TO REACH'
-        : d && d.source === 'fallback' && d.leader ? 'MAP 6 LEADER ' + d.leader.total + ' + 10'
-        : 'ANNOUNCED AFTER MAP 6');
+        : d && d.source === 'fallback' && d.leader ? 'MAP ' + (d.afterMap || 6) + ' LEADER ' + d.leader.total + ' + 10'
+        : 'ANNOUNCED AFTER MAP ' + ((d && d.afterMap) || 6));
+      /* Details panel wording follows the stage: Showmatch = Map 1 / Map 3, Grand Finals = Map 6 / Map 8 */
+      const sm = !!(d && d.afterMap === 1);
+      const r2 = document.querySelector('#zwp-row2-text span'), r4 = document.querySelector('#zwp-row4-text span');
+      if (r2) r2.innerHTML = '<b>Zone Point = 1st place total after Map ' + (sm ? 1 : 6) + ', plus 10 points</b>';
+      if (r4) r4.innerHTML = '<b>IN THE ZONE plus a map win</b> ' + (sm ? 'on Map 3' : 'from Map 8 onward') + ' makes you Champion';
       const lead = d && d.leader;
       zwpSet('zwp-tile-leader-label', lead ? 'OVERALL LEADER · ' + lead.total + ' PTS' : 'OVERALL LEADER');
       zwpSet('zwp-tile-leader-val', lead ? lead.name : '—');
@@ -13327,6 +13420,12 @@
        falling back to highest placement points) from the same
        /api/current-map-standings Map Ranking uses — deliberately not the
        top scorer, and independent of the Winner pick. */
+    /* Showmatch squads "Team Alpha".."Team Hotel" → 'A'..'H' ('' for any other name). */
+    function showmatchLetter(name) {
+      const SM = ['alpha', 'bravo', 'charlie', 'delta', 'echo', 'foxtrot', 'golf', 'hotel'];
+      const i = SM.indexOf((String(name || '').trim().toLowerCase().match(/^(?:team\s+)?([a-z]+)$/) || [])[1]);
+      return i >= 0 ? 'ABCDEFGH'[i] : '';
+    }
     async function mwnFetchData() {
       try {
         const [msRes, qRes, cmRes] = await Promise.all([
@@ -13355,9 +13454,13 @@
         const stats = top ? { total: top.totalScore, rp: top.placementPoints, kp: top.totalKills } : null;
         /* No Winner picked in Match Board → default the team plate to the
            team that placed #1, so the plate and the stats agree. */
+        /* Showmatch: a Winner pick that isn't one of the Showmatch squads (e.g. a leftover
+           Grand Finals team still saved in Today's Maps) is ignored — use the #1 team. */
+        if (winner && /^show\s*match$/i.test(String((ms && ms.stage) || '').trim())
+            && !teams.some(t => String(t.name).toLowerCase() === winner.name.toLowerCase())) winner = null;
         if (!winner && top) winner = { name: top.name, region: top.region || '' };
         if (winner) winner.players = await mwnFetchPlayers(winner.name);
-        return { winner: winner, stats: stats };
+        return { winner: winner, stats: stats, showmatch: /^show\s*match$/i.test(String((ms && ms.stage) || '').trim()) };
       } catch (e) { return { winner: null, stats: null }; }
     }
 
@@ -13557,17 +13660,26 @@
       mwnAnimPending = false;
       mwnRenderStats(data && data.stats, animate);
       const d = data && data.winner;
-      mwnRenderPhotos(d ? d.players : null, d ? d.name : '', animate);
+      const sm = !!(data && data.showmatch);
+      /* Showmatch has no player photos: hide the photo panel, centre the plate */
+      mwnRenderPhotos(d && !sm ? d.players : null, d ? d.name : '', animate);
+      mwnCard.classList.toggle('mwn-showmatch', sm);
       if (!d) { mwnCard.style.display = 'none'; return; }
       const flagCode = String(d.region || '').toUpperCase();
       const hasFlag = !!flagCode;
-      const hasLogo = await mwnProbe('/logos/' + encodeURIComponent(d.name) + '.png');
+      const smLetter = sm ? showmatchLetter(d.name) : '';
+      const hasLogo = smLetter ? false : await mwnProbe('/logos/' + encodeURIComponent(d.name) + '.png');
       if (activeFeature !== 'mapwinner') return;
       const logoImg = document.getElementById('mwn-logo-img');
       const logoFlag = document.getElementById('mwn-logo-flag');
       const flag = document.getElementById('mwn-flag');
       logoImg.style.display = logoFlag.style.display = flag.style.display = 'none';
-      if (hasLogo) {
+      logoFlag.classList.toggle('mwn-letter', !!smLetter);
+      if (smLetter) {
+        logoFlag.querySelector('span').style.fontSize = '';
+        logoFlag.querySelector('span').textContent = smLetter;
+        logoFlag.style.display = 'flex';
+      } else if (hasLogo) {
         logoImg.src = '/logos/' + encodeURIComponent(d.name) + '.png';
         logoImg.style.display = 'block';
         if (hasFlag) { flag.querySelector('span').textContent = flagCode; flag.style.display = 'flex'; flagFitSpan(flag); }
@@ -15791,13 +15903,19 @@
       const flagCode = String(w.region || '').toUpperCase();
       const hasFlag = !!flagCode;
       const logoUrl = '/logos/' + encodeURIComponent(w.name) + '.png';
-      const hasLogo = await mhlProbe(logoUrl);
+      /* Showmatch squads "Team Alpha".."Team Hotel" → big yellow A..H instead of a logo */
+      const smLetter = showmatchLetter(w.name);
+      const hasLogo = smLetter ? false : await mhlProbe(logoUrl);
       if (activeFeature !== 'maphighlights') return;
       const logoImg = document.getElementById('mhl-winner-logo-img');
       const logoFlag = document.getElementById('mhl-winner-logo-flag');
       const flag = document.getElementById('mhl-winner-flag');
       logoImg.style.display = logoFlag.style.display = flag.style.display = 'none';
-      if (hasLogo) {
+      logoFlag.classList.toggle('mhl-letter', !!smLetter);
+      if (smLetter) {
+        logoFlag.querySelector('span').style.fontSize = '';
+        logoFlag.querySelector('span').textContent = smLetter; logoFlag.style.display = 'flex';
+      } else if (hasLogo) {
         logoImg.src = logoUrl; logoImg.style.display = 'block';
         if (hasFlag) { flag.querySelector('span').textContent = flagCode; flag.style.display = 'flex'; flagFitSpan(flag); }
       } else if (hasFlag) {

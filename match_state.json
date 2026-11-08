@@ -72,7 +72,7 @@
   "swapped": false,
   "official": true,
   "week": 1,
-  "day": 1,
+  "day": 2,
   "patch": " ",
   "hosts": [
     "Denisse",
@@ -168,11 +168,11 @@
   ],
   "countdownLabel": "SHOW RESUMES IN",
   "goodbyeLabel": "SEE YOU TOMORROW",
-  "match": 3,
+  "match": 8,
   "countdownLabelAuto": true,
   "timer": {
     "running": true,
-    "endAt": 1794042385068,
+    "endAt": 1794120399578,
     "remaining": 1800
   },
   "map": "Isolated",
@@ -181,13 +181,13 @@
     "Naisou",
     "Wolf"
   ],
-  "stage": "Showmatch",
-  "todayMapsCount": 3,
+  "stage": "Grand Finals",
+  "todayMapsCount": 12,
   "todayMaps": [
     {
       "time": " ",
       "mapName": "Isolated",
-      "winner": "POISON IVY GIZY",
+      "winner": "ADMT MAIN",
       "done": false,
       "groupMatch": ""
     },
@@ -196,14 +196,68 @@
       "mapName": "Krai",
       "done": false,
       "groupMatch": "",
-      "winner": "ADMT PYRITE"
+      "winner": "LEAP MAIN"
     },
     {
       "time": " ",
       "mapName": "Isolated",
       "done": false,
       "groupMatch": "",
+      "winner": "CHANGE WORLD"
+    },
+    {
+      "time": "",
+      "mapName": "Rebirth Island",
+      "groupMatch": "",
+      "winner": "ADMT PYRITE"
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "groupMatch": "",
+      "winner": "ROYAL GEMINI JA LN"
+    },
+    {
+      "time": "",
+      "mapName": "Krai",
+      "groupMatch": "",
+      "winner": "POISON IVY GIZY"
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "groupMatch": "",
       "winner": "LEAP MAIN"
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "groupMatch": "",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "groupMatch": "",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "groupMatch": "",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "groupMatch": "",
+      "winner": ""
+    },
+    {
+      "time": "",
+      "mapName": "Isolated",
+      "groupMatch": "",
+      "winner": ""
     }
   ],
   "tomorrowMapsCount": 6,
